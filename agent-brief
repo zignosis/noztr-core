@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+set -u -o pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "${script_dir}/AGENTS.md" ]]; then
+    repo_root="${script_dir}"
+else
+    repo_root="$(cd "${script_dir}/.." && pwd)"
+fi
+
+now_utc="$(date -u +"%Y-%m-%d %H:%M:%SZ")"
+
+is_git_repo="no"
+if [[ -d "${repo_root}/.git" ]]; then
+    is_git_repo="yes"
+fi
+
+zig_version="not found"
+if command -v zig >/dev/null 2>&1; then
+    zig_version="$(zig version 2>/dev/null || true)"
+    if [[ -z "${zig_version}" ]]; then
+        zig_version="available (version lookup failed)"
+    fi
+fi
+
+report_file() {
+    local rel="$1"
+    if [[ -f "${repo_root}/${rel}" ]]; then
+        printf -- '- [x] `%s`\n' "${rel}"
+    else
+        printf -- '- [ ] `%s`\n' "${rel}"
+    fi
+}
+
+report_section() {
+    local title="$1"
+    shift
+    printf "## %s\n\n" "${title}"
+    for rel in "$@"; do
+        report_file "${rel}"
+    done
+    printf "\n"
+}
+
+missing_artifacts=()
+collect_missing() {
+    local rel="$1"
+    if [[ ! -f "${repo_root}/${rel}" ]]; then
+        missing_artifacts+=("${rel}")
+    fi
+}
+
+research_docs=(
+    "docs/research/building-nostr-study.md"
+    "docs/research/nostr-protocol-study.md"
+    "docs/research/applesauce-study.md"
+    "docs/research/rust-nostr-study.md"
+    "docs/research/libnostr-z-study.md"
+    "docs/guides/zig-patterns.md"
+)
+
+plan_docs=(
+    "CODEX-PROMPT.md"
+    "docs/plans/decision-log.md"
+    "docs/plans/build-plan.md"
+    "handoff.md"
+)
+
+phase_prompts=(
+    "docs/plans/prompts/README.md"
+    "docs/plans/prompts/phase-0-philosophy-and-principles.md"
+    "docs/plans/prompts/phase-a-scope-freeze.md"
+    "docs/plans/prompts/phase-b-protocol-research.md"
+    "docs/plans/prompts/phase-c0-zig-language-study.md"
+    "docs/plans/prompts/phase-c1-applesauce-study.md"
+    "docs/plans/prompts/phase-c2-rust-nostr-study.md"
+    "docs/plans/prompts/phase-c3-libnostr-z-study.md"
+    "docs/plans/prompts/phase-c4-implementation-synthesis.md"
+    "docs/plans/prompts/phase-d-contracts-vectors.md"
+    "docs/plans/prompts/phase-e-build-plan.md"
+    "docs/plans/prompts/phase-f-implementation-handoff.md"
+)
+
+roadmap_docs=(
+    "docs/plans/nostr-principles.md"
+    "docs/plans/v1-scope.md"
+    "docs/research/v1-protocol-reference.md"
+    "docs/research/v1-zig-implementation-notes.md"
+    "docs/research/v1-applesauce-deep-study.md"
+    "docs/research/v1-rust-nostr-deep-study.md"
+    "docs/research/v1-libnostr-z-deep-study.md"
+    "docs/research/v1-implementation-decisions.md"
+    "docs/plans/v1-api-contracts.md"
+    "docs/guides/zig-anti-patterns.md"
+    "docs/plans/implementation-kickoff.md"
+)
+
+for rel in "${research_docs[@]}"; do
+    collect_missing "${rel}"
+done
+for rel in "${plan_docs[@]}"; do
+    collect_missing "${rel}"
+done
+for rel in "${phase_prompts[@]}"; do
+    collect_missing "${rel}"
+done
+for rel in "${roadmap_docs[@]}"; do
+    collect_missing "${rel}"
+done
+
+zig_file_count=0
+if [[ -d "${repo_root}/src" ]]; then
+    shopt -s globstar nullglob
+    zig_files=("${repo_root}"/src/**/*.zig)
+    zig_file_count="${#zig_files[@]}"
+    shopt -u globstar nullglob
+fi
+
+printf "# Agent Brief\n\n"
+printf "Live context snapshot for AI agents.\n\n"
+printf "_Generated:_ %s\n\n" "${now_utc}"
+
+printf "## Repository\n\n"
+printf -- '- root: `%s`\n' "${repo_root}"
+printf -- '- git repo: `%s`\n' "${is_git_repo}"
+printf -- '- zig: `%s`\n' "${zig_version}"
+printf -- '- src zig files: `%s`\n\n' "${zig_file_count}"
+
+report_section "Research Artifacts" "${research_docs[@]}"
+report_section "Planning Artifacts" "${plan_docs[@]}"
+report_section "Phase Prompt Artifacts" "${phase_prompts[@]}"
+report_section "Roadmap Artifacts" "${roadmap_docs[@]}"
+
+printf "## Next Missing Artifacts\n\n"
+if [[ "${#missing_artifacts[@]}" -eq 0 ]]; then
+    printf -- "- none\n\n"
+else
+    for rel in "${missing_artifacts[@]}"; do
+        printf -- '- `%s`\n' "${rel}"
+    done
+    printf "\n"
+fi
+
+printf "## Canonical Commands\n\n"
+printf '```bash\n'
+printf "zig build test --summary all\n"
+printf "zig build\n"
+printf '```\n'
