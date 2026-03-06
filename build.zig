@@ -56,12 +56,8 @@ fn configure_secp_c_bindings(builder: *std.Build, module: *std.Build.Module) voi
     std.debug.assert(@sizeOf(std.Build.Module) > 0);
     std.debug.assert(!@inComptime());
 
-    const dependency_metadata = @import("root").dependencies;
-    const secp_package_name =
-        "secp256k1-0.0.0-AAAAAPPgAAADPOkS7brnO1B26LjbhZsxwz6Kx8a6jCwB";
-    const secp_package = @field(dependency_metadata.packages, secp_package_name);
-    const libsecp_hash = comptime secp_package.deps[0][1];
-    const libsecp_package = @field(dependency_metadata.packages, libsecp_hash);
+    const secp_dependency = builder.dependency("secp256k1", .{});
+    const secp_root = secp_dependency.path("");
 
     module.addCMacro("USE_FIELD_10X26", "1");
     module.addCMacro("USE_SCALAR_8X32", "1");
@@ -69,18 +65,9 @@ fn configure_secp_c_bindings(builder: *std.Build, module: *std.Build.Module) voi
     module.addCMacro("USE_NUM_NONE", "1");
     module.addCMacro("USE_FIELD_INV_BUILTIN", "1");
     module.addCMacro("USE_SCALAR_INV_BUILTIN", "1");
-    const src_include = builder.pathJoin(&.{
-        libsecp_package.build_root,
-        "src",
-    });
-    const public_include = builder.pathJoin(&.{
-        libsecp_package.build_root,
-        "include",
-    });
-
-    module.addIncludePath(.{ .cwd_relative = libsecp_package.build_root });
-    module.addIncludePath(.{ .cwd_relative = src_include });
-    module.addIncludePath(.{ .cwd_relative = public_include });
+    module.addIncludePath(secp_root);
+    module.addIncludePath(secp_dependency.path("src"));
+    module.addIncludePath(secp_dependency.path("include"));
 
     const secp_source_files = &.{
         "src/secp256k1.c",
@@ -88,7 +75,7 @@ fn configure_secp_c_bindings(builder: *std.Build, module: *std.Build.Module) voi
         "src/precomputed_ecmult_gen.c",
     };
     module.addCSourceFiles(.{
-        .root = .{ .cwd_relative = libsecp_package.build_root },
+        .root = secp_root,
         .files = secp_source_files,
         .flags = &.{
             "-DENABLE_MODULE_RECOVERY=1",
@@ -107,7 +94,12 @@ const secp256k1_shim_source =
     \\    @cInclude("secp256k1_extrakeys.h");
     \\});
     \\
-    \\pub const Error = error{ InvalidPublicKey, InvalidSignature, BackendUnavailable };
+    \\pub const Error = error{
+    \\    InvalidPublicKey,
+    \\    InvalidSignature,
+    \\    InvalidSecretKey,
+    \\    BackendUnavailable,
+    \\};
     \\
     \\pub const XOnlyPublicKey = struct {
     \\    inner: secp.secp256k1_xonly_pubkey,
@@ -150,5 +142,43 @@ const secp256k1_shim_source =
     \\    }
     \\
     \\    return error.InvalidSignature;
+    \\}
+    \\
+    \\pub fn sign_schnorr(
+    \\    secret_key: *const [32]u8,
+    \\    message_digest: *const [32]u8,
+    \\    out_signature: *[64]u8,
+    \\) Error!void {
+    \\    std.debug.assert(secret_key[0] <= 255);
+    \\    std.debug.assert(out_signature[0] <= 255);
+    \\
+    \\    const context = secp.secp256k1_context_create(secp.SECP256K1_CONTEXT_SIGN);
+    \\    if (context == null) {
+    \\        return error.BackendUnavailable;
+    \\    }
+    \\    defer secp.secp256k1_context_destroy(context);
+    \\
+    \\    var keypair: secp.secp256k1_keypair = undefined;
+    \\    const create_result = secp.secp256k1_keypair_create(
+    \\        context,
+    \\        &keypair,
+    \\        secret_key,
+    \\    );
+    \\    if (create_result != 1) {
+    \\        return error.InvalidSecretKey;
+    \\    }
+    \\
+    \\    const sign_result = secp.secp256k1_schnorrsig_sign32(
+    \\        context,
+    \\        out_signature,
+    \\        message_digest,
+    \\        &keypair,
+    \\        null,
+    \\    );
+    \\    if (sign_result == 1) {
+    \\        return;
+    \\    }
+    \\
+    \\    return error.BackendUnavailable;
     \\}
 ;

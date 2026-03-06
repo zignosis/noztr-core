@@ -5,6 +5,11 @@ const nip01_event = @import("nip01_event.zig");
 
 pub const FilterParseError = shared_errors.FilterParseError;
 
+pub const FilterTagCondition = struct {
+    key: u8,
+    values: []const []const u8 = &.{},
+};
+
 pub const Filter = struct {
     ids: [limits.filter_ids_max][32]u8 = [_][32]u8{[_]u8{0} ** 32} ** limits.filter_ids_max,
     ids_count: u16 = 0,
@@ -19,6 +24,8 @@ pub const Filter = struct {
     since: ?u64 = null,
     until: ?u64 = null,
     limit: ?u16 = null,
+
+    tag_conditions: []const FilterTagCondition = &.{},
 };
 
 pub fn filter_parse_json(input: []const u8, scratch: std.mem.Allocator) FilterParseError!Filter {
@@ -47,6 +54,8 @@ pub fn filter_parse_json(input: []const u8, scratch: std.mem.Allocator) FilterPa
     }
 
     var filter = Filter{};
+    var tag_conditions_temp: [256]FilterTagCondition = undefined;
+    var tag_conditions_count: u16 = 0;
     var iterator = root.object.iterator();
     while (iterator.next()) |entry| {
         const key = entry.key_ptr.*;
@@ -65,9 +74,21 @@ pub fn filter_parse_json(input: []const u8, scratch: std.mem.Allocator) FilterPa
         } else if (std.mem.eql(u8, key, "limit")) {
             filter.limit = try parse_filter_u16(value);
         } else {
-            try validate_unknown_filter_key(key);
+            const tag_key = try parse_filter_tag_key(key);
+            if (tag_conditions_count == 256) {
+                return error.InvalidTagKey;
+            }
+
+            const values = try parse_filter_tag_values(value, scratch);
+            tag_conditions_temp[tag_conditions_count] = .{ .key = tag_key, .values = values };
+            tag_conditions_count += 1;
         }
     }
+
+    filter.tag_conditions = try finalize_tag_conditions(
+        scratch,
+        tag_conditions_temp[0..tag_conditions_count],
+    );
 
     if (filter.since != null and filter.until != null) {
         if (filter.since.? > filter.until.?) {
@@ -125,6 +146,14 @@ pub fn filter_matches_event(filter: *const Filter, event: *const nip01_event.Eve
     if (filter.kinds_count > 0) {
         const has_matching_kind = filter_has_kind(filter, event.kind);
         if (has_matching_kind) {
+            // Keep matching.
+        } else {
+            return false;
+        }
+    }
+
+    if (filter.tag_conditions.len > 0) {
+        if (filter_matches_tag_conditions(filter, event)) {
             // Keep matching.
         } else {
             return false;
@@ -214,21 +243,141 @@ fn map_filter_json_parse_error(parse_error: anyerror) FilterParseError {
     };
 }
 
-fn validate_unknown_filter_key(key: []const u8) FilterParseError!void {
+fn parse_filter_tag_key(key: []const u8) FilterParseError!u8 {
     std.debug.assert(key.len <= std.math.maxInt(u16));
     std.debug.assert(limits.filter_tag_values_max > 0);
 
-    if (key.len > 0) {
-        if (key[0] == '#') {
-            if (key.len == 2) {
-                return error.TooManyTagValues;
-            }
+    if (key.len == 0) {
+        return error.InvalidFilter;
+    }
 
-            return error.InvalidTagKey;
+    if (key[0] != '#') {
+        return error.InvalidFilter;
+    }
+
+    if (key.len != 2) {
+        return error.InvalidTagKey;
+    }
+
+    return key[1];
+}
+
+fn parse_filter_tag_values(
+    value: std.json.Value,
+    scratch: std.mem.Allocator,
+) FilterParseError![]const []const u8 {
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(limits.filter_tag_values_max > 0);
+
+    if (value != .array) {
+        return error.InvalidFilter;
+    }
+
+    if (value.array.items.len > limits.filter_tag_values_max) {
+        return error.TooManyTagValues;
+    }
+
+    const values = scratch.alloc(
+        []const u8,
+        value.array.items.len,
+    ) catch return error.InvalidFilter;
+    var index: u32 = 0;
+    while (index < value.array.items.len) : (index += 1) {
+        const item = value.array.items[index];
+        if (item != .string) {
+            return error.InvalidFilter;
+        }
+
+        if (!std.unicode.utf8ValidateSlice(item.string)) {
+            return error.InvalidFilter;
+        }
+
+        values[index] = item.string;
+    }
+
+    return values;
+}
+
+fn finalize_tag_conditions(
+    scratch: std.mem.Allocator,
+    input: []const FilterTagCondition,
+) FilterParseError![]const FilterTagCondition {
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(input.len <= 256);
+
+    const output = scratch.alloc(FilterTagCondition, input.len) catch return error.InvalidFilter;
+    if (input.len > 0) {
+        @memcpy(output, input);
+    }
+    return output;
+}
+
+fn filter_matches_tag_conditions(filter: *const Filter, event: *const nip01_event.Event) bool {
+    std.debug.assert(filter.tag_conditions.len <= 256);
+    std.debug.assert(event.tags.len <= limits.tags_max);
+
+    var condition_index: u32 = 0;
+    while (condition_index < filter.tag_conditions.len) : (condition_index += 1) {
+        const condition = filter.tag_conditions[condition_index];
+        if (event_has_tag_value(event, condition.key, condition.values)) {
+            // Keep matching.
+        } else {
+            return false;
         }
     }
 
-    return error.InvalidFilter;
+    return true;
+}
+
+fn event_has_tag_value(event: *const nip01_event.Event, key: u8, values: []const []const u8) bool {
+    std.debug.assert(event.tags.len <= limits.tags_max);
+    std.debug.assert(key <= 255);
+
+    if (values.len == 0) {
+        return false;
+    }
+
+    var tag_index: u32 = 0;
+    while (tag_index < event.tags.len) : (tag_index += 1) {
+        const tag = event.tags[tag_index];
+        if (tag.items.len == 0) {
+            continue;
+        }
+
+        const tag_key = tag.items[0];
+        if (tag_key.len != 1) {
+            continue;
+        }
+        if (tag_key[0] != key) {
+            continue;
+        }
+
+        var value_index: u32 = 0;
+        while (value_index < values.len) : (value_index += 1) {
+            if (tag_contains_value(tag, values[value_index])) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+fn tag_contains_value(tag: nip01_event.EventTag, wanted: []const u8) bool {
+    std.debug.assert(tag.items.len <= limits.tag_items_max);
+    std.debug.assert(wanted.len <= limits.tag_item_bytes_max);
+
+    if (tag.items.len < 2) {
+        return false;
+    }
+
+    var item_index: u32 = 1;
+    while (item_index < tag.items.len) : (item_index += 1) {
+        if (std.mem.eql(u8, tag.items[item_index], wanted)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 fn parse_filter_ids(filter: *Filter, value: std.json.Value) FilterParseError!void {
@@ -372,6 +521,67 @@ fn validate_filter_lower_hex(source: []const u8, expected_length: u8) FilterPars
     }
 }
 
+fn write_repeated_string_filter_json(
+    writer: anytype,
+    field_name: []const u8,
+    value: []const u8,
+    count: u32,
+) !void {
+    std.debug.assert(field_name.len > 0);
+    std.debug.assert(count <= std.math.maxInt(u32));
+
+    try writer.writeAll("{\"");
+    try writer.writeAll(field_name);
+    try writer.writeAll("\":[");
+
+    var index: u32 = 0;
+    while (index < count) : (index += 1) {
+        if (index > 0) {
+            try writer.writeAll(",");
+        }
+        try writer.writeAll("\"");
+        try writer.writeAll(value);
+        try writer.writeAll("\"");
+    }
+
+    try writer.writeAll("]}");
+}
+
+fn write_repeated_u32_filter_json(
+    writer: anytype,
+    field_name: []const u8,
+    value: u32,
+    count: u32,
+) !void {
+    std.debug.assert(field_name.len > 0);
+    std.debug.assert(count <= std.math.maxInt(u32));
+
+    try writer.writeAll("{\"");
+    try writer.writeAll(field_name);
+    try writer.writeAll("\":[");
+
+    var index: u32 = 0;
+    while (index < count) : (index += 1) {
+        if (index > 0) {
+            try writer.writeAll(",");
+        }
+        try writer.print("{d}", .{value});
+    }
+
+    try writer.writeAll("]}");
+}
+
+fn force_filter_parse_error(
+    input: []const u8,
+    expected_error: FilterParseError,
+    allocator: std.mem.Allocator,
+) !void {
+    std.debug.assert(input.len <= limits.event_json_max + 1);
+    std.debug.assert(@intFromPtr(allocator.ptr) != 0);
+
+    try std.testing.expectError(expected_error, filter_parse_json(input, allocator));
+}
+
 test "filters OR behavior is deterministic" {
     var event = nip01_event.Event{
         .id = [_]u8{5} ** 32,
@@ -449,17 +659,182 @@ test "parsed filters keep OR-across-filters deterministic" {
     try std.testing.expect(filters_match_event(filters[0..], &event));
 }
 
-test "filter typed parse errors are forceable" {
-    const too_long_input = [_]u8{0} ** (limits.event_json_max + 1);
+test "filter parse rejects malformed tag key shapes" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
 
-    try std.testing.expectError(
-        error.InputTooLong,
-        filter_parse_json(&too_long_input, std.testing.allocator),
-    );
-    try std.testing.expectError(error.InvalidTimeWindow, filter_parse_json(
-        "{\"since\":20,\"until\":10}",
+    try std.testing.expectError(error.InvalidTagKey, filter_parse_json(
+        "{\"#\":[\"abc\"]}",
         arena.allocator(),
     ));
+    try std.testing.expectError(error.InvalidTagKey, filter_parse_json(
+        "{\"#ab\":[\"abc\"]}",
+        arena.allocator(),
+    ));
+}
+
+test "parsed tag filter matches event tags deterministically" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const filter = try filter_parse_json("{\"#e\":[\"target\"]}", arena.allocator());
+    const first_tag = [_][]const u8{ "p", "ignored" };
+    const second_tag = [_][]const u8{ "e", "target", "relay" };
+    const tags = [_]nip01_event.EventTag{
+        .{ .items = first_tag[0..] },
+        .{ .items = second_tag[0..] },
+    };
+
+    const event = nip01_event.Event{
+        .id = [_]u8{0xaa} ** 32,
+        .pubkey = [_]u8{0xbb} ** 32,
+        .sig = [_]u8{0} ** 64,
+        .kind = 1,
+        .created_at = 100,
+        .content = "ok",
+        .tags = tags[0..],
+    };
+
+    try std.testing.expect(filter_matches_event(&filter, &event));
+    try std.testing.expect(filter_matches_event(&filter, &event));
+}
+
+test "filter parse returns TooManyTagValues for #x overflow" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    var input_buffer: [32_768]u8 = undefined;
+    var stream = std.io.fixedBufferStream(&input_buffer);
+    const writer = stream.writer();
+
+    try writer.writeAll("{\"#e\":[");
+    var index: u32 = 0;
+    while (index < limits.filter_tag_values_max + 1) : (index += 1) {
+        if (index > 0) {
+            try writer.writeAll(",");
+        }
+        try writer.writeAll("\"x\"");
+    }
+    try writer.writeAll("]}");
+
+    const input = input_buffer[0..stream.pos];
+    try std.testing.expectError(
+        error.TooManyTagValues,
+        filter_parse_json(input, arena.allocator()),
+    );
+}
+
+test "filter parse forces InputTooLong and InvalidFilter" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const too_long_input = [_]u8{0} ** (limits.event_json_max + 1);
+    try force_filter_parse_error(&too_long_input, error.InputTooLong, arena.allocator());
+    try force_filter_parse_error("[]", error.InvalidFilter, arena.allocator());
+}
+
+test "filter parse forces InvalidHex and InvalidTagKey" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    try force_filter_parse_error(
+        "{\"ids\":[\"gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg\"]}",
+        error.InvalidHex,
+        arena.allocator(),
+    );
+    try force_filter_parse_error("{\"#ab\":[\"abc\"]}", error.InvalidTagKey, arena.allocator());
+}
+
+test "filter parse forces TooManyIds overflow" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    var input_buffer: [96_000]u8 = undefined;
+    var stream = std.io.fixedBufferStream(&input_buffer);
+    const writer = stream.writer();
+
+    try write_repeated_string_filter_json(
+        writer,
+        "ids",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        limits.filter_ids_max + 1,
+    );
+    const input = input_buffer[0..stream.pos];
+    try force_filter_parse_error(input, error.TooManyIds, arena.allocator());
+}
+
+test "filter parse forces TooManyAuthors overflow" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    var input_buffer: [96_000]u8 = undefined;
+    var stream = std.io.fixedBufferStream(&input_buffer);
+    const writer = stream.writer();
+
+    try write_repeated_string_filter_json(
+        writer,
+        "authors",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        limits.filter_authors_max + 1,
+    );
+    const input = input_buffer[0..stream.pos];
+    try force_filter_parse_error(input, error.TooManyAuthors, arena.allocator());
+}
+
+test "filter parse forces TooManyKinds overflow" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    var input_buffer: [4_096]u8 = undefined;
+    var stream = std.io.fixedBufferStream(&input_buffer);
+    const writer = stream.writer();
+
+    try write_repeated_u32_filter_json(
+        writer,
+        "kinds",
+        1,
+        limits.filter_kinds_max + 1,
+    );
+    const input = input_buffer[0..stream.pos];
+    try force_filter_parse_error(input, error.TooManyKinds, arena.allocator());
+}
+
+test "filter parse forces InvalidTimeWindow and ValueOutOfRange" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    try force_filter_parse_error(
+        "{\"since\":20,\"until\":10}",
+        error.InvalidTimeWindow,
+        arena.allocator(),
+    );
+    try force_filter_parse_error(
+        "{\"kinds\":[4294967296]}",
+        error.ValueOutOfRange,
+        arena.allocator(),
+    );
+}
+
+test "tag filters keep OR-across-filters deterministic" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const reject_filter = try filter_parse_json("{\"#e\":[\"wrong\"]}", arena.allocator());
+    const accept_filter = try filter_parse_json("{\"#e\":[\"target\"]}", arena.allocator());
+    const tag_items = [_][]const u8{ "e", "target" };
+    const tags = [_]nip01_event.EventTag{.{ .items = tag_items[0..] }};
+
+    const event = nip01_event.Event{
+        .id = [_]u8{5} ** 32,
+        .pubkey = [_]u8{6} ** 32,
+        .sig = [_]u8{0} ** 64,
+        .kind = 7,
+        .created_at = 123,
+        .content = "ok",
+        .tags = tags[0..],
+    };
+
+    const filters = [_]Filter{ reject_filter, accept_filter };
+    try std.testing.expect(filters_match_event(filters[0..], &event));
+    try std.testing.expect(filters_match_event(filters[0..], &event));
 }
