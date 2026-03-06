@@ -15,9 +15,9 @@ gates, exact file targets, and deterministic verification cadence.
   extension behavior.
 - `PF-004`: treat ambiguity discovery as a hard stop when it affects trust boundaries, crypto
   correctness, or frozen defaults (`D-001`..`D-004`).
-- `PF-005`: require a mandatory crypto-boundary checkpoint before closing I1 signature work: evaluate
-  `stdlib-only` versus `vetted external secp256k1/BIP340 backend via thin Zig wrapper`, and keep all
-  backend calls behind one boundary module.
+- `PF-005`: close I1 signatures on the resolved default crypto path: in-repo thin Zig wrapper over
+  pinned `bitcoin-core/secp256k1` BIP340/Schnorr backend, with all backend calls behind one boundary
+  module.
 
 ## First Implementation Slice (I0/I1)
 
@@ -53,12 +53,10 @@ Ordered coding steps:
 1. Create `src/nip01_event.zig` with typed parse/verify APIs and deterministic replacement helper:
    `event_parse_json`, `event_serialize_canonical`, `event_compute_id`, `event_verify_id`,
    `event_verify_signature`, `event_verify`, `event_replace_decision`.
-2. Run crypto-boundary checkpoint before signature closure:
-   - evaluate `stdlib-only` versus vetted external secp256k1/BIP340 backend through one boundary
-     module.
+2. Implement the resolved crypto boundary for signature closure:
+   - add one in-repo boundary module that wraps pinned `bitcoin-core/secp256k1` BIP340/Schnorr calls.
    - enforce "no direct backend calls outside boundary module" as an implementation constraint.
-   - if unresolved at I1 signature closure, log high-impact `decision-needed` and stop phase
-     advancement.
+   - map backend outcomes to deterministic typed errors for sign/verify/pubkey parse paths.
 3. Implement strict event-field checks and typed failures per contract (`duplicate key`, `invalid hex`,
    bounds violations, id/sig/pubkey failures).
 4. Create `src/nip01_filter.zig` with strict parser and pure match functions:
@@ -78,8 +76,13 @@ I1 gate checks:
 
 - `zig build test --summary all`
 - `zig build`
-- Crypto-boundary checkpoint is resolved and documented; if unresolved, status is high-impact
-  `decision-needed` and I1 cannot close.
+- I1 signature closure acceptance criteria are satisfied:
+  - backend is pinned by commit or tag and recorded in implementation notes.
+  - boundary-only call graph is enforced; no direct backend calls outside one boundary module.
+  - sign/verify/pubkey parse outcomes use deterministic typed-error mapping.
+  - BIP340 vector suite passes with required negative corpus coverage.
+  - differential verification checks pass against pinned reference behavior.
+  - signature paths perform no unbounded runtime allocation.
 
 ## Required Verification And Vector Checks
 
@@ -205,9 +208,9 @@ Ambiguity checkpoint result: high-impact `decision-needed` count = 0.
   default (`D-001`..`D-004`) change.
 - Stop immediately if a trust-boundary correctness rule from `v1-api-contracts.md` cannot be enforced
   with typed errors and deterministic output.
-- Stop immediately if event signature/id verification cannot be satisfied by either approved path
-  (`stdlib-only` or one-module vetted backend wrapper) under strict deterministic, typed-error, and
-  bounded-work contracts.
+- Stop immediately if event signature/id verification cannot be satisfied on the resolved backend path
+  (one-module in-repo wrapper over pinned `bitcoin-core/secp256k1`) under strict deterministic,
+  typed-error, and bounded-work contracts.
 - Stop immediately if any public API would require catch-all error variants or unbounded runtime
   allocation to proceed.
 

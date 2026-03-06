@@ -8,7 +8,7 @@ This handoff captures the current documentation status and immediate direction f
 - Closure basis: implementation kickoff artifact finalized (`docs/plans/implementation-kickoff.md`) and
   closure evidence recorded in `docs/plans/decision-log.md` (`PF-E-001`) with high-impact
   decision-needed count 0.
-- Next phase target: Implementation Phase I0 start (coding begins in `src/`).
+- Next phase target: Implementation Phase I1 start (after I0 gate pass).
 
 ## Completed Tasks
 
@@ -92,17 +92,20 @@ This handoff captures the current documentation status and immediate direction f
   - created `docs/plans/implementation-kickoff.md` with implementation-ready I0/I1 coding steps,
     exact file targets, verification cadence, tradeoffs, open questions, and stop conditions
   - recorded Phase F closure evidence in `docs/plans/decision-log.md`
+- Completed Implementation Phase I0 gate pass:
+  - `zig build test --summary all` pass
+  - `zig build` pass
 
 ## Pending Actions
 
-- Execute Implementation Phase I0 coding in `src/` and `build.zig` per
-  `docs/plans/implementation-kickoff.md`.
 - Execute Implementation Phase I1 coding (`src/nip01_event.zig`, `src/nip01_filter.zig`) and enforce
   vector/error forcing gates.
-- Run the mandatory crypto-boundary checkpoint before I1 signature closure (`stdlib-only` vs vetted
-  external secp256k1/BIP340 backend via thin Zig wrapper).
-- Record crypto-boundary decision outcome in planning artifacts once resolved
-  (`docs/plans/implementation-kickoff.md`, `docs/plans/build-plan.md`, and related roadmap notes).
+- Implement I1 signature boundary on the resolved path: one in-repo thin Zig wrapper over pinned
+  `bitcoin-core/secp256k1` BIP340/Schnorr backend, with no direct backend calls outside the boundary
+  module.
+- Enforce and verify I1 signature closure acceptance criteria: pinned backend revision, deterministic
+  typed-error mapping, BIP340 vector suite + negative corpus, differential checks against pinned
+  references, and no unbounded runtime allocation in signature paths.
 - Add H2 NIP-06 build-vs-buy checkpoint artifact entry before any NIP-06 implementation start.
 - Maintain verification cadence: run `zig build test --summary all` after each material change and
   `zig build` at slice closure.
@@ -166,8 +169,7 @@ This handoff captures the current documentation status and immediate direction f
 ## Next Steps To Continue
 
 - Run `./agent-brief` and verify prompt artifact status.
-- Start Implementation Phase I0 using `docs/plans/implementation-kickoff.md` and complete its gate.
-- Start Implementation Phase I1 after I0 pass, including required `5 valid + 5 invalid` vector floors
-  for `nip01_event` and `nip01_filter`.
+- Continue Implementation Phase I1 using `docs/plans/implementation-kickoff.md`, including required
+  `5 valid + 5 invalid` vector floors for `nip01_event` and `nip01_filter`.
 - Continue implementation phases in build-plan order and close each slice only after gate commands pass.
 - Keep `applesauce` as comparative context only when evaluating API ergonomics and developer UX.

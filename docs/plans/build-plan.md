@@ -30,8 +30,8 @@ Note: these are implementation phases, not planning prompt phases.
 - Deliverables:
   - root export skeleton aligned to Phase D contract names.
   - shared limits and typed boundary error sets.
-  - crypto boundary planning checkpoint setup for I1 signatures:
-    `stdlib-only` versus vetted external secp256k1/BIP340 backend via thin Zig wrapper.
+  - crypto boundary setup for I1 signatures on resolved default path:
+    in-repo thin Zig wrapper over pinned `bitcoin-core/secp256k1` BIP340/Schnorr backend.
   - boundary rule captured: no direct backend calls outside one boundary module.
   - aggregate `zig build` and `zig build test --summary all` steps wired.
 - Test/vector plan:
@@ -57,8 +57,13 @@ Note: these are implementation phases, not planning prompt phases.
 - Exit gate:
   - canonical serialization and id computation deterministic across repeated runs.
   - strict parser rejects malformed/ambiguous critical fields.
-  - signature closure includes resolved crypto-backend boundary decision; unresolved status is
-    high-impact `decision-needed` and blocks I1 closure.
+  - signature closure satisfies all required acceptance criteria:
+    - backend pinned by commit or tag.
+    - boundary-only call graph (no direct backend calls elsewhere).
+    - deterministic typed-error mapping for sign/verify/pubkey parse outcomes.
+    - BIP340 vector suite pass plus required negative corpus.
+    - differential verification checks pass against pinned reference behavior.
+    - no unbounded runtime allocation in signature paths.
 
 ### Phase I2 - Message Grammar, Auth/Protected, and Relay Info Core
 
@@ -167,17 +172,17 @@ Note: these are implementation phases, not planning prompt phases.
 
 - `R-E-001` crypto implementation correctness risk in `nip44` remains high-impact implementation risk;
   mitigated by pinned vectors, invalid corpus, deterministic nonce harness, and staged checks.
-- `R-E-004` backend-boundary correctness risk: if an external secp256k1/BIP340 backend is selected,
-  boundary misuse or API leakage can break deterministic and typed-error contracts; mitigated by a
-  single boundary module, pinned backend revision, and differential verification corpus.
+- `R-E-004` backend-boundary correctness risk on selected secp256k1/BIP340 path: boundary misuse or
+  API leakage can break deterministic and typed-error contracts; mitigated by a single boundary
+  module, pinned backend revision, and differential verification corpus.
 - `R-E-002` optional-lane drift risk remains medium; mitigated by explicit non-interference tests and
   extension gate checks.
 - `R-E-003` bounded capacities may need empirical adjustment; mitigated by typed overflow errors and
   explicit reversal triggers in tradeoff register.
 - `A-E-001` assumes Zig stdlib crypto surfaces used by contracts remain stable across implementation.
 - `A-E-002` assumes parity source snapshots (`D-001`) remain sufficient for v1 execution window.
-- `A-E-003` assumes that if an external backend path is chosen, the selected backend can be pinned and
-  wrapped without violating zero-unbounded-runtime-work and typed-error boundary requirements.
+- `A-E-003` assumes the selected secp256k1 backend path can be pinned and wrapped without violating
+  zero-unbounded-runtime-work and typed-error boundary requirements.
 - `A-E-004` notes that H2 NIP-06 requires an explicit build-vs-buy checkpoint for BIP39/BIP32
   correctness and security burden before implementation starts.
 
@@ -213,15 +218,14 @@ Note: these are implementation phases, not planning prompt phases.
 - Owner: Phase F owner.
 
 `UT-E-004`
-- Topic: secp256k1/BIP340 backend strategy for I1 signature closure (`stdlib-only` vs vetted external
-  backend through one Zig boundary module).
-- Impact: high.
+- Topic: differential hardening depth for the selected secp256k1/BIP340 boundary beyond I1 baseline.
+- Impact: medium.
 - Status: accepted-risk.
-- Default: continue with stdlib-only planning path unless checkpoint evidence shows deterministic,
-  typed-error, and bounded contracts are better satisfied via vetted backend boundary.
-- Mitigation: require explicit acceptance criteria, boundary-only call graph, and parity/differential
-  corpus; unresolved status becomes high-impact `decision-needed` at I1 signature closure.
-- Reversal Trigger: accepted decision record changes strategy or proves default path non-viable.
+- Default: enforce I1 baseline acceptance criteria, then expand differential corpus only when parity or
+  integration evidence shows remaining risk.
+- Mitigation: keep required I1 acceptance criteria mandatory and schedule extra corpus depth in I7 when
+  drift indicators appear.
+- Reversal Trigger: observed divergence against pinned references or repeated boundary regressions.
 - Owner: Phase I owner.
 
 ## Open Questions
@@ -232,8 +236,8 @@ Note: these are implementation phases, not planning prompt phases.
   changing strict-default behavior.
 - `OQ-E-003`: decide whether to promote NIP-44 cross-language differential replay from optional to
   required CI gate before first release candidate.
-- `OQ-E-004`: what acceptance criteria resolve the I1 crypto-backend boundary checkpoint between
-  `stdlib-only` and vetted external secp256k1/BIP340 wrapper paths.
+- `OQ-E-004`: what additional differential hardening depth beyond I1 baseline should become mandatory
+  before first release candidate.
 - `OQ-E-005`: for H2 NIP-06, what build-vs-buy threshold is required before selecting in-house
   BIP39/BIP32 implementation versus vetted helper/wrapper.
 
