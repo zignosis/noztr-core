@@ -136,7 +136,10 @@ test "protected event validation has 5 valid and 5 invalid vectors" {
     );
     try std.testing.expectError(
         error.ProtectedPubkeyMismatch,
-        protected_event_validate(&test_event(event_pubkey, tags_double_exact[0..]), &auth_mismatch_b),
+        protected_event_validate(
+            &test_event(event_pubkey, tags_double_exact[0..]),
+            &auth_mismatch_b,
+        ),
     );
 
     try protected_event_validate(&test_event(event_pubkey, tags_mixed_exact[0..]), &auth_matching);

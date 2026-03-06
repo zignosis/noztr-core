@@ -101,6 +101,37 @@ const secp256k1_shim_source =
     \\    BackendUnavailable,
     \\};
     \\
+    \\fn init_signing_context() void {
+    \\    std.debug.assert(!@inComptime());
+    \\    std.debug.assert(signing_context_storage == null or signing_context_error == null);
+    \\
+    \\    const created = secp.secp256k1_context_create(secp.SECP256K1_CONTEXT_SIGN);
+    \\    if (created == null) {
+    \\        signing_context_error = error.BackendUnavailable;
+    \\        return;
+    \\    }
+    \\
+    \\    signing_context_storage = created;
+    \\    std.debug.assert(signing_context_storage != null);
+    \\}
+    \\
+    \\var signing_context_storage: ?*secp.secp256k1_context = null;
+    \\var signing_context_error: ?Error = null;
+    \\var signing_context_once = std.once(init_signing_context);
+    \\
+    \\fn get_signing_context() Error!*secp.secp256k1_context {
+    \\    std.debug.assert(!@inComptime());
+    \\    std.debug.assert(signing_context_error == null or signing_context_storage == null);
+    \\
+    \\    signing_context_once.call();
+    \\    if (signing_context_error) |context_error| {
+    \\        return context_error;
+    \\    }
+    \\
+    \\    const context = signing_context_storage orelse return error.BackendUnavailable;
+    \\    return context;
+    \\}
+    \\
     \\pub const XOnlyPublicKey = struct {
     \\    inner: secp.secp256k1_xonly_pubkey,
     \\
@@ -150,13 +181,10 @@ const secp256k1_shim_source =
     \\    out_signature: *[64]u8,
     \\) Error!void {
     \\    std.debug.assert(secret_key[0] <= 255);
-    \\    std.debug.assert(out_signature[0] <= 255);
+    \\    std.debug.assert(message_digest[0] <= 255);
     \\
-    \\    const context = secp.secp256k1_context_create(secp.SECP256K1_CONTEXT_SIGN);
-    \\    if (context == null) {
-    \\        return error.BackendUnavailable;
-    \\    }
-    \\    defer secp.secp256k1_context_destroy(context);
+    \\    const context = try get_signing_context();
+    \\    std.debug.assert(out_signature.len == 64);
     \\
     \\    var keypair: secp.secp256k1_keypair = undefined;
     \\    const create_result = secp.secp256k1_keypair_create(
@@ -175,10 +203,9 @@ const secp256k1_shim_source =
     \\        &keypair,
     \\        null,
     \\    );
-    \\    if (sign_result == 1) {
-    \\        return;
+    \\    if (sign_result != 1) {
+    \\        return error.BackendUnavailable;
     \\    }
-    \\
-    \\    return error.BackendUnavailable;
+    \\    return;
     \\}
 ;

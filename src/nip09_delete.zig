@@ -13,7 +13,19 @@ pub const DeleteError = error{
     CrossAuthorDelete,
 };
 
-pub const DeleteExtractError = DeleteError || error{BufferTooSmall};
+pub const DeleteExtractError = error{
+    BufferTooSmall,
+    EmptyDeleteTargets,
+    InvalidETag,
+    InvalidATag,
+    InvalidAddressCoordinate,
+};
+
+const DeleteTargetParseError = error{
+    InvalidETag,
+    InvalidATag,
+    InvalidAddressCoordinate,
+};
 
 pub const DeleteAddressCoordinate = struct {
     kind: u32,
@@ -33,8 +45,6 @@ pub fn delete_extract_targets(
 ) DeleteExtractError!u16 {
     std.debug.assert(@intFromPtr(delete_event) != 0);
     std.debug.assert(out.len <= std.math.maxInt(u16));
-
-    try validate_delete_kind(delete_event);
 
     var count: u16 = 0;
     var index: u16 = 0;
@@ -104,7 +114,7 @@ fn validate_delete_kind(delete_event: *const nip01_event.Event) DeleteError!void
     }
 }
 
-fn parse_delete_tag_to_target(tag: nip01_event.EventTag) DeleteError!?DeleteTarget {
+fn parse_delete_tag_to_target(tag: nip01_event.EventTag) DeleteTargetParseError!?DeleteTarget {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.id_hex_length == 64);
 
@@ -122,7 +132,7 @@ fn parse_delete_tag_to_target(tag: nip01_event.EventTag) DeleteError!?DeleteTarg
     return null;
 }
 
-fn parse_e_tag_value(tag: nip01_event.EventTag) DeleteError![32]u8 {
+fn parse_e_tag_value(tag: nip01_event.EventTag) DeleteTargetParseError![32]u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.id_hex_length == 64);
 
@@ -134,7 +144,7 @@ fn parse_e_tag_value(tag: nip01_event.EventTag) DeleteError![32]u8 {
     };
 }
 
-fn parse_a_tag_value(tag: nip01_event.EventTag) DeleteError!DeleteAddressCoordinate {
+fn parse_a_tag_value(tag: nip01_event.EventTag) DeleteTargetParseError!DeleteAddressCoordinate {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -147,7 +157,9 @@ fn parse_a_tag_value(tag: nip01_event.EventTag) DeleteError!DeleteAddressCoordin
     };
 }
 
-fn parse_address_coordinate(text: []const u8) error{InvalidAddressCoordinate}!DeleteAddressCoordinate {
+fn parse_address_coordinate(
+    text: []const u8,
+) error{InvalidAddressCoordinate}!DeleteAddressCoordinate {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -239,7 +251,10 @@ fn delete_target_matches_event(
     };
 }
 
-fn coordinate_matches_event(coordinate: DeleteAddressCoordinate, event: *const nip01_event.Event) bool {
+fn coordinate_matches_event(
+    coordinate: DeleteAddressCoordinate,
+    event: *const nip01_event.Event,
+) bool {
     std.debug.assert(coordinate.kind <= std.math.maxInt(u32));
     std.debug.assert(event.kind <= std.math.maxInt(u32));
 
@@ -347,8 +362,14 @@ test "deletion_can_apply valid vectors include e and a and delete no-op" {
     const target_id = hex32(target_id_hex);
 
     const e_items = [_][]const u8{ "e", target_id_hex };
-    const a_items = [_][]const u8{ "a", "30023:1111111111111111111111111111111111111111111111111111111111111111:room" };
-    const tags = [_]nip01_event.EventTag{ .{ .items = e_items[0..] }, .{ .items = a_items[0..] } };
+    const a_items = [_][]const u8{
+        "a",
+        "30023:1111111111111111111111111111111111111111111111111111111111111111:room",
+    };
+    const tags = [_]nip01_event.EventTag{
+        .{ .items = e_items[0..] },
+        .{ .items = a_items[0..] },
+    };
     const delete_event = test_event(delete_event_kind, pubkey, 1_000, [_]u8{9} ** 32, tags[0..]);
 
     const target_by_id = test_event(1, pubkey, 900, target_id, &[_]nip01_event.EventTag{});
@@ -359,10 +380,22 @@ test "deletion_can_apply valid vectors include e and a and delete no-op" {
     const target_by_a = test_event(30023, pubkey, 900, [_]u8{7} ** 32, target_addressed_tags[0..]);
     try std.testing.expect(try deletion_can_apply(&delete_event, &target_by_a));
 
-    const target_newer = test_event(30023, pubkey, 1_001, [_]u8{8} ** 32, target_addressed_tags[0..]);
+    const target_newer = test_event(
+        30023,
+        pubkey,
+        1_001,
+        [_]u8{8} ** 32,
+        target_addressed_tags[0..],
+    );
     try std.testing.expect(!(try deletion_can_apply(&delete_event, &target_newer)));
 
-    const delete_target = test_event(delete_event_kind, pubkey, 900, target_id, &[_]nip01_event.EventTag{});
+    const delete_target = test_event(
+        delete_event_kind,
+        pubkey,
+        900,
+        target_id,
+        &[_]nip01_event.EventTag{},
+    );
     try std.testing.expect(!(try deletion_can_apply(&delete_event, &delete_target)));
 
     const non_match_id = test_event(1, pubkey, 900, [_]u8{3} ** 32, &[_]nip01_event.EventTag{});
@@ -373,30 +406,63 @@ test "delete invalid vectors and forcing all public errors" {
     const pubkey = [_]u8{0x22} ** 32;
     const other_pubkey = [_]u8{0x33} ** 32;
 
-    const no_targets = test_event(delete_event_kind, pubkey, 100, [_]u8{0} ** 32, &[_]nip01_event.EventTag{});
-    try std.testing.expectError(error.EmptyDeleteTargets, delete_extract_targets(&no_targets, &.{}));
-    try std.testing.expectError(error.EmptyDeleteTargets, deletion_can_apply(&no_targets, &no_targets));
+    const no_targets = test_event(
+        delete_event_kind,
+        pubkey,
+        100,
+        [_]u8{0} ** 32,
+        &[_]nip01_event.EventTag{},
+    );
+    try std.testing.expectError(
+        error.EmptyDeleteTargets,
+        delete_extract_targets(&no_targets, &.{}),
+    );
+    try std.testing.expectError(
+        error.EmptyDeleteTargets,
+        deletion_can_apply(&no_targets, &no_targets),
+    );
 
     const bad_kind = test_event(1, pubkey, 100, [_]u8{0} ** 32, &[_]nip01_event.EventTag{});
     var out_one: [1]DeleteTarget = undefined;
-    try std.testing.expectError(error.InvalidDeleteEventKind, delete_extract_targets(&bad_kind, out_one[0..]));
-    try std.testing.expectError(error.InvalidDeleteEventKind, deletion_can_apply(&bad_kind, &no_targets));
+    try std.testing.expectError(
+        error.EmptyDeleteTargets,
+        delete_extract_targets(&bad_kind, out_one[0..]),
+    );
+    try std.testing.expectError(
+        error.InvalidDeleteEventKind,
+        deletion_can_apply(&bad_kind, &no_targets),
+    );
 
     const e_missing_items = [_][]const u8{"e"};
     const tags_bad_e = [_]nip01_event.EventTag{.{ .items = e_missing_items[0..] }};
     const bad_e_event = test_event(delete_event_kind, pubkey, 100, [_]u8{0} ** 32, tags_bad_e[0..]);
-    try std.testing.expectError(error.InvalidETag, delete_extract_targets(&bad_e_event, out_one[0..]));
+    try std.testing.expectError(
+        error.InvalidETag,
+        delete_extract_targets(&bad_e_event, out_one[0..]),
+    );
     try std.testing.expectError(error.InvalidETag, deletion_can_apply(&bad_e_event, &no_targets));
 
     const e_bad_hex = [_][]const u8{ "e", "ABCDEF" };
     const tags_bad_e_hex = [_]nip01_event.EventTag{.{ .items = e_bad_hex[0..] }};
-    const bad_e_hex_event = test_event(delete_event_kind, pubkey, 100, [_]u8{0} ** 32, tags_bad_e_hex[0..]);
-    try std.testing.expectError(error.InvalidETag, delete_extract_targets(&bad_e_hex_event, out_one[0..]));
+    const bad_e_hex_event = test_event(
+        delete_event_kind,
+        pubkey,
+        100,
+        [_]u8{0} ** 32,
+        tags_bad_e_hex[0..],
+    );
+    try std.testing.expectError(
+        error.InvalidETag,
+        delete_extract_targets(&bad_e_hex_event, out_one[0..]),
+    );
 
     const a_missing_items = [_][]const u8{"a"};
     const tags_bad_a = [_]nip01_event.EventTag{.{ .items = a_missing_items[0..] }};
     const bad_a_event = test_event(delete_event_kind, pubkey, 100, [_]u8{0} ** 32, tags_bad_a[0..]);
-    try std.testing.expectError(error.InvalidATag, delete_extract_targets(&bad_a_event, out_one[0..]));
+    try std.testing.expectError(
+        error.InvalidATag,
+        delete_extract_targets(&bad_a_event, out_one[0..]),
+    );
     try std.testing.expectError(error.InvalidATag, deletion_can_apply(&bad_a_event, &no_targets));
 
     const a_bad_coord = [_][]const u8{ "a", "30023:nothex" };
@@ -429,7 +495,13 @@ test "delete invalid vectors and forcing all public errors" {
         [_]u8{0} ** 32,
         tags_valid_e[0..],
     );
-    const foreign_target = test_event(1, other_pubkey, 90, [_]u8{1} ** 32, &[_]nip01_event.EventTag{});
+    const foreign_target = test_event(
+        1,
+        other_pubkey,
+        90,
+        [_]u8{1} ** 32,
+        &[_]nip01_event.EventTag{},
+    );
     try std.testing.expectError(
         error.CrossAuthorDelete,
         deletion_can_apply(&delete_cross_author, &foreign_target),
@@ -446,9 +518,15 @@ test "delete extractor forces buffer too small" {
         "e",
         "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     };
-    const tags = [_]nip01_event.EventTag{ .{ .items = e_first[0..] }, .{ .items = e_second[0..] } };
+    const tags = [_]nip01_event.EventTag{
+        .{ .items = e_first[0..] },
+        .{ .items = e_second[0..] },
+    };
     const delete_event = test_event(delete_event_kind, pubkey, 100, [_]u8{0} ** 32, tags[0..]);
 
     var out: [1]DeleteTarget = undefined;
-    try std.testing.expectError(error.BufferTooSmall, delete_extract_targets(&delete_event, out[0..]));
+    try std.testing.expectError(
+        error.BufferTooSmall,
+        delete_extract_targets(&delete_event, out[0..]),
+    );
 }

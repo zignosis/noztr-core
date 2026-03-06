@@ -68,7 +68,9 @@ fn map_public_key_error(verify_error: secp256k1.Error) BackendVerifyError {
 
     return switch (verify_error) {
         error.InvalidPublicKey => error.InvalidPublicKey,
-        else => error.BackendUnavailable,
+        error.InvalidSignature => error.BackendUnavailable,
+        error.InvalidSecretKey => error.BackendUnavailable,
+        error.BackendUnavailable => error.BackendUnavailable,
     };
 }
 
@@ -78,7 +80,9 @@ fn map_signature_error(verify_error: secp256k1.Error) BackendVerifyError {
 
     return switch (verify_error) {
         error.InvalidSignature => error.InvalidSignature,
-        else => error.BackendUnavailable,
+        error.InvalidPublicKey => error.BackendUnavailable,
+        error.InvalidSecretKey => error.BackendUnavailable,
+        error.BackendUnavailable => error.BackendUnavailable,
     };
 }
 
@@ -88,7 +92,9 @@ fn map_sign_error(sign_error: secp256k1.Error) BackendSignError {
 
     return switch (sign_error) {
         error.InvalidSecretKey => error.InvalidSecretKey,
-        else => error.BackendUnavailable,
+        error.InvalidPublicKey => error.BackendUnavailable,
+        error.InvalidSignature => error.BackendUnavailable,
+        error.BackendUnavailable => error.BackendUnavailable,
     };
 }
 
@@ -125,11 +131,27 @@ const bip340_vectors = [_]Bip340Vector{
         .expected_class = .valid,
     },
     .{
+        .label = "official-2-valid",
+        .public_key_hex = "DD308AFEC5777E13121FA72B9CC1B7CC0139715309B086C960E18FD969774EB8",
+        .message_hex = "7E2D58D8B3BCDF1ABADEC7829054F90DDA9805AAB56C77333024B9D0A508B75C",
+        .signature_hex = "5831AAEED7B44BB74E5EAB94BA9D4294C49BCF2A60728D8B4C200F50DD313C1B" ++
+            "AB745879A5AD954A72C45A91C3A51D3C7ADEA98D82F8481E0E1E03674A6F3FB7",
+        .expected_class = .valid,
+    },
+    .{
         .label = "official-3-valid",
         .public_key_hex = "25D1DFF95105F5253C4022F628A996AD3A0D95FBF21D468A1B33F8C160D8F517",
         .message_hex = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
         .signature_hex = "7EB0509757E246F19449885651611CB965ECC1A187DD51B64FDA1EDC9637D5EC" ++
             "97582B9CB13DB3933705B32BA982AF5AF25FD78881EBB32771FC5922EFC66EA3",
+        .expected_class = .valid,
+    },
+    .{
+        .label = "official-4-valid",
+        .public_key_hex = "D69C3509BB99E412E68B0FE8544E72837DFA30746D8BE2AA65975F29D22DC7B9",
+        .message_hex = "4DF3C3F68FCC83B27E9D42C90431A72499F17875C81A599B566C9889B9696703",
+        .signature_hex = "00000000000000000000003B78CE563F89A0ED9414F5AA28AD0D96D6795F9C63" ++
+            "76AFB1548AF603B3EB45C9F8207DEE1060CB71C04E80F593060B07D28308D7F4",
         .expected_class = .valid,
     },
     .{
@@ -149,6 +171,14 @@ const bip340_vectors = [_]Bip340Vector{
         .expected_class = .invalid_signature,
     },
     .{
+        .label = "official-7-invalid-signature",
+        .public_key_hex = "DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+        .message_hex = "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+        .signature_hex = "1FA62E331EDBC21C394792D2AB1100A7B432B013DF3F6FF4F99FCB33E0E1515F" ++
+            "28890B3EDB6E7189B630448B515CE4F8622A954CFE545735AAEA5134FCCDB2BD",
+        .expected_class = .invalid_signature,
+    },
+    .{
         .label = "official-8-invalid-signature",
         .public_key_hex = "DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
         .message_hex = "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
@@ -157,11 +187,43 @@ const bip340_vectors = [_]Bip340Vector{
         .expected_class = .invalid_signature,
     },
     .{
+        .label = "official-9-invalid-signature",
+        .public_key_hex = "DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+        .message_hex = "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+        .signature_hex = "0000000000000000000000000000000000000000000000000000000000000000" ++
+            "123DDA8328AF9C23A94C1FEECFD123BA4FB73476F0D594DCB65C6425BD186051",
+        .expected_class = .invalid_signature,
+    },
+    .{
+        .label = "official-10-invalid-signature",
+        .public_key_hex = "DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+        .message_hex = "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+        .signature_hex = "0000000000000000000000000000000000000000000000000000000000000001" ++
+            "7615FBAF5AE28864013C099742DEADB4DBA87F11AC6754F93780D5A1837CF197",
+        .expected_class = .invalid_signature,
+    },
+    .{
+        .label = "official-11-invalid-signature",
+        .public_key_hex = "DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+        .message_hex = "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+        .signature_hex = "4A298DACAE57395A15D0795DDBFD1DCB564DA82B0F269BC70A74F8220429BA1D" ++
+            "69E89B4C5564D00349106B8497785DD7D1D713A8AE82B32FA79D5F7FC407D39B",
+        .expected_class = .invalid_signature,
+    },
+    .{
         .label = "official-12-invalid-signature",
         .public_key_hex = "DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
         .message_hex = "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
         .signature_hex = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F" ++
             "69E89B4C5564D00349106B8497785DD7D1D713A8AE82B32FA79D5F7FC407D39B",
+        .expected_class = .invalid_signature,
+    },
+    .{
+        .label = "official-13-invalid-signature",
+        .public_key_hex = "DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA659",
+        .message_hex = "243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89",
+        .signature_hex = "6CFF5C3BA86C69EA4B7376F31A9BCB4F74C1976089B2D9963DA2E5543E177769" ++
+            "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
         .expected_class = .invalid_signature,
     },
     .{

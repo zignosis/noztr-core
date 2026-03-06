@@ -35,6 +35,9 @@ pub const RelayMessage = union(enum) {
     count: struct { subscription_id: []const u8, count: u64 },
 };
 
+/// Relay-side transcript tracks only post-REQ flow for one subscription:
+/// `EVENT* -> EOSE -> CLOSED`.
+/// `idle` means no post-REQ relay message has been observed yet.
 pub const TranscriptStage = enum {
     idle,
     req_sent,
@@ -224,7 +227,29 @@ pub fn transcript_apply(
     std.debug.assert(state.subscription_id_len <= limits.subscription_id_bytes_max);
     std.debug.assert(@intFromPtr(state) != 0);
 
+    const tracked_subscription_id =
+        transcript_tracked_subscription_id(message.*) orelse
+        return error.InvalidTranscriptTransition;
+    if (tracked_subscription_id.len == 0) {
+        return error.InvalidTranscriptTransition;
+    }
+    if (tracked_subscription_id.len > limits.subscription_id_bytes_max) {
+        return error.InvalidTranscriptTransition;
+    }
+
     try transcript_apply_relay(state, message.*);
+}
+
+fn transcript_tracked_subscription_id(message: RelayMessage) ?[]const u8 {
+    std.debug.assert(limits.subscription_id_bytes_max > 0);
+    std.debug.assert(@sizeOf(RelayMessage) > 0);
+
+    switch (message) {
+        .event => |event_message| return event_message.subscription_id,
+        .eose => |eose_message| return eose_message.subscription_id,
+        .closed => |closed_message| return closed_message.subscription_id,
+        else => return null,
+    }
 }
 
 fn validate_subscription_id_for_encode(subscription_id: []const u8) MessageEncodeError!void {
@@ -951,9 +976,12 @@ fn transcript_set_subscription_id(
     subscription_id: []const u8,
 ) error{InvalidTranscriptTransition}!void {
     std.debug.assert(state.subscription_id_len <= limits.subscription_id_bytes_max);
-    std.debug.assert(subscription_id.len <= limits.subscription_id_bytes_max);
+    std.debug.assert(limits.subscription_id_bytes_max > 0);
 
     if (subscription_id.len == 0) {
+        return error.InvalidTranscriptTransition;
+    }
+    if (subscription_id.len > limits.subscription_id_bytes_max) {
         return error.InvalidTranscriptTransition;
     }
     state.subscription_id_len = @intCast(subscription_id.len);
@@ -966,8 +994,11 @@ fn transcript_subscription_matches(
     subscription_id: []const u8,
 ) bool {
     std.debug.assert(state.subscription_id_len <= limits.subscription_id_bytes_max);
-    std.debug.assert(subscription_id.len <= limits.subscription_id_bytes_max);
+    std.debug.assert(limits.subscription_id_bytes_max > 0);
 
+    if (subscription_id.len > limits.subscription_id_bytes_max) {
+        return false;
+    }
     if (subscription_id.len != state.subscription_id_len) {
         return false;
     }
@@ -978,13 +1009,19 @@ test "client parser accepts strict valid vectors" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
 
-    const req = try client_message_parse_json("[\"REQ\",\"sub-1\",{\"kinds\":[1]}]", arena.allocator());
+    const req = try client_message_parse_json(
+        "[\"REQ\",\"sub-1\",{\"kinds\":[1]}]",
+        arena.allocator(),
+    );
     const close = try client_message_parse_json("[\"CLOSE\",\"sub-1\"]", arena.allocator());
     const auth = try client_message_parse_json(
         "[\"AUTH\"," ++ sample_event_json_text ++ "]",
         arena.allocator(),
     );
-    const count = try client_message_parse_json("[\"COUNT\",\"sub-1\",{\"kinds\":[1]}]", arena.allocator());
+    const count = try client_message_parse_json(
+        "[\"COUNT\",\"sub-1\",{\"kinds\":[1]}]",
+        arena.allocator(),
+    );
 
     try std.testing.expect(req == .req);
     try std.testing.expect(close == .close);
@@ -1114,7 +1151,7 @@ test "serializer forces MessageEncodeError variants" {
     );
 }
 
-test "transcript_apply consumes relay transitions deterministically" {
+test "transcript_apply accepts post-REQ EVENT* -> EOSE -> CLOSED" {
     var state = TranscriptState{};
     const event = RelayMessage{ .event = .{ .subscription_id = "sub-1", .event = sample_event() } };
     const eose = RelayMessage{ .eose = .{ .subscription_id = "sub-1" } };
@@ -1130,14 +1167,89 @@ test "transcript_apply consumes relay transitions deterministically" {
     try std.testing.expect(state.stage == .closed);
 }
 
-test "transcript_apply forces invalid transition error" {
+test "transcript_apply accepts post-REQ EOSE -> CLOSED" {
+    var state = TranscriptState{};
+    const eose = RelayMessage{ .eose = .{ .subscription_id = "sub-1" } };
+    const closed = RelayMessage{ .closed = .{
+        .subscription_id = "sub-1",
+        .status = "closed: done",
+    } };
+
+    try transcript_apply(&state, &eose);
+    try std.testing.expect(state.stage == .eose_received);
+    try transcript_apply(&state, &closed);
+    try std.testing.expect(state.stage == .closed);
+}
+
+test "transcript_apply rejects idle -> CLOSED" {
     var state = TranscriptState{};
     const closed = RelayMessage{ .closed = .{
         .subscription_id = "sub-1",
         .status = "closed: done",
     } };
 
-    try std.testing.expectError(error.InvalidTranscriptTransition, transcript_apply(&state, &closed));
+    try std.testing.expectError(
+        error.InvalidTranscriptTransition,
+        transcript_apply(&state, &closed),
+    );
+}
+
+test "transcript_apply rejects idle -> EVENT -> CLOSED without EOSE" {
+    var state = TranscriptState{};
+    const event = RelayMessage{ .event = .{ .subscription_id = "sub-1", .event = sample_event() } };
+    const closed = RelayMessage{ .closed = .{
+        .subscription_id = "sub-1",
+        .status = "closed: done",
+    } };
+
+    try transcript_apply(&state, &event);
+    try std.testing.expect(state.stage == .req_sent);
+    try std.testing.expectError(
+        error.InvalidTranscriptTransition,
+        transcript_apply(&state, &closed),
+    );
+}
+
+test "transcript_apply rejects subscription mismatch" {
+    var state = TranscriptState{};
+    const event = RelayMessage{ .event = .{ .subscription_id = "sub-1", .event = sample_event() } };
+    const eose = RelayMessage{ .eose = .{ .subscription_id = "sub-2" } };
+
+    try transcript_apply(&state, &event);
+    try std.testing.expect(state.stage == .req_sent);
+    try std.testing.expectError(
+        error.InvalidTranscriptTransition,
+        transcript_apply(&state, &eose),
+    );
+}
+
+test "transcript_apply rejects non-transcript relay variants" {
+    var state = TranscriptState{};
+    const notice = RelayMessage{ .notice = .{ .message = "heads up" } };
+    const auth = RelayMessage{ .auth = .{ .challenge = "challenge" } };
+
+    try std.testing.expectError(
+        error.InvalidTranscriptTransition,
+        transcript_apply(&state, &notice),
+    );
+    try std.testing.expectError(
+        error.InvalidTranscriptTransition,
+        transcript_apply(&state, &auth),
+    );
+}
+
+test "transcript_apply rejects oversized relay subscription_id" {
+    var state = TranscriptState{};
+    var oversized_subscription_id: [limits.subscription_id_bytes_max + 1]u8 =
+        [_]u8{'a'} ** (limits.subscription_id_bytes_max + 1);
+    const eose = RelayMessage{ .eose = .{
+        .subscription_id = oversized_subscription_id[0..],
+    } };
+
+    try std.testing.expectError(
+        error.InvalidTranscriptTransition,
+        transcript_apply(&state, &eose),
+    );
 }
 
 const sample_event_json_text = "{" ++
