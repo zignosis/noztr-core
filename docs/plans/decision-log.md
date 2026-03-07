@@ -204,6 +204,11 @@ Immutable record of accepted planning decisions.
   - closed: canonical event runtime shape/UTF-8 validation guards.
   - closed: PoW commitment truthfulness/floor enforcement (`actual_bits >= commitment >=
     required_bits`).
+  - closed: `auth_validate_event` expected challenge bounds guard rejects empty and oversized
+    `expected_challenge` inputs.
+  - open: `event_compute_id` compatibility fallback returns all-zero id for invalid runtime shape
+    (`src/nip01_event.zig`); mitigation: keep strict call sites on `event_verify_id` and checked
+    wrappers, and track typed strict helper follow-up if misuse appears.
   - open: LLM-first usability evaluation remains pending post-security checkpoint and before RC API
     freeze (`D-009`, `OQ-E-006`).
   - canonical tracker: `docs/plans/security-hardening-register.md`.

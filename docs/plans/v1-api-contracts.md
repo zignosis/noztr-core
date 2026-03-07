@@ -57,6 +57,9 @@ pub fn event_replace_decision(current: *const Event, candidate: *const Event)
   signature-backend outage.
 - Deterministic behavior: canonical serialization bytes, computed id, and replace ordering are
   deterministic (`created_at`, then lexical `id`).
+- Compatibility note: `event_compute_id` returns an all-zero id (`[32]u8{0}`) when runtime shape
+  invariants are violated; strict trust-boundary call sites must use `event_verify_id` (or checked
+  wrappers such as `pow_meets_difficulty_verified_id`) before policy decisions.
 - Assertion pairs: assert required field presence and assert no extra critical duplicates; assert
   bounds in positive space and return typed over-bound errors in negative space.
 - Vectors: happy (`canonical round-trip`, `verify split/full`, `tie-break replaceable/addressable`);
@@ -148,9 +151,11 @@ pub fn auth_state_is_pubkey_authenticated(state: *const AuthState, pubkey: *cons
 ```
 
 - Bounds: challenge length `1..64`; authenticated key store fixed-capacity; timestamp skew bounded by
-  `window_seconds` (`u32`) for stale and future rejection.
+  `window_seconds` (`u32`) for stale and future rejection; `auth_validate_event` expected challenge
+  input must also be length `1..64`.
 - Failure modes: empty challenge set attempt, too-long challenge set attempt, wrong kind,
    missing/mismatched `relay` or `challenge`, invalid signature, duplicate required tags,
+   expected challenge empty/too-long reject in `auth_validate_event`,
    unbracketed IPv6 relay authority rejection, future timestamp rejection, stale timestamp
    rejection, typed backend outage, full auth-set capacity.
 - Deterministic behavior: auth validation outcome depends only on event/tags/time inputs and current
@@ -161,6 +166,7 @@ pub fn auth_state_is_pubkey_authenticated(state: *const AuthState, pubkey: *cons
   `created_at` is within freshness window and reject stale/future violations.
 - Vectors: happy (`valid auth`, `challenge rotation then valid auth`); error (`wrong kind`,
    `relay mismatch`, `challenge mismatch`, `empty challenge`, `challenge too long`,
+   `validate expected challenge empty`, `validate expected challenge too long`,
    `duplicate required tags`, `future timestamp`, `stale timestamp`, `backend outage`,
    `pubkey set full`, `normalized path match/mismatch`, `query/fragment ignored`,
    `missing-path equals /`, `bracketed ipv6 origin match/mismatch`, `unbracketed ipv6 reject`).

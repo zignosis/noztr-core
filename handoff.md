@@ -101,6 +101,8 @@ This handoff captures the current documentation status and immediate direction f
     reject as `DuplicateRequiredTag`, and freshness rejects future/stale timestamps beyond window.
   - hardened challenge setter boundary to return distinct `ChallengeEmpty` and `ChallengeTooLong`
     failures.
+  - hardened `auth_validate_event` boundary to reject empty and oversized `expected_challenge`
+    inputs.
   - finalized strict NIP-42 relay origin matching to bind normalized path in addition to
     scheme/host/port (`?query`/`#fragment` ignored; missing path normalized to `/`).
   - finalized strict NIP-42 relay authority parsing to reject unbracketed IPv6 authorities and accept
@@ -116,12 +118,14 @@ This handoff captures the current documentation status and immediate direction f
   - strict relay `OK` message parsing now requires lowercase hex event ids.
   - strict filter parsing now rejects empty `#x` value arrays.
   - edge-case audit now has no unresolved Medium+ findings.
-  - remaining low hardening findings are closed:
+  - low hardening follow-up status:
     - normalized-path binding in NIP-42 relay origin matching (`/` default;
       query/fragment ignored).
     - unbracketed IPv6 authority rejection in NIP-42 relay matching.
     - canonical event runtime shape/UTF-8 validation guards.
     - PoW commitment truthfulness/floor enforcement (`actual_bits >= commitment >= required_bits`).
+    - open: `event_compute_id` compatibility fallback returns all-zero id on invalid runtime shape;
+      mitigation remains strict call-site usage of `event_verify_id` and checked wrappers.
 - Added dedicated security hardening tracker:
   - created `docs/plans/security-hardening-register.md`.
   - linked register from `docs/plans/build-plan.md` and `docs/plans/decision-log.md`.

@@ -67,6 +67,13 @@ pub fn auth_validate_event(
     std.debug.assert(auth_event.created_at <= std.math.maxInt(u64));
     std.debug.assert(window_seconds <= std.math.maxInt(u32));
 
+    if (expected_challenge.len == 0) {
+        return error.ChallengeEmpty;
+    }
+    if (expected_challenge.len > challenge_max_bytes) {
+        return error.ChallengeTooLong;
+    }
+
     if (auth_event.kind != auth_event_kind) {
         return error.InvalidAuthEventKind;
     }
@@ -730,6 +737,29 @@ test "auth forcing errors for challenge, challenge bounds, pubkey set" {
     try std.testing.expectError(
         error.PubkeySetFull,
         auth_state_accept_event(&state, &event, "wss://relay.example.com", 1_001, 60),
+    );
+}
+
+test "auth validate rejects empty expected challenge input" {
+    var fixture: AuthTagFixture = undefined;
+    auth_tag_fixture_init(&fixture, "wss://relay.example.com", "challenge-1");
+    const event = build_signed_auth_event(fixture.tags[0..], 5_000);
+
+    try std.testing.expectError(
+        error.ChallengeEmpty,
+        auth_validate_event(&event, "wss://relay.example.com", "", 5_001, 60),
+    );
+}
+
+test "auth validate rejects oversized expected challenge input" {
+    var fixture: AuthTagFixture = undefined;
+    auth_tag_fixture_init(&fixture, "wss://relay.example.com", "challenge-1");
+    const event = build_signed_auth_event(fixture.tags[0..], 5_100);
+    const oversized = [_]u8{'b'} ** (challenge_max_bytes + 1);
+
+    try std.testing.expectError(
+        error.ChallengeTooLong,
+        auth_validate_event(&event, "wss://relay.example.com", oversized[0..], 5_101, 60),
     );
 }
 

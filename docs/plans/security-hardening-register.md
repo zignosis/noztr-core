@@ -25,6 +25,7 @@ Dedicated status register for implemented security hardening controls and edge-c
 | Measure | Status | File references | Rationale |
 | --- | --- | --- | --- |
 | NIP-42 challenge rotation clears authenticated pubkeys | done | `docs/plans/decision-log.md` (`D-006`), `src/nip42_auth.zig` | Prevents stale-auth reuse after challenge changes. |
+| `auth_validate_event` expected-challenge bounds guard (empty/oversized rejected) | done | `src/nip42_auth.zig`, `docs/plans/v1-api-contracts.md` | Enforces strict challenge-boundary handling for direct validation call sites. |
 | Duplicate required NIP-42 tags rejected (`relay`, `challenge`) | done | `docs/plans/decision-log.md` (`D-006`), `src/nip42_auth.zig` | Removes ambiguity from multi-tag auth payloads. |
 | Freshness window rejects future/stale auth timestamps | done | `docs/plans/decision-log.md` (`D-006`), `src/nip42_auth.zig` | Reduces replay acceptance window and enforces deterministic policy. |
 | Relay origin match binds normalized path in addition to scheme/host/port | done | `docs/plans/decision-log.md` (`D-013`), `src/nip42_auth.zig` | Closes origin ambiguity by requiring strict relay match on normalized path (`?query`/`#fragment` ignored; missing path normalized to `/`). |
@@ -53,6 +54,7 @@ Dedicated status register for implemented security hardening controls and edge-c
 | unbracketed IPv6 authority rejection in NIP-42 relay matching | closed | `src/nip42_auth.zig`, `docs/plans/decision-log.md` (`D-013`) | Closed by strict authority parser rejection and mismatch tests. |
 | canonical event runtime shape/UTF-8 validation guards | closed | `src/nip01_event.zig`, `src/nip13_pow.zig` | Closed by preflight shape guards and UTF-8 checks on checked paths. |
 | PoW commitment truthfulness and floor enforcement | closed | `src/nip13_pow.zig`, `docs/plans/decision-log.md` (`D-013`) | Closed by enforcing `actual_bits >= commitment` and `commitment >= required_bits`. |
+| `event_compute_id` compatibility fallback (`[32]u8{0}` on invalid runtime shape) | open | `src/nip01_event.zig`, `docs/plans/v1-api-contracts.md`, `docs/plans/decision-log.md` (`D-013`) | Low edge case. Mitigation: keep strict trust-boundary call sites on `event_verify_id` or checked wrappers, and track typed strict helper follow-up if misuse appears. |
 | LLM-first usability evaluation sequencing (`OQ-E-006`, `D-009`) | open | `docs/plans/build-plan.md`, `docs/plans/decision-log.md`, `handoff.md` | Remains pending until post-security checkpoint and before first RC API freeze. |
 
 ## Maintenance Rule
