@@ -85,13 +85,33 @@ pub fn pow_meets_difficulty(event: *const nip01_event.Event, required_bits: u16)
         return error.DifficultyOutOfRange;
     }
 
-    _ = try pow_extract_nonce_target(event);
+    const nonce_target = try pow_extract_nonce_target(event);
     if (!event_has_nonce_tag(event)) {
         return false;
     }
 
     const leading_zero_bits = pow_leading_zero_bits(&event.id);
+    try enforce_nonce_commitment_policy(nonce_target, required_bits, leading_zero_bits);
     return leading_zero_bits >= required_bits;
+}
+
+fn enforce_nonce_commitment_policy(
+    nonce_target: ?u16,
+    required_bits: u16,
+    leading_zero_bits: u16,
+) PowError!void {
+    std.debug.assert(required_bits <= 256);
+    std.debug.assert(@sizeOf(u16) == 2);
+    std.debug.assert(leading_zero_bits <= 256);
+
+    if (nonce_target) |committed_bits| {
+        if (committed_bits < required_bits) {
+            return error.InvalidNonceCommitment;
+        }
+        if (leading_zero_bits < committed_bits) {
+            return error.InvalidNonceCommitment;
+        }
+    }
 }
 
 /// Verifies event id integrity first, then checks PoW difficulty with strict nonce validation.
@@ -334,6 +354,33 @@ test "pow duplicate nonce tags are rejected as malformed shape" {
 
     try std.testing.expectError(error.InvalidNonceTag, pow_extract_nonce_target(&event));
     try std.testing.expectError(error.InvalidNonceTag, pow_meets_difficulty(&event, 1));
+}
+
+test "pow rejects nonce commitment below required threshold" {
+    const nonce_items = [_][]const u8{ "nonce", "1", "11" };
+    const tags = [_]nip01_event.EventTag{.{ .items = nonce_items[0..] }};
+    const id_twelve = [_]u8{ 0x00, 0x0f } ++ ([_]u8{0} ** 30);
+    const event = test_event(id_twelve, tags[0..]);
+
+    try std.testing.expectError(error.InvalidNonceCommitment, pow_meets_difficulty(&event, 12));
+}
+
+test "pow rejects nonce commitment overstating actual leading-zero bits" {
+    const nonce_items = [_][]const u8{ "nonce", "1", "13" };
+    const tags = [_]nip01_event.EventTag{.{ .items = nonce_items[0..] }};
+    const id_twelve = [_]u8{ 0x00, 0x0f } ++ ([_]u8{0} ** 30);
+    const event = test_event(id_twelve, tags[0..]);
+
+    try std.testing.expectError(error.InvalidNonceCommitment, pow_meets_difficulty(&event, 12));
+}
+
+test "pow accepts nonce commitment satisfied by actual leading-zero bits" {
+    const nonce_items = [_][]const u8{ "nonce", "1", "12" };
+    const tags = [_]nip01_event.EventTag{.{ .items = nonce_items[0..] }};
+    const id_twelve = [_]u8{ 0x00, 0x0f } ++ ([_]u8{0} ** 30);
+    const event = test_event(id_twelve, tags[0..]);
+
+    try std.testing.expect(try pow_meets_difficulty(&event, 12));
 }
 
 test "pow verified-id wrapper accepts valid id path" {

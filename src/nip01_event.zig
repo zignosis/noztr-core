@@ -5,6 +5,15 @@ const secp256k1_backend = @import("crypto/secp256k1_backend.zig");
 
 pub const EventParseError = shared_errors.EventParseError;
 pub const EventVerifyError = shared_errors.EventVerifyError;
+pub const EventShapeError = error{
+    InvalidUtf8,
+    ContentTooLong,
+    TooManyTags,
+    TooManyTagItems,
+    TagItemTooLong,
+};
+pub const EventSerializeError = EventShapeError || error{BufferTooSmall};
+pub const EventVerifyIdError = EventVerifyError || EventShapeError;
 
 pub const ReplaceDecision = enum {
     keep_current,
@@ -142,9 +151,30 @@ fn parse_event_object(
 pub fn event_serialize_canonical(
     output: []u8,
     event: *const Event,
+) EventSerializeError![]const u8 {
+    std.debug.assert(@sizeOf(EventTag) > 0);
+    std.debug.assert(@sizeOf(Event) > 0);
+
+    return event_serialize_canonical_json(output, event);
+}
+
+pub fn event_serialize_canonical_json(
+    output: []u8,
+    event: *const Event,
+) EventSerializeError![]const u8 {
+    std.debug.assert(@sizeOf(EventTag) > 0);
+    std.debug.assert(@sizeOf(Event) > 0);
+
+    try event_validate_shape(event);
+    return event_serialize_canonical_json_unchecked(output, event);
+}
+
+fn event_serialize_canonical_json_unchecked(
+    output: []u8,
+    event: *const Event,
 ) error{BufferTooSmall}![]const u8 {
-    std.debug.assert(output.len >= 0);
-    std.debug.assert(event.content.len <= limits.content_bytes_max);
+    std.debug.assert(output.len <= std.math.maxInt(usize));
+    std.debug.assert(event.tags.len <= limits.tags_max);
 
     const pubkey_hex = std.fmt.bytesToHex(event.pubkey, .lower);
     var index: u32 = 0;
@@ -165,8 +195,23 @@ pub fn event_serialize_canonical(
 }
 
 pub fn event_compute_id(event: *const Event) [32]u8 {
+    std.debug.assert(@sizeOf(EventTag) > 0);
+    std.debug.assert(@sizeOf(Event) > 0);
+
+    return event_compute_id_checked(event) catch [_]u8{0} ** 32;
+}
+
+pub fn event_compute_id_checked(event: *const Event) EventShapeError![32]u8 {
+    std.debug.assert(@sizeOf(EventTag) > 0);
+    std.debug.assert(@sizeOf(Event) > 0);
+
+    try event_validate_shape(event);
+    return event_compute_id_unchecked(event);
+}
+
+fn event_compute_id_unchecked(event: *const Event) [32]u8 {
+    std.debug.assert(event.tags.len <= limits.tags_max);
     std.debug.assert(event.content.len <= limits.content_bytes_max);
-    std.debug.assert(event.kind <= std.math.maxInt(u32));
 
     const pubkey_hex = std.fmt.bytesToHex(event.pubkey, .lower);
     var hash = std.crypto.hash.sha2.Sha256.init(.{});
@@ -189,10 +234,19 @@ pub fn event_compute_id(event: *const Event) [32]u8 {
 }
 
 pub fn event_verify_id(event: *const Event) EventVerifyError!void {
-    std.debug.assert(event.created_at <= std.math.maxInt(u64));
-    std.debug.assert(event.id[0] <= 255);
+    std.debug.assert(@sizeOf(EventTag) > 0);
+    std.debug.assert(@sizeOf(Event) > 0);
 
-    const computed_id = event_compute_id(event);
+    event_verify_id_checked(event) catch |verify_id_error| {
+        return map_verify_id_error(verify_id_error);
+    };
+}
+
+pub fn event_verify_id_checked(event: *const Event) EventVerifyIdError!void {
+    std.debug.assert(@sizeOf(EventTag) > 0);
+    std.debug.assert(@sizeOf(Event) > 0);
+
+    const computed_id = try event_compute_id_checked(event);
     if (std.mem.eql(u8, &computed_id, &event.id)) {
         return;
     }
@@ -217,8 +271,63 @@ pub fn event_verify(event: *const Event) EventVerifyError!void {
     std.debug.assert(event.created_at <= std.math.maxInt(u64));
     std.debug.assert(event.kind <= std.math.maxInt(u32));
 
-    try event_verify_id(event);
+    event_verify_id_checked(event) catch |verify_id_error| {
+        return map_verify_id_error(verify_id_error);
+    };
     try event_verify_signature(event);
+}
+
+fn map_verify_id_error(verify_id_error: EventVerifyIdError) EventVerifyError {
+    std.debug.assert(@intFromError(verify_id_error) >= 0);
+    std.debug.assert(!@inComptime());
+
+    return switch (verify_id_error) {
+        error.InvalidId => error.InvalidId,
+        error.InvalidUtf8 => error.InvalidId,
+        error.ContentTooLong => error.InvalidId,
+        error.TooManyTags => error.InvalidId,
+        error.TooManyTagItems => error.InvalidId,
+        error.TagItemTooLong => error.InvalidId,
+        error.InvalidSignature => error.InvalidId,
+        error.InvalidPubkey => error.InvalidId,
+        error.BackendUnavailable => error.InvalidId,
+    };
+}
+
+fn event_validate_shape(event: *const Event) EventShapeError!void {
+    std.debug.assert(@sizeOf(EventTag) > 0);
+    std.debug.assert(@sizeOf(Event) > 0);
+
+    if (event.content.len > limits.content_bytes_max) {
+        return error.ContentTooLong;
+    }
+
+    if (!std.unicode.utf8ValidateSlice(event.content)) {
+        return error.InvalidUtf8;
+    }
+
+    if (event.tags.len > limits.tags_max) {
+        return error.TooManyTags;
+    }
+
+    var tag_index: u32 = 0;
+    while (tag_index < event.tags.len) : (tag_index += 1) {
+        const tag = event.tags[tag_index];
+        if (tag.items.len > limits.tag_items_max) {
+            return error.TooManyTagItems;
+        }
+
+        var item_index: u32 = 0;
+        while (item_index < tag.items.len) : (item_index += 1) {
+            const item = tag.items[item_index];
+            if (item.len > limits.tag_item_bytes_max) {
+                return error.TagItemTooLong;
+            }
+            if (!std.unicode.utf8ValidateSlice(item)) {
+                return error.InvalidUtf8;
+            }
+        }
+    }
 }
 
 pub fn event_replace_decision(current: *const Event, candidate: *const Event) ReplaceDecision {
@@ -703,6 +812,116 @@ test "event verify id follows canonical hash compute" {
     try event_verify_id(&event);
 
     event.id[0] ^= 1;
+    try std.testing.expectError(error.InvalidId, event_verify_id(&event));
+}
+
+test "event compute id checked rejects non-utf8 content" {
+    const invalid_content = [_]u8{ 0xC3, 0x28 };
+    const event = Event{
+        .id = [_]u8{0} ** 32,
+        .pubkey = [_]u8{0x44} ** 32,
+        .sig = [_]u8{0x55} ** 64,
+        .kind = 1,
+        .created_at = 1,
+        .content = invalid_content[0..],
+    };
+
+    const computed_id = event_compute_id(&event);
+    const zero_id = [_]u8{0} ** 32;
+
+    try std.testing.expectError(error.InvalidUtf8, event_compute_id_checked(&event));
+    try std.testing.expect(std.mem.eql(u8, &computed_id, &zero_id));
+}
+
+test "event serialize canonical json rejects oversized content" {
+    var large_content: [limits.content_bytes_max + 1]u8 = undefined;
+    @memset(large_content[0..], 'x');
+    const event = Event{
+        .id = [_]u8{0} ** 32,
+        .pubkey = [_]u8{0x11} ** 32,
+        .sig = [_]u8{0x22} ** 64,
+        .kind = 1,
+        .created_at = 1,
+        .content = large_content[0..],
+    };
+    var output: [128]u8 = undefined;
+
+    try std.testing.expectError(
+        error.ContentTooLong,
+        event_serialize_canonical_json(&output, &event),
+    );
+}
+
+test "event verify id checked rejects too many tags" {
+    const oversize_tags = [_]EventTag{.{ .items = &.{} }} ** (limits.tags_max + 1);
+    const event = Event{
+        .id = [_]u8{0} ** 32,
+        .pubkey = [_]u8{0x11} ** 32,
+        .sig = [_]u8{0x22} ** 64,
+        .kind = 1,
+        .created_at = 1,
+        .content = "ok",
+        .tags = oversize_tags[0..],
+    };
+
+    try std.testing.expectError(error.TooManyTags, event_verify_id_checked(&event));
+    try std.testing.expectError(error.InvalidId, event_verify_id(&event));
+}
+
+test "event serialize canonical json rejects oversized tag item" {
+    var large_item: [limits.tag_item_bytes_max + 1]u8 = undefined;
+    @memset(large_item[0..], 'x');
+
+    const items = [_][]const u8{ "e", large_item[0..] };
+    const tags = [_]EventTag{.{ .items = items[0..] }};
+    const event = Event{
+        .id = [_]u8{0} ** 32,
+        .pubkey = [_]u8{0x11} ** 32,
+        .sig = [_]u8{0x22} ** 64,
+        .kind = 1,
+        .created_at = 1,
+        .content = "ok",
+        .tags = tags[0..],
+    };
+    var output: [128]u8 = undefined;
+
+    try std.testing.expectError(
+        error.TagItemTooLong,
+        event_serialize_canonical_json(&output, &event),
+    );
+}
+
+test "event compute id checked rejects too many tag items" {
+    const too_many_items = [_][]const u8{"x"} ** (limits.tag_items_max + 1);
+    const tags = [_]EventTag{.{ .items = too_many_items[0..] }};
+    const event = Event{
+        .id = [_]u8{0} ** 32,
+        .pubkey = [_]u8{0x11} ** 32,
+        .sig = [_]u8{0x22} ** 64,
+        .kind = 1,
+        .created_at = 1,
+        .content = "ok",
+        .tags = tags[0..],
+    };
+
+    try std.testing.expectError(error.TooManyTagItems, event_compute_id_checked(&event));
+}
+
+test "event verify id checked rejects non-utf8 tag item" {
+    const invalid_item = [_]u8{ 0xC3, 0x28 };
+    const items = [_][]const u8{ "p", invalid_item[0..] };
+    const tags = [_]EventTag{.{ .items = items[0..] }};
+    const event = Event{
+        .id = [_]u8{0} ** 32,
+        .pubkey = [_]u8{0x11} ** 32,
+        .sig = [_]u8{0x22} ** 64,
+        .kind = 1,
+        .created_at = 1,
+        .content = "ok",
+        .tags = tags[0..],
+    };
+
+    try std.testing.expectError(error.InvalidUtf8, event_verify_id_checked(&event));
     try std.testing.expectError(error.InvalidId, event_verify_id(&event));
 }
 

@@ -1,6 +1,6 @@
 # noztr Build Plan (Phase E Final)
 
-Date: 2026-03-06
+Date: 2026-03-07
 
 This artifact is finalized for implementation execution and is aligned to:
 
@@ -20,7 +20,12 @@ This artifact is finalized for implementation execution and is aligned to:
 - `PE-005`: carry only low/medium impact accepted-risk items into Phase F; no high-impact ambiguity may
   remain `decision-needed` at Phase E close.
 - `PE-006`: security hardening defaults are frozen for implementation: reduced secp module surface,
-  commit-SHA pinning, typed backend outage boundaries, and strict transcript/auth wrappers.
+  commit-SHA pinning, typed backend outage boundaries, strict transcript/auth wrappers, normalized
+  NIP-42 relay path binding, unbracketed IPv6 authority rejection, and strict PoW commitment
+  truthfulness/floor policy.
+- `PE-007`: maintain a dedicated security hardening register in
+  `docs/plans/security-hardening-register.md` and treat it as the canonical status tracker for
+  low/edge security follow-ups.
 
 ## Implementation Schedule
 
@@ -84,8 +89,9 @@ Note: these are implementation phases, not planning prompt phases.
   - challenge-set boundary typing distinguishes empty from too-long challenge input.
   - challenge rotation semantics: set-challenge clears authenticated pubkey set.
   - auth required-tag strictness: duplicate `relay`/`challenge` tags are rejected.
-  - strict relay origin matching supports bracketed IPv6 authorities without relaxing
-    scheme/host/port equality checks.
+  - strict relay origin matching compares normalized scheme/host/port/path, ignores query/fragment,
+    normalizes missing path to `/`, supports bracketed IPv6 authorities, and rejects unbracketed
+    IPv6 authorities.
   - freshness policy: reject future auth timestamps and stale auth timestamps beyond window.
   - auth backend outage distinction typed separately from invalid signature.
   - protected-event gate with default deny unless auth context matches.
@@ -96,7 +102,8 @@ Note: these are implementation phases, not planning prompt phases.
   - transcript forcing tests for invalid order and prefix mapping.
   - NIP-42 vectors include challenge rotation auth-set clear, duplicate required-tag reject, future
     timestamp reject, stale timestamp reject, typed empty-vs-too-long challenge-set failures,
-    bracketed-IPv6 origin match/mismatch, and backend outage mapping.
+    normalized-path match/mismatch (`/` default, query/fragment ignored), bracketed-IPv6
+    origin match/mismatch, unbracketed-IPv6 reject, and backend outage mapping.
   - `nip11` vectors include unknown-field ignore, known-field type mismatch reject, invalid pubkey
     reject, and cap overflow typed errors.
 - Exit gate:
@@ -111,12 +118,15 @@ Note: these are implementation phases, not planning prompt phases.
   - checked delete extraction wrapper for relay-safe callers (`delete_extract_targets_checked`).
   - strict expiration parse and deterministic boundary helper.
   - deterministic PoW leading-zero and nonce-tag validation.
+  - strict PoW commitment policy: `actual_bits >= commitment` and `commitment >= required_bits`
+    when nonce commitment is present.
   - checked PoW verification wrapper (`pow_meets_difficulty_verified_id`) to couple id validity with
     difficulty checks.
 - Test/vector plan:
   - each module minimum `5 valid + 5 invalid`.
   - boundary vectors: expiration equality second, delete cross-author reject,
-    malformed nonce and difficulty range errors.
+    malformed nonce and difficulty range errors, commitment-below-required reject, and
+    actual-below-commitment reject.
   - wrapper vectors: checked delete kind guard and checked PoW invalid-id reject.
 - Exit gate:
   - pure helper behavior deterministic and side-effect free.
@@ -216,11 +226,16 @@ Note: these are implementation phases, not planning prompt phases.
 ## Edge-Case Audit Closure
 
 - Status: edge-case audit is closed with no unresolved Medium+ findings.
+- Security hardening register: `docs/plans/security-hardening-register.md`.
 - Follow-up observations (low):
-  - `UT-E-002` compatibility API physical placement (`co-located` vs `compat/`) remains accepted-risk
-    and does not change strict defaults.
-  - LLM-first usability evaluation remains pending post-security checkpoint and before release-candidate
-    API freeze.
+  - closed: normalized-path binding in NIP-42 relay origin matching (`/` default;
+    query/fragment ignored).
+  - closed: unbracketed IPv6 authority rejection in NIP-42 relay origin matching.
+  - closed: canonical event runtime shape/UTF-8 validation guards.
+  - closed: PoW commitment truthfulness/floor enforcement (`actual_bits >= commitment >=
+    required_bits`).
+  - open: LLM-first usability evaluation remains pending post-security checkpoint and before
+    release-candidate API freeze.
 
 ## Unresolved Tradeoff Register
 

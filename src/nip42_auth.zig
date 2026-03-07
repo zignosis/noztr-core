@@ -200,6 +200,7 @@ const RelayOrigin = struct {
     scheme: []const u8,
     host: []const u8,
     port: u16,
+    path: []const u8,
 };
 
 fn relay_urls_match(left: []const u8, right: []const u8) bool {
@@ -224,6 +225,9 @@ fn relay_urls_match(left: []const u8, right: []const u8) bool {
     if (left_origin.port != right_origin.port) {
         return false;
     }
+    if (!std.mem.eql(u8, left_origin.path, right_origin.path)) {
+        return false;
+    }
     return true;
 }
 
@@ -240,6 +244,9 @@ fn parse_relay_origin(url: []const u8) ?RelayOrigin {
         return null;
     }
     const scheme = url[0..scheme_end];
+    if (!scheme_is_websocket(scheme)) {
+        return null;
+    }
     const authority_start = scheme_end + 3;
     if (authority_start >= url.len) {
         return null;
@@ -251,7 +258,8 @@ fn parse_relay_origin(url: []const u8) ?RelayOrigin {
         return null;
     }
     const host_port = parse_host_port(authority, scheme) orelse return null;
-    return .{ .scheme = scheme, .host = host_port.host, .port = host_port.port };
+    const path = parse_url_path(url, authority_end);
+    return .{ .scheme = scheme, .host = host_port.host, .port = host_port.port, .path = path };
 }
 
 fn find_authority_end(url: []const u8, authority_start: usize) usize {
@@ -264,6 +272,39 @@ fn find_authority_end(url: []const u8, authority_start: usize) usize {
         if (byte == '/') {
             return index;
         }
+        if (byte == '?') {
+            return index;
+        }
+        if (byte == '#') {
+            return index;
+        }
+    }
+    return url.len;
+}
+
+fn parse_url_path(url: []const u8, authority_end: usize) []const u8 {
+    std.debug.assert(authority_end <= url.len);
+    std.debug.assert(url.len > 0);
+
+    if (authority_end == url.len) {
+        return "/";
+    }
+    const first_after_authority = url[authority_end];
+    if (first_after_authority != '/') {
+        return "/";
+    }
+
+    const path_end = find_path_end(url, authority_end);
+    return url[authority_end..path_end];
+}
+
+fn find_path_end(url: []const u8, path_start: usize) usize {
+    std.debug.assert(path_start < url.len);
+    std.debug.assert(url[path_start] == '/');
+
+    var index: usize = path_start;
+    while (index < url.len) : (index += 1) {
+        const byte = url[index];
         if (byte == '?') {
             return index;
         }
@@ -287,13 +328,17 @@ fn parse_host_port(authority: []const u8, scheme: []const u8) ?HostPort {
         return parse_bracketed_host_port(authority, scheme);
     }
 
-    const last_colon = std.mem.lastIndexOfScalar(u8, authority, ':');
-    if (last_colon == null) {
+    const first_colon = std.mem.indexOfScalar(u8, authority, ':');
+    if (first_colon == null) {
         const port_default = default_port_for_scheme(scheme) orelse return null;
         return .{ .host = authority, .port = port_default };
     }
 
-    const colon_index = last_colon.?;
+    if (find_second_colon(authority, first_colon.?) != null) {
+        return null;
+    }
+
+    const colon_index = first_colon.?;
     if (colon_index == 0) {
         return null;
     }
@@ -305,6 +350,19 @@ fn parse_host_port(authority: []const u8, scheme: []const u8) ?HostPort {
     const port_text = authority[colon_index + 1 ..];
     const port = std.fmt.parseUnsigned(u16, port_text, 10) catch return null;
     return .{ .host = host, .port = port };
+}
+
+fn find_second_colon(authority: []const u8, first_colon: usize) ?usize {
+    std.debug.assert(authority.len > 0);
+    std.debug.assert(first_colon < authority.len);
+
+    var index: usize = first_colon + 1;
+    while (index < authority.len) : (index += 1) {
+        if (authority[index] == ':') {
+            return index;
+        }
+    }
+    return null;
 }
 
 fn parse_bracketed_host_port(authority: []const u8, scheme: []const u8) ?HostPort {
@@ -333,6 +391,19 @@ fn parse_bracketed_host_port(authority: []const u8, scheme: []const u8) ?HostPor
     return .{ .host = host, .port = port };
 }
 
+fn scheme_is_websocket(scheme: []const u8) bool {
+    std.debug.assert(scheme.len > 0);
+    std.debug.assert(scheme.len <= std.math.maxInt(u16));
+
+    if (std.ascii.eqlIgnoreCase(scheme, "ws")) {
+        return true;
+    }
+    if (std.ascii.eqlIgnoreCase(scheme, "wss")) {
+        return true;
+    }
+    return false;
+}
+
 fn default_port_for_scheme(scheme: []const u8) ?u16 {
     std.debug.assert(scheme.len > 0);
     std.debug.assert(@sizeOf(u16) == 2);
@@ -341,12 +412,6 @@ fn default_port_for_scheme(scheme: []const u8) ?u16 {
         return 80;
     }
     if (std.ascii.eqlIgnoreCase(scheme, "wss")) {
-        return 443;
-    }
-    if (std.ascii.eqlIgnoreCase(scheme, "http")) {
-        return 80;
-    }
-    if (std.ascii.eqlIgnoreCase(scheme, "https")) {
         return 443;
     }
     return null;
@@ -385,8 +450,8 @@ test "auth validates event and accepts state" {
     auth_tag_fixture_init(&fixture, "wss://relay.example.com/path", "challenge-1");
     var event = build_signed_auth_event(fixture.tags[0..], 10_000);
 
-    try auth_validate_event(&event, "wss://relay.example.com", "challenge-1", 10_010, 60);
-    try auth_state_accept_event(&state, &event, "wss://relay.example.com", 10_010, 60);
+    try auth_validate_event(&event, "wss://relay.example.com/path", "challenge-1", 10_010, 60);
+    try auth_state_accept_event(&state, &event, "wss://relay.example.com/path", 10_010, 60);
     try std.testing.expect(auth_state_is_pubkey_authenticated(&state, &event.pubkey));
     try std.testing.expectEqual(@as(u16, 1), state.authenticated_count);
 }
@@ -399,12 +464,12 @@ test "auth accepts relay normalization and duplicate pubkey" {
     var fixture: AuthTagFixture = undefined;
     auth_tag_fixture_init(
         &fixture,
-        "WSS://RELAY.EXAMPLE.COM:443/path/ignored?x=1#frag",
+        "WSS://RELAY.EXAMPLE.COM:443/path/Exact?x=1#frag",
         "challenge-1",
     );
     var event = build_signed_auth_event(fixture.tags[0..], 2_000);
-    try auth_state_accept_event(&state, &event, "wss://relay.example.com", 2_001, 60);
-    try auth_state_accept_event(&state, &event, "wss://relay.example.com", 2_001, 60);
+    try auth_state_accept_event(&state, &event, "wss://relay.example.com/path/Exact", 2_001, 60);
+    try auth_state_accept_event(&state, &event, "wss://relay.example.com/path/Exact", 2_001, 60);
 
     try std.testing.expect(auth_state_is_pubkey_authenticated(&state, &event.pubkey));
     try std.testing.expectEqual(@as(u16, 1), state.authenticated_count);
@@ -418,8 +483,14 @@ test "auth accepts bracketed ipv6 relay authorities" {
     var fixture_explicit: AuthTagFixture = undefined;
     auth_tag_fixture_init(&fixture_explicit, "wss://[2001:db8::1]:443/path", "challenge-ipv6");
     var event_explicit = build_signed_auth_event(fixture_explicit.tags[0..], 4_000);
-    try auth_validate_event(&event_explicit, "wss://[2001:db8::1]", "challenge-ipv6", 4_001, 60);
-    try auth_state_accept_event(&state, &event_explicit, "wss://[2001:db8::1]", 4_001, 60);
+    try auth_validate_event(
+        &event_explicit,
+        "wss://[2001:db8::1]/path?ignored=1#fragment",
+        "challenge-ipv6",
+        4_001,
+        60,
+    );
+    try auth_state_accept_event(&state, &event_explicit, "wss://[2001:db8::1]/path", 4_001, 60);
 
     var fixture_default: AuthTagFixture = undefined;
     auth_tag_fixture_init(&fixture_default, "ws://[::1]", "challenge-ipv6");
@@ -431,8 +502,48 @@ test "auth accepts bracketed ipv6 relay authorities" {
     );
 }
 
+test "auth rejects same origin with different relay path" {
+    var fixture: AuthTagFixture = undefined;
+    auth_tag_fixture_init(&fixture, "wss://relay.example.com/alpha", "challenge-1");
+    const event = build_signed_auth_event(fixture.tags[0..], 2_300);
+
+    try std.testing.expectError(
+        error.RelayUrlMismatch,
+        auth_validate_event(&event, "wss://relay.example.com/beta", "challenge-1", 2_301, 60),
+    );
+}
+
+test "auth treats missing relay path and slash as equivalent" {
+    var fixture: AuthTagFixture = undefined;
+    auth_tag_fixture_init(&fixture, "wss://relay.example.com", "challenge-1");
+    const event_missing = build_signed_auth_event(fixture.tags[0..], 2_320);
+
+    try auth_validate_event(&event_missing, "wss://relay.example.com/", "challenge-1", 2_321, 60);
+
+    auth_tag_fixture_init(&fixture, "wss://relay.example.com/", "challenge-1");
+    const event_slash = build_signed_auth_event(fixture.tags[0..], 2_330);
+    try auth_validate_event(&event_slash, "wss://relay.example.com", "challenge-1", 2_331, 60);
+}
+
 test "relay origin rejects empty authority segment" {
     try std.testing.expect(parse_relay_origin("wss:///path") == null);
+}
+
+test "relay origin rejects non-websocket schemes" {
+    try std.testing.expect(parse_relay_origin("http://relay.example.com") == null);
+    try std.testing.expect(parse_relay_origin("https://relay.example.com") == null);
+}
+
+test "relay origin rejects unbracketed ipv6 authority" {
+    try std.testing.expect(parse_relay_origin("ws://2001:db8::1") == null);
+
+    var fixture: AuthTagFixture = undefined;
+    auth_tag_fixture_init(&fixture, "ws://2001:db8::1", "challenge-ipv6-unbracketed");
+    const event = build_signed_auth_event(fixture.tags[0..], 4_200);
+    try std.testing.expectError(
+        error.RelayUrlMismatch,
+        auth_validate_event(&event, "ws://2001:db8::1", "challenge-ipv6-unbracketed", 4_201, 60),
+    );
 }
 
 test "auth empty relay tag value returns relay mismatch" {
@@ -447,6 +558,24 @@ test "auth empty relay tag value returns relay mismatch" {
     try std.testing.expectError(
         error.RelayUrlMismatch,
         auth_validate_event(&event, "wss://relay.example.com", "challenge-1", 2_201, 60),
+    );
+}
+
+test "auth rejects http and https relay origins as relay mismatch" {
+    var fixture_http: AuthTagFixture = undefined;
+    auth_tag_fixture_init(&fixture_http, "http://relay.example.com", "challenge-1");
+    const event_http = build_signed_auth_event(fixture_http.tags[0..], 2_210);
+    try std.testing.expectError(
+        error.RelayUrlMismatch,
+        auth_validate_event(&event_http, "http://relay.example.com", "challenge-1", 2_211, 60),
+    );
+
+    var fixture_https: AuthTagFixture = undefined;
+    auth_tag_fixture_init(&fixture_https, "https://relay.example.com", "challenge-1");
+    const event_https = build_signed_auth_event(fixture_https.tags[0..], 2_220);
+    try std.testing.expectError(
+        error.RelayUrlMismatch,
+        auth_validate_event(&event_https, "https://relay.example.com", "challenge-1", 2_221, 60),
     );
 }
 

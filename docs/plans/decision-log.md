@@ -169,10 +169,44 @@ Immutable record of accepted planning decisions.
   `#x` arrays in strict mode.
 - Supersedes: none
 
+## D-012: Dedicated security hardening register
+
+- Date: 2026-03-06
+- Status: accepted
+- Decision: maintain `docs/plans/security-hardening-register.md` as the dedicated security hardening
+  status register and link it from planning artifacts.
+- Why: keeps implemented controls and low/edge follow-up status in one auditable location.
+- Tradeoff: one additional artifact to maintain versus lower hardening status drift.
+- Related Tradeoff: T-0-004.
+- Reversal Trigger: register duplicates policy content without improving hardening traceability.
+- Supersedes: none
+
+## D-013: Finalize NIP-42 relay matching and PoW commitment hardening semantics
+
+- Date: 2026-03-07
+- Status: accepted
+- Decision: strict NIP-42 relay matching now binds normalized path in addition to
+  scheme/host/port (query/fragment ignored; missing path normalized to `/`) and rejects
+  unbracketed IPv6 authorities; strict PoW commitment policy enforces both commitment
+  truthfulness (`actual_bits >= commitment`) and commitment floor (`commitment >= required_bits`).
+- Why: closes remaining low-severity ambiguity in relay-origin and PoW commitment checks while
+  preserving deterministic strict defaults.
+- Tradeoff: stricter URL/PoW validation behavior versus permissive acceptance of ambiguous inputs.
+- Related Tradeoff: T-0-001, T-0-003.
+- Reversal Trigger: standards-backed parity evidence requires a less strict relay-origin or
+  commitment policy.
+- Supersedes: D-010
+
 - Follow-up observations (low):
-  - compatibility API placement (`UT-E-002`) remains accepted-risk.
-  - LLM-first usability evaluation remains pending post-security checkpoint and before RC API freeze
-    (`D-009`, `OQ-E-006`).
+  - closed: normalized-path binding in NIP-42 relay origin matching (`/` default;
+    query/fragment ignored).
+  - closed: unbracketed IPv6 authority rejection in NIP-42 relay matching.
+  - closed: canonical event runtime shape/UTF-8 validation guards.
+  - closed: PoW commitment truthfulness/floor enforcement (`actual_bits >= commitment >=
+    required_bits`).
+  - open: LLM-first usability evaluation remains pending post-security checkpoint and before RC API
+    freeze (`D-009`, `OQ-E-006`).
+  - canonical tracker: `docs/plans/security-hardening-register.md`.
 
 ## Phase Closure Evidence
 

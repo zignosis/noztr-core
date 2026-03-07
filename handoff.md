@@ -101,8 +101,12 @@ This handoff captures the current documentation status and immediate direction f
     reject as `DuplicateRequiredTag`, and freshness rejects future/stale timestamps beyond window.
   - hardened challenge setter boundary to return distinct `ChallengeEmpty` and `ChallengeTooLong`
     failures.
-  - updated strict NIP-42 relay origin matching to accept bracketed IPv6 authorities while preserving
-    strict scheme/host/port equality semantics.
+  - finalized strict NIP-42 relay origin matching to bind normalized path in addition to
+    scheme/host/port (`?query`/`#fragment` ignored; missing path normalized to `/`).
+  - finalized strict NIP-42 relay authority parsing to reject unbracketed IPv6 authorities and accept
+    bracketed IPv6 authorities.
+  - finalized strict PoW commitment policy to enforce commitment truthfulness and floor
+    (`actual_bits >= commitment >= required_bits`).
   - froze safe wrapper APIs: `pow_meets_difficulty_verified_id`,
     `delete_extract_targets_checked`, `transcript_mark_client_req`,
     `transcript_apply_relay`.
@@ -112,14 +116,23 @@ This handoff captures the current documentation status and immediate direction f
   - strict relay `OK` message parsing now requires lowercase hex event ids.
   - strict filter parsing now rejects empty `#x` value arrays.
   - edge-case audit now has no unresolved Medium+ findings.
-  - remaining low follow-ups are tracked: compatibility API placement (`UT-E-002`) and LLM-first
-    usability sequencing (`OQ-E-006`).
+  - remaining low hardening findings are closed:
+    - normalized-path binding in NIP-42 relay origin matching (`/` default;
+      query/fragment ignored).
+    - unbracketed IPv6 authority rejection in NIP-42 relay matching.
+    - canonical event runtime shape/UTF-8 validation guards.
+    - PoW commitment truthfulness/floor enforcement (`actual_bits >= commitment >= required_bits`).
+- Added dedicated security hardening tracker:
+  - created `docs/plans/security-hardening-register.md`.
+  - linked register from `docs/plans/build-plan.md` and `docs/plans/decision-log.md`.
+  - left LLM-first usability sequencing (`OQ-E-006`) open per post-security policy (`D-009`).
 
 ## Pending Actions
 
 - Continue implementation in build-plan order from I2 onward on the hardened API contract baseline.
 - Keep the secp boundary narrowed to approved exports only; preserve commit-SHA pinning policy when
   updating backend references.
+- Maintain `docs/plans/security-hardening-register.md` as the canonical hardening status ledger.
 - Keep LLM-first usability evaluation pending post-security checkpoint and before first RC API freeze.
 - Add H2 NIP-06 build-vs-buy checkpoint artifact entry before any NIP-06 implementation start.
 - Maintain verification cadence: run `zig build test --summary all` after each material change and
@@ -167,6 +180,7 @@ This handoff captures the current documentation status and immediate direction f
   - `docs/plans/prompts/phase-d-contracts-vectors.md`
   - `docs/plans/prompts/phase-e-build-plan.md`
   - `docs/plans/prompts/phase-f-implementation-handoff.md`
+  - `docs/plans/security-hardening-register.md`
   - `handoff.md`
 - Updated:
   - `AGENTS.md`

@@ -1,6 +1,6 @@
 # v1 API Contracts (Phase D)
 
-Date: 2026-03-06
+Date: 2026-03-07
 
 Scope: implementation-ready contracts for all Phase A H1 v1 modules.
 
@@ -150,18 +150,20 @@ pub fn auth_state_is_pubkey_authenticated(state: *const AuthState, pubkey: *cons
 - Bounds: challenge length `1..64`; authenticated key store fixed-capacity; timestamp skew bounded by
   `window_seconds` (`u32`) for stale and future rejection.
 - Failure modes: empty challenge set attempt, too-long challenge set attempt, wrong kind,
-   missing/mismatched `relay` or `challenge`, invalid signature, duplicate required tags, future
-   timestamp rejection, stale timestamp rejection, typed backend outage, full auth-set capacity.
+   missing/mismatched `relay` or `challenge`, invalid signature, duplicate required tags,
+   unbracketed IPv6 relay authority rejection, future timestamp rejection, stale timestamp
+   rejection, typed backend outage, full auth-set capacity.
 - Deterministic behavior: auth validation outcome depends only on event/tags/time inputs and current
   challenge state; challenge rotation clears authenticated pubkeys before next accept; strict relay
-  origin matching accepts bracketed IPv6 authorities while preserving scheme/host/port equality.
+  origin matching compares normalized scheme/host/port/path, ignores query/fragment, normalizes
+  missing path to `/`, accepts bracketed IPv6 authorities, and rejects unbracketed IPv6 authorities.
 - Assertion pairs: assert challenge exists before accept and reject mismatch explicitly; assert
   `created_at` is within freshness window and reject stale/future violations.
 - Vectors: happy (`valid auth`, `challenge rotation then valid auth`); error (`wrong kind`,
    `relay mismatch`, `challenge mismatch`, `empty challenge`, `challenge too long`,
    `duplicate required tags`, `future timestamp`, `stale timestamp`, `backend outage`,
-   `pubkey set full`,
-   `bracketed ipv6 origin match/mismatch`).
+   `pubkey set full`, `normalized path match/mismatch`, `query/fragment ignored`,
+   `missing-path equals /`, `bracketed ipv6 origin match/mismatch`, `unbracketed ipv6 reject`).
 
 ### `nip70_protected`
 
@@ -248,13 +250,17 @@ pub fn pow_meets_difficulty_verified_id(event: *const Event, required_bits: u16)
 - Bounds: `required_bits` in `0..256`; nonce tag shape `['nonce', counter]` or
   `['nonce', counter, target]`.
 - Failure modes: malformed nonce shape, invalid integer counter/target, out-of-range difficulty.
-- Deterministic behavior: leading-zero count is deterministic bit scan of event id bytes.
+- Deterministic behavior: leading-zero count is deterministic bit scan of event id bytes; when nonce
+  commitment is present, strict validation enforces `actual_bits >= commitment` and
+  `commitment >= required_bits`.
 - Safe wrapper: `pow_meets_difficulty_verified_id` first checks event id canonical validity before PoW
   comparison and returns `InvalidEventId` on mismatch.
 - Assertion pairs: assert `required_bits <= 256` and reject higher values; assert valid nonce tag
-  arities and reject others.
+  arities and reject others; assert commitment floor/truthfulness and reject weaker or overstated
+  commitments.
 - Vectors: happy (`known id leading-zero vectors`, `meets required`, `missing commitment accepted`);
-  error (`bad nonce value`, `bad nonce arity`, `required_bits out of range`).
+  error (`bad nonce value`, `bad nonce arity`, `required_bits out of range`,
+  `commitment below required`, `actual bits below commitment`).
 
 ### `nip19_bech32`
 
