@@ -1,4 +1,6 @@
 const std = @import("std");
+const build_options = @import("build_options");
+const i6_extensions_enabled = build_options.enable_i6_extensions;
 
 /// Strict-by-default shared limits used by v1 module contracts.
 pub const limits = @import("limits.zig");
@@ -46,6 +48,22 @@ pub const nip02_contacts = @import("nip02_contacts.zig");
 /// Phase I4 concrete export for the NIP-65 relay metadata module.
 pub const nip65_relays = @import("nip65_relays.zig");
 
+/// Phase I5 concrete export for the NIP-44 encrypted direct-message module.
+pub const nip44 = @import("nip44.zig");
+
+/// Phase I5 concrete export for the NIP-59 gift-wrap module.
+pub const nip59_wrap = @import("nip59_wrap.zig");
+
+/// Phase I6 concrete export for the NIP-45 count module.
+pub const nip45_count = if (i6_extensions_enabled) @import("nip45_count.zig") else struct {};
+
+/// Phase I6 concrete export for the NIP-50 search module.
+pub const nip50_search = if (i6_extensions_enabled) @import("nip50_search.zig") else struct {};
+
+/// Phase I6 concrete export for the NIP-77 negentropy module.
+pub const nip77_negentropy =
+    if (i6_extensions_enabled) @import("nip77_negentropy.zig") else struct {};
+
 /// Canonical trust-boundary wrappers and typed error surfaces.
 /// Canonical trust-boundary PoW wrapper with id verification.
 pub const pow_meets_difficulty_verified_id = nip13_pow.pow_meets_difficulty_verified_id;
@@ -91,6 +109,14 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip21_uri.Nip21Error) == type);
     try std.testing.expect(@TypeOf(nip02_contacts.ContactsError) == type);
     try std.testing.expect(@TypeOf(nip65_relays.RelaysError) == type);
+    try std.testing.expect(@TypeOf(nip44.Nip44Error) == type);
+    try std.testing.expect(@TypeOf(nip59_wrap.WrapError) == type);
+    try std.testing.expectEqual(i6_extensions_enabled, @hasDecl(nip45_count, "CountError"));
+    try std.testing.expectEqual(i6_extensions_enabled, @hasDecl(nip50_search, "SearchError"));
+    try std.testing.expectEqual(
+        i6_extensions_enabled,
+        @hasDecl(nip77_negentropy, "NegentropyError"),
+    );
     try std.testing.expect(@TypeOf(nip19_bech32.Nip19Entity) == type);
     try std.testing.expect(@TypeOf(nip21_uri.Nip21Reference) == type);
     try std.testing.expect(@TypeOf(nip02_contacts.ContactEntry) == type);
@@ -128,6 +154,96 @@ test "root exports limits and error namespaces" {
                 []nip65_relays.RelayPermission,
             ) nip65_relays.RelaysError!u16,
     );
+    try std.testing.expect(
+        @TypeOf(nip44.nip44_get_conversation_key) ==
+            fn (*const [32]u8, *const [32]u8) nip44.Nip44Error![32]u8,
+    );
+    try std.testing.expect(
+        @TypeOf(nip44.nip44_encrypt_to_base64) ==
+            fn (
+                []u8,
+                *const [32]u8,
+                []const u8,
+                ?*anyopaque,
+                nip44.Nip44NonceProvider,
+            ) nip44.Nip44Error![]const u8,
+    );
+    try std.testing.expect(
+        @TypeOf(nip44.nip44_decrypt_from_base64) ==
+            fn ([]u8, *const [32]u8, []const u8) nip44.Nip44Error![]const u8,
+    );
+    try std.testing.expect(
+        @TypeOf(nip59_wrap.nip59_validate_wrap_structure) ==
+            fn (*const nip01_event.Event) nip59_wrap.WrapError!void,
+    );
+    try std.testing.expect(
+        @TypeOf(nip59_wrap.nip59_unwrap) ==
+            fn (
+                *nip01_event.Event,
+                *const [32]u8,
+                *const nip01_event.Event,
+                std.mem.Allocator,
+            ) nip59_wrap.WrapError!void,
+    );
+    if (i6_extensions_enabled) {
+        try std.testing.expect(@TypeOf(nip45_count.CountError) == type);
+        try std.testing.expect(@TypeOf(nip50_search.SearchError) == type);
+        try std.testing.expect(@TypeOf(nip77_negentropy.NegentropyError) == type);
+        try std.testing.expect(
+            @TypeOf(nip45_count.count_client_message_parse) ==
+                fn (
+                    []const u8,
+                    std.mem.Allocator,
+                ) nip45_count.CountError!nip45_count.CountClientMessage,
+        );
+        try std.testing.expect(
+            @TypeOf(nip45_count.count_relay_message_parse) ==
+                fn (
+                    []const u8,
+                    std.mem.Allocator,
+                ) nip45_count.CountError!nip45_count.CountRelayMessage,
+        );
+        try std.testing.expect(
+            @TypeOf(nip45_count.count_metadata_validate) ==
+                fn (*const nip45_count.CountMetadata) nip45_count.CountError!void,
+        );
+        try std.testing.expect(
+            @TypeOf(nip50_search.search_field_validate) ==
+                fn ([]const u8) nip50_search.SearchError!void,
+        );
+        try std.testing.expect(
+            @TypeOf(nip50_search.search_tokens_parse) ==
+                fn (
+                    []const u8,
+                    []nip50_search.SearchToken,
+                ) error{ BufferTooSmall, InvalidSearchValue }!u16,
+        );
+        try std.testing.expect(
+            @TypeOf(nip77_negentropy.negentropy_open_parse) ==
+                fn (
+                    []const u8,
+                    std.mem.Allocator,
+                ) nip77_negentropy.NegentropyError!nip77_negentropy.NegOpenMessage,
+        );
+        try std.testing.expect(
+            @TypeOf(nip77_negentropy.negentropy_msg_parse) ==
+                fn (
+                    []const u8,
+                    std.mem.Allocator,
+                ) nip77_negentropy.NegentropyError!nip77_negentropy.NegMsgMessage,
+        );
+        try std.testing.expect(
+            @TypeOf(nip77_negentropy.negentropy_state_apply) ==
+                fn (
+                    *nip77_negentropy.NegentropyState,
+                    *const nip77_negentropy.NegentropyMessage,
+                ) nip77_negentropy.NegentropyError!void,
+        );
+        try std.testing.expect(
+            @TypeOf(nip77_negentropy.negentropy_items_validate_order) ==
+                fn ([]const nip77_negentropy.NegentropyItem) nip77_negentropy.NegentropyError!void,
+        );
+    }
     try std.testing.expect(
         @TypeOf(pow_meets_difficulty_verified_id) ==
             @TypeOf(nip13_pow.pow_meets_difficulty_verified_id),
@@ -198,6 +314,51 @@ test "I4 optional paths do not interfere with strict core defaults" {
     var relays_output: [1]nip65_relays.RelayPermission = undefined;
     const relay_count = try nip65_relays.relay_list_extract(&relay_event, relays_output[0..]);
     try std.testing.expectEqual(@as(u16, 1), relay_count);
+
+    try std.testing.expectError(
+        error.InvalidFilter,
+        nip01_filter.filter_parse_json("{\"unexpected\":1}", std.testing.allocator),
+    );
+    try std.testing.expectError(
+        error.InvalidCommand,
+        nip01_message.relay_message_parse_json("[\"UNKNOWN\",\"sub\"]", std.testing.allocator),
+    );
+}
+
+test "I6 optional paths do not interfere with strict core defaults" {
+    if (!i6_extensions_enabled) {
+        return;
+    }
+
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const count_relay = try nip45_count.count_relay_message_parse(
+        "[\"COUNT\",\"q1\",{\"count\":1}]",
+        arena.allocator(),
+    );
+    try std.testing.expectEqual(@as(u64, 1), count_relay.count);
+
+    try nip50_search.search_field_validate("nostr include:spam");
+
+    const neg_open = try nip77_negentropy.negentropy_open_parse(
+        "[\"NEG-OPEN\",\"sub\",{\"kinds\":[1]},\"6100\"]",
+        arena.allocator(),
+    );
+    var neg_state = nip77_negentropy.NegentropyState{};
+    const neg_message: nip77_negentropy.NegentropyMessage = .{ .open = neg_open };
+    try nip77_negentropy.negentropy_state_apply(&neg_state, &neg_message);
+
+    try std.testing.expectError(
+        error.InvalidCommand,
+        nip01_message.relay_message_parse_json("[\"UNKNOWN\",\"sub\"]", std.testing.allocator),
+    );
+}
+
+test "I6 disabled mode preserves strict core behavior" {
+    if (i6_extensions_enabled) {
+        return;
+    }
 
     try std.testing.expectError(
         error.InvalidFilter,

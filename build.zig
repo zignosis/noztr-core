@@ -6,14 +6,27 @@ pub fn build(builder: *std.Build) void {
 
     const target = builder.standardTargetOptions(.{});
     const optimize = builder.standardOptimizeOption(.{});
+    const enable_i6_extensions = builder.option(
+        bool,
+        "enable_i6_extensions",
+        "Enable I6 optional extensions (NIP-45, NIP-50, NIP-77)",
+    ) orelse true;
     const secp256k1_module = create_secp256k1_module(builder, target, optimize);
+    const root_module = create_root_module(
+        builder,
+        target,
+        optimize,
+        secp256k1_module,
+        enable_i6_extensions,
+    );
 
-    const root_module = builder.createModule(.{
-        .root_source_file = builder.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    root_module.addImport("secp256k1", secp256k1_module);
+    const root_module_core_only = create_root_module(
+        builder,
+        target,
+        optimize,
+        secp256k1_module,
+        false,
+    );
 
     const static_library = builder.addLibrary(.{
         .linkage = .static,
@@ -26,9 +39,37 @@ pub fn build(builder: *std.Build) void {
         .root_module = root_module,
     });
     const run_unit_tests = builder.addRunArtifact(unit_tests);
+    const unit_tests_core_only = builder.addTest(.{
+        .root_module = root_module_core_only,
+    });
+    const run_unit_tests_core_only = builder.addRunArtifact(unit_tests_core_only);
 
     const test_step = builder.step("test", "Run noztr unit tests");
     test_step.dependOn(&run_unit_tests.step);
+    test_step.dependOn(&run_unit_tests_core_only.step);
+}
+
+fn create_root_module(
+    builder: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    secp256k1_module: *std.Build.Module,
+    enable_i6_extensions: bool,
+) *std.Build.Module {
+    std.debug.assert(@sizeOf(std.Build.Module) > 0);
+    std.debug.assert(@sizeOf(bool) == 1);
+
+    const build_options = builder.addOptions();
+    build_options.addOption(bool, "enable_i6_extensions", enable_i6_extensions);
+
+    const root_module = builder.createModule(.{
+        .root_source_file = builder.path("src/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("secp256k1", secp256k1_module);
+    root_module.addOptions("build_options", build_options);
+    return root_module;
 }
 
 fn create_secp256k1_module(
@@ -80,6 +121,7 @@ fn configure_secp_c_bindings(builder: *std.Build, module: *std.Build.Module) voi
         .flags = &.{
             "-DENABLE_MODULE_SCHNORRSIG=1",
             "-DENABLE_MODULE_EXTRAKEYS=1",
+            "-DENABLE_MODULE_ECDH=1",
         },
     });
 }
@@ -90,6 +132,7 @@ const secp256k1_shim_source =
     \\    @cInclude("secp256k1.h");
     \\    @cInclude("secp256k1_schnorrsig.h");
     \\    @cInclude("secp256k1_extrakeys.h");
+    \\    @cInclude("secp256k1_ecdh.h");
     \\});
     \\
     \\pub const Error = error{
@@ -105,6 +148,19 @@ const secp256k1_shim_source =
     \\
     \\    const created = secp.secp256k1_context_create(secp.SECP256K1_CONTEXT_SIGN);
     \\    if (created == null) {
+    \\        signing_context_error = error.BackendUnavailable;
+    \\        return;
+    \\    }
+    \\
+    \\    var randomization_seed: [32]u8 = undefined;
+    \\    std.crypto.random.bytes(&randomization_seed);
+    \\    defer wipe_randomization_seed(&randomization_seed);
+    \\    const randomize_result = secp.secp256k1_context_randomize(
+    \\        created,
+    \\        @ptrCast(&randomization_seed),
+    \\    );
+    \\    if (randomize_result != 1) {
+    \\        secp.secp256k1_context_destroy(created);
     \\        signing_context_error = error.BackendUnavailable;
     \\        return;
     \\    }
@@ -142,6 +198,13 @@ const secp256k1_shim_source =
     \\    std.debug.assert(aux_random.len == 32);
     \\
     \\    std.crypto.secureZero(u8, aux_random[0..]);
+    \\}
+    \\
+    \\fn wipe_randomization_seed(randomization_seed: *[32]u8) void {
+    \\    std.debug.assert(!@inComptime());
+    \\    std.debug.assert(randomization_seed.len == 32);
+    \\
+    \\    std.crypto.secureZero(u8, randomization_seed[0..]);
     \\}
     \\
     \\fn sign_schnorr_with_aux(
@@ -253,5 +316,56 @@ const secp256k1_shim_source =
     \\    std.debug.assert(message_digest[0] <= 255);
     \\
     \\    return sign_schnorr_with_aux(secret_key, message_digest, out_signature, null);
+    \\}
+    \\
+    \\fn ecdh_hash_x_coordinate(
+    \\    output: [*c]u8,
+    \\    x32: [*c]const u8,
+    \\    y32: [*c]const u8,
+    \\    data: ?*anyopaque,
+    \\) callconv(.c) c_int {
+    \\    _ = y32;
+    \\    _ = data;
+    \\    std.debug.assert(output != null);
+    \\    std.debug.assert(x32 != null);
+    \\
+    \\    @memcpy(output[0..32], x32[0..32]);
+    \\    return 1;
+    \\}
+    \\
+    \\pub fn derive_shared_secret_x(
+    \\    secret_key: *const [32]u8,
+    \\    public_key_xonly: *const [32]u8,
+    \\    out_shared_secret: *[32]u8,
+    \\) Error!void {
+    \\    std.debug.assert(secret_key[0] <= 255);
+    \\    std.debug.assert(public_key_xonly[0] <= 255);
+    \\
+    \\    var compressed_public_key: [33]u8 = undefined;
+    \\    compressed_public_key[0] = 0x02;
+    \\    @memcpy(compressed_public_key[1..33], public_key_xonly[0..32]);
+    \\
+    \\    var public_key: secp.secp256k1_pubkey = undefined;
+    \\    const parse_result = secp.secp256k1_ec_pubkey_parse(
+    \\        secp.secp256k1_context_no_precomp,
+    \\        &public_key,
+    \\        &compressed_public_key,
+    \\        compressed_public_key.len,
+    \\    );
+    \\    if (parse_result != 1) {
+    \\        return error.InvalidPublicKey;
+    \\    }
+    \\
+    \\    const ecdh_result = secp.secp256k1_ecdh(
+    \\        secp.secp256k1_context_no_precomp,
+    \\        out_shared_secret,
+    \\        &public_key,
+    \\        secret_key,
+    \\        ecdh_hash_x_coordinate,
+    \\        null,
+    \\    );
+    \\    if (ecdh_result != 1) {
+    \\        return error.InvalidSecretKey;
+    \\    }
     \\}
 ;

@@ -19,6 +19,7 @@ pub const Limits = struct {
     pub const relay_message_bytes_max: u32 = 524_288;
     pub const subscription_id_bytes_max: u8 = 64;
     pub const message_filters_max: u8 = 16;
+    pub const kind_max: u32 = 65_535;
 
     pub const nip11_supported_nips_max: u16 = 256;
     pub const nip11_limitation_max_message_length_max: u32 = Limits.relay_message_bytes_max;
@@ -55,6 +56,28 @@ pub const Limits = struct {
     pub const nip65_relay_tag_items_max: u8 = 3;
     pub const nip65_relay_url_bytes_max: u16 = Limits.tag_item_bytes_max;
     pub const nip65_marker_bytes_max: u8 = 5;
+
+    pub const nip44_version: u8 = 2;
+    pub const nip44_conversation_key_bytes: u8 = 32;
+    pub const nip44_nonce_bytes: u8 = 32;
+    pub const nip44_mac_bytes: u8 = 32;
+    pub const nip44_message_keys_bytes: u8 = 76;
+    pub const nip44_plaintext_min_bytes: u16 = 1;
+    pub const nip44_plaintext_max_bytes: u16 = 65_535;
+    pub const nip44_ciphertext_min_bytes: u16 = 34;
+    pub const nip44_ciphertext_max_bytes: u32 = 65_538;
+    pub const nip44_payload_decoded_min_bytes: u16 = 99;
+    pub const nip44_payload_decoded_max_bytes: u32 = 65_603;
+    pub const nip44_payload_base64_min_bytes: u16 = 132;
+    pub const nip44_payload_base64_max_bytes: u32 = 87_472;
+
+    pub const nip45_hll_hex_length: u16 = 512;
+
+    pub const nip50_search_field_bytes_max: u16 = Limits.tag_item_bytes_max;
+
+    pub const nip77_negentropy_protocol_version: u8 = 0x61;
+    pub const nip77_negentropy_hex_payload_bytes_max: u32 = 262_144;
+    pub const nip77_negentropy_session_steps_max: u16 = 1_024;
 };
 
 pub const event_json_max: u32 = Limits.event_json_max;
@@ -72,6 +95,7 @@ pub const filter_tag_values_max: u16 = Limits.filter_tag_values_max;
 pub const relay_message_bytes_max: u32 = Limits.relay_message_bytes_max;
 pub const subscription_id_bytes_max: u8 = Limits.subscription_id_bytes_max;
 pub const message_filters_max: u8 = Limits.message_filters_max;
+pub const kind_max: u32 = Limits.kind_max;
 
 pub const nip11_supported_nips_max: u16 = Limits.nip11_supported_nips_max;
 pub const nip11_limitation_max_message_length_max: u32 =
@@ -113,6 +137,29 @@ pub const nip65_relay_tag_items_max: u8 = Limits.nip65_relay_tag_items_max;
 pub const nip65_relay_url_bytes_max: u16 = Limits.nip65_relay_url_bytes_max;
 pub const nip65_marker_bytes_max: u8 = Limits.nip65_marker_bytes_max;
 
+pub const nip44_version: u8 = Limits.nip44_version;
+pub const nip44_conversation_key_bytes: u8 = Limits.nip44_conversation_key_bytes;
+pub const nip44_nonce_bytes: u8 = Limits.nip44_nonce_bytes;
+pub const nip44_mac_bytes: u8 = Limits.nip44_mac_bytes;
+pub const nip44_message_keys_bytes: u8 = Limits.nip44_message_keys_bytes;
+pub const nip44_plaintext_min_bytes: u16 = Limits.nip44_plaintext_min_bytes;
+pub const nip44_plaintext_max_bytes: u16 = Limits.nip44_plaintext_max_bytes;
+pub const nip44_ciphertext_min_bytes: u16 = Limits.nip44_ciphertext_min_bytes;
+pub const nip44_ciphertext_max_bytes: u32 = Limits.nip44_ciphertext_max_bytes;
+pub const nip44_payload_decoded_min_bytes: u16 = Limits.nip44_payload_decoded_min_bytes;
+pub const nip44_payload_decoded_max_bytes: u32 = Limits.nip44_payload_decoded_max_bytes;
+pub const nip44_payload_base64_min_bytes: u16 = Limits.nip44_payload_base64_min_bytes;
+pub const nip44_payload_base64_max_bytes: u32 = Limits.nip44_payload_base64_max_bytes;
+
+pub const nip45_hll_hex_length: u16 = Limits.nip45_hll_hex_length;
+
+pub const nip50_search_field_bytes_max: u16 = Limits.nip50_search_field_bytes_max;
+
+pub const nip77_negentropy_protocol_version: u8 = Limits.nip77_negentropy_protocol_version;
+pub const nip77_negentropy_hex_payload_bytes_max: u32 =
+    Limits.nip77_negentropy_hex_payload_bytes_max;
+pub const nip77_negentropy_session_steps_max: u16 = Limits.nip77_negentropy_session_steps_max;
+
 comptime {
     std.debug.assert(Limits.content_bytes_max <= Limits.event_json_max);
     std.debug.assert(Limits.relay_message_bytes_max >= Limits.event_json_max);
@@ -124,6 +171,8 @@ comptime {
     std.debug.assert(Limits.subscription_id_bytes_max > 0);
     std.debug.assert(Limits.message_filters_max > 0);
     std.debug.assert(Limits.message_filters_max <= Limits.nip11_limitation_max_filters_max);
+    std.debug.assert(Limits.kind_max > 0);
+    std.debug.assert(Limits.kind_max == std.math.maxInt(u16));
     std.debug.assert(Limits.nip11_supported_nips_max > 0);
     std.debug.assert(
         Limits.nip11_limitation_max_message_length_max <= Limits.relay_message_bytes_max,
@@ -165,6 +214,52 @@ comptime {
     std.debug.assert(Limits.nip65_relay_tag_items_max <= Limits.tag_items_max);
     std.debug.assert(Limits.nip65_relay_url_bytes_max <= Limits.tag_item_bytes_max);
     std.debug.assert(Limits.nip65_marker_bytes_max == 5);
+
+    std.debug.assert(Limits.nip44_version == 2);
+    std.debug.assert(Limits.nip44_conversation_key_bytes == 32);
+    std.debug.assert(Limits.nip44_nonce_bytes == 32);
+    std.debug.assert(Limits.nip44_mac_bytes == 32);
+    std.debug.assert(Limits.nip44_message_keys_bytes == 76);
+    std.debug.assert(Limits.nip44_plaintext_min_bytes == 1);
+    std.debug.assert(Limits.nip44_plaintext_max_bytes == 65_535);
+    std.debug.assert(Limits.nip44_ciphertext_min_bytes == 34);
+    std.debug.assert(Limits.nip44_ciphertext_max_bytes == 65_538);
+    std.debug.assert(Limits.nip44_payload_decoded_min_bytes == 99);
+    std.debug.assert(Limits.nip44_payload_decoded_max_bytes == 65_603);
+    std.debug.assert(Limits.nip44_payload_base64_min_bytes == 132);
+    std.debug.assert(Limits.nip44_payload_base64_max_bytes == 87_472);
+    std.debug.assert(
+        Limits.nip44_payload_decoded_min_bytes ==
+            @as(u16, 1) + Limits.nip44_nonce_bytes + Limits.nip44_ciphertext_min_bytes +
+                Limits.nip44_mac_bytes,
+    );
+    std.debug.assert(
+        Limits.nip44_payload_decoded_max_bytes ==
+            @as(u32, 1) + Limits.nip44_nonce_bytes + Limits.nip44_ciphertext_max_bytes +
+                Limits.nip44_mac_bytes,
+    );
+    std.debug.assert(
+        Limits.nip44_payload_base64_min_bytes ==
+            @as(u16, @intCast(@divTrunc(Limits.nip44_payload_decoded_min_bytes + 2, 3) * 4)),
+    );
+    std.debug.assert(
+        Limits.nip44_payload_base64_max_bytes ==
+            @as(u32, @divTrunc(Limits.nip44_payload_decoded_max_bytes + 2, 3) * 4),
+    );
+
+    std.debug.assert(Limits.nip45_hll_hex_length == 512);
+    std.debug.assert(Limits.nip45_hll_hex_length % 2 == 0);
+
+    std.debug.assert(Limits.nip50_search_field_bytes_max > 0);
+    std.debug.assert(Limits.nip50_search_field_bytes_max <= Limits.tag_item_bytes_max);
+
+    std.debug.assert(Limits.nip77_negentropy_protocol_version == 0x61);
+    std.debug.assert(Limits.nip77_negentropy_hex_payload_bytes_max > 0);
+    std.debug.assert(
+        Limits.nip77_negentropy_hex_payload_bytes_max <= Limits.relay_message_bytes_max,
+    );
+    std.debug.assert(Limits.nip77_negentropy_session_steps_max > 0);
+    std.debug.assert(Limits.nip77_negentropy_session_steps_max >= Limits.message_filters_max);
 }
 
 test "limits relation checks stay true" {
@@ -177,6 +272,8 @@ test "limits relation checks stay true" {
     try std.testing.expect(Limits.filter_tag_keys_max <= Limits.filter_tag_values_max);
     try std.testing.expect(Limits.message_filters_max > 0);
     try std.testing.expect(Limits.message_filters_max <= Limits.nip11_limitation_max_filters_max);
+    try std.testing.expect(Limits.kind_max > 0);
+    try std.testing.expect(Limits.kind_max == std.math.maxInt(u16));
     try std.testing.expect(Limits.nip11_supported_nips_max > 0);
     try std.testing.expect(
         Limits.nip11_limitation_max_message_length_max <= Limits.relay_message_bytes_max,
@@ -220,6 +317,52 @@ test "limits relation checks stay true" {
     try std.testing.expect(Limits.nip65_relay_tag_items_max <= Limits.tag_items_max);
     try std.testing.expect(Limits.nip65_relay_url_bytes_max <= Limits.tag_item_bytes_max);
     try std.testing.expect(Limits.nip65_marker_bytes_max == 5);
+
+    try std.testing.expect(Limits.nip44_version == 2);
+    try std.testing.expect(Limits.nip44_conversation_key_bytes == 32);
+    try std.testing.expect(Limits.nip44_nonce_bytes == 32);
+    try std.testing.expect(Limits.nip44_mac_bytes == 32);
+    try std.testing.expect(Limits.nip44_message_keys_bytes == 76);
+    try std.testing.expect(Limits.nip44_plaintext_min_bytes == 1);
+    try std.testing.expect(Limits.nip44_plaintext_max_bytes == 65_535);
+    try std.testing.expect(Limits.nip44_ciphertext_min_bytes == 34);
+    try std.testing.expect(Limits.nip44_ciphertext_max_bytes == 65_538);
+    try std.testing.expect(Limits.nip44_payload_decoded_min_bytes == 99);
+    try std.testing.expect(Limits.nip44_payload_decoded_max_bytes == 65_603);
+    try std.testing.expect(Limits.nip44_payload_base64_min_bytes == 132);
+    try std.testing.expect(Limits.nip44_payload_base64_max_bytes == 87_472);
+    try std.testing.expect(
+        Limits.nip44_payload_decoded_min_bytes ==
+            @as(u16, 1) + Limits.nip44_nonce_bytes + Limits.nip44_ciphertext_min_bytes +
+                Limits.nip44_mac_bytes,
+    );
+    try std.testing.expect(
+        Limits.nip44_payload_decoded_max_bytes ==
+            @as(u32, 1) + Limits.nip44_nonce_bytes + Limits.nip44_ciphertext_max_bytes +
+                Limits.nip44_mac_bytes,
+    );
+    try std.testing.expect(
+        Limits.nip44_payload_base64_min_bytes ==
+            @as(u16, @intCast(@divTrunc(Limits.nip44_payload_decoded_min_bytes + 2, 3) * 4)),
+    );
+    try std.testing.expect(
+        Limits.nip44_payload_base64_max_bytes ==
+            @as(u32, @divTrunc(Limits.nip44_payload_decoded_max_bytes + 2, 3) * 4),
+    );
+
+    try std.testing.expect(Limits.nip45_hll_hex_length == 512);
+    try std.testing.expect(Limits.nip45_hll_hex_length % 2 == 0);
+
+    try std.testing.expect(Limits.nip50_search_field_bytes_max > 0);
+    try std.testing.expect(Limits.nip50_search_field_bytes_max <= Limits.tag_item_bytes_max);
+
+    try std.testing.expect(Limits.nip77_negentropy_protocol_version == 0x61);
+    try std.testing.expect(Limits.nip77_negentropy_hex_payload_bytes_max > 0);
+    try std.testing.expect(
+        Limits.nip77_negentropy_hex_payload_bytes_max <= Limits.relay_message_bytes_max,
+    );
+    try std.testing.expect(Limits.nip77_negentropy_session_steps_max > 0);
+    try std.testing.expect(Limits.nip77_negentropy_session_steps_max >= Limits.message_filters_max);
 }
 
 test "limits negative-space boundaries are explicit" {
@@ -229,14 +372,40 @@ test "limits negative-space boundaries are explicit" {
         Limits.nip21_uri_bytes_max <
         @as(u16, Limits.nip21_scheme_prefix_bytes) + Limits.nip19_bech32_identifier_bytes_max;
     const filter_tag_keys_overflow = Limits.filter_tag_keys_max > Limits.filter_tag_values_max;
+    const kind_max_mismatch = Limits.kind_max != std.math.maxInt(u16);
     const tlv_scratch_underflows =
         Limits.nip19_tlv_scratch_bytes_max <
         @as(u16, Limits.nip19_tlv_entries_max) *
             (@as(u16, 2) + @as(u16, Limits.nip19_tlv_length_max));
+    const nip44_decoded_min_mismatch =
+        Limits.nip44_payload_decoded_min_bytes !=
+        @as(u16, 1) + Limits.nip44_nonce_bytes + Limits.nip44_ciphertext_min_bytes +
+            Limits.nip44_mac_bytes;
+    const nip44_decoded_max_mismatch =
+        Limits.nip44_payload_decoded_max_bytes !=
+        @as(u32, 1) + Limits.nip44_nonce_bytes + Limits.nip44_ciphertext_max_bytes +
+            Limits.nip44_mac_bytes;
+    const nip45_hll_length_not_exact = Limits.nip45_hll_hex_length != 512;
+    const nip50_search_field_overflow =
+        Limits.nip50_search_field_bytes_max > Limits.tag_item_bytes_max;
+    const nip77_protocol_version_mismatch =
+        Limits.nip77_negentropy_protocol_version != 0x61;
+    const nip77_hex_payload_overflow =
+        Limits.nip77_negentropy_hex_payload_bytes_max > Limits.relay_message_bytes_max;
+    const nip77_session_steps_underflow =
+        Limits.nip77_negentropy_session_steps_max < Limits.message_filters_max;
 
     try std.testing.expect(!content_exceeds_event);
     try std.testing.expect(signature_not_truncated);
     try std.testing.expect(!uri_capacity_underflows);
     try std.testing.expect(!filter_tag_keys_overflow);
+    try std.testing.expect(!kind_max_mismatch);
     try std.testing.expect(!tlv_scratch_underflows);
+    try std.testing.expect(!nip44_decoded_min_mismatch);
+    try std.testing.expect(!nip44_decoded_max_mismatch);
+    try std.testing.expect(!nip45_hll_length_not_exact);
+    try std.testing.expect(!nip50_search_field_overflow);
+    try std.testing.expect(!nip77_protocol_version_mismatch);
+    try std.testing.expect(!nip77_hex_payload_overflow);
+    try std.testing.expect(!nip77_session_steps_underflow);
 }

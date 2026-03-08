@@ -4,12 +4,33 @@ This handoff captures the current documentation status and immediate direction f
 
 ## Current Phase Status
 
-- Phase F: closed.
-- Closure basis: implementation kickoff artifact finalized (`docs/plans/implementation-kickoff.md`) and
-  closure evidence recorded in `docs/plans/decision-log.md` (`PF-E-001`) with high-impact
-  decision-needed count 0.
-- Implementation status snapshot: I0-I4 are complete and validated on current protocol fixes.
+- Planning prompt phase closure records are complete (`PF-E-001` in
+  `docs/plans/decision-log.md`, high-impact decision-needed count 0).
+- Active execution state is post-I7 baseline; immediate target is Phase F kickoff actions.
+- Implementation status snapshot: I0-I7 are complete and validated on current protocol fixes.
 - I4 optional modules are implemented with required non-interference coverage.
+- I5 gates passed: staged `nip44` decrypt checks, staged `nip59` unwrap, and vector floors plus
+  forcing coverage.
+- I6 gate note: optional extension modules implemented, vector floors met, and extension tests pass
+  with I6 enabled and disabled.
+- I7 closure evidence pack is complete:
+  - `docs/plans/i7-regression-evidence.md`
+  - `docs/plans/i7-api-contract-trace-checklist.md`
+  - `docs/plans/i7-phase-f-kickoff-handoff.md`
+- I5 gate wording is aligned to implementation contract semantics (not a behavior relaxation):
+  `nip44` documents no unbounded/runtime-heap allocation in encrypt/decrypt hot paths, and
+  decrypt maps invalid UTF-8 plaintext after padding checks to typed `InvalidPadding`;
+  `nip59_unwrap` documents caller-provided bounded scratch for strict inner event parsing,
+  recipient private key material input for per-layer key derivation (`wrap.pubkey` then
+  `seal.pubkey`), unsigned-rumor enforcement (reject rumor `sig`), and sender continuity checks.
+- I6 contract wording is aligned to implementation: `nip77_negentropy` includes strict
+  `negentropy_close_parse`/`negentropy_err_parse` APIs for `NEG-CLOSE`/`NEG-ERR` with typed
+  `InvalidNegErr` failure mapping.
+- Additional contract sync deltas are aligned to implementation: NIP-44 padded-length helper returns
+  `u32` with `32..65536` padded bounds semantics; parser `OutOfMemory` variants are explicit where
+  implemented (`nip01_event`, `nip01_filter`, `nip11`, `nip59_wrap`); strict kind boundary remains
+  `kind <= 65535`; NIP-50 ignores unsupported multi-colon tokens while rejecting malformed supported
+  tokens; NIP-09 coordinate matching rejects duplicate `d` tags.
 - Overengineering/correctness mitigation pass is recorded in active planning docs:
   - canonical trust-boundary path wording is clarified for strict checked entry points,
   - message parse error contract now reflects implemented `InvalidFilter` and `InvalidEvent`,
@@ -17,12 +38,12 @@ This handoff captures the current documentation status and immediate direction f
     canonical strict flow remains `transcript_mark_client_req` + `transcript_apply_relay`,
   - strict filter semantics are documented as deterministic lowercase prefix matching for
     `ids`/`authors` (`1..64`) with lowercase-only `#x` keys and typed `TooManyTagKeys` overflow.
-  - PoW trust-boundary docs now pin `pow_meets_difficulty` as compatibility-only and
-    `pow_meets_difficulty_verified_id` as the canonical strict path.
+  - PoW trust-boundary docs now pin `pow_meets_difficulty` as safe-by-default compatibility behavior
+    (`invalid id -> false`), keep `pow_meets_difficulty_verified_id` as the canonical strict path,
+    and treat unchecked helper behavior as internal-only.
   - delete checked extractor contract now matches implementation typing
     (`DeleteExtractCheckedError`, including `BufferTooSmall`).
-- Next phase target: Implementation Phase I5 execution wave in build-plan order (`nip44`,
-  `nip59_wrap`).
+- Next execution target: Phase F kickoff actions on the I7 closure baseline.
 - Layer 2 compatibility/ergonomic adapter work remains deferred pending Layer 1 execution and
   `OQ-E-006` closure.
 
@@ -120,7 +141,9 @@ This handoff captures the current documentation status and immediate direction f
 - Completed security hardening sprint (post-I1 boundary and semantics pass):
   - updated strict verify/auth error contracts to type backend outage separately.
   - finalized NIP-42 hardening semantics: challenge rotation clears auth set, duplicate required tags
-    reject as `DuplicateRequiredTag`, and freshness rejects future/stale timestamps beyond window.
+    reject as `DuplicateRequiredTag`, and freshness uses bounded symmetric skew (within-window
+    future/stale accepted; beyond-window future rejects `FutureTimestamp`; beyond-window stale rejects
+    `StaleTimestamp`).
   - hardened challenge setter boundary to return distinct `ChallengeEmpty` and `ChallengeTooLong`
     failures.
   - hardened `auth_validate_event` boundary to reject empty and oversized `expected_challenge`
@@ -165,7 +188,8 @@ This handoff captures the current documentation status and immediate direction f
   - strict-width and anti-pattern cleanup remain quality follow-up where applicable.
 - Recorded strict Layer 1 defaults and Layer 2 evaluation scope in planning artifacts:
   - Layer 1 defaults: lowercase-only critical hex, unknown filter-field rejection,
-    strict relay `OK` status-prefix validation, and strict NIP-42 path-bound `ws`/`wss` origin.
+    strict relay `OK` rejection status-prefix validation, and strict NIP-42 path-bound `ws`/`wss`
+    origin.
   - Layer 2 scope (via `OQ-E-006`): compatibility/ergonomic adapter behavior, not kernel default
     relaxation.
 - Added dedicated project style profile and planning links:
@@ -180,11 +204,12 @@ This handoff captures the current documentation status and immediate direction f
 
 ## Pending Actions
 
-- Continue implementation in build-plan order from I5 onward on the hardened API contract baseline.
+- Start Phase F kickoff actions from the I7 closure baseline and keep build-plan ordering intact.
 - Keep the secp boundary narrowed to approved exports only; preserve commit-SHA pinning policy when
   updating backend references.
 - Keep PoW trust-boundary docs explicit: `pow_meets_difficulty` stays compatibility-only and strict
-  callers use `pow_meets_difficulty_verified_id`.
+  callers use `pow_meets_difficulty_verified_id`; compatibility path is safe-by-default
+  (`invalid id -> false`) and unchecked helper behavior remains internal-only.
 - Maintain `docs/plans/security-hardening-register.md` as the canonical hardening status ledger.
 - Keep LLM-first usability evaluation in progress and close `OQ-E-006` via
   `docs/plans/llm-usability-pass.md` before first RC API freeze.
@@ -262,8 +287,8 @@ This handoff captures the current documentation status and immediate direction f
 ## Next Steps To Continue
 
 - Run `./agent-brief` and verify prompt artifact status.
-- Continue Implementation Phase I5 using `docs/plans/build-plan.md` for core private messaging
-  crypto/wrap modules (`nip44`, `nip59_wrap`).
+- Execute Phase F kickoff tasks using `docs/plans/i7-phase-f-kickoff-handoff.md` and
+  `docs/plans/build-plan.md`.
 - Continue implementation phases in build-plan order and close each slice only after gate commands pass.
 - Keep Layer 2 compatibility/ergonomic adapter work deferred until `OQ-E-006` is closed.
 - Keep `applesauce` as comparative context only when evaluating API ergonomics and developer UX.

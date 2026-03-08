@@ -302,6 +302,43 @@ Immutable record of accepted planning decisions.
 - Reversal Trigger: standards-backed parity evidence requires broader permissive defaults at Layer 1.
 - Supersedes: none
 
+## D-019: Close I7 with regression and contract-trace evidence pack
+
+- Date: 2026-03-08
+- Status: accepted
+- Decision: treat the I7 closure evidence pack as complete and canonical for the current
+  implementation baseline, with required artifacts:
+  - `docs/plans/i7-regression-evidence.md`
+  - `docs/plans/i7-api-contract-trace-checklist.md`
+  - `docs/plans/i7-phase-f-kickoff-handoff.md`
+- Why: closes I7 with explicit command evidence, replay evidence, and contract-to-implementation
+  traceability before Phase F kickoff.
+- Tradeoff: additional documentation maintenance versus lower closure-status drift and higher audit
+  confidence.
+- Related Tradeoff: T-0-004, T-E-001.
+- Reversal Trigger: closure evidence artifacts become stale relative to accepted implementation
+  behavior or gate commands.
+- Supersedes: none
+
+## D-020: Post-I7 phase-state naming and contract delta sync
+
+- Date: 2026-03-08
+- Status: accepted
+- Decision: standardize post-I7 wording so planning prompt phase closure records remain historical in
+  `decision-log`, while active execution state is explicitly described as post-I7 baseline with
+  Phase F kickoff actions. Synchronize contract docs with implemented deltas: NIP-44 padded-length
+  return type/bounds (`u32`, `32..65536`), parser `OutOfMemory` variants where implemented,
+  strict `kind <= 65535` boundaries, transcript canonical-vs-compat alias wording,
+  NIP-77 `NEG-CLOSE`/`NEG-ERR` parser APIs, NIP-50 unsupported multi-colon token handling,
+  and NIP-09 duplicate-`d` coordinate matching policy.
+- Why: removes phase-status contradiction and keeps API contract language aligned with current code.
+- Tradeoff: additional documentation maintenance versus lower closure drift and clearer integration
+  guidance.
+- Related Tradeoff: T-0-004, T-E-001.
+- Reversal Trigger: accepted implementation/default changes require a new naming convention or
+  contract wording baseline.
+- Supersedes: none
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record
@@ -403,5 +440,15 @@ Immutable record of accepted planning decisions.
 - Closure Date: 2026-03-05
 - Gate Result: pass
 - Ambiguity Snapshot: `A-F-001` accepted-risk, `A-F-002` accepted-risk, `A-F-003` resolved.
+- Decision-Needed Count (High Impact): 0
+- Owner: active phase owner
+
+### PI7-E-001: Implementation phase I7 closure record
+
+- Phase: I7
+- Closure Date: 2026-03-08
+- Gate Result: pass
+- Ambiguity Snapshot: carry-forward accepted risks only (`UT-E-001`, `UT-E-002`, `UT-E-003`,
+  `UT-E-004`, `A-D-001`).
 - Decision-Needed Count (High Impact): 0
 - Owner: active phase owner

@@ -253,7 +253,7 @@ fn map_filter_json_parse_error(parse_error: anyerror) FilterParseError {
     return switch (parse_error) {
         error.ValueTooLong => error.InputTooLong,
         error.DuplicateField => error.InvalidFilter,
-        error.OutOfMemory => error.InvalidFilter,
+        error.OutOfMemory => error.OutOfMemory,
         error.UnexpectedToken => error.InvalidFilter,
         error.UnexpectedEndOfInput => error.InvalidFilter,
         error.BufferUnderrun => error.InvalidFilter,
@@ -316,7 +316,7 @@ fn parse_filter_tag_values(
     const values = scratch.alloc(
         []const u8,
         value.array.items.len,
-    ) catch return error.InvalidFilter;
+    ) catch return error.OutOfMemory;
     var index: u32 = 0;
     while (index < value.array.items.len) : (index += 1) {
         const item = value.array.items[index];
@@ -342,7 +342,7 @@ fn copy_filter_string(source: []const u8, scratch: std.mem.Allocator) FilterPars
         return error.InvalidFilter;
     }
 
-    const copy = scratch.alloc(u8, source.len) catch return error.InvalidFilter;
+    const copy = scratch.alloc(u8, source.len) catch return error.OutOfMemory;
     if (source.len > 0) {
         @memcpy(copy, source);
     }
@@ -360,7 +360,7 @@ fn finalize_tag_conditions(
         return error.TooManyTagKeys;
     }
 
-    const output = scratch.alloc(FilterTagCondition, input.len) catch return error.InvalidFilter;
+    const output = scratch.alloc(FilterTagCondition, input.len) catch return error.OutOfMemory;
     if (input.len > 0) {
         @memcpy(output, input);
     }
@@ -505,6 +505,7 @@ fn parse_filter_kinds(filter: *Filter, value: std.json.Value) FilterParseError!v
 fn parse_filter_u32(value: std.json.Value) FilterParseError!u32 {
     std.debug.assert(@sizeOf(u32) == 4);
     std.debug.assert(@sizeOf(std.json.Value) > 0);
+    std.debug.assert(limits.kind_max == std.math.maxInt(u16));
 
     if (value != .integer) {
         return error.InvalidFilter;
@@ -515,6 +516,9 @@ fn parse_filter_u32(value: std.json.Value) FilterParseError!u32 {
     }
 
     const parsed = std.math.cast(u32, value.integer) orelse return error.ValueOutOfRange;
+    if (parsed > limits.kind_max) {
+        return error.ValueOutOfRange;
+    }
     return parsed;
 }
 
@@ -1008,6 +1012,18 @@ test "filter parse forces InputTooLong and InvalidFilter" {
     try force_filter_parse_error("[]", error.InvalidFilter, arena.allocator());
 }
 
+test "filter parse maps allocator exhaustion to OutOfMemory" {
+    const input = "{\"#e\":[\"target\"]}";
+
+    var tiny_buffer: [64]u8 = undefined;
+    var tiny_allocator = std.heap.FixedBufferAllocator.init(&tiny_buffer);
+
+    try std.testing.expectError(
+        error.OutOfMemory,
+        filter_parse_json(input, tiny_allocator.allocator()),
+    );
+}
+
 test "filter parse forces InvalidHex and InvalidTagKey" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
@@ -1020,19 +1036,39 @@ test "filter parse forces InvalidHex and InvalidTagKey" {
     try force_filter_parse_error("{\"#ab\":[\"abc\"]}", error.InvalidTagKey, arena.allocator());
 }
 
-test "filter parse forces TooManyTagKeys overflow variant" {
+test "filter parse returns TooManyTagKeys for distinct #x overflow" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
 
-    var conditions: [limits.filter_tag_keys_max + 1]FilterTagCondition = undefined;
-    var index: u32 = 0;
-    while (index < conditions.len) : (index += 1) {
-        conditions[index] = .{ .key = 'a', .values = &.{"x"} };
+    const tag_key_alphabet = "abcdefghijklmnopqrstuvwxyz";
+    const required_keys = limits.filter_tag_keys_max + 1;
+    if (required_keys > tag_key_alphabet.len) {
+        return error.SkipZigTest;
     }
 
+    var input_buffer: [limits.event_json_max]u8 = undefined;
+    var stream = std.io.fixedBufferStream(&input_buffer);
+    const writer = stream.writer();
+
+    try writer.writeAll("{");
+    var index: u32 = 0;
+    while (index < required_keys) : (index += 1) {
+        if (index > 0) {
+            try writer.writeAll(",");
+        }
+
+        const key = tag_key_alphabet[index];
+        try writer.writeByte('"');
+        try writer.writeByte('#');
+        try writer.writeByte(key);
+        try writer.writeAll("\":[\"x\"]");
+    }
+    try writer.writeAll("}");
+
+    const input = input_buffer[0..stream.pos];
     try std.testing.expectError(
         error.TooManyTagKeys,
-        finalize_tag_conditions(arena.allocator(), conditions[0..]),
+        filter_parse_json(input, arena.allocator()),
     );
 }
 
@@ -1101,6 +1137,11 @@ test "filter parse forces InvalidTimeWindow and ValueOutOfRange" {
     );
     try force_filter_parse_error(
         "{\"kinds\":[4294967296]}",
+        error.ValueOutOfRange,
+        arena.allocator(),
+    );
+    try force_filter_parse_error(
+        "{\"kinds\":[65536]}",
         error.ValueOutOfRange,
         arena.allocator(),
     );

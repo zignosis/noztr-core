@@ -244,41 +244,35 @@ pub fn relay_message_serialize_json(
     return output[0..index];
 }
 
-/// Non-canonical compatibility-only transcript helper.
+/// Compatibility-only transcript helper.
 ///
-/// This helper infers tracked subscription context from each relay message and then applies
-/// `transcript_apply_relay`. For canonical strict integration, call
-/// `transcript_mark_client_req` once and then `transcript_apply_relay` directly.
+/// Deprecated for new strict call sites: use
+/// `transcript_mark_client_req` then `transcript_apply_relay`.
+/// This symbol is kept for compatibility and is a thin wrapper over
+/// `transcript_apply_relay`.
 pub fn transcript_apply_compat(
     state: *TranscriptState,
     message: *const RelayMessage,
 ) error{InvalidTranscriptTransition}!void {
     std.debug.assert(state.subscription_id_len <= limits.subscription_id_bytes_max);
     std.debug.assert(@intFromPtr(state) != 0);
+    std.debug.assert(@intFromPtr(message) != 0);
 
-    const tracked_subscription_id =
-        transcript_tracked_subscription_id(message.*) orelse
-        return error.InvalidTranscriptTransition;
-    if (tracked_subscription_id.len == 0) {
-        return error.InvalidTranscriptTransition;
-    }
-    if (tracked_subscription_id.len > limits.subscription_id_bytes_max) {
-        return error.InvalidTranscriptTransition;
-    }
-
-    try transcript_apply_relay(state, message.*);
+    return transcript_apply_relay(state, message.*);
 }
 
-/// Compatibility alias for `transcript_apply_compat`.
+/// Compatibility alias retained for existing integrations.
 ///
-/// Kept for backward compatibility. Canonical strict integration remains
-/// `transcript_mark_client_req` + `transcript_apply_relay`.
+/// Deprecated for new strict call sites: use
+/// `transcript_mark_client_req` then `transcript_apply_relay`.
+/// This alias is a thin wrapper over `transcript_apply_compat`.
 pub fn transcript_apply(
     state: *TranscriptState,
     message: *const RelayMessage,
 ) error{InvalidTranscriptTransition}!void {
     std.debug.assert(state.subscription_id_len <= limits.subscription_id_bytes_max);
     std.debug.assert(@intFromPtr(state) != 0);
+    std.debug.assert(@intFromPtr(message) != 0);
 
     return transcript_apply_compat(state, message);
 }
@@ -298,18 +292,6 @@ pub fn transcript_mark_client_req(
 
     try transcript_set_subscription_id(state, subscription_id);
     state.stage = .req_sent;
-}
-
-fn transcript_tracked_subscription_id(message: RelayMessage) ?[]const u8 {
-    std.debug.assert(limits.subscription_id_bytes_max > 0);
-    std.debug.assert(@sizeOf(RelayMessage) > 0);
-
-    switch (message) {
-        .event => |event_message| return event_message.subscription_id,
-        .eose => |eose_message| return eose_message.subscription_id,
-        .closed => |closed_message| return closed_message.subscription_id,
-        else => return null,
-    }
 }
 
 fn validate_subscription_id_for_encode(subscription_id: []const u8) MessageEncodeError!void {
@@ -595,6 +577,7 @@ fn serialize_filter_kinds(
     has_field: *bool,
 ) MessageEncodeError!void {
     std.debug.assert(filter.kinds_count <= limits.filter_kinds_max);
+    std.debug.assert(limits.kind_max == std.math.maxInt(u16));
     std.debug.assert(@intFromPtr(has_field) != 0);
 
     if (filter.kinds_count == 0) {
@@ -608,7 +591,11 @@ fn serialize_filter_kinds(
         if (item_index != 0) {
             try write_output_bytes(output, index, ",");
         }
-        try write_output_u64(output, index, filter.kinds[item_index]);
+        const kind = filter.kinds[item_index];
+        if (kind > limits.kind_max) {
+            return error.ValueOutOfRange;
+        }
+        try write_output_u64(output, index, kind);
     }
     try write_output_bytes(output, index, "]");
 }
@@ -699,11 +686,15 @@ fn serialize_event(
 ) MessageEncodeError!void {
     std.debug.assert(event.tags.len <= limits.tags_max + 1);
     std.debug.assert(event.content.len <= limits.content_bytes_max + 1);
+    std.debug.assert(limits.kind_max == std.math.maxInt(u16));
 
     if (event.tags.len > limits.tags_max) {
         return error.ValueOutOfRange;
     }
     if (event.content.len > limits.content_bytes_max) {
+        return error.ValueOutOfRange;
+    }
+    if (event.kind > limits.kind_max) {
         return error.ValueOutOfRange;
     }
 
@@ -1106,8 +1097,12 @@ fn parse_hex_32(value: std.json.Value) MessageParseError![32]u8 {
 }
 
 fn is_lower_hex_byte(value: u8) bool {
-    std.debug.assert(value <= 0x7f);
     std.debug.assert(limits.id_hex_length == 64);
+    std.debug.assert(@sizeOf(u8) == 1);
+
+    if (value > 0x7f) {
+        return false;
+    }
 
     if (value >= '0') {
         if (value <= '9') {
@@ -1436,6 +1431,29 @@ test "parser forces every MessageParseError variant" {
     );
 }
 
+test "message parser maps kind boundary failures deterministically" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const invalid_event_message =
+        "[\"AUTH\",{" ++
+        "\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
+        "\"pubkey\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
+        "\"created_at\":1,\"kind\":65536,\"tags\":[],\"content\":\"sample\"," ++
+        "\"sig\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ++
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}]";
+    try std.testing.expectError(
+        error.InvalidEvent,
+        client_message_parse_json(invalid_event_message, arena.allocator()),
+    );
+
+    const invalid_filter_message = "[\"REQ\",\"sub-1\",{\"kinds\":[65536]}]";
+    try std.testing.expectError(
+        error.InvalidFilter,
+        client_message_parse_json(invalid_filter_message, arena.allocator()),
+    );
+}
+
 test "relay parser rejects uppercase event id in OK message" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
@@ -1444,6 +1462,20 @@ test "relay parser rejects uppercase event id in OK message" {
         error.InvalidFieldType,
         relay_message_parse_json(
             "[\"OK\",\"0123456789ABCDEF0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
+                "true,\"pow: difficulty too low\"]",
+            arena.allocator(),
+        ),
+    );
+}
+
+test "relay parser rejects non-ascii event id byte in OK message" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    try std.testing.expectError(
+        error.InvalidFieldType,
+        relay_message_parse_json(
+            "[\"OK\",\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd\\u00e9\"," ++
                 "true,\"pow: difficulty too low\"]",
             arena.allocator(),
         ),
@@ -1816,22 +1848,41 @@ test "transcript_apply rejects non-transcript relay variants" {
     );
 }
 
-test "transcript_apply alias behavior matches transcript_apply_compat" {
-    var alias_state = TranscriptState{};
+test "transcript_apply_compat parity with transcript_apply_relay" {
+    var canonical_state = TranscriptState{};
     var compat_state = TranscriptState{};
     const eose = RelayMessage{ .eose = .{ .subscription_id = "sub-1" } };
     const event = RelayMessage{ .event = .{ .subscription_id = "sub-1", .event = sample_event() } };
 
-    try transcript_mark_client_req(&alias_state, "sub-1");
+    try transcript_mark_client_req(&canonical_state, "sub-1");
     try transcript_mark_client_req(&compat_state, "sub-1");
 
-    try transcript_apply(&alias_state, &eose);
+    try transcript_apply_relay(&canonical_state, eose);
     try transcript_apply_compat(&compat_state, &eose);
-    try std.testing.expect(alias_state.stage == compat_state.stage);
+    try std.testing.expect(canonical_state.stage == compat_state.stage);
 
-    try transcript_apply(&alias_state, &event);
+    try transcript_apply_relay(&canonical_state, event);
     try transcript_apply_compat(&compat_state, &event);
-    try std.testing.expect(alias_state.stage == compat_state.stage);
+    try std.testing.expect(canonical_state.stage == compat_state.stage);
+}
+
+test "transcript_apply alias parity with transcript_apply_relay" {
+    var canonical_state = TranscriptState{};
+    var alias_state = TranscriptState{};
+    const notice = RelayMessage{ .notice = .{ .message = "heads up" } };
+
+    try transcript_mark_client_req(&canonical_state, "sub-1");
+    try transcript_mark_client_req(&alias_state, "sub-1");
+
+    try std.testing.expectError(
+        error.InvalidTranscriptTransition,
+        transcript_apply_relay(&canonical_state, notice),
+    );
+    try std.testing.expectError(
+        error.InvalidTranscriptTransition,
+        transcript_apply(&alias_state, &notice),
+    );
+    try std.testing.expect(canonical_state.stage == alias_state.stage);
 }
 
 const sample_event_json_text = "{" ++

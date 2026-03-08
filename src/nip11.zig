@@ -2,6 +2,7 @@ const std = @import("std");
 const limits = @import("limits.zig");
 
 pub const Nip11Error = error{
+    OutOfMemory,
     InvalidJson,
     InvalidKnownFieldType,
     InvalidStructuredField,
@@ -48,8 +49,8 @@ pub fn nip11_parse_document(
         parse_arena.allocator(),
         input,
         .{},
-    ) catch {
-        return error.InvalidJson;
+    ) catch |parse_error| {
+        return map_nip11_json_parse_error(parse_error);
     };
     if (root != .object) {
         return error.InvalidJson;
@@ -130,7 +131,7 @@ fn parse_known_string_field(
         return error.InvalidKnownFieldType;
     }
 
-    return scratch.dupe(u8, value.string) catch return error.InvalidJson;
+    return scratch.dupe(u8, value.string) catch return error.OutOfMemory;
 }
 
 fn parse_supported_nips(value: std.json.Value, scratch: std.mem.Allocator) Nip11Error![]const u32 {
@@ -143,7 +144,7 @@ fn parse_supported_nips(value: std.json.Value, scratch: std.mem.Allocator) Nip11
     if (value.array.items.len > @as(usize, limits.nip11_supported_nips_max)) {
         return error.TooManySupportedNips;
     }
-    const output = scratch.alloc(u32, value.array.items.len) catch return error.InvalidJson;
+    const output = scratch.alloc(u32, value.array.items.len) catch return error.OutOfMemory;
 
     var index: usize = 0;
     while (index < value.array.items.len) : (index += 1) {
@@ -309,6 +310,16 @@ fn parse_limitation_u32(field_value: std.json.Value) Nip11Error!u32 {
         return error.InvalidStructuredField;
     }
     return std.math.cast(u32, field_value.integer) orelse error.InvalidStructuredField;
+}
+
+fn map_nip11_json_parse_error(parse_error: anyerror) Nip11Error {
+    std.debug.assert(@intFromError(parse_error) >= 0);
+    std.debug.assert(!@inComptime());
+
+    return switch (parse_error) {
+        error.OutOfMemory => error.OutOfMemory,
+        else => error.InvalidJson,
+    };
 }
 
 fn build_supported_nips_document(buffer: []u8, count: u32) ![]const u8 {
@@ -515,5 +526,16 @@ test "nip11 forcing InputTooLong before parse stage" {
     try std.testing.expectError(
         error.InputTooLong,
         nip11_parse_document(input, arena.allocator()),
+    );
+}
+
+test "nip11 maps allocator exhaustion to OutOfMemory" {
+    const input = "{\"name\":\"relay-memory\",\"supported_nips\":[1]}";
+    var tiny_buffer: [64]u8 = undefined;
+    var tiny_allocator = std.heap.FixedBufferAllocator.init(&tiny_buffer);
+
+    try std.testing.expectError(
+        error.OutOfMemory,
+        nip11_parse_document(input, tiny_allocator.allocator()),
     );
 }

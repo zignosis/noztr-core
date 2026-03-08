@@ -62,9 +62,12 @@ pub fn event_parse_json(input: []const u8, scratch: std.mem.Allocator) EventPars
         return error.InvalidUtf8;
     }
 
+    var parse_arena = std.heap.ArenaAllocator.init(scratch);
+    defer parse_arena.deinit();
+
     const root = std.json.parseFromSliceLeaky(
         std.json.Value,
-        scratch,
+        parse_arena.allocator(),
         input,
         .{},
     ) catch |parse_error| {
@@ -411,7 +414,7 @@ fn map_event_json_parse_error(parse_error: anyerror) EventParseError {
     return switch (parse_error) {
         error.DuplicateField => error.DuplicateField,
         error.ValueTooLong => error.InputTooLong,
-        error.OutOfMemory => error.InvalidJson,
+        error.OutOfMemory => error.OutOfMemory,
         error.UnexpectedToken => error.InvalidJson,
         error.UnexpectedEndOfInput => error.InvalidJson,
         error.BufferUnderrun => error.InvalidJson,
@@ -455,7 +458,7 @@ fn parse_content_field_owned(
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     const content = try parse_content_field(value);
-    const owned = scratch.alloc(u8, content.len) catch return error.InvalidJson;
+    const owned = scratch.alloc(u8, content.len) catch return error.OutOfMemory;
     if (content.len > 0) {
         @memcpy(owned, content);
     }
@@ -477,7 +480,7 @@ fn parse_tags_field(
         return error.TooManyTags;
     }
 
-    const tags = scratch.alloc(EventTag, value.array.items.len) catch return error.InvalidJson;
+    const tags = scratch.alloc(EventTag, value.array.items.len) catch return error.OutOfMemory;
     var tag_index: u32 = 0;
     while (tag_index < value.array.items.len) : (tag_index += 1) {
         const tag_value = value.array.items[tag_index];
@@ -494,7 +497,7 @@ fn parse_tags_field(
         }
 
         const items = scratch.alloc([]const u8, tag_value.array.items.len) catch {
-            return error.InvalidJson;
+            return error.OutOfMemory;
         };
         var item_index: u32 = 0;
         while (item_index < tag_value.array.items.len) : (item_index += 1) {
@@ -536,7 +539,7 @@ fn parse_tag_item_owned(
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     const item = try parse_tag_item(value);
-    const owned = scratch.alloc(u8, item.len) catch return error.InvalidJson;
+    const owned = scratch.alloc(u8, item.len) catch return error.OutOfMemory;
     if (item.len > 0) {
         @memcpy(owned, item);
     }
@@ -546,6 +549,7 @@ fn parse_tag_item_owned(
 fn parse_json_u32(value: std.json.Value) EventParseError!u32 {
     std.debug.assert(@sizeOf(u32) == 4);
     std.debug.assert(@sizeOf(std.json.Value) > 0);
+    std.debug.assert(limits.kind_max == std.math.maxInt(u16));
 
     if (value != .integer) {
         return error.InvalidField;
@@ -556,6 +560,9 @@ fn parse_json_u32(value: std.json.Value) EventParseError!u32 {
     }
 
     const converted = std.math.cast(u32, value.integer) orelse return error.InvalidField;
+    if (converted > limits.kind_max) {
+        return error.InvalidField;
+    }
     return converted;
 }
 
@@ -915,6 +922,27 @@ test "event serialize canonical json rejects oversized content" {
     );
 }
 
+test "event serialize canonical json forces buffer too small on public path" {
+    const event = Event{
+        .id = [_]u8{0} ** 32,
+        .pubkey = [_]u8{0x11} ** 32,
+        .sig = [_]u8{0x22} ** 64,
+        .kind = 1,
+        .created_at = 1,
+        .content = "ok",
+    };
+    var tiny_output: [8]u8 = undefined;
+    var adequate_output: [128]u8 = undefined;
+
+    try std.testing.expectError(
+        error.BufferTooSmall,
+        event_serialize_canonical_json(&tiny_output, &event),
+    );
+
+    const serialized = try event_serialize_canonical_json(&adequate_output, &event);
+    try std.testing.expect(serialized.len > tiny_output.len);
+}
+
 test "event verify id checked rejects too many tags" {
     const oversize_tags = [_]EventTag{.{ .items = &.{} }} ** (limits.tags_max + 1);
     const event = Event{
@@ -1068,7 +1096,7 @@ test "event parse json uses caller bounded allocator" {
     var tiny_buffer: [64]u8 = undefined;
     var tiny_allocator = std.heap.FixedBufferAllocator.init(&tiny_buffer);
     try std.testing.expectError(
-        error.InvalidJson,
+        error.OutOfMemory,
         event_parse_json(input, tiny_allocator.allocator()),
     );
 }
@@ -1343,6 +1371,21 @@ test "event parse json rejects content over max bound" {
     try writer.writeAll("\"}");
 
     const input = input_buffer[0..stream.pos];
+    try std.testing.expectError(error.InvalidField, event_parse_json(input, arena.allocator()));
+}
+
+test "event parse json rejects kind above strict max" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const input =
+        "{" ++
+        "\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
+        "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
+        "\"sig\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ++
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"," ++
+        "\"kind\":65536,\"created_at\":1,\"tags\":[[\"e\",\"target\"]],\"content\":\"ok\"}";
+
     try std.testing.expectError(error.InvalidField, event_parse_json(input, arena.allocator()));
 }
 

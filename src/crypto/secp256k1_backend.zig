@@ -14,6 +14,13 @@ pub const BackendSignError = error{
     BackendUnavailable,
 };
 
+/// Typed boundary errors for the secp256k1 ECDH shared-secret path.
+pub const BackendSharedSecretError = error{
+    InvalidPrivateKey,
+    InvalidPublicKey,
+    BackendUnavailable,
+};
+
 var verify_signature_call_count = std.atomic.Value(u32).init(0);
 
 pub fn reset_counters() void {
@@ -82,6 +89,23 @@ pub fn sign_schnorr_signature_deterministic(
     };
 }
 
+pub fn derive_shared_secret_x(
+    private_key: *const [32]u8,
+    public_key: *const [32]u8,
+    out_shared_secret: *[32]u8,
+) BackendSharedSecretError!void {
+    std.debug.assert(private_key[0] <= 255);
+    std.debug.assert(public_key[0] <= 255);
+
+    secp256k1.derive_shared_secret_x(
+        private_key,
+        public_key,
+        out_shared_secret,
+    ) catch |shared_secret_error| {
+        return map_shared_secret_error(shared_secret_error);
+    };
+}
+
 fn map_public_key_error(verify_error: secp256k1.Error) BackendVerifyError {
     std.debug.assert(@intFromError(verify_error) >= 0);
     std.debug.assert(!@inComptime());
@@ -113,6 +137,18 @@ fn map_sign_error(sign_error: secp256k1.Error) BackendSignError {
     return switch (sign_error) {
         error.InvalidSecretKey => error.InvalidSecretKey,
         error.InvalidPublicKey => error.BackendUnavailable,
+        error.InvalidSignature => error.BackendUnavailable,
+        error.BackendUnavailable => error.BackendUnavailable,
+    };
+}
+
+fn map_shared_secret_error(shared_secret_error: secp256k1.Error) BackendSharedSecretError {
+    std.debug.assert(@intFromError(shared_secret_error) >= 0);
+    std.debug.assert(!@inComptime());
+
+    return switch (shared_secret_error) {
+        error.InvalidSecretKey => error.InvalidPrivateKey,
+        error.InvalidPublicKey => error.InvalidPublicKey,
         error.InvalidSignature => error.BackendUnavailable,
         error.BackendUnavailable => error.BackendUnavailable,
     };

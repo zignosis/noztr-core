@@ -831,3 +831,54 @@ test "nip19 decode rejects oversized input before parsing" {
     var scratch: [limits.nip19_tlv_scratch_bytes_max]u8 = undefined;
     try std.testing.expectError(error.InvalidBech32, nip19_decode(input[0..], scratch[0..]));
 }
+
+test "nip19 decode forces invalid prefix and fixed-payload shape errors" {
+    var output: [512]u8 = undefined;
+    var scratch: [512]u8 = undefined;
+
+    const unknown_prefix = try encode_bech32(output[0..], "abc", &([_]u8{0x01} ** 32));
+    try std.testing.expectError(error.InvalidPrefix, nip19_decode(unknown_prefix, scratch[0..]));
+
+    const invalid_fixed_payload = try encode_bech32(output[0..], "npub", &([_]u8{0x02} ** 31));
+    try std.testing.expectError(
+        error.InvalidPayload,
+        nip19_decode(invalid_fixed_payload, scratch[0..]),
+    );
+}
+
+test "nip19 public paths force BufferTooSmall on encode and decode" {
+    var small_output: [10]u8 = undefined;
+    var output: [512]u8 = undefined;
+    var small_scratch: [31]u8 = undefined;
+
+    try std.testing.expectError(
+        error.BufferTooSmall,
+        nip19_encode(small_output[0..], .{ .npub = [_]u8{0x11} ** 32 }),
+    );
+
+    const text = try nip19_encode(output[0..], .{ .npub = [_]u8{0x22} ** 32 });
+    try std.testing.expectError(error.BufferTooSmall, nip19_decode(text, small_scratch[0..]));
+}
+
+test "nip19 encode forces ValueOutOfRange for empty required string fields" {
+    var output: [512]u8 = undefined;
+
+    try std.testing.expectError(
+        error.ValueOutOfRange,
+        nip19_encode(output[0..], .{ .nrelay = .{ .relay = "" } }),
+    );
+
+    try std.testing.expectError(
+        error.ValueOutOfRange,
+        nip19_encode(
+            output[0..],
+            .{
+                .naddr = .{
+                    .identifier = "",
+                    .pubkey = [_]u8{0x33} ** 32,
+                    .kind = 30023,
+                },
+            },
+        ),
+    );
+}

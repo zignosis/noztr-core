@@ -280,17 +280,21 @@ fn coordinate_matches_event(
         return false;
     }
 
-    const d_value = find_d_tag_value(event) orelse return false;
+    const d_value = find_unique_d_tag_value(event) orelse return false;
     if (!std.mem.eql(u8, coordinate.identifier, d_value)) {
         return false;
     }
     return true;
 }
 
-fn find_d_tag_value(event: *const nip01_event.Event) ?[]const u8 {
+// Policy: coordinate matching rejects events that contain duplicate `d` tags.
+// This keeps matching deterministic by requiring a single unambiguous identifier.
+fn find_unique_d_tag_value(event: *const nip01_event.Event) ?[]const u8 {
     std.debug.assert(event.tags.len <= limits.tags_max);
     std.debug.assert(@intFromPtr(event) != 0);
 
+    var found_d = false;
+    var found_value: []const u8 = undefined;
     var index: usize = 0;
     while (index < event.tags.len) : (index += 1) {
         const tag = event.tags[index];
@@ -298,8 +302,15 @@ fn find_d_tag_value(event: *const nip01_event.Event) ?[]const u8 {
             continue;
         }
         if (std.mem.eql(u8, tag.items[0], "d")) {
-            return tag.items[1];
+            if (found_d) {
+                return null;
+            }
+            found_d = true;
+            found_value = tag.items[1];
         }
+    }
+    if (found_d) {
+        return found_value;
     }
     return null;
 }
@@ -620,4 +631,40 @@ test "delete extractor forces buffer too small" {
         error.BufferTooSmall,
         delete_extract_targets(&delete_event, out[0..]),
     );
+}
+
+test "deletion_can_apply coordinate path rejects duplicate d tags" {
+    const pubkey = [_]u8{0x55} ** 32;
+    const a_items = [_][]const u8{
+        "a",
+        "30023:5555555555555555555555555555555555555555555555555555555555555555:room",
+    };
+    const delete_tags = [_]nip01_event.EventTag{.{ .items = a_items[0..] }};
+    const delete_event = test_event(delete_event_kind, pubkey, 100, [_]u8{0x10} ** 32, delete_tags[0..]);
+
+    const d_first = [_][]const u8{ "d", "room" };
+    const d_second = [_][]const u8{ "d", "room" };
+    const target_tags = [_]nip01_event.EventTag{
+        .{ .items = d_first[0..] },
+        .{ .items = d_second[0..] },
+    };
+    const target_event = test_event(30023, pubkey, 90, [_]u8{0x20} ** 32, target_tags[0..]);
+
+    try std.testing.expect(!(try deletion_can_apply(&delete_event, &target_event)));
+}
+
+test "deletion_can_apply coordinate path accepts single d tag" {
+    const pubkey = [_]u8{0x66} ** 32;
+    const a_items = [_][]const u8{
+        "a",
+        "30023:6666666666666666666666666666666666666666666666666666666666666666:room",
+    };
+    const delete_tags = [_]nip01_event.EventTag{.{ .items = a_items[0..] }};
+    const delete_event = test_event(delete_event_kind, pubkey, 100, [_]u8{0x30} ** 32, delete_tags[0..]);
+
+    const d_items = [_][]const u8{ "d", "room" };
+    const target_tags = [_]nip01_event.EventTag{.{ .items = d_items[0..] }};
+    const target_event = test_event(30023, pubkey, 90, [_]u8{0x40} ** 32, target_tags[0..]);
+
+    try std.testing.expect(try deletion_can_apply(&delete_event, &target_event));
 }

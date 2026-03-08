@@ -1,5 +1,6 @@
 const std = @import("std");
 const nip01_event = @import("nip01_event.zig");
+const relay_origin = @import("internal/relay_origin.zig");
 
 pub const AuthError = error{
     ChallengeEmpty,
@@ -174,13 +175,25 @@ fn validate_timestamp_window(
     std.debug.assert(created_at <= std.math.maxInt(u64));
     std.debug.assert(window_seconds <= std.math.maxInt(u32));
 
-    if (created_at > now_unix_seconds) {
+    const window_seconds_u64: u64 = window_seconds;
+    const now_plus_window, const overflowed = @addWithOverflow(
+        now_unix_seconds,
+        window_seconds_u64,
+    );
+    const window_upper_bound = if (overflowed == 0) now_plus_window else std.math.maxInt(u64);
+    std.debug.assert(window_seconds_u64 >= window_seconds);
+    std.debug.assert(overflowed == 0 or overflowed == 1);
+    std.debug.assert(window_upper_bound >= now_unix_seconds);
+
+    if (created_at > window_upper_bound) {
         return error.FutureTimestamp;
     }
 
-    const diff = now_unix_seconds - created_at;
-    if (diff > window_seconds) {
-        return error.StaleTimestamp;
+    if (created_at <= now_unix_seconds) {
+        const diff = now_unix_seconds - created_at;
+        if (diff > window_seconds_u64) {
+            return error.StaleTimestamp;
+        }
     }
 }
 
@@ -203,13 +216,6 @@ fn force_auth_verify_mapping(verify_error: nip01_event.EventVerifyError) AuthErr
     return map_event_verify_error(verify_error);
 }
 
-const RelayOrigin = struct {
-    scheme: []const u8,
-    host: []const u8,
-    port: u16,
-    path: []const u8,
-};
-
 fn relay_urls_match(left: []const u8, right: []const u8) bool {
     std.debug.assert(left.len <= std.math.maxInt(u32));
     std.debug.assert(right.len <= std.math.maxInt(u32));
@@ -223,205 +229,14 @@ fn relay_urls_match(left: []const u8, right: []const u8) bool {
 
     const left_origin = parse_relay_origin(left) orelse return false;
     const right_origin = parse_relay_origin(right) orelse return false;
-    if (!std.ascii.eqlIgnoreCase(left_origin.scheme, right_origin.scheme)) {
-        return false;
-    }
-    if (!std.ascii.eqlIgnoreCase(left_origin.host, right_origin.host)) {
-        return false;
-    }
-    if (left_origin.port != right_origin.port) {
-        return false;
-    }
-    if (!std.mem.eql(u8, left_origin.path, right_origin.path)) {
-        return false;
-    }
-    return true;
+    return relay_origin.websocket_origins_equal(left_origin, right_origin);
 }
 
-fn parse_relay_origin(url: []const u8) ?RelayOrigin {
+fn parse_relay_origin(url: []const u8) ?relay_origin.WebsocketOrigin {
     std.debug.assert(url.len <= std.math.maxInt(u32));
     std.debug.assert(challenge_max_bytes == 64);
 
-    if (url.len == 0) {
-        return null;
-    }
-
-    const scheme_end = std.mem.indexOf(u8, url, "://") orelse return null;
-    if (scheme_end == 0) {
-        return null;
-    }
-    const scheme = url[0..scheme_end];
-    if (!scheme_is_websocket(scheme)) {
-        return null;
-    }
-    const authority_start = scheme_end + 3;
-    if (authority_start >= url.len) {
-        return null;
-    }
-
-    const authority_end = find_authority_end(url, authority_start);
-    const authority = url[authority_start..authority_end];
-    if (authority.len == 0) {
-        return null;
-    }
-    const host_port = parse_host_port(authority, scheme) orelse return null;
-    const path = parse_url_path(url, authority_end);
-    return .{ .scheme = scheme, .host = host_port.host, .port = host_port.port, .path = path };
-}
-
-fn find_authority_end(url: []const u8, authority_start: usize) usize {
-    std.debug.assert(authority_start < url.len);
-    std.debug.assert(url.len > 0);
-
-    var index: usize = authority_start;
-    while (index < url.len) : (index += 1) {
-        const byte = url[index];
-        if (byte == '/') {
-            return index;
-        }
-        if (byte == '?') {
-            return index;
-        }
-        if (byte == '#') {
-            return index;
-        }
-    }
-    return url.len;
-}
-
-fn parse_url_path(url: []const u8, authority_end: usize) []const u8 {
-    std.debug.assert(authority_end <= url.len);
-    std.debug.assert(url.len > 0);
-
-    if (authority_end == url.len) {
-        return "/";
-    }
-    const first_after_authority = url[authority_end];
-    if (first_after_authority != '/') {
-        return "/";
-    }
-
-    const path_end = find_path_end(url, authority_end);
-    return url[authority_end..path_end];
-}
-
-fn find_path_end(url: []const u8, path_start: usize) usize {
-    std.debug.assert(path_start < url.len);
-    std.debug.assert(url[path_start] == '/');
-
-    var index: usize = path_start;
-    while (index < url.len) : (index += 1) {
-        const byte = url[index];
-        if (byte == '?') {
-            return index;
-        }
-        if (byte == '#') {
-            return index;
-        }
-    }
-    return url.len;
-}
-
-const HostPort = struct {
-    host: []const u8,
-    port: u16,
-};
-
-fn parse_host_port(authority: []const u8, scheme: []const u8) ?HostPort {
-    std.debug.assert(authority.len > 0);
-    std.debug.assert(scheme.len > 0);
-
-    if (authority[0] == '[') {
-        return parse_bracketed_host_port(authority, scheme);
-    }
-
-    const first_colon = std.mem.indexOfScalar(u8, authority, ':');
-    if (first_colon == null) {
-        const port_default = default_port_for_scheme(scheme) orelse return null;
-        return .{ .host = authority, .port = port_default };
-    }
-
-    if (find_second_colon(authority, first_colon.?) != null) {
-        return null;
-    }
-
-    const colon_index = first_colon.?;
-    if (colon_index == 0) {
-        return null;
-    }
-    if (colon_index + 1 >= authority.len) {
-        return null;
-    }
-
-    const host = authority[0..colon_index];
-    const port_text = authority[colon_index + 1 ..];
-    const port = std.fmt.parseUnsigned(u16, port_text, 10) catch return null;
-    return .{ .host = host, .port = port };
-}
-
-fn find_second_colon(authority: []const u8, first_colon: usize) ?usize {
-    std.debug.assert(authority.len > 0);
-    std.debug.assert(first_colon < authority.len);
-
-    var index: usize = first_colon + 1;
-    while (index < authority.len) : (index += 1) {
-        if (authority[index] == ':') {
-            return index;
-        }
-    }
-    return null;
-}
-
-fn parse_bracketed_host_port(authority: []const u8, scheme: []const u8) ?HostPort {
-    std.debug.assert(authority.len > 0);
-    std.debug.assert(authority[0] == '[');
-
-    const closing_bracket = std.mem.indexOfScalar(u8, authority, ']') orelse return null;
-    if (closing_bracket == 1) {
-        return null;
-    }
-
-    const host = authority[0 .. closing_bracket + 1];
-    if (closing_bracket + 1 == authority.len) {
-        const port_default = default_port_for_scheme(scheme) orelse return null;
-        return .{ .host = host, .port = port_default };
-    }
-    if (authority[closing_bracket + 1] != ':') {
-        return null;
-    }
-    if (closing_bracket + 2 >= authority.len) {
-        return null;
-    }
-
-    const port_text = authority[closing_bracket + 2 ..];
-    const port = std.fmt.parseUnsigned(u16, port_text, 10) catch return null;
-    return .{ .host = host, .port = port };
-}
-
-fn scheme_is_websocket(scheme: []const u8) bool {
-    std.debug.assert(scheme.len > 0);
-    std.debug.assert(scheme.len <= std.math.maxInt(u16));
-
-    if (std.ascii.eqlIgnoreCase(scheme, "ws")) {
-        return true;
-    }
-    if (std.ascii.eqlIgnoreCase(scheme, "wss")) {
-        return true;
-    }
-    return false;
-}
-
-fn default_port_for_scheme(scheme: []const u8) ?u16 {
-    std.debug.assert(scheme.len > 0);
-    std.debug.assert(@sizeOf(u16) == 2);
-
-    if (std.ascii.eqlIgnoreCase(scheme, "ws")) {
-        return 80;
-    }
-    if (std.ascii.eqlIgnoreCase(scheme, "wss")) {
-        return 443;
-    }
-    return null;
+    return relay_origin.parse_websocket_origin(url);
 }
 
 const AuthTagFixture = struct {
@@ -539,6 +354,21 @@ test "relay origin rejects empty authority segment" {
 test "relay origin rejects non-websocket schemes" {
     try std.testing.expect(parse_relay_origin("http://relay.example.com") == null);
     try std.testing.expect(parse_relay_origin("https://relay.example.com") == null);
+}
+
+test "shared relay parser preserves auth origin normalization behavior" {
+    const normalized = parse_relay_origin("WSS://RELAY.EXAMPLE.COM:443/path/exact?x=1#f") orelse {
+        return error.TestUnexpectedResult;
+    };
+    const canonical = parse_relay_origin("wss://relay.example.com/path/exact") orelse {
+        return error.TestUnexpectedResult;
+    };
+    const different_path = parse_relay_origin("wss://relay.example.com/path/other") orelse {
+        return error.TestUnexpectedResult;
+    };
+
+    try std.testing.expect(relay_origin.websocket_origins_equal(normalized, canonical));
+    try std.testing.expect(!relay_origin.websocket_origins_equal(normalized, different_path));
 }
 
 test "relay origin rejects unbracketed ipv6 authority" {
@@ -681,20 +511,58 @@ test "auth forcing errors for kind, missing tags, relay mismatch, duplicate tags
     );
 }
 
-test "auth forcing timestamp and verification mapping errors" {
+test "auth accepts slight future timestamp within window" {
     var fixture: AuthTagFixture = undefined;
     auth_tag_fixture_init(&fixture, "wss://relay.example.com", "challenge-1");
-    var event = build_signed_auth_event(fixture.tags[0..], 1_000);
+    const event = build_signed_auth_event(fixture.tags[0..], 1_030);
+
+    try auth_validate_event(&event, "wss://relay.example.com", "challenge-1", 1_000, 60);
+}
+
+test "auth rejects future timestamp beyond window" {
+    var fixture: AuthTagFixture = undefined;
+    auth_tag_fixture_init(&fixture, "wss://relay.example.com", "challenge-1");
+    const event = build_signed_auth_event(fixture.tags[0..], 1_061);
 
     try std.testing.expectError(
         error.FutureTimestamp,
-        auth_validate_event(&event, "wss://relay.example.com", "challenge-1", 999, 60),
+        auth_validate_event(&event, "wss://relay.example.com", "challenge-1", 1_000, 60),
     );
+}
+
+test "auth rejects stale timestamp beyond window" {
+    var fixture: AuthTagFixture = undefined;
+    auth_tag_fixture_init(&fixture, "wss://relay.example.com", "challenge-1");
+    const event = build_signed_auth_event(fixture.tags[0..], 1_000);
 
     try std.testing.expectError(
         error.StaleTimestamp,
         auth_validate_event(&event, "wss://relay.example.com", "challenge-1", 1_200, 60),
     );
+}
+
+test "timestamp window saturates upper bound on overflow" {
+    const max_u64 = std.math.maxInt(u64);
+    const now = max_u64 - 5;
+
+    try validate_timestamp_window(max_u64, now, 60);
+    try validate_timestamp_window(now, now, 60);
+}
+
+test "timestamp window overflow still rejects stale timestamps" {
+    const max_u64 = std.math.maxInt(u64);
+    const now = max_u64 - 5;
+
+    try std.testing.expectError(
+        error.StaleTimestamp,
+        validate_timestamp_window(1, now, 60),
+    );
+}
+
+test "auth forcing verification mapping errors" {
+    var fixture: AuthTagFixture = undefined;
+    auth_tag_fixture_init(&fixture, "wss://relay.example.com", "challenge-1");
+    var event = build_signed_auth_event(fixture.tags[0..], 1_000);
 
     event.sig[0] ^= 1;
     try std.testing.expectError(

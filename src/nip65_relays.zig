@@ -1,6 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const relay_origin = @import("internal/relay_origin.zig");
 
 pub const RelaysError = error{
     InvalidEventKind,
@@ -66,22 +67,27 @@ pub fn relay_list_extract(
     var tag_index: usize = 0;
     while (tag_index < event.tags.len) : (tag_index += 1) {
         const parsed = try parse_relay_tag(event.tags[tag_index]);
-        const existing_index = find_existing_relay(out[0..count], parsed.relay_url);
+        const existing_index = find_existing_relay(out[0..count], parsed.origin);
         if (existing_index) |index| {
-            out[index].marker = merge_relay_marker(out[index].marker, parsed.marker);
+            out[index].marker = merge_relay_marker(out[index].marker, parsed.permission.marker);
             continue;
         }
         if (count == out.len) {
             return error.BufferTooSmall;
         }
 
-        out[count] = parsed;
+        out[count] = parsed.permission;
         count += 1;
     }
     return count;
 }
 
-fn parse_relay_tag(tag: nip01_event.EventTag) RelaysError!RelayPermission {
+const ParsedRelayTag = struct {
+    permission: RelayPermission,
+    origin: relay_origin.WebsocketOrigin,
+};
+
+fn parse_relay_tag(tag: nip01_event.EventTag) RelaysError!ParsedRelayTag {
     std.debug.assert(limits.nip65_relay_tag_items_max == 3);
     std.debug.assert(@sizeOf(nip01_event.EventTag) > 0);
 
@@ -103,7 +109,7 @@ fn parse_relay_tag(tag: nip01_event.EventTag) RelaysError!RelayPermission {
     if (relay_url.len > limits.nip65_relay_url_bytes_max) {
         return error.InvalidRelayUrl;
     }
-    try relay_url_validate(relay_url);
+    const parsed_origin = try relay_url_validate(relay_url);
 
     const marker = if (tag.items.len == 2)
         RelayMarker.both
@@ -115,16 +121,24 @@ fn parse_relay_tag(tag: nip01_event.EventTag) RelaysError!RelayPermission {
         break :blk parsed_marker;
     };
 
-    return .{ .relay_url = relay_url, .marker = marker };
+    return .{
+        .permission = .{ .relay_url = relay_url, .marker = marker },
+        .origin = parsed_origin,
+    };
 }
 
-fn find_existing_relay(items: []const RelayPermission, relay_url: []const u8) ?u16 {
+fn find_existing_relay(items: []const RelayPermission, incoming: relay_origin.WebsocketOrigin) ?u16 {
     std.debug.assert(items.len <= std.math.maxInt(u16));
-    std.debug.assert(relay_url.len <= std.math.maxInt(u16));
+    std.debug.assert(incoming.scheme.len > 0);
 
     var index: u16 = 0;
     while (index < items.len) : (index += 1) {
-        if (std.mem.eql(u8, items[index].relay_url, relay_url)) {
+        const existing_maybe = relay_origin.parse_websocket_origin(items[index].relay_url);
+        std.debug.assert(existing_maybe != null);
+        const existing = existing_maybe orelse {
+            return null;
+        };
+        if (relay_origin.websocket_origins_equal(existing, incoming)) {
             return index;
         }
     }
@@ -147,9 +161,9 @@ fn merge_relay_marker(current: RelayMarker, incoming: RelayMarker) RelayMarker {
     return .both;
 }
 
-fn relay_url_validate(url: []const u8) RelaysError!void {
+fn relay_url_validate(url: []const u8) RelaysError!relay_origin.WebsocketOrigin {
     std.debug.assert(url.len <= limits.nip65_relay_url_bytes_max);
-    std.debug.assert(@sizeOf(u16) == 2);
+    std.debug.assert(@sizeOf(relay_origin.WebsocketOrigin) > 0);
 
     if (url.len == 0) {
         return error.InvalidRelayUrl;
@@ -158,15 +172,13 @@ fn relay_url_validate(url: []const u8) RelaysError!void {
         return error.InvalidRelayUrl;
     }
 
-    const scheme_end = std.mem.indexOf(u8, url, "://") orelse return error.InvalidRelayUrl;
-    if (scheme_end == 0) {
+    const origin = relay_origin.parse_websocket_origin(url) orelse {
+        return error.InvalidRelayUrl;
+    };
+    if (origin.port == 0) {
         return error.InvalidRelayUrl;
     }
-    const scheme = url[0..scheme_end];
-    if (!relay_scheme_is_websocket(scheme)) {
-        return error.InvalidRelayUrl;
-    }
-    try validate_authority(url, scheme_end + 3, scheme);
+    return origin;
 }
 
 fn has_forbidden_url_byte(url: []const u8) bool {
@@ -182,156 +194,6 @@ fn has_forbidden_url_byte(url: []const u8) bool {
         }
     }
     return false;
-}
-
-fn relay_scheme_is_websocket(scheme: []const u8) bool {
-    std.debug.assert(scheme.len <= std.math.maxInt(u8));
-    std.debug.assert(scheme.len > 0);
-
-    if (std.ascii.eqlIgnoreCase(scheme, "ws")) {
-        return true;
-    }
-    if (std.ascii.eqlIgnoreCase(scheme, "wss")) {
-        return true;
-    }
-    return false;
-}
-
-fn validate_authority(
-    url: []const u8,
-    authority_start: usize,
-    scheme: []const u8,
-) RelaysError!void {
-    std.debug.assert(authority_start <= url.len);
-    std.debug.assert(scheme.len > 0);
-
-    if (authority_start >= url.len) {
-        return error.InvalidRelayUrl;
-    }
-    const authority_end = authority_end_find(url, authority_start);
-    const authority = url[authority_start..authority_end];
-    if (authority.len == 0) {
-        return error.InvalidRelayUrl;
-    }
-
-    _ = try authority_parse_host_port(authority, scheme);
-}
-
-fn authority_end_find(url: []const u8, authority_start: usize) usize {
-    std.debug.assert(authority_start < url.len);
-    std.debug.assert(url.len > 0);
-
-    var index: usize = authority_start;
-    while (index < url.len) : (index += 1) {
-        const byte = url[index];
-        if (byte == '/') {
-            return index;
-        }
-        if (byte == '?') {
-            return index;
-        }
-        if (byte == '#') {
-            return index;
-        }
-    }
-    return url.len;
-}
-
-const RelayHostPort = struct {
-    host: []const u8,
-    port: u16,
-};
-
-fn authority_parse_host_port(authority: []const u8, scheme: []const u8) RelaysError!RelayHostPort {
-    std.debug.assert(authority.len > 0);
-    std.debug.assert(scheme.len > 0);
-
-    if (authority[0] == '[') {
-        return parse_bracketed_host_port(authority, scheme);
-    }
-
-    const first_colon = std.mem.indexOfScalar(u8, authority, ':');
-    if (first_colon == null) {
-        const default_port = default_port_for_scheme(scheme) orelse return error.InvalidRelayUrl;
-        return .{ .host = authority, .port = default_port };
-    }
-
-    if (colon_find_second(authority, first_colon.?) != null) {
-        return error.InvalidRelayUrl;
-    }
-
-    const colon_index = first_colon.?;
-    if (colon_index == 0) {
-        return error.InvalidRelayUrl;
-    }
-    if (colon_index + 1 >= authority.len) {
-        return error.InvalidRelayUrl;
-    }
-
-    const host = authority[0..colon_index];
-    const port_text = authority[colon_index + 1 ..];
-    const port = std.fmt.parseUnsigned(u16, port_text, 10) catch return error.InvalidRelayUrl;
-    if (port == 0) {
-        return error.InvalidRelayUrl;
-    }
-    return .{ .host = host, .port = port };
-}
-
-fn colon_find_second(authority: []const u8, first_colon: usize) ?usize {
-    std.debug.assert(authority.len > 0);
-    std.debug.assert(first_colon < authority.len);
-
-    var index: usize = first_colon + 1;
-    while (index < authority.len) : (index += 1) {
-        if (authority[index] == ':') {
-            return index;
-        }
-    }
-    return null;
-}
-
-fn parse_bracketed_host_port(authority: []const u8, scheme: []const u8) RelaysError!RelayHostPort {
-    std.debug.assert(authority.len > 0);
-    std.debug.assert(authority[0] == '[');
-
-    const closing_bracket = std.mem.indexOfScalar(u8, authority, ']') orelse {
-        return error.InvalidRelayUrl;
-    };
-    if (closing_bracket == 1) {
-        return error.InvalidRelayUrl;
-    }
-
-    const host = authority[0 .. closing_bracket + 1];
-    if (closing_bracket + 1 == authority.len) {
-        const default_port = default_port_for_scheme(scheme) orelse return error.InvalidRelayUrl;
-        return .{ .host = host, .port = default_port };
-    }
-    if (authority[closing_bracket + 1] != ':') {
-        return error.InvalidRelayUrl;
-    }
-    if (closing_bracket + 2 >= authority.len) {
-        return error.InvalidRelayUrl;
-    }
-
-    const port_text = authority[closing_bracket + 2 ..];
-    const port = std.fmt.parseUnsigned(u16, port_text, 10) catch return error.InvalidRelayUrl;
-    if (port == 0) {
-        return error.InvalidRelayUrl;
-    }
-    return .{ .host = host, .port = port };
-}
-
-fn default_port_for_scheme(scheme: []const u8) ?u16 {
-    std.debug.assert(scheme.len <= std.math.maxInt(u8));
-    std.debug.assert(scheme.len > 0);
-
-    if (std.ascii.eqlIgnoreCase(scheme, "ws")) {
-        return 80;
-    }
-    if (std.ascii.eqlIgnoreCase(scheme, "wss")) {
-        return 443;
-    }
-    return null;
 }
 
 fn build_event(kind: u32, tags: []const nip01_event.EventTag) nip01_event.Event {
@@ -393,6 +255,26 @@ test "relay list extract valid vectors and deterministic dedupe merge" {
     try std.testing.expectEqualStrings("wss://relay.beta", out_dedupe[1].relay_url);
     try std.testing.expectEqual(RelayMarker.both, out_dedupe[0].marker);
     try std.testing.expectEqual(RelayMarker.both, out_dedupe[1].marker);
+
+    const tag_n1 = [_][]const u8{ "r", "wss://relay.norm", "read" };
+    const tag_n2 = [_][]const u8{ "r", "WSS://RELAY.NORM:443/?x=1#f", "write" };
+    const tag_n3 = [_][]const u8{ "r", "ws://[2001:db8::7]", "read" };
+    const tag_n4 = [_][]const u8{ "r", "ws://[2001:db8::7]:80/#q", "write" };
+    const tags_normalized = [_]nip01_event.EventTag{
+        .{ .items = tag_n1[0..] },
+        .{ .items = tag_n2[0..] },
+        .{ .items = tag_n3[0..] },
+        .{ .items = tag_n4[0..] },
+    };
+    const event_normalized = build_event(10002, tags_normalized[0..]);
+
+    var out_normalized: [2]RelayPermission = undefined;
+    const count_normalized = try relay_list_extract(&event_normalized, out_normalized[0..]);
+    try std.testing.expectEqual(@as(u16, 2), count_normalized);
+    try std.testing.expectEqualStrings("wss://relay.norm", out_normalized[0].relay_url);
+    try std.testing.expectEqualStrings("ws://[2001:db8::7]", out_normalized[1].relay_url);
+    try std.testing.expectEqual(RelayMarker.both, out_normalized[0].marker);
+    try std.testing.expectEqual(RelayMarker.both, out_normalized[1].marker);
 }
 
 test "relay list extract invalid vectors reject unknown marker malformed url and wrong kind" {
@@ -446,6 +328,17 @@ test "relay list extract invalid vectors reject unknown marker malformed url and
         error.InvalidEventKind,
         relay_list_extract(&event_wrong_kind, out_single[0..]),
     );
+}
+
+test "relay url validation matches shared websocket origin parsing" {
+    const validated = try relay_url_validate("WSS://RELAY.EXAMPLE.COM:443/path?x=1#f");
+    const parsed = relay_origin.parse_websocket_origin("wss://relay.example.com/path") orelse {
+        return error.TestUnexpectedResult;
+    };
+    try std.testing.expect(relay_origin.websocket_origins_equal(validated, parsed));
+
+    try std.testing.expectError(error.InvalidRelayUrl, relay_url_validate("ws://2001:db8::1"));
+    try std.testing.expectError(error.InvalidRelayUrl, relay_url_validate("https://relay.example"));
 }
 
 test "relay list extract invalid vectors reject non-r tag and buffer overflow" {

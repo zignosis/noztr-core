@@ -30,9 +30,9 @@ This artifact is finalized for implementation execution and is aligned to:
 - `PE-008`: start and track LLM-usability evaluation in
   `docs/plans/llm-usability-pass.md` before RC API freeze closure (`OQ-E-006`).
 - `PE-009`: freeze Layer 1 strict defaults for current kernel boundaries (lowercase-only critical hex,
-  deterministic `ids`/`authors` lowercase-prefix filter semantics (`1..64`), unknown filter-field
-  rejection, strict relay `OK` status-prefix validation, and path-bound `ws`/`wss` NIP-42 origin
-  policy).
+   deterministic `ids`/`authors` lowercase-prefix filter semantics (`1..64`), unknown filter-field
+   rejection, strict relay `OK` rejection status-prefix validation, and path-bound `ws`/`wss`
+   NIP-42 origin policy).
 - `PE-010`: treat `docs/guides/NOZTR_STYLE.md` as the project-level strictness profile baseline for
   trust-boundary API shape, compatibility isolation, and caller-owned buffer conventions.
 - `PE-011`: evaluate compatibility and ergonomics through an explicit Layer 2 adapter track; use
@@ -51,20 +51,37 @@ This artifact is finalized for implementation execution and is aligned to:
 
 Note: these are implementation phases, not planning prompt phases.
 
-Implementation status snapshot (post-I4 closure):
+Implementation status snapshot (post-I7 closure):
 
-- I0-I4 are complete and validated (`zig build test --summary all`, `zig build`).
-- I4 optional modules (`nip19_bech32`, `nip21_uri`, `nip02_contacts`, `nip65_relays`) are implemented
+- I0-I7 are complete and validated (`zig build test --summary all`, `zig build`).
+- I4 optional modules (`nip19_bech32`, `nip21_uri`, `nip02_contacts`, `nip65_relays`) remain implemented
   with required non-interference coverage.
+- I5 gates passed: staged `nip44` decrypt checks (`length -> version -> MAC -> decrypt -> padding`),
+  staged `nip59` unwrap (`wrap -> seal -> rumor`), and vector floors plus public-error forcing
+  coverage are validated.
+- I6 gate note: optional extension modules are implemented, vector floors are met, and extension
+  tests pass with I6 enabled and disabled.
+- I7 closure evidence recorded in:
+  `docs/plans/i7-regression-evidence.md`,
+  `docs/plans/i7-api-contract-trace-checklist.md`, and
+  `docs/plans/i7-phase-f-kickoff-handoff.md`.
+- Phase-state convention: planning prompt phase records remain closed in `decision-log`, while
+  implementation execution is on the post-I7 baseline and proceeds through Phase F kickoff actions.
 - Overengineering/correctness mitigation pass is applied on docs/contracts: trust-boundary path wording
   clarified, message error ambiguity reduced, and strict filter semantics tightened to deterministic
   lowercase-prefix matching.
+- Contract sync deltas are reflected in active docs: NIP-44 padded-length helper uses `u32`
+  return semantics, parser `OutOfMemory` variants are documented where implemented,
+  strict event/filter kind boundary is `<= 65535`, NIP-50 unsupported multi-colon tokens are
+  ignored, and NIP-09 coordinate matching rejects duplicate `d` tags.
 - Transcript naming cleanup is tracked in docs: `transcript_apply_compat` is compatibility alias
   wording only; canonical strict path remains `transcript_mark_client_req` plus
   `transcript_apply_relay`.
 - PoW trust-boundary path is explicit: `pow_meets_difficulty` remains compatibility-only; canonical
-  strict callers use `pow_meets_difficulty_verified_id`.
-- I5 is the next execution wave in build-plan order (`nip44`, `nip59_wrap`).
+  strict callers use `pow_meets_difficulty_verified_id`; invalid/non-canonical ids now return
+  `false` in the compatibility path and unchecked helper behavior is internal-only.
+- Current implementation state is post-I7 closure; immediate execution target is Phase F kickoff
+  actions on this baseline.
 - Layer 2 compatibility/ergonomic adapter work remains deferred until Layer 1 execution and
   `OQ-E-006` closure.
 
@@ -121,6 +138,8 @@ Implementation status snapshot (post-I4 closure):
 - Deliverables:
   - typed client/relay union grammar with exact arity checks and multi-filter `REQ`/`COUNT` support.
   - strict relay `OK` grammar requires lowercase-hex event id.
+  - relay `OK` status semantics are explicit: success accepts empty/free-form status; rejection
+    requires prefixed status (`<prefix>: <message>`).
   - transcript state enforcement with explicit client marker
     (`transcript_mark_client_req`, `transcript_apply_relay`) and strict flow
     (`REQ marker; relay EVENT* -> EOSE? -> EVENT* -> CLOSED?`; `CLOSED` is terminal).
@@ -131,7 +150,8 @@ Implementation status snapshot (post-I4 closure):
   - strict relay origin matching compares normalized scheme/host/port/path, ignores query/fragment,
     normalizes missing path to `/`, supports bracketed IPv6 authorities, and rejects unbracketed
     IPv6 authorities.
-  - freshness policy: reject future auth timestamps and stale auth timestamps beyond window.
+  - freshness policy uses bounded symmetric skew: timestamps within the window are accepted;
+    future beyond window rejects `FutureTimestamp`; stale beyond window rejects `StaleTimestamp`.
   - auth backend outage distinction typed separately from invalid signature.
   - protected-event gate with default deny unless auth context matches.
   - `nip11` partial-document parse with strict known-field typing, strict pubkey hex validation,
@@ -191,8 +211,11 @@ Implementation status snapshot (post-I4 closure):
 - Deliverables:
   - stdlib-only NIP-44 v2 implementation with staged decrypt check order:
     `length -> version -> MAC -> decrypt -> padding`.
+  - decrypt returns typed `InvalidPadding` when post-padding plaintext UTF-8 validation fails.
   - constant-time MAC compare and secret wipe helper usage.
-  - staged NIP-59 unwrap (`wrap -> seal -> rumor`) with signature/sender checks.
+  - staged NIP-59 unwrap (`wrap -> seal -> rumor`) uses recipient private key material to derive
+    per-layer NIP-44 conversation keys (`wrap.pubkey` then `seal.pubkey`), enforces unsigned rumor
+    semantics (reject rumor `sig`), and preserves sender continuity checks.
 - Test/vector plan:
   - `nip44`: official vectors plus invalid corpus; minimum `5 valid + 5 invalid` is floor,
     official corpus depth supersedes floor.
@@ -200,17 +223,21 @@ Implementation status snapshot (post-I4 closure):
   - deterministic fixed-nonce harness for encryption parity tests.
 - Exit gate:
   - pinned NIP-44 vectors pass in full.
-  - no runtime dynamic allocation in encrypt/decrypt/unwrap paths.
+  - no unbounded/runtime-heap allocation in `nip44` encrypt/decrypt hot paths.
+  - `nip59_unwrap` strict path uses caller-provided bounded scratch for inner event parsing.
 
 ### Phase I6 - Optional Extension Message Lane (H1 Optional Only)
 
 - Modules/files: `src/nip45_count.zig`, `src/nip50_search.zig`, `src/nip77_negentropy.zig`.
 - Deliverables:
   - strict extension parsers and bounded state transitions.
+  - `nip77_negentropy` strict parse APIs include `negentropy_close_parse` and
+    `negentropy_err_parse` (`NEG-CLOSE`/`NEG-ERR`) with typed `InvalidNegErr` boundaries.
   - explicit feature-gated integration points; no core default mutation.
 - Test/vector plan:
   - each module minimum `3 valid + 3 invalid`.
   - `nip77` ordering/session overflow vectors are mandatory.
+  - `nip77` strict `NEG-CLOSE` and `NEG-ERR` parse/error vectors are mandatory.
   - extension gate tests verify disabled-extension core behavior remains unchanged.
 - Exit gate:
   - extension modules compile/test under feature gate.
@@ -270,7 +297,8 @@ Implementation status snapshot (post-I4 closure):
 - Transcript canonical path reference: `transcript_mark_client_req` then `transcript_apply_relay`
   (`transcript_apply_compat` documented as alias-only wording).
 - PoW canonical trust-boundary reference: `pow_meets_difficulty_verified_id`
-  (`pow_meets_difficulty` remains compatibility-only).
+  (`pow_meets_difficulty` is safe-by-default compatibility behavior; unchecked helper is
+  internal-only).
 - Follow-up observations (low):
   - closed: normalized-path binding in NIP-42 relay origin matching (`/` default;
     query/fragment ignored).

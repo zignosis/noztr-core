@@ -17,6 +17,8 @@ Scope: implementation-ready contracts for all Phase A H1 v1 modules.
 - `PD-005`: security-hardening defaults are canonical in strict APIs: backend outage is typed,
   relay-auth freshness rejects stale and future timestamps beyond window, and new checked wrappers
   are preferred.
+- `PD-006`: I6 optional root exports are feature-gated by build option `enable_i6_extensions`
+  (default enabled) with explicit disabled-mode semantics.
 
 ## Global Contract Rules
 
@@ -25,7 +27,15 @@ Scope: implementation-ready contracts for all Phase A H1 v1 modules.
 - Public parse/verify/encode APIs must return typed error sets; no catch-all `error.Invalid`.
 - Output-writing APIs must return `error.BufferTooSmall` without truncation.
 - Strict mode is default (`D-003`); compatibility behavior is opt-in only.
+- Root export semantics for I6 optional modules are feature-gated by build option
+  `enable_i6_extensions` (default `true`):
+  - when enabled, `root.nip45_count`, `root.nip50_search`, and `root.nip77_negentropy` export full
+    module APIs;
+  - when disabled, those root exports resolve to empty structs while core module exports and strict
+    defaults remain unchanged.
 - Determinism is required: identical inputs produce identical outputs and identical error variants.
+- Memory policy at runtime is bounded and caller-owned: no unbounded/runtime-heap growth in hot
+  crypto paths; unwrap parsing uses caller-provided bounded scratch.
 
 ## Module Contracts
 
@@ -33,7 +43,7 @@ Scope: implementation-ready contracts for all Phase A H1 v1 modules.
 
 ```zig
 pub const EventParseError = error{
-    InputTooShort, InputTooLong, InvalidJson, InvalidField, InvalidHex,
+    InputTooShort, InputTooLong, OutOfMemory, InvalidJson, InvalidField, InvalidHex,
     InvalidUtf8, DuplicateField, TooManyTags, TooManyTagItems, TagItemTooLong,
 };
 pub const EventShapeError = error{
@@ -60,7 +70,8 @@ pub fn event_replace_decision(current: *const Event, candidate: *const Event)
 ```
 
 - Bounds: input <= `Limits.event_json_max`; `tags_count <= Limits.tags_max`; `content_len <=
-  Limits.content_bytes_max`; hex lengths fixed (`id/pubkey=64`, `sig=128`).
+  Limits.content_bytes_max`; strict event `kind <= 65535`; hex lengths fixed (`id/pubkey=64`,
+  `sig=128`).
 - Failure modes: malformed JSON/field typing, duplicate critical keys, invalid lowercase hex,
   out-of-bounds tags/content, invalid id recomputation, invalid signature/pubkey, typed
   signature-backend outage.
@@ -80,7 +91,7 @@ pub fn event_replace_decision(current: *const Event, candidate: *const Event)
 
 ```zig
 pub const FilterParseError = error{
-    InputTooLong, InvalidFilter, InvalidHex, InvalidTagKey,
+    InputTooLong, OutOfMemory, InvalidFilter, InvalidHex, InvalidTagKey,
     TooManyTagKeys,
     TooManyIds, TooManyAuthors, TooManyKinds, TooManyTagValues,
     InvalidTimeWindow, ValueOutOfRange,
@@ -95,7 +106,8 @@ pub fn filters_match_event(filters: []const Filter, event: *const Event) bool;
 - Bounds: all lists fixed-capacity; `ids`/`authors` entries are strict lowercase hex prefixes with
   length `1..64` and are matched by prefix; tag-key list is bounded by `Limits.filter_tag_keys_max`
   with typed overflow `TooManyTagKeys`; `subscription` filter arrays are bounded by module
-  constants; optional `limit` is bounded to `u16`; `since <= until` when both are present.
+  constants; parsed `kinds` values are bounded to strict `<= 65535`; optional `limit` is bounded to
+  `u16`; `since <= until` when both are present.
 - Failure modes: malformed filter object/field type, invalid `#x` key shape, uppercase/non-lowercase
   `#x` key suffix, invalid lowercase hex prefix, empty `#x` value arrays, over-capacity arrays,
   invalid time window.
@@ -129,6 +141,8 @@ pub fn transcript_mark_client_req(state: *TranscriptState, subscription_id: []co
     error{InvalidTranscriptTransition}!void;
 pub fn transcript_apply(state: *TranscriptState, message: *const RelayMessage)
     error{InvalidTranscriptTransition}!void;
+pub fn transcript_apply_compat(state: *TranscriptState, message: *const RelayMessage)
+    error{InvalidTranscriptTransition}!void;
 pub fn transcript_apply_relay(state: *TranscriptState, message: RelayMessage)
     error{InvalidTranscriptTransition}!void;
 ```
@@ -136,11 +150,17 @@ pub fn transcript_apply_relay(state: *TranscriptState, message: RelayMessage)
 - Bounds: message JSON input <= `Limits.relay_message_bytes_max`; `subscription_id` length `1..64`;
   bounded filter arrays per `REQ` and `COUNT` (multi-filter supported); bounded transcript steps per
   subscription.
+- `OK` status semantics: success (`accepted=true`) allows empty/free-form string status; rejection
+  (`accepted=false`) requires prefixed status (`<prefix>: <message>`).
 - Failure modes: unknown command in strict mode, malformed array arity/types, malformed `OK`/
-  `CLOSED` prefix shape, uppercase/non-hex `OK` event id, invalid transcript transition.
+  `CLOSED` prefix shape, malformed rejected-`OK` prefix shape, uppercase/non-hex `OK` event id,
+  invalid transcript transition.
 - Deterministic behavior: same message bytes parse to same union variant; transcript transition
   decisions are deterministic per prior state and explicit client `REQ` marker, with strict flow
   semantics (`REQ marker; relay EVENT* -> EOSE? -> EVENT* -> CLOSED?`) and terminal `CLOSED`.
+- Canonical-vs-compat transcript wording: canonical strict path is
+  `transcript_mark_client_req` + `transcript_apply_relay`; `transcript_apply` and
+  `transcript_apply_compat` are compatibility alias wrappers.
 - Assertion pairs: assert command token valid and assert explicit reject for unknown token; assert
   expected arity and reject all other arities.
 - Vectors: happy (`mark REQ; relay EVENT* -> EOSE -> EVENT* -> CLOSED`, `mark REQ -> CLOSED`
@@ -172,8 +192,10 @@ pub fn auth_state_is_pubkey_authenticated(state: *const AuthState, pubkey: *cons
 ```
 
 - Bounds: challenge length `1..64`; authenticated key store fixed-capacity; timestamp skew bounded by
-  `window_seconds` (`u32`) for stale and future rejection; `auth_validate_event` expected challenge
-  input must also be length `1..64`.
+  `window_seconds` (`u32`) as bounded symmetric skew (`created_at` within `[now-window,
+  now+window]` is accepted); future beyond window rejects `FutureTimestamp`, stale beyond window
+  rejects `StaleTimestamp`; `auth_validate_event` expected challenge input must also be length
+  `1..64`.
 - Failure modes: empty challenge set attempt, too-long challenge set attempt, wrong kind,
    missing/mismatched `relay` or `challenge`, invalid signature, duplicate required tags,
    expected challenge empty/too-long reject in `auth_validate_event`,
@@ -236,6 +258,8 @@ pub fn deletion_can_apply(delete_event: *const Event, target_event: *const Event
 - Bounds: at least one `e` or `a` target required; extracted target count bounded by output slice.
 - Failure modes: checked extract rejects non-kind-5 input, empty targets, malformed `e`/`a` tags,
   and `BufferTooSmall`; apply rejects cross-author deletes.
+- Coordinate-match policy: duplicate `d` tags on target events are rejected for `a`-coordinate
+  matching to preserve deterministic identifier resolution.
 - Safe wrapper: `delete_extract_targets_checked` enforces kind and target validation in one typed API
   surface for relay call sites.
 - Deterministic behavior: same delete/target pair yields identical apply decision.
@@ -287,6 +311,9 @@ pub fn pow_meets_difficulty_verified_id(event: *const Event, required_bits: u16)
 - Deterministic behavior: leading-zero count is deterministic bit scan of event id bytes; when nonce
   commitment is present, strict validation enforces `actual_bits >= commitment` and
   `commitment >= required_bits`.
+- Compatibility default: `pow_meets_difficulty` is safe-by-default compatibility behavior and returns
+  `false` for invalid/non-canonical event ids.
+- Internal helper: `pow_meets_difficulty_unchecked` remains internal-only.
 - Safe wrapper: `pow_meets_difficulty_verified_id` first checks event id canonical validity before PoW
   comparison and returns `InvalidId` on shape/verification mismatch while preserving all `PowError`
   variants for nonce/difficulty failures.
@@ -403,7 +430,7 @@ pub const Nip44NonceProvider = *const fn (ctx: ?*anyopaque, out_nonce: *[32]u8)
 pub fn nip44_get_conversation_key(private_key: *const [32]u8, public_key: *const [32]u8)
     Nip44Error![32]u8;
 pub fn nip44_calc_padded_plaintext_len(plaintext_len: u16)
-    Nip44Error!u16;
+    Nip44Error!u32;
 pub fn nip44_encrypt_to_base64(output: []u8, conversation_key: *const [32]u8,
     plaintext: []const u8, nonce_ctx: ?*anyopaque, nonce_provider: Nip44NonceProvider)
     Nip44Error![]const u8;
@@ -417,10 +444,13 @@ pub fn nip44_decrypt_from_base64(output_plaintext: []u8, conversation_key: *cons
     Nip44Error![]const u8;
 ```
 
-- Bounds: plaintext `1..65535`; base64 payload `132..87472`; decoded payload `99..65603`; version
-  must be `0x02`; all buffers caller-owned.
+- Bounds: plaintext input `1..65535`; padded plaintext length result excludes the two-byte length
+  prefix and is `32..65536`; base64 payload `132..87472`; decoded payload `99..65603`; version must
+  be `0x02`; all buffers caller-owned.
+- Allocation policy: encrypt/decrypt hot paths perform no unbounded/runtime-heap allocation.
 - Failure modes: unsupported `#` encoding, invalid lengths, invalid version, invalid MAC,
-  invalid padding, key/nonce errors, buffer insufficiency.
+  invalid padding, invalid UTF-8 plaintext after padding checks (typed `InvalidPadding`),
+  key/nonce errors, buffer insufficiency.
 - Deterministic behavior: fixed nonce path is fully deterministic; decrypt check order is strict
   (`length -> version -> MAC -> decrypt -> padding`); constant-time MAC compare required.
 - Assertion pairs: assert length-range preconditions and reject out-of-range; assert MAC validity
@@ -434,10 +464,10 @@ pub fn nip44_decrypt_from_base64(output_plaintext: []u8, conversation_key: *cons
 pub const WrapError = error{
     InvalidWrapEvent, InvalidSealEvent, InvalidRumorEvent,
     InvalidWrapKind, InvalidSealKind, InvalidSealSignature,
-    SenderMismatch, DecryptFailed,
+    SenderMismatch, DecryptFailed, OutOfMemory,
 };
 
-pub fn nip59_unwrap(output_rumor: *Event, conversation_key: *const [32]u8,
+pub fn nip59_unwrap(output_rumor: *Event, recipient_private_key_material: *const [32]u8,
     wrap_event: *const Event, scratch: std.mem.Allocator)
     WrapError!void;
 pub fn nip59_validate_wrap_structure(wrap_event: *const Event)
@@ -445,13 +475,15 @@ pub fn nip59_validate_wrap_structure(wrap_event: *const Event)
 ```
 
 - Bounds: staged unwrap only; all inner decode and parse operations bounded by existing event/NIP-44
-  limits.
+  limits; strict unwrap parsing uses caller-provided bounded scratch. Unwrap derives per-layer NIP-44
+  conversation keys from recipient private key material using `wrap.pubkey` first, then `seal.pubkey`.
 - Failure modes: wrong outer kind, malformed wrap/seal/rumor layer, invalid seal signature,
-  sender mismatch spoof, decrypt failure at any stage.
+  sender mismatch spoof, decrypt failure at any stage, rumor `sig` field present in strict unwrap.
 - Deterministic behavior: staged order fixed (`wrap -> seal -> rumor`) and failure stage is
   deterministic for identical inputs.
 - Assertion pairs: assert outer signature verifies before decrypt and reject otherwise; assert sender
-  continuity across layers and reject mismatch.
+  continuity across layers and reject mismatch; assert rumor is unsigned and reject any rumor `sig`
+  field.
 - Vectors: happy (`valid wrap->seal->rumor chain`, sender-consistent unwrap);
   error (`bad outer kind`, `bad seal sig`, `sender mismatch spoof`, malformed rumor payload).
 
@@ -500,6 +532,9 @@ pub fn search_tokens_parse(value: []const u8, out_tokens: []SearchToken)
   used.
 - Deterministic behavior: extension parser only; unsupported `key:value` tokens are ignored by
   policy and do not mutate core filter parse behavior.
+- Unsupported multi-colon policy: unsupported tokens with multiple colons (for example
+  `custom:alpha:beta`) are ignored; malformed supported tokens with additional colons remain typed
+  failures.
 - Assertion pairs: assert base search value is string and reject non-string; assert unsupported
   extension tokens are ignored (not fatal) in strict extension policy.
 - Vectors: happy (`plain query`, `query with supported token`, `query with unsupported token ignored`);
@@ -510,6 +545,7 @@ pub fn search_tokens_parse(value: []const u8, out_tokens: []SearchToken)
 ```zig
 pub const NegentropyError = error{
     InvalidNegOpen, InvalidNegMsg, InvalidNegClose,
+    InvalidNegErr,
     InvalidHexPayload, UnsupportedVersion, ReservedTimestamp,
     InvalidOrdering, SessionStateExceeded,
 };
@@ -518,6 +554,10 @@ pub fn negentropy_open_parse(input: []const u8, scratch: std.mem.Allocator)
     NegentropyError!NegOpenMessage;
 pub fn negentropy_msg_parse(input: []const u8, scratch: std.mem.Allocator)
     NegentropyError!NegMsgMessage;
+pub fn negentropy_close_parse(input: []const u8, scratch: std.mem.Allocator)
+    NegentropyError!NegCloseMessage;
+pub fn negentropy_err_parse(input: []const u8, scratch: std.mem.Allocator)
+    NegentropyError!NegErrMessage;
 pub fn negentropy_state_apply(state: *NegentropyState, message: *const NegentropyMessage)
     NegentropyError!void;
 pub fn negentropy_items_validate_order(items: []const NegentropyItem)
@@ -527,20 +567,21 @@ pub fn negentropy_items_validate_order(items: []const NegentropyItem)
 - Bounds: protocol version strict default `0x61`; hex payload must decode within bounded session
   buffers; reserved timestamp `2^64-1` forbidden; session steps bounded.
 - Failure modes: malformed NEG family message shapes, invalid hex framing, unsupported version,
-  ordering violation, session-bound overflow.
+  ordering violation, session-bound overflow; strict `NEG-ERR` parse/state validation rejects
+  malformed reason shape/prefix with typed `InvalidNegErr`.
 - Deterministic behavior: parser/state transitions deterministic for same message sequence;
   ordering invariant (`timestamp asc`, `id lexical asc`) strictly enforced.
 - Assertion pairs: assert canonical version acceptance and typed reject for unsupported versions;
   assert ordering invariant and reject first violation deterministically.
-- Vectors: happy (`NEG-OPEN`, `NEG-MSG`, `NEG-CLOSE` valid flow with deterministic ordering);
-  error (`malformed hex`, version mismatch path, reserved timestamp, ordering violation,
-  session overflow).
+- Vectors: happy (`NEG-OPEN`, `NEG-MSG`, `NEG-CLOSE`, `NEG-ERR` valid flow with deterministic
+  ordering); error (`malformed hex`, version mismatch path, reserved timestamp,
+  `NEG-CLOSE`/`NEG-ERR` shape violations, ordering violation, session overflow).
 
 ### `nip11`
 
 ```zig
 pub const Nip11Error = error{
-    InvalidJson, InvalidKnownFieldType, InvalidStructuredField,
+    OutOfMemory, InvalidJson, InvalidKnownFieldType, InvalidStructuredField,
     InvalidPubkey, TooManySupportedNips, LimitationOutOfRange,
     InputTooLong,
 };

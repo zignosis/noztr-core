@@ -7,9 +7,22 @@ gates, exact file targets, and deterministic verification cadence.
 
 ## Current Status
 
-- `I0`-`I4` are complete and validated.
+- `I0`-`I7` are complete and validated.
 - I4 optional modules are implemented with required non-interference coverage.
-- Current next execution phase is `I5` (`nip44`, `nip59_wrap`).
+- I5 gates passed: staged `nip44` decrypt checks, staged `nip59` unwrap, and vector floors plus
+  forcing coverage.
+- I6 gate note: optional modules implemented, vector floors met, and enabled/disabled extension gate
+  tests passing.
+- I7 closure evidence is recorded in:
+  `docs/plans/i7-regression-evidence.md`,
+  `docs/plans/i7-api-contract-trace-checklist.md`, and
+  `docs/plans/i7-phase-f-kickoff-handoff.md`.
+- Contract sync deltas are recorded in active artifacts: NIP-44 padded-length `u32` bounds,
+  parser `OutOfMemory` variants where implemented, strict `kind <= 65535` boundaries,
+  transcript canonical-vs-compat naming, NIP-77 CLOSE/ERR parse APIs,
+  NIP-50 unsupported multi-colon token handling, and NIP-09 duplicate-`d` coordinate policy.
+- Phase-state convention: planning prompt phase records are historical closure evidence; execution
+  state is post-I7 baseline with Phase F kickoff actions as the immediate target.
 - Layer 2 adapter work is deferred pending resolution of `OQ-E-006`.
 
 Historical kickoff decisions and steps below are preserved as baseline context, not current next-step
