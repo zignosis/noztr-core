@@ -19,6 +19,14 @@ This handoff captures the current documentation status and immediate direction f
 - Step 1 external cross-language replay for `UT-E-003` is recorded as `pass` in
   `docs/plans/phase-f-risk-burndown.md` using temporary harness
   `/workspace/projects/noztr/.phasef-go/main.go` with `github.com/nbd-wtf/go-nostr/nip44`.
+- Persistent cross-language replay harnesses are now maintained under `tools/interop/`:
+  - shared fixtures: `tools/interop/fixtures/nip44_ut_e_003.json`
+  - Go harness: `tools/interop/go-nostr-nip44`
+  - Rust harness: `tools/interop/rust-nostr-nip44`
+  - TypeScript harness: `tools/interop/ts-nostr-tools-nip44`
+- Persistent replay classification outcomes for `UT-E-003` are now recorded as
+  Go `pass`, Rust `pass`, TypeScript `pass` in
+  `docs/plans/phase-f-risk-burndown.md`.
 - Step 3 local replay expansion for `UT-E-004` is recorded as `pass` in
   `docs/plans/phase-f-risk-burndown.md`.
 - Step 3 typed-class mapping stability for `UT-E-004` is recorded as `no-drift`;
@@ -319,6 +327,20 @@ This handoff captures the current documentation status and immediate direction f
 
 - Created (Phase F replay inputs):
   - `docs/plans/phase-f-replay-inputs.md`
+
+- Created (persistent interop harnesses):
+  - `tools/interop/README.md`
+  - `tools/interop/fixtures/nip44_ut_e_003.json`
+  - `tools/interop/go-nostr-nip44/go.mod`
+  - `tools/interop/go-nostr-nip44/go.sum`
+  - `tools/interop/go-nostr-nip44/main.go`
+  - `tools/interop/rust-nostr-nip44/Cargo.lock`
+  - `tools/interop/rust-nostr-nip44/Cargo.toml`
+  - `tools/interop/rust-nostr-nip44/src/main.rs`
+  - `tools/interop/ts-nostr-tools-nip44/package-lock.json`
+  - `tools/interop/ts-nostr-tools-nip44/package.json`
+  - `tools/interop/ts-nostr-tools-nip44/tsconfig.json`
+  - `tools/interop/ts-nostr-tools-nip44/index.ts`
 
 ## Next Steps To Continue
 

@@ -19,6 +19,12 @@ Purpose: start Phase F execution tracking on the post-I7 baseline without changi
   `docs/plans/phase-f-replay-inputs.md` (`UT-E-003-FX-001`..`UT-E-003-FX-005`).
 - Phase F Step 1 external cross-language replay is now executed via
   `/workspace/projects/noztr/.phasef-go/main.go` using `github.com/nbd-wtf/go-nostr/nip44`.
+- Phase F Step 6 persistent cross-language replay harnesses are now maintained under
+  `tools/interop/` with shared fixture input
+  `tools/interop/fixtures/nip44_ut_e_003.json` and reusable harnesses for Go/Rust/TypeScript.
+- Phase F Step 6 replay classification outcomes are now recorded as
+  Go `pass`, Rust `pass`, TypeScript `pass` in
+  `docs/plans/phase-f-risk-burndown.md`.
 - Phase F Step 3 `UT-E-004` replay expansion is recorded in
   `docs/plans/phase-f-risk-burndown.md` with expanded mutation classes and `no-drift`
   typed-class mapping stability.
@@ -54,6 +60,8 @@ Burn-down guardrail: execute these tasks as depth expansion only; do not change 
   wrong-length seam classification).
 - Step 4 `UT-E-004` next-step 2 status: executed (expanded hex-input seam matrix and typed
   class parity assertions for wrong-length/non-hex classes).
+- Step 6 persistent cross-language replay status: executed
+  (`UT-E-003-FX-001`..`UT-E-003-FX-005` passed in persistent Go/Rust/TypeScript harnesses).
 - Canonical evidence artifact: `docs/plans/phase-f-risk-burndown.md`.
 - Canonical replay input artifact: `docs/plans/phase-f-replay-inputs.md`.
 - Defaults/frozen policy status: unchanged.

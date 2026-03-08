@@ -1,0 +1,41 @@
+{
+  "set_id": "UT-E-003",
+  "source": "docs/plans/phase-f-replay-inputs.md",
+  "fixtures": [
+    {
+      "id": "UT-E-003-FX-001",
+      "conversation_key_hex": "c41c775356fd92eadc63ff5a0dc1da211b268cbea22316767095b2871ea1412d",
+      "nonce_hex": "0000000000000000000000000000000000000000000000000000000000000001",
+      "plaintext": "a",
+      "payload_expectation_base64": "AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABee0G5VSK0/9YypIObAtDKfYEAjD35uVkHyB0F4DwrcNaCXlCWZKaArsGrY6M9wnuTMxWfp1RTN9Xga8no+kF5Vsb"
+    },
+    {
+      "id": "UT-E-003-FX-002",
+      "conversation_key_hex": "c41c775356fd92eadc63ff5a0dc1da211b268cbea22316767095b2871ea1412d",
+      "nonce_hex": "f00000000000000000000000000000f00000000000000000000000000000000f",
+      "plaintext": "🍕🫃",
+      "payload_expectation_base64": "AvAAAAAAAAAAAAAAAAAAAPAAAAAAAAAAAAAAAAAAAAAPSKSK6is9ngkX2+cSq85Th16oRTISAOfhStnixqZziKMDvB0QQzgFZdjLTPicCJaV8nDITO+QfaQ61+KbWQIOO2Yj"
+    },
+    {
+      "id": "UT-E-003-FX-003",
+      "conversation_key_hex": "3e2b52a63be47d34fe0a80e34e73d436d6963bc8f39827f327057a9986c20a45",
+      "nonce_hex": "b635236c42db20f021bb8d1cdff5ca75dd1a0cc72ea742ad750f33010b24f73b",
+      "plaintext": "表ポあA鷗ŒéＢ逍Üßªąñ丂㐀𠀀",
+      "payload_expectation_base64": "ArY1I2xC2yDwIbuNHN/1ynXdGgzHLqdCrXUPMwELJPc7s7JqlCMJBAIIjfkpHReBPXeoMCyuClwgbT419jUWU1PwaNl4FEQYKCDKVJz+97Mp3K+Q2YGa77B6gpxB/lr1QgoqpDf7wDVrDmOqGoiPjWDqy8KzLueKDcm9BVP8xeTJIxs="
+    },
+    {
+      "id": "UT-E-003-FX-004",
+      "conversation_key_hex": "d5a2f879123145a4b291d767428870f5a8d9e5007193321795b40183d4ab8c2b",
+      "nonce_hex": "b20989adc3ddc41cd2c435952c0d59a91315d8c5218d5040573fc3749543acaf",
+      "plaintext": "ability🤝的 ȺȾ",
+      "payload_expectation_base64": "ArIJia3D3cQc0sQ1lSwNWakTFdjFIY1QQFc/w3SVQ6yvbG2S0x4Yu86QGwPTy7mP3961I1XqB6SFFTzqDZZavhxoWMj7mEVGMQIsh2RLWI5EYQaQDIePSnXPlzf7CIt+voTD"
+    },
+    {
+      "id": "UT-E-003-FX-005",
+      "conversation_key_hex": "3b15c977e20bfe4b8482991274635edd94f366595b1a3d2993515705ca3cedb8",
+      "nonce_hex": "8d4442713eb9d4791175cb040d98d6fc5be8864d6ec2f89cf0895a2b2b72d1b1",
+      "plaintext": "pepper👀їжак",
+      "payload_expectation_base64": "Ao1EQnE+udR5EXXLBA2Y1vxb6IZNbsL4nPCJWisrctGxY3AduCS+jTUgAAnfvKafkmpy15+i9YMwCdccisRa8SvzW671T2JO4LFSPX31K4kYUKelSAdSPwe9NwO6LhOsnoJ+"
+    }
+  ]
+}

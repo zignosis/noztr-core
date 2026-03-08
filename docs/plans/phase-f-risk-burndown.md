@@ -154,6 +154,29 @@ Step 4 conclusion:
 - Rule remains: any future trigger firing must be captured in `docs/plans/decision-log.md` before
   default changes.
 
+## Step 6 Persistent Cross-Language Replay Harnesses
+
+- Step: 6 (promote replay harnesses to persistent `tools/interop/` layout and execute all
+  cross-language runs against one shared fixture file).
+- Shared fixture file: `tools/interop/fixtures/nip44_ut_e_003.json`
+  (`UT-E-003-FX-001`..`UT-E-003-FX-005`).
+- Harnesses:
+  - Go: `tools/interop/go-nostr-nip44`
+  - Rust: `tools/interop/rust-nostr-nip44`
+  - TypeScript: `tools/interop/ts-nostr-tools-nip44`
+
+| Step | Risk ID | Implementation | Command | Result | Outcome classification | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `6` | `UT-E-003` | go-nostr `github.com/nbd-wtf/go-nostr/nip44` | `go run .` (in `tools/interop/go-nostr-nip44`) | pass (`5/5` fixtures) | `pass` | decrypt parity and custom-nonce encrypt parity both matched fixture payloads |
+| `6` | `UT-E-003` | rust-nostr `nostr` crate `v0.44.2` (`nip44::v2`) | `cargo run --manifest-path Cargo.toml` (in `tools/interop/rust-nostr-nip44`) | pass (`5/5` fixtures) | `pass` | decrypt parity and deterministic encrypt parity matched using fixed-nonce RNG injection |
+| `6` | `UT-E-003` | TypeScript `nostr-tools/nip44` | `npm run run` (in `tools/interop/ts-nostr-tools-nip44`) | pass (`5/5` fixtures) | `pass` | decrypt parity and custom-nonce encrypt parity both matched fixture payloads |
+
+Step 6 conclusion:
+- Persistent interop harnesses are now in-repo under `tools/interop/` for reuse by future NIP
+  replay tracks.
+- Replay classification outcomes: Go `pass`, Rust `pass`, TypeScript `pass`.
+- Explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
+
 ## Next Burndown Tasks
 
 1. `UT-E-003` owner: Phase F owner
