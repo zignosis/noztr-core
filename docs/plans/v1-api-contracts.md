@@ -36,14 +36,23 @@ pub const EventParseError = error{
     InputTooShort, InputTooLong, InvalidJson, InvalidField, InvalidHex,
     InvalidUtf8, DuplicateField, TooManyTags, TooManyTagItems, TagItemTooLong,
 };
+pub const EventShapeError = error{
+    InvalidUtf8, ContentTooLong, TooManyTags, TooManyTagItems, TagItemTooLong,
+};
+pub const EventSerializeError = EventShapeError || error{BufferTooSmall};
 pub const EventVerifyError = error{ InvalidId, InvalidSignature, InvalidPubkey, BackendUnavailable };
+pub const EventVerifyIdError = EventVerifyError || EventShapeError;
 
 pub fn event_parse_json(input: []const u8, scratch: std.mem.Allocator)
     EventParseError!Event;
 pub fn event_serialize_canonical(output: []u8, event: *const Event)
-    error{BufferTooSmall}![]const u8;
-pub fn event_compute_id(event: *const Event) [32]u8;
+    EventSerializeError![]const u8;
+pub fn event_serialize_canonical_json(output: []u8, event: *const Event)
+    EventSerializeError![]const u8;
+pub fn event_compute_id(event: *const Event) EventShapeError![32]u8;
+pub fn event_compute_id_checked(event: *const Event) EventShapeError![32]u8;
 pub fn event_verify_id(event: *const Event) EventVerifyError!void;
+pub fn event_verify_id_checked(event: *const Event) EventVerifyIdError!void;
 pub fn event_verify_signature(event: *const Event) EventVerifyError!void;
 pub fn event_verify(event: *const Event) EventVerifyError!void;
 pub fn event_replace_decision(current: *const Event, candidate: *const Event)
@@ -57,9 +66,10 @@ pub fn event_replace_decision(current: *const Event, candidate: *const Event)
   signature-backend outage.
 - Deterministic behavior: canonical serialization bytes, computed id, and replace ordering are
   deterministic (`created_at`, then lexical `id`).
-- Compatibility note: `event_compute_id` returns an all-zero id (`[32]u8{0}`) when runtime shape
-  invariants are violated; strict trust-boundary call sites must use `event_verify_id` (or checked
-  wrappers such as `pow_meets_difficulty_verified_id`) before policy decisions.
+- Runtime-shape note: canonical serialize/compute surfaces return `EventShapeError` variants when
+  runtime shape invariants are violated. Trust-boundary call sites should continue to use
+  `event_verify_id` (or checked wrappers such as `pow_meets_difficulty_verified_id`) for
+  policy-facing invalid-id handling.
 - Assertion pairs: assert required field presence and assert no extra critical duplicates; assert
   bounds in positive space and return typed over-bound errors in negative space.
 - Vectors: happy (`canonical round-trip`, `verify split/full`, `tie-break replaceable/addressable`);
@@ -71,6 +81,7 @@ pub fn event_replace_decision(current: *const Event, candidate: *const Event)
 ```zig
 pub const FilterParseError = error{
     InputTooLong, InvalidFilter, InvalidHex, InvalidTagKey,
+    TooManyTagKeys,
     TooManyIds, TooManyAuthors, TooManyKinds, TooManyTagValues,
     InvalidTimeWindow, ValueOutOfRange,
 };
@@ -81,23 +92,28 @@ pub fn filter_matches_event(filter: *const Filter, event: *const Event) bool;
 pub fn filters_match_event(filters: []const Filter, event: *const Event) bool;
 ```
 
-- Bounds: all lists fixed-capacity; `subscription` filter arrays bounded by module constants;
-  optional `limit` bounded to `u16`; `since <= until` when both present.
-- Failure modes: malformed filter object/field type, invalid `#x` key shape, invalid hex,
-  empty `#x` value arrays, over-capacity arrays, invalid time window.
-- Deterministic behavior: AND within one filter, OR across filter list; same filter/event input
-  returns identical boolean.
-- Assertion pairs: assert key shape starts with `#` then one codepoint; assert rejection path for
-  bad keys and over-capacity lists.
-- Vectors: happy (`single-field`, `combined-and`, `or-across-filters`); error (`bad # key`,
-  `invalid hex`, `empty #x array`, `since>until`, each capacity overflow).
+- Bounds: all lists fixed-capacity; `ids`/`authors` entries are strict lowercase hex prefixes with
+  length `1..64` and are matched by prefix; tag-key list is bounded by `Limits.filter_tag_keys_max`
+  with typed overflow `TooManyTagKeys`; `subscription` filter arrays are bounded by module
+  constants; optional `limit` is bounded to `u16`; `since <= until` when both are present.
+- Failure modes: malformed filter object/field type, invalid `#x` key shape, uppercase/non-lowercase
+  `#x` key suffix, invalid lowercase hex prefix, empty `#x` value arrays, over-capacity arrays,
+  invalid time window.
+- Deterministic behavior: AND within one filter, OR across filter list; id/author checks use
+  deterministic nibble-precision prefix matching; same filter/event input returns identical boolean.
+- Assertion pairs: assert key shape is `#` plus exactly one lowercase ASCII letter and reject all
+  other forms; assert id/author prefix lengths are `1..64` lowercase hex and reject invalid forms;
+  assert typed rejection paths for every over-capacity list, including `TooManyTagKeys`.
+- Vectors: happy (`single-field`, `combined-and`, `or-across-filters`, `id/author prefix match`,
+  `odd-length prefix nibble match`); error (`bad # key`, `uppercase #x key`, `invalid hex prefix`,
+  `empty #x array`, `since>until`, each capacity overflow including `TooManyTagKeys`).
 
 ### `nip01_message`
 
 ```zig
 pub const MessageParseError = error{
     InputTooLong, InvalidMessage, InvalidCommand, InvalidArity,
-    InvalidFieldType, InvalidPrefix,
+    InvalidFieldType, InvalidFilter, InvalidEvent, InvalidPrefix,
 };
 pub const MessageEncodeError = error{ BufferTooSmall, ValueOutOfRange };
 
@@ -111,19 +127,24 @@ pub fn relay_message_serialize_json(output: []u8, message: *const RelayMessage)
     MessageEncodeError![]const u8;
 pub fn transcript_mark_client_req(state: *TranscriptState, subscription_id: []const u8)
     error{InvalidTranscriptTransition}!void;
-pub fn transcript_apply_relay(state: *TranscriptState, message: *const RelayMessage)
+pub fn transcript_apply(state: *TranscriptState, message: *const RelayMessage)
+    error{InvalidTranscriptTransition}!void;
+pub fn transcript_apply_relay(state: *TranscriptState, message: RelayMessage)
     error{InvalidTranscriptTransition}!void;
 ```
 
 - Bounds: message JSON input <= `Limits.relay_message_bytes_max`; `subscription_id` length `1..64`;
-  bounded filters per `REQ`; bounded transcript steps per subscription.
+  bounded filter arrays per `REQ` and `COUNT` (multi-filter supported); bounded transcript steps per
+  subscription.
 - Failure modes: unknown command in strict mode, malformed array arity/types, malformed `OK`/
   `CLOSED` prefix shape, uppercase/non-hex `OK` event id, invalid transcript transition.
 - Deterministic behavior: same message bytes parse to same union variant; transcript transition
-  decisions are deterministic per prior state and explicit client `REQ` marker.
+  decisions are deterministic per prior state and explicit client `REQ` marker, with strict flow
+  semantics (`REQ marker; relay EVENT* -> EOSE? -> EVENT* -> CLOSED?`) and terminal `CLOSED`.
 - Assertion pairs: assert command token valid and assert explicit reject for unknown token; assert
   expected arity and reject all other arities.
-- Vectors: happy (`mark REQ -> EVENT* -> EOSE -> CLOSE`, valid
+- Vectors: happy (`mark REQ; relay EVENT* -> EOSE -> EVENT* -> CLOSED`, `mark REQ -> CLOSED`
+  pre-EOSE, valid
   `OK/CLOSED/NOTICE/AUTH/COUNT` grammar);
   error (`unknown command`, `bad arity`, `bad prefix`, `OK` uppercase id reject,
   invalid transcript order).
@@ -198,17 +219,23 @@ pub const DeleteError = error{
     InvalidDeleteEventKind, EmptyDeleteTargets, InvalidETag,
     InvalidATag, InvalidAddressCoordinate, CrossAuthorDelete,
 };
+pub const DeleteExtractError = error{
+    BufferTooSmall, EmptyDeleteTargets, InvalidETag,
+    InvalidATag, InvalidAddressCoordinate,
+};
+pub const DeleteExtractCheckedError = DeleteExtractError || error{InvalidDeleteEventKind};
 
 pub fn delete_extract_targets(delete_event: *const Event, out: []DeleteTarget)
-    error{BufferTooSmall, EmptyDeleteTargets, InvalidETag, InvalidATag, InvalidAddressCoordinate}!u16;
+    DeleteExtractError!u16;
 pub fn delete_extract_targets_checked(delete_event: *const Event, out: []DeleteTarget)
-    DeleteError!u16;
+    DeleteExtractCheckedError!u16;
 pub fn deletion_can_apply(delete_event: *const Event, target_event: *const Event)
     DeleteError!bool;
 ```
 
 - Bounds: at least one `e` or `a` target required; extracted target count bounded by output slice.
-- Failure modes: non-kind-5 input, empty targets, malformed `e`/`a` tags, cross-author apply attempt.
+- Failure modes: checked extract rejects non-kind-5 input, empty targets, malformed `e`/`a` tags,
+  and `BufferTooSmall`; apply rejects cross-author deletes.
 - Safe wrapper: `delete_extract_targets_checked` enforces kind and target validation in one typed API
   surface for relay call sites.
 - Deterministic behavior: same delete/target pair yields identical apply decision.
@@ -241,8 +268,9 @@ pub fn event_is_expired_at(event: *const Event, now_unix_seconds: u64)
 ```zig
 pub const PowError = error{
     DifficultyOutOfRange, InvalidNonceTag, InvalidNonceCounter,
-    InvalidNonceCommitment, InvalidEventId,
+    InvalidNonceCommitment,
 };
+pub const PowVerifiedIdError = PowError || error{ InvalidId };
 
 pub fn pow_leading_zero_bits(id: *const [32]u8) u16;
 pub fn pow_extract_nonce_target(event: *const Event)
@@ -250,7 +278,7 @@ pub fn pow_extract_nonce_target(event: *const Event)
 pub fn pow_meets_difficulty(event: *const Event, required_bits: u16)
     PowError!bool;
 pub fn pow_meets_difficulty_verified_id(event: *const Event, required_bits: u16)
-    PowError!bool;
+    PowVerifiedIdError!bool;
 ```
 
 - Bounds: `required_bits` in `0..256`; nonce tag shape `['nonce', counter]` or
@@ -260,7 +288,8 @@ pub fn pow_meets_difficulty_verified_id(event: *const Event, required_bits: u16)
   commitment is present, strict validation enforces `actual_bits >= commitment` and
   `commitment >= required_bits`.
 - Safe wrapper: `pow_meets_difficulty_verified_id` first checks event id canonical validity before PoW
-  comparison and returns `InvalidEventId` on mismatch.
+  comparison and returns `InvalidId` on shape/verification mismatch while preserving all `PowError`
+  variants for nonce/difficulty failures.
 - Assertion pairs: assert `required_bits <= 256` and reject higher values; assert valid nonce tag
   arities and reject others; assert commitment floor/truthfulness and reject weaker or overstated
   commitments.
@@ -444,6 +473,7 @@ pub fn count_metadata_validate(metadata: *const CountMetadata)
 ```
 
 - Bounds: query id length `1..64`; `hll` (if present) must be exactly 512 hex chars.
+- COUNT request filters are parsed through shared message grammar and support one-or-more filters.
 - Failure modes: malformed COUNT array grammar, malformed count object, non-integer count,
   invalid metadata types/lengths.
 - Deterministic behavior: parser and metadata validation outcomes are deterministic; unsupported COUNT
@@ -511,8 +541,8 @@ pub fn negentropy_items_validate_order(items: []const NegentropyItem)
 ```zig
 pub const Nip11Error = error{
     InvalidJson, InvalidKnownFieldType, InvalidStructuredField,
-    InvalidPubkeyHex, TooManySupportedNips, TooManyRetentionPolicies,
-    ValueOutOfRange, InputTooLong,
+    InvalidPubkey, TooManySupportedNips, LimitationOutOfRange,
+    InputTooLong,
 };
 
 pub fn nip11_parse_document(input: []const u8, scratch: std.mem.Allocator)
@@ -565,8 +595,9 @@ pub fn nip11_validate_known_fields(doc: *const RelayInformationDocument)
 - Topic: NIP-42 strict relay origin matching with bracketed IPv6 authorities.
 - Impact: medium.
 - Status: resolved.
-- Default: strict auth compares origin on scheme/host/port equality, accepts bracketed IPv6
-  authority parsing, and excludes path/query/fragment from origin comparison.
+- Default: strict auth compares normalized scheme/host/port/path, accepts bracketed IPv6
+  authority parsing, rejects unbracketed IPv6 authorities, ignores query/fragment, and normalizes
+  missing path to `/`.
 - Owner: active phase owner.
 
 Ambiguity checkpoint result: high-impact `decision-needed` count = 0.

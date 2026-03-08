@@ -8,7 +8,23 @@ This handoff captures the current documentation status and immediate direction f
 - Closure basis: implementation kickoff artifact finalized (`docs/plans/implementation-kickoff.md`) and
   closure evidence recorded in `docs/plans/decision-log.md` (`PF-E-001`) with high-impact
   decision-needed count 0.
-- Next phase target: Implementation Phase I2 continuation on hardened API surface.
+- Implementation status snapshot: I0-I4 are complete and validated on current protocol fixes.
+- I4 optional modules are implemented with required non-interference coverage.
+- Overengineering/correctness mitigation pass is recorded in active planning docs:
+  - canonical trust-boundary path wording is clarified for strict checked entry points,
+  - message parse error contract now reflects implemented `InvalidFilter` and `InvalidEvent`,
+  - transcript naming cleanup is documented: `transcript_apply_compat` is alias-only wording and
+    canonical strict flow remains `transcript_mark_client_req` + `transcript_apply_relay`,
+  - strict filter semantics are documented as deterministic lowercase prefix matching for
+    `ids`/`authors` (`1..64`) with lowercase-only `#x` keys and typed `TooManyTagKeys` overflow.
+  - PoW trust-boundary docs now pin `pow_meets_difficulty` as compatibility-only and
+    `pow_meets_difficulty_verified_id` as the canonical strict path.
+  - delete checked extractor contract now matches implementation typing
+    (`DeleteExtractCheckedError`, including `BufferTooSmall`).
+- Next phase target: Implementation Phase I5 execution wave in build-plan order (`nip44`,
+  `nip59_wrap`).
+- Layer 2 compatibility/ergonomic adapter work remains deferred pending Layer 1 execution and
+  `OQ-E-006` closure.
 
 ## Completed Tasks
 
@@ -95,6 +111,12 @@ This handoff captures the current documentation status and immediate direction f
 - Completed Implementation Phase I0 gate pass:
   - `zig build test --summary all` pass
   - `zig build` pass
+- Completed Implementation Phases I1-I3 gate pass:
+  - core event/filter kernel, message/auth/protected/`nip11`, and lifecycle policy primitives are
+    implemented and validated.
+  - recent protocol hardening fixes are integrated (strict transcript terminal `CLOSED` semantics,
+    strict `OK` lowercase-hex id parsing, strict filter-empty `#x` rejection, strict PoW
+    commitment truthfulness/floor policy).
 - Completed security hardening sprint (post-I1 boundary and semantics pass):
   - updated strict verify/auth error contracts to type backend outage separately.
   - finalized NIP-42 hardening semantics: challenge rotation clears auth set, duplicate required tags
@@ -116,7 +138,8 @@ This handoff captures the current documentation status and immediate direction f
   - recorded secp boundary hardening defaults: reduced module surface and commit-SHA pinning.
 - Completed low-hardening and edge-audit closure updates:
   - strict relay `OK` message parsing now requires lowercase hex event ids.
-  - strict filter parsing now rejects empty `#x` value arrays.
+  - strict filter parsing now enforces lowercase-only `#x` keys, rejects empty `#x` value arrays,
+    and uses deterministic lowercase hex-prefix matching (`1..64`) for `ids`/`authors`.
   - edge-case audit now has no unresolved Medium+ findings.
   - low hardening follow-up status:
     - normalized-path binding in NIP-42 relay origin matching (`/` default;
@@ -124,20 +147,51 @@ This handoff captures the current documentation status and immediate direction f
     - unbracketed IPv6 authority rejection in NIP-42 relay matching.
     - canonical event runtime shape/UTF-8 validation guards.
     - PoW commitment truthfulness/floor enforcement (`actual_bits >= commitment >= required_bits`).
-    - open: `event_compute_id` compatibility fallback returns all-zero id on invalid runtime shape;
-      mitigation remains strict call-site usage of `event_verify_id` and checked wrappers.
+    - closed: `event_compute_id` invalid runtime shape now fails with typed error instead of
+      all-zero compatibility fallback.
 - Added dedicated security hardening tracker:
   - created `docs/plans/security-hardening-register.md`.
   - linked register from `docs/plans/build-plan.md` and `docs/plans/decision-log.md`.
-  - left LLM-first usability sequencing (`OQ-E-006`) open per post-security policy (`D-009`).
+- Started LLM-first usability pass (`OQ-E-006`):
+  - created `docs/plans/llm-usability-pass.md` with scope snapshot, task battery, rubric,
+    initial findings/recommendations, and closure criteria.
+  - usability scope now includes implemented I4 modules and transcript naming cleanup context
+    (`transcript_apply_compat` alias wording with canonical strict path
+    `transcript_mark_client_req` + `transcript_apply_relay`).
+  - updated planning artifacts to mark usability sequencing as in-progress (`D-014`).
+- Recorded current Tiger hard-rule cleanliness baseline for `src/`:
+  - `>100`-column lines: none.
+  - `>70`-line functions: none.
+  - strict-width and anti-pattern cleanup remain quality follow-up where applicable.
+- Recorded strict Layer 1 defaults and Layer 2 evaluation scope in planning artifacts:
+  - Layer 1 defaults: lowercase-only critical hex, unknown filter-field rejection,
+    strict relay `OK` status-prefix validation, and strict NIP-42 path-bound `ws`/`wss` origin.
+  - Layer 2 scope (via `OQ-E-006`): compatibility/ergonomic adapter behavior, not kernel default
+    relaxation.
+- Added dedicated project style profile and planning links:
+  - created `docs/guides/NOZTR_STYLE.md` with strict kernel defaults, compatibility stance,
+    canonical trust-boundary entry-point policy, and LLM strictness-evaluation loop.
+  - linked style profile from active planning artifacts (`docs/plans/build-plan.md`,
+    `docs/plans/decision-log.md`) and handoff context.
+- Added explicit two-layer architecture intent in planning records:
+  - Layer 1: strict deterministic protocol kernel.
+  - Layer 2: explicit compatibility/ergonomic SDK adapter lane.
+  - evaluation process: tradeoff + vectors + usability evidence before adapter defaults freeze.
 
 ## Pending Actions
 
-- Continue implementation in build-plan order from I2 onward on the hardened API contract baseline.
+- Continue implementation in build-plan order from I5 onward on the hardened API contract baseline.
 - Keep the secp boundary narrowed to approved exports only; preserve commit-SHA pinning policy when
   updating backend references.
+- Keep PoW trust-boundary docs explicit: `pow_meets_difficulty` stays compatibility-only and strict
+  callers use `pow_meets_difficulty_verified_id`.
 - Maintain `docs/plans/security-hardening-register.md` as the canonical hardening status ledger.
-- Keep LLM-first usability evaluation pending post-security checkpoint and before first RC API freeze.
+- Keep LLM-first usability evaluation in progress and close `OQ-E-006` via
+  `docs/plans/llm-usability-pass.md` before first RC API freeze.
+- Use `OQ-E-006` outcomes to freeze first RC Layer 2 compatibility adapter defaults while preserving
+  frozen Layer 1 strict defaults.
+- Keep `docs/guides/NOZTR_STYLE.md` synchronized with accepted strictness-profile defaults and
+  trust-boundary wrapper policy updates.
 - Add H2 NIP-06 build-vs-buy checkpoint artifact entry before any NIP-06 implementation start.
 - Maintain verification cadence: run `zig build test --summary all` after each material change and
   `zig build` at slice closure.
@@ -156,6 +210,8 @@ This handoff captures the current documentation status and immediate direction f
 - `noztr` remains differentiated beyond primitive source choice: strict deterministic contracts,
   bounded memory/work, typed errors, and check-order invalid-corpus rigor remain core value even if a
   vetted crypto backend is used behind one boundary.
+- Strategic architecture is explicitly two-layer: strict protocol kernel first, compatibility/ergonomic
+  adapter second, with defaults and exceptions captured through decision-log records.
 
 ## Files Modified
 
@@ -166,6 +222,7 @@ This handoff captures the current documentation status and immediate direction f
   - `docs/research/rust-nostr-study.md`
   - `docs/research/libnostr-z-study.md`
   - `docs/guides/zig-patterns.md`
+  - `docs/guides/NOZTR_STYLE.md`
   - `docs/plans/build-plan.md`
   - `docs/plans/nostr-principles.md`
   - `docs/plans/decision-log.md`
@@ -185,6 +242,7 @@ This handoff captures the current documentation status and immediate direction f
   - `docs/plans/prompts/phase-e-build-plan.md`
   - `docs/plans/prompts/phase-f-implementation-handoff.md`
   - `docs/plans/security-hardening-register.md`
+  - `docs/plans/llm-usability-pass.md`
   - `handoff.md`
 - Updated:
   - `AGENTS.md`
@@ -197,13 +255,15 @@ This handoff captures the current documentation status and immediate direction f
   - `docs/plans/prompts/phase-c3-libnostr-z-study.md`
   - `docs/plans/build-plan.md`
   - `docs/plans/decision-log.md`
+  - `docs/plans/v1-api-contracts.md`
+  - `docs/plans/security-hardening-register.md`
   - `handoff.md`
 
 ## Next Steps To Continue
 
 - Run `./agent-brief` and verify prompt artifact status.
-- Continue Implementation Phase I2 using `docs/plans/implementation-kickoff.md`, including required
-  `5 valid + 5 invalid` vector floors for `nip01_message`, `nip42_auth`, `nip70_protected`, and
-  `nip11`.
+- Continue Implementation Phase I5 using `docs/plans/build-plan.md` for core private messaging
+  crypto/wrap modules (`nip44`, `nip59_wrap`).
 - Continue implementation phases in build-plan order and close each slice only after gate commands pass.
+- Keep Layer 2 compatibility/ergonomic adapter work deferred until `OQ-E-006` is closed.
 - Keep `applesauce` as comparative context only when evaluating API ergonomics and developer UX.

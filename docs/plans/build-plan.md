@@ -7,6 +7,7 @@ This artifact is finalized for implementation execution and is aligned to:
 - `docs/plans/v1-scope.md`
 - `docs/plans/v1-api-contracts.md`
 - `docs/research/v1-implementation-decisions.md`
+- `docs/guides/NOZTR_STYLE.md`
 - frozen defaults `D-001`..`D-004` in `docs/plans/nostr-principles.md`
 
 ## Decisions
@@ -26,10 +27,46 @@ This artifact is finalized for implementation execution and is aligned to:
 - `PE-007`: maintain a dedicated security hardening register in
   `docs/plans/security-hardening-register.md` and treat it as the canonical status tracker for
   low/edge security follow-ups.
+- `PE-008`: start and track LLM-usability evaluation in
+  `docs/plans/llm-usability-pass.md` before RC API freeze closure (`OQ-E-006`).
+- `PE-009`: freeze Layer 1 strict defaults for current kernel boundaries (lowercase-only critical hex,
+  deterministic `ids`/`authors` lowercase-prefix filter semantics (`1..64`), unknown filter-field
+  rejection, strict relay `OK` status-prefix validation, and path-bound `ws`/`wss` NIP-42 origin
+  policy).
+- `PE-010`: treat `docs/guides/NOZTR_STYLE.md` as the project-level strictness profile baseline for
+  trust-boundary API shape, compatibility isolation, and caller-owned buffer conventions.
+- `PE-011`: evaluate compatibility and ergonomics through an explicit Layer 2 adapter track; use
+  `OQ-E-006` to decide adapter behavior and freeze it only after vectors and usability evidence.
+
+## Strategic Notes
+
+- Zig core-principles alignment: prioritize clarity, control, simplicity, explicit errors/memory,
+  and deterministic outcomes because these properties preserve auditability and parity repeatability.
+- Strictness guarantee posture: Layer 1 optimizes for strong deterministic guarantees, while Layer 2
+  absorbs permissive ecosystem variance explicitly.
+- Architecture intent: strict kernel and compatibility adapter remain separated so interop improves
+  without weakening trust-boundary defaults.
 
 ## Implementation Schedule
 
 Note: these are implementation phases, not planning prompt phases.
+
+Implementation status snapshot (post-I4 closure):
+
+- I0-I4 are complete and validated (`zig build test --summary all`, `zig build`).
+- I4 optional modules (`nip19_bech32`, `nip21_uri`, `nip02_contacts`, `nip65_relays`) are implemented
+  with required non-interference coverage.
+- Overengineering/correctness mitigation pass is applied on docs/contracts: trust-boundary path wording
+  clarified, message error ambiguity reduced, and strict filter semantics tightened to deterministic
+  lowercase-prefix matching.
+- Transcript naming cleanup is tracked in docs: `transcript_apply_compat` is compatibility alias
+  wording only; canonical strict path remains `transcript_mark_client_req` plus
+  `transcript_apply_relay`.
+- PoW trust-boundary path is explicit: `pow_meets_difficulty` remains compatibility-only; canonical
+  strict callers use `pow_meets_difficulty_verified_id`.
+- I5 is the next execution wave in build-plan order (`nip44`, `nip59_wrap`).
+- Layer 2 compatibility/ergonomic adapter work remains deferred until Layer 1 execution and
+  `OQ-E-006` closure.
 
 ### Phase I0 - Foundation and Shared Contracts
 
@@ -56,6 +93,8 @@ Note: these are implementation phases, not planning prompt phases.
   - deterministic replace decision (`created_at`, lexical `id`).
   - typed verify outage distinction (`BackendUnavailable`) separated from cryptographic invalidity.
   - strict filter grammar and pure match semantics (`AND` within filter, `OR` across filters).
+  - strict `ids`/`authors` lowercase hex-prefix model (`1..64`) with nibble-precision prefix matching,
+    lowercase-only `#x` keys, and typed tag-key overflow (`TooManyTagKeys`).
 - Test/vector plan:
   - `nip01_event`: minimum `5 valid + 5 invalid`; include duplicate-key reject, invalid hex,
     invalid id/sig, max bounds, tie-break vectors.
@@ -80,11 +119,11 @@ Note: these are implementation phases, not planning prompt phases.
 - Modules/files: `src/nip01_message.zig`, `src/nip42_auth.zig`, `src/nip70_protected.zig`,
   `src/nip11.zig`.
 - Deliverables:
-  - typed client/relay union grammar with exact arity checks.
+  - typed client/relay union grammar with exact arity checks and multi-filter `REQ`/`COUNT` support.
   - strict relay `OK` grammar requires lowercase-hex event id.
   - transcript state enforcement with explicit client marker
     (`transcript_mark_client_req`, `transcript_apply_relay`) and strict flow
-    (`REQ -> EVENT* -> EOSE -> CLOSE`).
+    (`REQ marker; relay EVENT* -> EOSE? -> EVENT* -> CLOSED?`; `CLOSED` is terminal).
   - auth challenge validation and bounded authenticated-pubkey state.
   - challenge-set boundary typing distinguishes empty from too-long challenge input.
   - challenge rotation semantics: set-challenge clears authenticated pubkey set.
@@ -227,6 +266,11 @@ Note: these are implementation phases, not planning prompt phases.
 
 - Status: edge-case audit is closed with no unresolved Medium+ findings.
 - Security hardening register: `docs/plans/security-hardening-register.md`.
+- LLM-usability artifact: `docs/plans/llm-usability-pass.md`.
+- Transcript canonical path reference: `transcript_mark_client_req` then `transcript_apply_relay`
+  (`transcript_apply_compat` documented as alias-only wording).
+- PoW canonical trust-boundary reference: `pow_meets_difficulty_verified_id`
+  (`pow_meets_difficulty` remains compatibility-only).
 - Follow-up observations (low):
   - closed: normalized-path binding in NIP-42 relay origin matching (`/` default;
     query/fragment ignored).
@@ -234,8 +278,11 @@ Note: these are implementation phases, not planning prompt phases.
   - closed: canonical event runtime shape/UTF-8 validation guards.
   - closed: PoW commitment truthfulness/floor enforcement (`actual_bits >= commitment >=
     required_bits`).
-  - open: LLM-first usability evaluation remains pending post-security checkpoint and before
-    release-candidate API freeze.
+  - current hygiene baseline: Tiger hard checks are clean in `src/` (`>100` columns none,
+    `>70`-line functions none).
+  - quality follow-up: strict-width and anti-pattern cleanup remains tracked where applicable.
+  - in progress: LLM-first usability evaluation started post-security checkpoint and before
+    release-candidate API freeze (`docs/plans/llm-usability-pass.md`).
 
 ## Unresolved Tradeoff Register
 
@@ -291,8 +338,10 @@ Note: these are implementation phases, not planning prompt phases.
   before first release candidate.
 - `OQ-E-005`: for H2 NIP-06, what build-vs-buy threshold is required before selecting in-house
   BIP39/BIP32 implementation versus vetted helper/wrapper.
-- `OQ-E-006`: keep LLM-first usability evaluation pending post-security checkpoint, before
-  release-candidate API freeze.
+- `OQ-E-006`: complete LLM-first usability evaluation closure criteria in
+  `docs/plans/llm-usability-pass.md` before release-candidate API freeze. Status: in-progress.
+  This question is the gate for freezing Layer 2 compatibility adapter defaults under
+  `docs/guides/NOZTR_STYLE.md`.
 
 ## Ambiguity Checkpoint
 

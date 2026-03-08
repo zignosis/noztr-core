@@ -9,16 +9,26 @@ pub const MessageParseError = error{
     InvalidCommand,
     InvalidArity,
     InvalidFieldType,
+    InvalidFilter,
+    InvalidEvent,
     InvalidPrefix,
 };
 
 pub const MessageEncodeError = error{ BufferTooSmall, ValueOutOfRange };
 
 pub const ClientMessage = union(enum) {
-    req: struct { subscription_id: []const u8, filter: nip01_filter.Filter },
+    req: struct {
+        subscription_id: []const u8,
+        filters: [limits.message_filters_max]nip01_filter.Filter,
+        filters_count: u8,
+    },
     close: struct { subscription_id: []const u8 },
     auth: struct { event: nip01_event.Event },
-    count: struct { subscription_id: []const u8, filter: nip01_filter.Filter },
+    count: struct {
+        subscription_id: []const u8,
+        filters: [limits.message_filters_max]nip01_filter.Filter,
+        filters_count: u8,
+    },
 };
 
 pub const RelayMessage = union(enum) {
@@ -36,7 +46,7 @@ pub const RelayMessage = union(enum) {
 };
 
 /// Relay-side transcript tracks only post-REQ flow for one subscription:
-/// `EVENT* -> EOSE -> CLOSED`.
+/// `EVENT* -> EOSE? -> EVENT* -> CLOSED?`.
 /// `idle` means no post-REQ relay message has been observed yet.
 pub const TranscriptStage = enum {
     idle,
@@ -56,10 +66,10 @@ pub fn client_message_parse_json(
     input: []const u8,
     scratch: std.mem.Allocator,
 ) MessageParseError!ClientMessage {
-    std.debug.assert(input.len <= limits.relay_message_bytes_max + 1);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(limits.message_filters_max > 0);
 
-    var parse_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    var parse_arena = std.heap.ArenaAllocator.init(scratch);
     defer parse_arena.deinit();
 
     const root = try parse_message_array(input, parse_arena.allocator());
@@ -85,10 +95,10 @@ pub fn relay_message_parse_json(
     input: []const u8,
     scratch: std.mem.Allocator,
 ) MessageParseError!RelayMessage {
-    std.debug.assert(input.len <= limits.relay_message_bytes_max + 1);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(limits.message_filters_max > 0);
 
-    var parse_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    var parse_arena = std.heap.ArenaAllocator.init(scratch);
     defer parse_arena.deinit();
 
     const root = try parse_message_array(input, parse_arena.allocator());
@@ -130,10 +140,14 @@ pub fn client_message_serialize_json(
     switch (message.*) {
         .req => |request| {
             try validate_subscription_id_for_encode(request.subscription_id);
+            try validate_client_filter_count_for_encode(request.filters_count);
             try write_output_bytes(output, &index, "[\"REQ\",");
             try write_output_string(output, &index, request.subscription_id);
-            try write_output_bytes(output, &index, ",");
-            try serialize_filter(output, &index, &request.filter);
+            try serialize_client_filters(
+                output,
+                &index,
+                request.filters[0..request.filters_count],
+            );
             try write_output_bytes(output, &index, "]");
         },
         .close => |close_message| {
@@ -149,10 +163,14 @@ pub fn client_message_serialize_json(
         },
         .count => |count_message| {
             try validate_subscription_id_for_encode(count_message.subscription_id);
+            try validate_client_filter_count_for_encode(count_message.filters_count);
             try write_output_bytes(output, &index, "[\"COUNT\",");
             try write_output_string(output, &index, count_message.subscription_id);
-            try write_output_bytes(output, &index, ",");
-            try serialize_filter(output, &index, &count_message.filter);
+            try serialize_client_filters(
+                output,
+                &index,
+                count_message.filters[0..count_message.filters_count],
+            );
             try write_output_bytes(output, &index, "]");
         },
     }
@@ -184,7 +202,7 @@ pub fn relay_message_serialize_json(
             try write_output_bytes(output, &index, "]");
         },
         .ok => |ok_message| {
-            try validate_prefixed_status_for_encode(ok_message.status);
+            try validate_ok_status_for_encode(ok_message.accepted, ok_message.status);
             const event_id_hex = std.fmt.bytesToHex(ok_message.event_id, .lower);
             try write_output_bytes(output, &index, "[\"OK\",\"");
             try write_output_bytes(output, &index, event_id_hex[0..]);
@@ -226,7 +244,12 @@ pub fn relay_message_serialize_json(
     return output[0..index];
 }
 
-pub fn transcript_apply(
+/// Non-canonical compatibility-only transcript helper.
+///
+/// This helper infers tracked subscription context from each relay message and then applies
+/// `transcript_apply_relay`. For canonical strict integration, call
+/// `transcript_mark_client_req` once and then `transcript_apply_relay` directly.
+pub fn transcript_apply_compat(
     state: *TranscriptState,
     message: *const RelayMessage,
 ) error{InvalidTranscriptTransition}!void {
@@ -244,6 +267,20 @@ pub fn transcript_apply(
     }
 
     try transcript_apply_relay(state, message.*);
+}
+
+/// Compatibility alias for `transcript_apply_compat`.
+///
+/// Kept for backward compatibility. Canonical strict integration remains
+/// `transcript_mark_client_req` + `transcript_apply_relay`.
+pub fn transcript_apply(
+    state: *TranscriptState,
+    message: *const RelayMessage,
+) error{InvalidTranscriptTransition}!void {
+    std.debug.assert(state.subscription_id_len <= limits.subscription_id_bytes_max);
+    std.debug.assert(@intFromPtr(state) != 0);
+
+    return transcript_apply_compat(state, message);
 }
 
 /// Marks that a client `REQ` was sent for `subscription_id`.
@@ -287,6 +324,41 @@ fn validate_subscription_id_for_encode(subscription_id: []const u8) MessageEncod
     }
 }
 
+fn validate_client_filter_count_for_encode(filters_count: u8) MessageEncodeError!void {
+    std.debug.assert(limits.message_filters_max > 0);
+    std.debug.assert(filters_count <= limits.message_filters_max + 1);
+
+    if (filters_count == 0) {
+        return error.ValueOutOfRange;
+    }
+    if (filters_count > limits.message_filters_max) {
+        return error.ValueOutOfRange;
+    }
+}
+
+fn serialize_client_filters(
+    output: []u8,
+    index: *u32,
+    filters: []const nip01_filter.Filter,
+) MessageEncodeError!void {
+    std.debug.assert(filters.len <= limits.message_filters_max + 1);
+    std.debug.assert(index.* <= output.len);
+
+    if (filters.len == 0) {
+        return error.ValueOutOfRange;
+    }
+    if (filters.len > limits.message_filters_max) {
+        return error.ValueOutOfRange;
+    }
+
+    var filter_index: u32 = 0;
+    while (filter_index < filters.len) : (filter_index += 1) {
+        const current_index: usize = @intCast(filter_index);
+        try write_output_bytes(output, index, ",");
+        try serialize_filter(output, index, &filters[current_index]);
+    }
+}
+
 fn validate_prefixed_status_for_encode(status: []const u8) MessageEncodeError!void {
     std.debug.assert(status.len <= limits.relay_message_bytes_max);
     std.debug.assert(limits.subscription_id_bytes_max > 0);
@@ -298,6 +370,16 @@ fn validate_prefixed_status_for_encode(status: []const u8) MessageEncodeError!vo
     if (separator + 2 >= status.len) {
         return error.ValueOutOfRange;
     }
+}
+
+fn validate_ok_status_for_encode(accepted: bool, status: []const u8) MessageEncodeError!void {
+    std.debug.assert(status.len <= limits.relay_message_bytes_max);
+    std.debug.assert(@sizeOf(bool) == 1);
+
+    if (accepted) {
+        return;
+    }
+    try validate_prefixed_status_for_encode(status);
 }
 
 fn write_output_bytes(output: []u8, index: *u32, bytes: []const u8) MessageEncodeError!void {
@@ -405,6 +487,7 @@ fn serialize_filter_ids(
     has_field: *bool,
 ) MessageEncodeError!void {
     std.debug.assert(filter.ids_count <= limits.filter_ids_max);
+    std.debug.assert(filter.ids_prefix_nibbles[0] <= limits.id_hex_length);
     std.debug.assert(@intFromPtr(has_field) != 0);
 
     if (filter.ids_count == 0) {
@@ -418,9 +501,15 @@ fn serialize_filter_ids(
         if (item_index != 0) {
             try write_output_bytes(output, index, ",");
         }
-        const id_hex = std.fmt.bytesToHex(filter.ids[item_index], .lower);
+        const prefix_nibbles = filter.ids_prefix_nibbles[item_index];
+        if (prefix_nibbles == 0) {
+            return error.ValueOutOfRange;
+        }
+        if (prefix_nibbles > limits.id_hex_length) {
+            return error.ValueOutOfRange;
+        }
         try write_output_bytes(output, index, "\"");
-        try write_output_bytes(output, index, id_hex[0..]);
+        try write_hex_prefix_32_lower(output, index, &filter.ids[item_index], prefix_nibbles);
         try write_output_bytes(output, index, "\"");
     }
     try write_output_bytes(output, index, "]");
@@ -433,6 +522,7 @@ fn serialize_filter_authors(
     has_field: *bool,
 ) MessageEncodeError!void {
     std.debug.assert(filter.authors_count <= limits.filter_authors_max);
+    std.debug.assert(filter.authors_prefix_nibbles[0] <= limits.pubkey_hex_length);
     std.debug.assert(@intFromPtr(has_field) != 0);
 
     if (filter.authors_count == 0) {
@@ -446,12 +536,56 @@ fn serialize_filter_authors(
         if (item_index != 0) {
             try write_output_bytes(output, index, ",");
         }
-        const author_hex = std.fmt.bytesToHex(filter.authors[item_index], .lower);
+        const prefix_nibbles = filter.authors_prefix_nibbles[item_index];
+        if (prefix_nibbles == 0) {
+            return error.ValueOutOfRange;
+        }
+        if (prefix_nibbles > limits.pubkey_hex_length) {
+            return error.ValueOutOfRange;
+        }
         try write_output_bytes(output, index, "\"");
-        try write_output_bytes(output, index, author_hex[0..]);
+        try write_hex_prefix_32_lower(output, index, &filter.authors[item_index], prefix_nibbles);
         try write_output_bytes(output, index, "\"");
     }
     try write_output_bytes(output, index, "]");
+}
+
+fn write_hex_prefix_32_lower(
+    output: []u8,
+    index: *u32,
+    value: *const [32]u8,
+    prefix_nibbles: u8,
+) MessageEncodeError!void {
+    std.debug.assert(prefix_nibbles <= limits.id_hex_length);
+    std.debug.assert(@intFromPtr(value) != 0);
+
+    if (prefix_nibbles == 0) {
+        return error.ValueOutOfRange;
+    }
+    if (prefix_nibbles > limits.id_hex_length) {
+        return error.ValueOutOfRange;
+    }
+
+    var text_buffer: [64]u8 = undefined;
+    var text_index: u8 = 0;
+    const full_bytes: u8 = prefix_nibbles / 2;
+
+    var byte_index: u8 = 0;
+    while (byte_index < full_bytes) : (byte_index += 1) {
+        const byte = value[byte_index];
+        text_buffer[text_index] = hex_lower_nibble(@intCast(byte >> 4));
+        text_index += 1;
+        text_buffer[text_index] = hex_lower_nibble(@intCast(byte & 0x0f));
+        text_index += 1;
+    }
+
+    if ((prefix_nibbles % 2) == 1) {
+        const byte = value[full_bytes];
+        text_buffer[text_index] = hex_lower_nibble(@intCast(byte >> 4));
+        text_index += 1;
+    }
+
+    try write_output_bytes(output, index, text_buffer[0..text_index]);
 }
 
 fn serialize_filter_kinds(
@@ -649,8 +783,8 @@ fn parse_message_array(
     input: []const u8,
     parse_allocator: std.mem.Allocator,
 ) MessageParseError!std.json.Value {
-    std.debug.assert(input.len <= limits.relay_message_bytes_max + 1);
     std.debug.assert(@intFromPtr(parse_allocator.ptr) != 0);
+    std.debug.assert(limits.relay_message_bytes_max >= limits.event_json_max);
 
     if (input.len > limits.relay_message_bytes_max) {
         return error.InputTooLong;
@@ -689,22 +823,27 @@ fn parse_client_req(
     values: []const std.json.Value,
     scratch: std.mem.Allocator,
 ) MessageParseError!ClientMessage {
-    std.debug.assert(values.len <= std.math.maxInt(u16));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(limits.message_filters_max > 0);
 
-    if (values.len != 3) {
+    if (values.len < 3) {
         return error.InvalidArity;
     }
+
+    var filters: [limits.message_filters_max]nip01_filter.Filter = undefined;
     const subscription_id = try parse_subscription_id(values[1], scratch);
-    const filter = try parse_filter(values[2], scratch);
-    return .{ .req = .{ .subscription_id = subscription_id, .filter = filter } };
+    const filters_count = try parse_client_filters(values, scratch, &filters);
+    return .{ .req = .{
+        .subscription_id = subscription_id,
+        .filters = filters,
+        .filters_count = filters_count,
+    } };
 }
 
 fn parse_client_close(
     values: []const std.json.Value,
     scratch: std.mem.Allocator,
 ) MessageParseError!ClientMessage {
-    std.debug.assert(values.len <= std.math.maxInt(u16));
     std.debug.assert(limits.subscription_id_bytes_max == 64);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -719,8 +858,8 @@ fn parse_client_auth(
     values: []const std.json.Value,
     scratch: std.mem.Allocator,
 ) MessageParseError!ClientMessage {
-    std.debug.assert(values.len <= std.math.maxInt(u16));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(limits.event_json_max > 0);
 
     if (values.len != 2) {
         return error.InvalidArity;
@@ -733,23 +872,56 @@ fn parse_client_count(
     values: []const std.json.Value,
     scratch: std.mem.Allocator,
 ) MessageParseError!ClientMessage {
-    std.debug.assert(values.len <= std.math.maxInt(u16));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(limits.message_filters_max > 0);
 
-    if (values.len != 3) {
+    if (values.len < 3) {
         return error.InvalidArity;
     }
+
+    var filters: [limits.message_filters_max]nip01_filter.Filter = undefined;
     const subscription_id = try parse_subscription_id(values[1], scratch);
-    const filter = try parse_filter(values[2], scratch);
-    return .{ .count = .{ .subscription_id = subscription_id, .filter = filter } };
+    const filters_count = try parse_client_filters(values, scratch, &filters);
+    return .{ .count = .{
+        .subscription_id = subscription_id,
+        .filters = filters,
+        .filters_count = filters_count,
+    } };
+}
+
+fn parse_client_filters(
+    values: []const std.json.Value,
+    scratch: std.mem.Allocator,
+    filters: *[limits.message_filters_max]nip01_filter.Filter,
+) MessageParseError!u8 {
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(@intFromPtr(filters) != 0);
+
+    const values_count: u32 = @intCast(values.len);
+    if (values_count < 3) {
+        return error.InvalidArity;
+    }
+    const filters_count: u32 = values_count - 2;
+    if (filters_count > limits.message_filters_max) {
+        return error.InvalidArity;
+    }
+
+    var filter_index: u32 = 0;
+    while (filter_index < filters_count) : (filter_index += 1) {
+        const value_index: usize = @intCast(filter_index + 2);
+        const current_index: usize = @intCast(filter_index);
+        filters[current_index] = try parse_filter(values[value_index], scratch);
+    }
+
+    return @intCast(filters_count);
 }
 
 fn parse_relay_event(
     values: []const std.json.Value,
     scratch: std.mem.Allocator,
 ) MessageParseError!RelayMessage {
-    std.debug.assert(values.len <= std.math.maxInt(u16));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(limits.subscription_id_bytes_max > 0);
 
     if (values.len != 3) {
         return error.InvalidArity;
@@ -763,7 +935,6 @@ fn parse_relay_eose(
     values: []const std.json.Value,
     scratch: std.mem.Allocator,
 ) MessageParseError!RelayMessage {
-    std.debug.assert(values.len <= std.math.maxInt(u16));
     std.debug.assert(limits.subscription_id_bytes_max == 64);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -778,7 +949,6 @@ fn parse_relay_ok(
     values: []const std.json.Value,
     scratch: std.mem.Allocator,
 ) MessageParseError!RelayMessage {
-    std.debug.assert(values.len <= std.math.maxInt(u16));
     std.debug.assert(limits.id_hex_length == 64);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -787,15 +957,29 @@ fn parse_relay_ok(
     }
     const event_id = try parse_hex_32(values[1]);
     const accepted = try parse_bool(values[2]);
-    const status = try parse_prefixed_status(values[3], scratch);
+    const status = try parse_ok_status(values[3], accepted, scratch);
     return .{ .ok = .{ .event_id = event_id, .accepted = accepted, .status = status } };
+}
+
+fn parse_ok_status(
+    value: std.json.Value,
+    accepted: bool,
+    scratch: std.mem.Allocator,
+) MessageParseError![]const u8 {
+    std.debug.assert(@sizeOf(std.json.Value) > 0);
+    std.debug.assert(@sizeOf(bool) == 1);
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+
+    if (accepted) {
+        return parse_string_owned(value, scratch);
+    }
+    return parse_prefixed_status(value, scratch);
 }
 
 fn parse_relay_closed(
     values: []const std.json.Value,
     scratch: std.mem.Allocator,
 ) MessageParseError!RelayMessage {
-    std.debug.assert(values.len <= std.math.maxInt(u16));
     std.debug.assert(limits.subscription_id_bytes_max == 64);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -811,7 +995,6 @@ fn parse_relay_notice(
     values: []const std.json.Value,
     scratch: std.mem.Allocator,
 ) MessageParseError!RelayMessage {
-    std.debug.assert(values.len <= std.math.maxInt(u16));
     std.debug.assert(limits.subscription_id_bytes_max > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -826,7 +1009,6 @@ fn parse_relay_auth(
     values: []const std.json.Value,
     scratch: std.mem.Allocator,
 ) MessageParseError!RelayMessage {
-    std.debug.assert(values.len <= std.math.maxInt(u16));
     std.debug.assert(limits.subscription_id_bytes_max > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -841,7 +1023,6 @@ fn parse_relay_count(
     values: []const std.json.Value,
     scratch: std.mem.Allocator,
 ) MessageParseError!RelayMessage {
-    std.debug.assert(values.len <= std.math.maxInt(u16));
     std.debug.assert(limits.subscription_id_bytes_max == 64);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -972,7 +1153,7 @@ fn parse_filter(
     if (value != .object) {
         return error.InvalidFieldType;
     }
-    return nip01_filter.filter_parse_value(value, scratch) catch return error.InvalidFieldType;
+    return nip01_filter.filter_parse_value(value, scratch) catch return error.InvalidFilter;
 }
 
 fn parse_event(
@@ -985,7 +1166,7 @@ fn parse_event(
     if (value != .object) {
         return error.InvalidFieldType;
     }
-    return nip01_event.event_parse_value(value, scratch) catch return error.InvalidFieldType;
+    return nip01_event.event_parse_value(value, scratch) catch return error.InvalidEvent;
 }
 
 fn parse_count_object(value: std.json.Value) MessageParseError!u64 {
@@ -1007,7 +1188,7 @@ fn parse_count_object(value: std.json.Value) MessageParseError!u64 {
 }
 
 /// Applies relay-only transcript transitions after client REQ mark:
-/// `EVENT* -> EOSE -> CLOSED`.
+/// `EVENT* -> EOSE? -> EVENT* -> CLOSED?`.
 pub fn transcript_apply_relay(
     state: *TranscriptState,
     message: RelayMessage,
@@ -1017,12 +1198,20 @@ pub fn transcript_apply_relay(
 
     switch (message) {
         .event => |event_message| {
-            if (state.stage != .req_sent) {
-                return error.InvalidTranscriptTransition;
+            if (state.stage == .req_sent) {
+                if (!transcript_subscription_matches(state, event_message.subscription_id)) {
+                    return error.InvalidTranscriptTransition;
+                }
+                return;
             }
-            if (!transcript_subscription_matches(state, event_message.subscription_id)) {
-                return error.InvalidTranscriptTransition;
+            if (state.stage == .eose_received) {
+                if (!transcript_subscription_matches(state, event_message.subscription_id)) {
+                    return error.InvalidTranscriptTransition;
+                }
+                return;
             }
+
+            return error.InvalidTranscriptTransition;
         },
         .eose => |eose_message| {
             if (state.stage != .req_sent) {
@@ -1034,13 +1223,22 @@ pub fn transcript_apply_relay(
             state.stage = .eose_received;
         },
         .closed => |closed_message| {
-            if (state.stage != .eose_received) {
-                return error.InvalidTranscriptTransition;
+            if (state.stage == .req_sent) {
+                if (!transcript_subscription_matches(state, closed_message.subscription_id)) {
+                    return error.InvalidTranscriptTransition;
+                }
+                state.stage = .closed;
+                return;
             }
-            if (!transcript_subscription_matches(state, closed_message.subscription_id)) {
-                return error.InvalidTranscriptTransition;
+            if (state.stage == .eose_received) {
+                if (!transcript_subscription_matches(state, closed_message.subscription_id)) {
+                    return error.InvalidTranscriptTransition;
+                }
+                state.stage = .closed;
+                return;
             }
-            state.stage = .closed;
+
+            return error.InvalidTranscriptTransition;
         },
         else => return error.InvalidTranscriptTransition,
     }
@@ -1134,6 +1332,67 @@ test "relay parser accepts strict valid vectors" {
     try std.testing.expect(count == .count);
 }
 
+test "client parser accepts multi-filter req and count" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const req = try client_message_parse_json(
+        "[\"REQ\",\"sub-1\",{\"kinds\":[1]},{\"kinds\":[2]}]",
+        arena.allocator(),
+    );
+    try std.testing.expect(req == .req);
+    try std.testing.expect(req.req.filters_count == 2);
+    try std.testing.expect(req.req.filters[0].kinds_count == 1);
+    try std.testing.expect(req.req.filters[1].kinds_count == 1);
+    try std.testing.expect(req.req.filters[0].kinds[0] == 1);
+    try std.testing.expect(req.req.filters[1].kinds[0] == 2);
+
+    const count = try client_message_parse_json(
+        "[\"COUNT\",\"sub-1\",{\"kinds\":[3]},{\"kinds\":[4]}]",
+        arena.allocator(),
+    );
+    try std.testing.expect(count == .count);
+    try std.testing.expect(count.count.filters_count == 2);
+    try std.testing.expect(count.count.filters[0].kinds_count == 1);
+    try std.testing.expect(count.count.filters[1].kinds_count == 1);
+    try std.testing.expect(count.count.filters[0].kinds[0] == 3);
+    try std.testing.expect(count.count.filters[1].kinds[0] == 4);
+}
+
+test "client parser rejects req or count with missing filters" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    try std.testing.expectError(
+        error.InvalidArity,
+        client_message_parse_json("[\"REQ\",\"sub-1\"]", arena.allocator()),
+    );
+    try std.testing.expectError(
+        error.InvalidArity,
+        client_message_parse_json("[\"COUNT\",\"sub-1\"]", arena.allocator()),
+    );
+}
+
+test "client parser rejects over-capacity filter lists" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const req_over_limit = "[\"REQ\",\"sub-1\",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}" ++
+        ",{}]";
+    const count_over_limit =
+        "[\"COUNT\",\"sub-1\",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}" ++
+        ",{}]";
+
+    try std.testing.expectError(
+        error.InvalidArity,
+        client_message_parse_json(req_over_limit, arena.allocator()),
+    );
+    try std.testing.expectError(
+        error.InvalidArity,
+        client_message_parse_json(count_over_limit, arena.allocator()),
+    );
+}
+
 test "parser forces every MessageParseError variant" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
@@ -1164,6 +1423,14 @@ test "parser forces every MessageParseError variant" {
         client_message_parse_json("[\"CLOSE\",1]", arena.allocator()),
     );
     try std.testing.expectError(
+        error.InvalidFilter,
+        client_message_parse_json("[\"REQ\",\"sub-1\",{\"#e\":[]}]", arena.allocator()),
+    );
+    try std.testing.expectError(
+        error.InvalidEvent,
+        relay_message_parse_json("[\"EVENT\",\"sub-1\",{}]", arena.allocator()),
+    );
+    try std.testing.expectError(
         error.InvalidPrefix,
         relay_message_parse_json("[\"CLOSED\",\"sub-1\",\"missing\"]", arena.allocator()),
     );
@@ -1178,6 +1445,35 @@ test "relay parser rejects uppercase event id in OK message" {
         relay_message_parse_json(
             "[\"OK\",\"0123456789ABCDEF0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
                 "true,\"pow: difficulty too low\"]",
+            arena.allocator(),
+        ),
+    );
+}
+
+test "relay parser accepts OK success with empty status" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const ok = try relay_message_parse_json(
+        "[\"OK\",\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
+            "true,\"\"]",
+        arena.allocator(),
+    );
+
+    try std.testing.expect(ok == .ok);
+    try std.testing.expect(ok.ok.accepted);
+    try std.testing.expect(ok.ok.status.len == 0);
+}
+
+test "relay parser rejects OK rejection with unprefixed status" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    try std.testing.expectError(
+        error.InvalidPrefix,
+        relay_message_parse_json(
+            "[\"OK\",\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
+                "false,\"denied\"]",
             arena.allocator(),
         ),
     );
@@ -1222,17 +1518,100 @@ test "relay parser keeps owned strings after input mutation" {
 
 test "client serialization is deterministic" {
     var buffer: [1024]u8 = undefined;
-    var filter = nip01_filter.Filter{};
-    filter.kinds[0] = 1;
-    filter.kinds_count = 1;
+    var first_filter = nip01_filter.Filter{};
+    first_filter.kinds[0] = 1;
+    first_filter.kinds_count = 1;
+    var second_filter = nip01_filter.Filter{};
+    second_filter.kinds[0] = 2;
+    second_filter.kinds_count = 1;
 
-    const req = ClientMessage{ .req = .{ .subscription_id = "sub-1", .filter = filter } };
+    var req_filters: [limits.message_filters_max]nip01_filter.Filter = undefined;
+    req_filters[0] = first_filter;
+    req_filters[1] = second_filter;
+    const req = ClientMessage{ .req = .{
+        .subscription_id = "sub-1",
+        .filters = req_filters,
+        .filters_count = 2,
+    } };
     const req_json = try client_message_serialize_json(buffer[0..], &req);
-    try std.testing.expectEqualStrings("[\"REQ\",\"sub-1\",{\"kinds\":[1]}]", req_json);
+    try std.testing.expectEqualStrings(
+        "[\"REQ\",\"sub-1\",{\"kinds\":[1]},{\"kinds\":[2]}]",
+        req_json,
+    );
+
+    var count_filters: [limits.message_filters_max]nip01_filter.Filter = undefined;
+    count_filters[0] = first_filter;
+    count_filters[1] = second_filter;
+    const count = ClientMessage{ .count = .{
+        .subscription_id = "sub-1",
+        .filters = count_filters,
+        .filters_count = 2,
+    } };
+    const count_json = try client_message_serialize_json(buffer[0..], &count);
+    try std.testing.expectEqualStrings(
+        "[\"COUNT\",\"sub-1\",{\"kinds\":[1]},{\"kinds\":[2]}]",
+        count_json,
+    );
 
     const close = ClientMessage{ .close = .{ .subscription_id = "sub-1" } };
     const close_json = try client_message_serialize_json(buffer[0..], &close);
     try std.testing.expectEqualStrings("[\"CLOSE\",\"sub-1\"]", close_json);
+}
+
+test "filter prefix roundtrip preserves short even-length ids/authors" {
+    var parse_arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer parse_arena.deinit();
+
+    const parsed = try client_message_parse_json(
+        "[\"REQ\",\"sub-1\",{\"ids\":[\"aa\"],\"authors\":[\"bbbb\"]}]",
+        parse_arena.allocator(),
+    );
+    try std.testing.expect(parsed == .req);
+    try std.testing.expect(parsed.req.filters_count == 1);
+
+    var buffer: [512]u8 = undefined;
+    const serialized = try client_message_serialize_json(buffer[0..], &parsed);
+    try std.testing.expectEqualStrings(
+        "[\"REQ\",\"sub-1\",{\"ids\":[\"aa\"],\"authors\":[\"bbbb\"]}]",
+        serialized,
+    );
+
+    var reparsed_arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer reparsed_arena.deinit();
+
+    const reparsed = try client_message_parse_json(serialized, reparsed_arena.allocator());
+    try std.testing.expect(reparsed == .req);
+    try std.testing.expect(reparsed.req.filters_count == 1);
+    try std.testing.expect(reparsed.req.filters[0].ids_prefix_nibbles[0] == 2);
+    try std.testing.expect(reparsed.req.filters[0].authors_prefix_nibbles[0] == 4);
+}
+
+test "filter prefix roundtrip preserves odd-length ids/authors" {
+    var parse_arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer parse_arena.deinit();
+
+    const parsed = try client_message_parse_json(
+        "[\"COUNT\",\"sub-1\",{\"ids\":[\"abc\"],\"authors\":[\"d\"]}]",
+        parse_arena.allocator(),
+    );
+    try std.testing.expect(parsed == .count);
+    try std.testing.expect(parsed.count.filters_count == 1);
+
+    var buffer: [512]u8 = undefined;
+    const serialized = try client_message_serialize_json(buffer[0..], &parsed);
+    try std.testing.expectEqualStrings(
+        "[\"COUNT\",\"sub-1\",{\"ids\":[\"abc\"],\"authors\":[\"d\"]}]",
+        serialized,
+    );
+
+    var reparsed_arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer reparsed_arena.deinit();
+
+    const reparsed = try client_message_parse_json(serialized, reparsed_arena.allocator());
+    try std.testing.expect(reparsed == .count);
+    try std.testing.expect(reparsed.count.filters_count == 1);
+    try std.testing.expect(reparsed.count.filters[0].ids_prefix_nibbles[0] == 3);
+    try std.testing.expect(reparsed.count.filters[0].authors_prefix_nibbles[0] == 1);
 }
 
 test "relay serialization is deterministic" {
@@ -1255,6 +1634,37 @@ test "relay serialization is deterministic" {
     const count = RelayMessage{ .count = .{ .subscription_id = "sub-1", .count = 42 } };
     const count_json = try relay_message_serialize_json(buffer[0..], &count);
     try std.testing.expectEqualStrings("[\"COUNT\",\"sub-1\",{\"count\":42}]", count_json);
+}
+
+test "relay serializer accepts OK success with empty status" {
+    var buffer: [4096]u8 = undefined;
+    const event_id = [_]u8{0} ** 32;
+    const ok = RelayMessage{ .ok = .{
+        .event_id = event_id,
+        .accepted = true,
+        .status = "",
+    } };
+
+    const ok_json = try relay_message_serialize_json(buffer[0..], &ok);
+    try std.testing.expectEqualStrings(
+        "[\"OK\",\"0000000000000000000000000000000000000000000000000000000000000000\",true,\"\"]",
+        ok_json,
+    );
+}
+
+test "relay serializer rejects OK rejection with unprefixed status" {
+    var buffer: [4096]u8 = undefined;
+    const event_id = [_]u8{0} ** 32;
+    const ok = RelayMessage{ .ok = .{
+        .event_id = event_id,
+        .accepted = false,
+        .status = "denied",
+    } };
+
+    try std.testing.expectError(
+        error.ValueOutOfRange,
+        relay_message_serialize_json(buffer[0..], &ok),
+    );
 }
 
 test "serializer forces MessageEncodeError variants" {
@@ -1308,8 +1718,21 @@ test "transcript_apply accepts mark and valid sequence" {
     try transcript_apply(&state, &first_event);
     try transcript_apply(&state, &second_event);
     try transcript_apply(&state, &eose);
+    try transcript_apply(&state, &first_event);
     try transcript_apply(&state, &closed);
     try std.testing.expect(state.stage == .closed);
+}
+
+test "transcript_apply accepts post-EOSE event for same subscription" {
+    var state = TranscriptState{};
+    const event = RelayMessage{ .event = .{ .subscription_id = "sub-1", .event = sample_event() } };
+    const eose = RelayMessage{ .eose = .{ .subscription_id = "sub-1" } };
+
+    try transcript_mark_client_req(&state, "sub-1");
+    try transcript_apply(&state, &eose);
+    try std.testing.expect(state.stage == .eose_received);
+    try transcript_apply(&state, &event);
+    try std.testing.expect(state.stage == .eose_received);
 }
 
 test "transcript_apply rejects mismatched subscription" {
@@ -1333,16 +1756,48 @@ test "transcript_apply rejects invalid ordering" {
     } };
 
     try transcript_mark_client_req(&state, "sub-1");
-    try transcript_apply(&state, &event);
-    try std.testing.expectError(
-        error.InvalidTranscriptTransition,
-        transcript_apply(&state, &closed),
-    );
-    try transcript_apply(&state, &eose);
+    try transcript_apply(&state, &closed);
+    try std.testing.expect(state.stage == .closed);
     try std.testing.expectError(
         error.InvalidTranscriptTransition,
         transcript_apply(&state, &event),
     );
+    try std.testing.expectError(
+        error.InvalidTranscriptTransition,
+        transcript_apply(&state, &eose),
+    );
+}
+
+test "transcript_apply keeps CLOSED terminal after EOSE path" {
+    var state = TranscriptState{};
+    const event = RelayMessage{ .event = .{ .subscription_id = "sub-1", .event = sample_event() } };
+    const eose = RelayMessage{ .eose = .{ .subscription_id = "sub-1" } };
+    const closed = RelayMessage{ .closed = .{
+        .subscription_id = "sub-1",
+        .status = "closed: done",
+    } };
+
+    try transcript_mark_client_req(&state, "sub-1");
+    try transcript_apply(&state, &eose);
+    try transcript_apply(&state, &event);
+    try transcript_apply(&state, &closed);
+    try std.testing.expect(state.stage == .closed);
+    try std.testing.expectError(
+        error.InvalidTranscriptTransition,
+        transcript_apply(&state, &event),
+    );
+}
+
+test "transcript_apply accepts req to closed transition" {
+    var state = TranscriptState{};
+    const closed = RelayMessage{ .closed = .{
+        .subscription_id = "sub-1",
+        .status = "closed: done",
+    } };
+
+    try transcript_mark_client_req(&state, "sub-1");
+    try transcript_apply(&state, &closed);
+    try std.testing.expect(state.stage == .closed);
 }
 
 test "transcript_apply rejects non-transcript relay variants" {
@@ -1361,6 +1816,24 @@ test "transcript_apply rejects non-transcript relay variants" {
     );
 }
 
+test "transcript_apply alias behavior matches transcript_apply_compat" {
+    var alias_state = TranscriptState{};
+    var compat_state = TranscriptState{};
+    const eose = RelayMessage{ .eose = .{ .subscription_id = "sub-1" } };
+    const event = RelayMessage{ .event = .{ .subscription_id = "sub-1", .event = sample_event() } };
+
+    try transcript_mark_client_req(&alias_state, "sub-1");
+    try transcript_mark_client_req(&compat_state, "sub-1");
+
+    try transcript_apply(&alias_state, &eose);
+    try transcript_apply_compat(&compat_state, &eose);
+    try std.testing.expect(alias_state.stage == compat_state.stage);
+
+    try transcript_apply(&alias_state, &event);
+    try transcript_apply_compat(&compat_state, &event);
+    try std.testing.expect(alias_state.stage == compat_state.stage);
+}
+
 const sample_event_json_text = "{" ++
     "\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
     "\"pubkey\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
@@ -1373,6 +1846,9 @@ const sample_event_json_text = "{" ++
     "}";
 
 fn sample_event() nip01_event.Event {
+    std.debug.assert(limits.id_hex_length == 64);
+    std.debug.assert(@sizeOf(nip01_event.Event) > 0);
+
     var event = nip01_event.Event{
         .id = [_]u8{0} ** 32,
         .pubkey = [_]u8{1} ** 32,
@@ -1382,6 +1858,17 @@ fn sample_event() nip01_event.Event {
         .content = "sample",
         .tags = &.{},
     };
-    event.id = nip01_event.event_compute_id(&event);
+    std.debug.assert(event.kind == 1);
+    std.debug.assert(event.kind != 0);
+    std.debug.assert(event.created_at == 1);
+    std.debug.assert(event.tags.len == 0);
+
+    event.id = nip01_event.event_compute_id(&event) catch unreachable;
+
+    const recomputed_id = nip01_event.event_compute_id(&event) catch unreachable;
+    std.debug.assert(std.mem.eql(u8, event.id[0..], recomputed_id[0..]));
+    const zero_id = [_]u8{0} ** 32;
+    std.debug.assert(!std.mem.eql(u8, event.id[0..], zero_id[0..]));
+
     return event;
 }

@@ -33,14 +33,14 @@ pub fn nip11_parse_document(
     input: []const u8,
     scratch: std.mem.Allocator,
 ) Nip11Error!RelayInformationDocument {
-    std.debug.assert(input.len <= limits.relay_message_bytes_max + 1);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(limits.nip11_supported_nips_max > 0);
 
     if (input.len > limits.relay_message_bytes_max) {
         return error.InputTooLong;
     }
 
-    var parse_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    var parse_arena = std.heap.ArenaAllocator.init(scratch);
     defer parse_arena.deinit();
 
     const root = std.json.parseFromSliceLeaky(
@@ -160,8 +160,8 @@ fn parse_supported_nips(value: std.json.Value, scratch: std.mem.Allocator) Nip11
 }
 
 fn validate_pubkey(pubkey: []const u8) Nip11Error!void {
-    std.debug.assert(pubkey.len <= std.math.maxInt(u16));
     std.debug.assert(@sizeOf(u8) == 1);
+    std.debug.assert(limits.pubkey_hex_length == limits.id_hex_length);
 
     if (pubkey.len != limits.pubkey_hex_length) {
         return error.InvalidPubkey;
@@ -260,7 +260,9 @@ fn parse_known_limitation_field(
     field_value: std.json.Value,
 ) Nip11Error!void {
     std.debug.assert(@intFromPtr(limitation) != 0);
-    std.debug.assert(key.len <= 64);
+    std.debug.assert(
+        limits.nip11_limitation_max_subid_length_max == limits.subscription_id_bytes_max,
+    );
 
     if (std.mem.eql(u8, key, "max_message_length")) {
         limitation.max_message_length = try parse_limitation_u32(field_value);

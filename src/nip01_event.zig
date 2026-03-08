@@ -62,12 +62,9 @@ pub fn event_parse_json(input: []const u8, scratch: std.mem.Allocator) EventPars
         return error.InvalidUtf8;
     }
 
-    var parse_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer parse_arena.deinit();
-
     const root = std.json.parseFromSliceLeaky(
         std.json.Value,
-        parse_arena.allocator(),
+        scratch,
         input,
         .{},
     ) catch |parse_error| {
@@ -93,59 +90,101 @@ fn parse_event_object(
         .content = "",
         .tags = &.{},
     };
-    var has_id = false;
-    var has_pubkey = false;
-    var has_sig = false;
-    var has_kind = false;
-    var has_created_at = false;
-    var has_content = false;
-    var has_tags = false;
+    var fields = ParseFieldState{};
 
     var iterator = object.iterator();
     while (iterator.next()) |entry| {
         const key = entry.key_ptr.*;
         const value = entry.value_ptr.*;
 
-        if (std.mem.eql(u8, key, "id")) {
-            if (has_id) return error.DuplicateField;
-            parsed.id = try parse_hex_32(value);
-            has_id = true;
-        } else if (std.mem.eql(u8, key, "pubkey")) {
-            if (has_pubkey) return error.DuplicateField;
-            parsed.pubkey = try parse_hex_32(value);
-            has_pubkey = true;
-        } else if (std.mem.eql(u8, key, "sig")) {
-            if (has_sig) return error.DuplicateField;
-            parsed.sig = try parse_hex_64(value);
-            has_sig = true;
-        } else if (std.mem.eql(u8, key, "kind")) {
-            if (has_kind) return error.DuplicateField;
-            parsed.kind = try parse_json_u32(value);
-            has_kind = true;
-        } else if (std.mem.eql(u8, key, "created_at")) {
-            if (has_created_at) return error.DuplicateField;
-            parsed.created_at = try parse_json_u64(value);
-            has_created_at = true;
-        } else if (std.mem.eql(u8, key, "content")) {
-            if (has_content) return error.DuplicateField;
-            parsed.content = try parse_content_field_owned(value, scratch);
-            has_content = true;
-        } else if (std.mem.eql(u8, key, "tags")) {
-            if (has_tags) return error.DuplicateField;
-            parsed.tags = try parse_tags_field(value, scratch);
-            has_tags = true;
-        }
+        try parse_event_object_field(&parsed, &fields, key, value, scratch);
     }
 
-    if (!has_id) return error.InvalidField;
-    if (!has_pubkey) return error.InvalidField;
-    if (!has_sig) return error.InvalidField;
-    if (!has_kind) return error.InvalidField;
-    if (!has_created_at) return error.InvalidField;
-    if (!has_content) return error.InvalidField;
-    if (!has_tags) return error.InvalidField;
+    try parse_event_require_all_fields(fields);
 
     return parsed;
+}
+
+const ParseFieldState = struct {
+    has_id: bool = false,
+    has_pubkey: bool = false,
+    has_sig: bool = false,
+    has_kind: bool = false,
+    has_created_at: bool = false,
+    has_content: bool = false,
+    has_tags: bool = false,
+};
+
+fn parse_event_object_field(
+    parsed: *Event,
+    fields: *ParseFieldState,
+    key: []const u8,
+    value: std.json.Value,
+    scratch: std.mem.Allocator,
+) EventParseError!void {
+    std.debug.assert(@sizeOf(ParseFieldState) > 0);
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+
+    if (std.mem.eql(u8, key, "id")) {
+        if (fields.has_id) return error.DuplicateField;
+        parsed.id = try parse_hex_32(value);
+        fields.has_id = true;
+        return;
+    }
+
+    if (std.mem.eql(u8, key, "pubkey")) {
+        if (fields.has_pubkey) return error.DuplicateField;
+        parsed.pubkey = try parse_hex_32(value);
+        fields.has_pubkey = true;
+        return;
+    }
+
+    if (std.mem.eql(u8, key, "sig")) {
+        if (fields.has_sig) return error.DuplicateField;
+        parsed.sig = try parse_hex_64(value);
+        fields.has_sig = true;
+        return;
+    }
+
+    if (std.mem.eql(u8, key, "kind")) {
+        if (fields.has_kind) return error.DuplicateField;
+        parsed.kind = try parse_json_u32(value);
+        fields.has_kind = true;
+        return;
+    }
+
+    if (std.mem.eql(u8, key, "created_at")) {
+        if (fields.has_created_at) return error.DuplicateField;
+        parsed.created_at = try parse_json_u64(value);
+        fields.has_created_at = true;
+        return;
+    }
+
+    if (std.mem.eql(u8, key, "content")) {
+        if (fields.has_content) return error.DuplicateField;
+        parsed.content = try parse_content_field_owned(value, scratch);
+        fields.has_content = true;
+        return;
+    }
+
+    if (std.mem.eql(u8, key, "tags")) {
+        if (fields.has_tags) return error.DuplicateField;
+        parsed.tags = try parse_tags_field(value, scratch);
+        fields.has_tags = true;
+    }
+}
+
+fn parse_event_require_all_fields(fields: ParseFieldState) EventParseError!void {
+    std.debug.assert(@sizeOf(ParseFieldState) > 0);
+    std.debug.assert(!@inComptime());
+
+    if (!fields.has_id) return error.InvalidField;
+    if (!fields.has_pubkey) return error.InvalidField;
+    if (!fields.has_sig) return error.InvalidField;
+    if (!fields.has_kind) return error.InvalidField;
+    if (!fields.has_created_at) return error.InvalidField;
+    if (!fields.has_content) return error.InvalidField;
+    if (!fields.has_tags) return error.InvalidField;
 }
 
 pub fn event_serialize_canonical(
@@ -194,19 +233,19 @@ fn event_serialize_canonical_json_unchecked(
     return output[0..@intCast(index)];
 }
 
-pub fn event_compute_id(event: *const Event) [32]u8 {
+pub fn event_compute_id(event: *const Event) EventShapeError![32]u8 {
     std.debug.assert(@sizeOf(EventTag) > 0);
     std.debug.assert(@sizeOf(Event) > 0);
 
-    return event_compute_id_checked(event) catch [_]u8{0} ** 32;
+    try event_validate_shape(event);
+    return event_compute_id_unchecked(event);
 }
 
 pub fn event_compute_id_checked(event: *const Event) EventShapeError![32]u8 {
     std.debug.assert(@sizeOf(EventTag) > 0);
     std.debug.assert(@sizeOf(Event) > 0);
 
-    try event_validate_shape(event);
-    return event_compute_id_unchecked(event);
+    return event_compute_id(event);
 }
 
 fn event_compute_id_unchecked(event: *const Event) [32]u8 {
@@ -246,7 +285,7 @@ pub fn event_verify_id_checked(event: *const Event) EventVerifyIdError!void {
     std.debug.assert(@sizeOf(EventTag) > 0);
     std.debug.assert(@sizeOf(Event) > 0);
 
-    const computed_id = try event_compute_id_checked(event);
+    const computed_id = try event_compute_id(event);
     if (std.mem.eql(u8, &computed_id, &event.id)) {
         return;
     }
@@ -313,6 +352,10 @@ fn event_validate_shape(event: *const Event) EventShapeError!void {
     var tag_index: u32 = 0;
     while (tag_index < event.tags.len) : (tag_index += 1) {
         const tag = event.tags[tag_index];
+        if (tag.items.len == 0) {
+            return error.TooManyTagItems;
+        }
+
         if (tag.items.len > limits.tag_items_max) {
             return error.TooManyTagItems;
         }
@@ -343,7 +386,7 @@ pub fn event_replace_decision(current: *const Event, candidate: *const Event) Re
     }
 
     const lexical_order = std.mem.order(u8, &candidate.id, &current.id);
-    if (lexical_order == .gt) {
+    if (lexical_order == .lt) {
         return .replace_with_candidate;
     }
 
@@ -439,6 +482,10 @@ fn parse_tags_field(
     while (tag_index < value.array.items.len) : (tag_index += 1) {
         const tag_value = value.array.items[tag_index];
         if (tag_value != .array) {
+            return error.InvalidField;
+        }
+
+        if (tag_value.array.items.len == 0) {
             return error.InvalidField;
         }
 
@@ -748,7 +795,7 @@ fn hash_update_escaped_byte(hash: *std.crypto.hash.sha2.Sha256, byte: u8) void {
     }
 }
 
-test "event replace tie break is deterministic by lexical id" {
+test "event replace tie break keeps current when candidate id is higher" {
     var current = Event{
         .id = [_]u8{1} ** 32,
         .pubkey = [_]u8{3} ** 32,
@@ -759,6 +806,25 @@ test "event replace tie break is deterministic by lexical id" {
     };
     var candidate = current;
     candidate.id = [_]u8{2} ** 32;
+
+    const decision_a = event_replace_decision(&current, &candidate);
+    const decision_b = event_replace_decision(&current, &candidate);
+
+    try std.testing.expect(decision_a == .keep_current);
+    try std.testing.expect(decision_b == .keep_current);
+}
+
+test "event replace tie break replaces when candidate id is lower" {
+    var current = Event{
+        .id = [_]u8{2} ** 32,
+        .pubkey = [_]u8{3} ** 32,
+        .sig = [_]u8{0} ** 64,
+        .kind = 1,
+        .created_at = 100,
+        .content = "a",
+    };
+    var candidate = current;
+    candidate.id = [_]u8{1} ** 32;
 
     const decision_a = event_replace_decision(&current, &candidate);
     const decision_b = event_replace_decision(&current, &candidate);
@@ -808,14 +874,14 @@ test "event verify id follows canonical hash compute" {
         .content = "hello",
     };
 
-    event.id = event_compute_id(&event);
+    event.id = try event_compute_id(&event);
     try event_verify_id(&event);
 
     event.id[0] ^= 1;
     try std.testing.expectError(error.InvalidId, event_verify_id(&event));
 }
 
-test "event compute id checked rejects non-utf8 content" {
+test "event compute id rejects non-utf8 content" {
     const invalid_content = [_]u8{ 0xC3, 0x28 };
     const event = Event{
         .id = [_]u8{0} ** 32,
@@ -826,11 +892,8 @@ test "event compute id checked rejects non-utf8 content" {
         .content = invalid_content[0..],
     };
 
-    const computed_id = event_compute_id(&event);
-    const zero_id = [_]u8{0} ** 32;
-
+    try std.testing.expectError(error.InvalidUtf8, event_compute_id(&event));
     try std.testing.expectError(error.InvalidUtf8, event_compute_id_checked(&event));
-    try std.testing.expect(std.mem.eql(u8, &computed_id, &zero_id));
 }
 
 test "event serialize canonical json rejects oversized content" {
@@ -937,13 +1000,14 @@ test "event parse json accepts minimal required fields" {
         "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"," ++
         "\"kind\":1," ++
         "\"created_at\":1700000000," ++
-        "\"tags\":[]," ++
+        "\"tags\":[[\"e\",\"target\"]]," ++
         "\"content\":\"ok\"}";
 
     const event = try event_parse_json(input, arena.allocator());
     try std.testing.expect(event.kind == 1);
     try std.testing.expect(event.created_at == 1_700_000_000);
-    try std.testing.expect(event.tags.len == 0);
+    try std.testing.expect(event.tags.len == 1);
+    try std.testing.expect(event.tags[0].items.len == 2);
 }
 
 test "event parse value copies content and tag items into scratch" {
@@ -986,6 +1050,29 @@ test "event parse value copies content and tag items into scratch" {
     try std.testing.expectEqualStrings("target", event.tags[0].items[1]);
 }
 
+test "event parse json uses caller bounded allocator" {
+    const input =
+        "{" ++
+        "\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
+        "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
+        "\"sig\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ++
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"," ++
+        "\"kind\":1,\"created_at\":1700000000,\"tags\":[[\"e\",\"target\"]],\"content\":\"ok\"}";
+
+    var adequate_buffer: [4096]u8 = undefined;
+    var adequate_allocator = std.heap.FixedBufferAllocator.init(&adequate_buffer);
+    const event = try event_parse_json(input, adequate_allocator.allocator());
+    try std.testing.expect(event.kind == 1);
+    try std.testing.expect(event.tags.len == 1);
+
+    var tiny_buffer: [64]u8 = undefined;
+    var tiny_allocator = std.heap.FixedBufferAllocator.init(&tiny_buffer);
+    try std.testing.expectError(
+        error.InvalidJson,
+        event_parse_json(input, tiny_allocator.allocator()),
+    );
+}
+
 test "event parse json rejects missing tags" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
@@ -998,6 +1085,24 @@ test "event parse json rejects missing tags" {
         "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"," ++
         "\"kind\":1," ++
         "\"created_at\":1700000000," ++
+        "\"content\":\"ok\"}";
+
+    try std.testing.expectError(error.InvalidField, event_parse_json(input, arena.allocator()));
+}
+
+test "event parse json rejects empty tag array" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const input =
+        "{" ++
+        "\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
+        "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
+        "\"sig\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ++
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"," ++
+        "\"kind\":1," ++
+        "\"created_at\":1700000000," ++
+        "\"tags\":[[]]," ++
         "\"content\":\"ok\"}";
 
     try std.testing.expectError(error.InvalidField, event_parse_json(input, arena.allocator()));
@@ -1151,7 +1256,7 @@ test "event parse json forces invalid json and invalid field" {
         "\"sig\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ++
         "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"," ++
         "\"kind\":\"1\"," ++
-        "\"created_at\":1,\"tags\":[],\"content\":\"ok\"}";
+        "\"created_at\":1,\"tags\":[[\"e\",\"target\"]],\"content\":\"ok\"}";
     try std.testing.expectError(
         error.InvalidField,
         event_parse_json(wrong_kind_type, arena.allocator()),
@@ -1169,7 +1274,7 @@ test "event parse json rejects duplicate critical key" {
         "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
         "\"sig\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ++
         "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"," ++
-        "\"kind\":1,\"created_at\":1,\"tags\":[],\"content\":\"ok\"}";
+        "\"kind\":1,\"created_at\":1,\"tags\":[[\"e\",\"target\"]],\"content\":\"ok\"}";
     try std.testing.expectError(
         error.DuplicateField,
         event_parse_json(duplicate_id, arena.allocator()),
@@ -1186,7 +1291,7 @@ test "event parse json rejects invalid hex length and uppercase case" {
         "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
         "\"sig\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ++
         "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"," ++
-        "\"kind\":1,\"created_at\":1,\"tags\":[],\"content\":\"ok\"}";
+        "\"kind\":1,\"created_at\":1,\"tags\":[[\"e\",\"target\"]],\"content\":\"ok\"}";
     try std.testing.expectError(
         error.InvalidHex,
         event_parse_json(invalid_hex_length, arena.allocator()),
@@ -1198,7 +1303,7 @@ test "event parse json rejects invalid hex length and uppercase case" {
         "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
         "\"sig\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ++
         "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"," ++
-        "\"kind\":1,\"created_at\":1,\"tags\":[],\"content\":\"ok\"}";
+        "\"kind\":1,\"created_at\":1,\"tags\":[[\"e\",\"target\"]],\"content\":\"ok\"}";
     try std.testing.expectError(
         error.InvalidHex,
         event_parse_json(invalid_hex_case, arena.allocator()),
@@ -1232,13 +1337,35 @@ test "event parse json rejects content over max bound" {
             "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
             "\"sig\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ++
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"," ++
-            "\"kind\":1,\"created_at\":1,\"tags\":[],\"content\":\"",
+            "\"kind\":1,\"created_at\":1,\"tags\":[[\"e\",\"target\"]],\"content\":\"",
     );
     try writer.writeAll(content_buffer[0..]);
     try writer.writeAll("\"}");
 
     const input = input_buffer[0..stream.pos];
     try std.testing.expectError(error.InvalidField, event_parse_json(input, arena.allocator()));
+}
+
+test "event checked paths reject empty tag array" {
+    const tags = [_]EventTag{.{ .items = &.{} }};
+    const event = Event{
+        .id = [_]u8{0} ** 32,
+        .pubkey = [_]u8{0x11} ** 32,
+        .sig = [_]u8{0x22} ** 64,
+        .kind = 1,
+        .created_at = 1,
+        .content = "ok",
+        .tags = tags[0..],
+    };
+    var output: [256]u8 = undefined;
+
+    try std.testing.expectError(error.TooManyTagItems, event_compute_id_checked(&event));
+    try std.testing.expectError(error.TooManyTagItems, event_verify_id_checked(&event));
+    try std.testing.expectError(
+        error.TooManyTagItems,
+        event_serialize_canonical_json(&output, &event),
+    );
+    try std.testing.expectError(error.InvalidId, event_verify_id(&event));
 }
 
 test "event verify rejects invalid id explicitly" {
@@ -1251,7 +1378,7 @@ test "event verify rejects invalid id explicitly" {
         .content = "hello",
     };
 
-    event.id = event_compute_id(&event);
+    event.id = try event_compute_id(&event);
     event.id[0] ^= 1;
     try std.testing.expectError(error.InvalidId, event_verify_id(&event));
 }

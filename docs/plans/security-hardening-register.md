@@ -54,8 +54,17 @@ Dedicated status register for implemented security hardening controls and edge-c
 | unbracketed IPv6 authority rejection in NIP-42 relay matching | closed | `src/nip42_auth.zig`, `docs/plans/decision-log.md` (`D-013`) | Closed by strict authority parser rejection and mismatch tests. |
 | canonical event runtime shape/UTF-8 validation guards | closed | `src/nip01_event.zig`, `src/nip13_pow.zig` | Closed by preflight shape guards and UTF-8 checks on checked paths. |
 | PoW commitment truthfulness and floor enforcement | closed | `src/nip13_pow.zig`, `docs/plans/decision-log.md` (`D-013`) | Closed by enforcing `actual_bits >= commitment` and `commitment >= required_bits`. |
-| `event_compute_id` compatibility fallback (`[32]u8{0}` on invalid runtime shape) | open | `src/nip01_event.zig`, `docs/plans/v1-api-contracts.md`, `docs/plans/decision-log.md` (`D-013`) | Low edge case. Mitigation: keep strict trust-boundary call sites on `event_verify_id` or checked wrappers, and track typed strict helper follow-up if misuse appears. |
-| LLM-first usability evaluation sequencing (`OQ-E-006`, `D-009`) | open | `docs/plans/build-plan.md`, `docs/plans/decision-log.md`, `handoff.md` | Remains pending until post-security checkpoint and before first RC API freeze. |
+| `event_compute_id` invalid-runtime-shape typed failure | closed | `src/nip01_event.zig`, `docs/plans/v1-api-contracts.md`, `docs/plans/decision-log.md` (`D-013`) | Closed by replacing all-zero compatibility fallback with explicit typed failure for invalid runtime event shapes. |
+| LLM-first usability evaluation sequencing (`OQ-E-006`, `D-009`, `D-014`) | in progress | `docs/plans/llm-usability-pass.md`, `docs/plans/build-plan.md`, `docs/plans/decision-log.md`, `handoff.md` | Started post-security checkpoint; closure criteria tracked in `docs/plans/llm-usability-pass.md` before first RC API freeze. |
+
+## Strictness/Interoperability Matrix (Current, Under Evaluation)
+
+| Topic | Current behavior | Interop posture | Status |
+| --- | --- | --- | --- |
+| Filter full-hex requirement | strict full-hex validation on strict filter identities/tag values | stricter than permissive parser ecosystems | in evaluation via `OQ-E-006` |
+| Unknown filter field handling | unknown filter fields rejected in strict parsing | favors deterministic parsing over permissive forward-compat handling | in evaluation via `OQ-E-006` |
+| Relay `OK` status prefix handling | strict prefix-form status validation | may reject ecosystem-variant free-form status text | in evaluation via `OQ-E-006` |
+| NIP-42 relay origin policy | strict normalized path binding plus `ws`/`wss` scheme distinction | maximizes origin determinism; may reduce tolerant origin matching | in evaluation via `OQ-E-006` |
 
 ## Maintenance Rule
 

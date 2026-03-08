@@ -255,13 +255,14 @@ fn delete_target_matches_event(
     std.debug.assert(delete_created_at <= std.math.maxInt(u64));
     std.debug.assert(event.created_at <= std.math.maxInt(u64));
 
-    if (delete_created_at < event.created_at) {
-        return false;
-    }
-
     return switch (target) {
         .e => |target_id| std.mem.eql(u8, &target_id, &event.id),
-        .a => |coordinate| coordinate_matches_event(coordinate, event),
+        .a => |coordinate| {
+            if (delete_created_at < event.created_at) {
+                return false;
+            }
+            return coordinate_matches_event(coordinate, event);
+        },
     };
 }
 
@@ -438,19 +439,22 @@ test "deletion_can_apply valid vectors include e and a and delete no-op" {
     const target_by_id = test_event(1, pubkey, 900, target_id, &[_]nip01_event.EventTag{});
     try std.testing.expect(try deletion_can_apply(&delete_event, &target_by_id));
 
+    const target_by_id_newer = test_event(1, pubkey, 1_001, target_id, &[_]nip01_event.EventTag{});
+    try std.testing.expect(try deletion_can_apply(&delete_event, &target_by_id_newer));
+
     const d_items = [_][]const u8{ "d", "room" };
     const target_addressed_tags = [_]nip01_event.EventTag{.{ .items = d_items[0..] }};
     const target_by_a = test_event(30023, pubkey, 900, [_]u8{7} ** 32, target_addressed_tags[0..]);
     try std.testing.expect(try deletion_can_apply(&delete_event, &target_by_a));
 
-    const target_newer = test_event(
+    const target_newer_by_a = test_event(
         30023,
         pubkey,
         1_001,
         [_]u8{8} ** 32,
         target_addressed_tags[0..],
     );
-    try std.testing.expect(!(try deletion_can_apply(&delete_event, &target_newer)));
+    try std.testing.expect(!(try deletion_can_apply(&delete_event, &target_newer_by_a)));
 
     const delete_target = test_event(
         delete_event_kind,
@@ -465,9 +469,8 @@ test "deletion_can_apply valid vectors include e and a and delete no-op" {
     try std.testing.expect(!(try deletion_can_apply(&delete_event, &non_match_id)));
 }
 
-test "delete invalid vectors and forcing all public errors" {
+test "delete invalid vectors cover empty targets and kind checks" {
     const pubkey = [_]u8{0x22} ** 32;
-    const other_pubkey = [_]u8{0x33} ** 32;
 
     const no_targets = test_event(
         delete_event_kind,
@@ -495,6 +498,18 @@ test "delete invalid vectors and forcing all public errors" {
         error.InvalidDeleteEventKind,
         deletion_can_apply(&bad_kind, &no_targets),
     );
+}
+
+test "delete invalid vectors cover malformed e and a tags" {
+    const pubkey = [_]u8{0x22} ** 32;
+    const no_targets = test_event(
+        delete_event_kind,
+        pubkey,
+        100,
+        [_]u8{0} ** 32,
+        &[_]nip01_event.EventTag{},
+    );
+    var out_one: [1]DeleteTarget = undefined;
 
     const e_missing_items = [_][]const u8{"e"};
     const tags_bad_e = [_]nip01_event.EventTag{.{ .items = e_missing_items[0..] }};
@@ -527,6 +542,19 @@ test "delete invalid vectors and forcing all public errors" {
         delete_extract_targets(&bad_a_event, out_one[0..]),
     );
     try std.testing.expectError(error.InvalidATag, deletion_can_apply(&bad_a_event, &no_targets));
+}
+
+test "delete invalid vectors cover invalid coordinate and cross-author" {
+    const pubkey = [_]u8{0x22} ** 32;
+    const other_pubkey = [_]u8{0x33} ** 32;
+    const no_targets = test_event(
+        delete_event_kind,
+        pubkey,
+        100,
+        [_]u8{0} ** 32,
+        &[_]nip01_event.EventTag{},
+    );
+    var out_one: [1]DeleteTarget = undefined;
 
     const a_bad_coord = [_][]const u8{ "a", "30023:nothex" };
     const tags_bad_coord = [_]nip01_event.EventTag{.{ .items = a_bad_coord[0..] }};

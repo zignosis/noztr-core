@@ -12,10 +12,12 @@ pub const FilterTagCondition = struct {
 
 pub const Filter = struct {
     ids: [limits.filter_ids_max][32]u8 = [_][32]u8{[_]u8{0} ** 32} ** limits.filter_ids_max,
+    ids_prefix_nibbles: [limits.filter_ids_max]u8 = [_]u8{0} ** limits.filter_ids_max,
     ids_count: u16 = 0,
 
     authors: [limits.filter_authors_max][32]u8 = [_][32]u8{[_]u8{0} ** 32} **
         limits.filter_authors_max,
+    authors_prefix_nibbles: [limits.filter_authors_max]u8 = [_]u8{0} ** limits.filter_authors_max,
     authors_count: u16 = 0,
 
     kinds: [limits.filter_kinds_max]u32 = [_]u32{0} ** limits.filter_kinds_max,
@@ -41,7 +43,7 @@ pub fn filter_parse_value(
     }
 
     var filter = Filter{};
-    var tag_conditions_temp: [256]FilterTagCondition = undefined;
+    var tag_conditions_temp: [limits.filter_tag_keys_max]FilterTagCondition = undefined;
     var tag_conditions_count: u16 = 0;
     var iterator = value.object.iterator();
     while (iterator.next()) |entry| {
@@ -62,8 +64,8 @@ pub fn filter_parse_value(
             filter.limit = try parse_filter_u16(item_value);
         } else {
             const tag_key = try parse_filter_tag_key(key);
-            if (tag_conditions_count == 256) {
-                return error.InvalidTagKey;
+            if (tag_conditions_count == limits.filter_tag_keys_max) {
+                return error.TooManyTagKeys;
             }
 
             const values = try parse_filter_tag_values(item_value, scratch);
@@ -87,8 +89,8 @@ pub fn filter_parse_value(
 }
 
 pub fn filter_parse_json(input: []const u8, scratch: std.mem.Allocator) FilterParseError!Filter {
-    std.debug.assert(input.len <= limits.event_json_max + 1);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(limits.event_json_max <= limits.relay_message_bytes_max);
 
     if (input.len > limits.event_json_max) {
         return error.InputTooLong;
@@ -98,7 +100,7 @@ pub fn filter_parse_json(input: []const u8, scratch: std.mem.Allocator) FilterPa
         return error.InvalidFilter;
     }
 
-    var parse_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    var parse_arena = std.heap.ArenaAllocator.init(scratch);
     defer parse_arena.deinit();
 
     const root = std.json.parseFromSliceLeaky(
@@ -194,11 +196,16 @@ pub fn filters_match_event(filters: []const Filter, event: *const nip01_event.Ev
 
 fn filter_has_id(filter: *const Filter, event_id: *const [32]u8) bool {
     std.debug.assert(filter.ids_count <= limits.filter_ids_max);
+    std.debug.assert(filter.ids_prefix_nibbles[0] <= limits.id_hex_length);
     std.debug.assert(event_id[0] <= 255);
 
     var index: u16 = 0;
     while (index < filter.ids_count) : (index += 1) {
-        if (std.mem.eql(u8, &filter.ids[index], event_id)) {
+        if (prefix_matches_hex_bytes(
+            &filter.ids[index],
+            filter.ids_prefix_nibbles[index],
+            event_id,
+        )) {
             return true;
         }
     }
@@ -208,11 +215,16 @@ fn filter_has_id(filter: *const Filter, event_id: *const [32]u8) bool {
 
 fn filter_has_author(filter: *const Filter, event_author: *const [32]u8) bool {
     std.debug.assert(filter.authors_count <= limits.filter_authors_max);
+    std.debug.assert(filter.authors_prefix_nibbles[0] <= limits.pubkey_hex_length);
     std.debug.assert(event_author[0] <= 255);
 
     var index: u16 = 0;
     while (index < filter.authors_count) : (index += 1) {
-        if (std.mem.eql(u8, &filter.authors[index], event_author)) {
+        if (prefix_matches_hex_bytes(
+            &filter.authors[index],
+            filter.authors_prefix_nibbles[index],
+            event_author,
+        )) {
             return true;
         }
     }
@@ -258,8 +270,8 @@ fn map_filter_json_parse_error(parse_error: anyerror) FilterParseError {
 }
 
 fn parse_filter_tag_key(key: []const u8) FilterParseError!u8 {
-    std.debug.assert(key.len <= std.math.maxInt(u16));
     std.debug.assert(limits.filter_tag_values_max > 0);
+    std.debug.assert(limits.filter_tag_keys_max <= limits.filter_tag_values_max);
 
     if (key.len == 0) {
         return error.InvalidFilter;
@@ -275,11 +287,11 @@ fn parse_filter_tag_key(key: []const u8) FilterParseError!u8 {
 
     const tag_key = key[1];
     const is_lower_ascii = tag_key >= 'a' and tag_key <= 'z';
-    if (!is_lower_ascii) {
-        return error.InvalidTagKey;
+    if (is_lower_ascii) {
+        return tag_key;
     }
 
-    return tag_key;
+    return error.InvalidTagKey;
 }
 
 fn parse_filter_tag_values(
@@ -324,7 +336,11 @@ fn parse_filter_tag_values(
 
 fn copy_filter_string(source: []const u8, scratch: std.mem.Allocator) FilterParseError![]const u8 {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
-    std.debug.assert(source.len <= limits.event_json_max);
+    std.debug.assert(limits.event_json_max > 0);
+
+    if (source.len > limits.event_json_max) {
+        return error.InvalidFilter;
+    }
 
     const copy = scratch.alloc(u8, source.len) catch return error.InvalidFilter;
     if (source.len > 0) {
@@ -338,7 +354,11 @@ fn finalize_tag_conditions(
     input: []const FilterTagCondition,
 ) FilterParseError![]const FilterTagCondition {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
-    std.debug.assert(input.len <= 256);
+    std.debug.assert(limits.filter_tag_keys_max > 0);
+
+    if (input.len > limits.filter_tag_keys_max) {
+        return error.TooManyTagKeys;
+    }
 
     const output = scratch.alloc(FilterTagCondition, input.len) catch return error.InvalidFilter;
     if (input.len > 0) {
@@ -348,7 +368,7 @@ fn finalize_tag_conditions(
 }
 
 fn filter_matches_tag_conditions(filter: *const Filter, event: *const nip01_event.Event) bool {
-    std.debug.assert(filter.tag_conditions.len <= 256);
+    std.debug.assert(filter.tag_conditions.len <= limits.filter_tag_keys_max);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
     var condition_index: u32 = 0;
@@ -406,13 +426,7 @@ fn tag_contains_value(tag: nip01_event.EventTag, wanted: []const u8) bool {
         return false;
     }
 
-    var item_index: u32 = 1;
-    while (item_index < tag.items.len) : (item_index += 1) {
-        if (std.mem.eql(u8, tag.items[item_index], wanted)) {
-            return true;
-        }
-    }
-    return false;
+    return std.mem.eql(u8, tag.items[1], wanted);
 }
 
 fn parse_filter_ids(filter: *Filter, value: std.json.Value) FilterParseError!void {
@@ -423,14 +437,19 @@ fn parse_filter_ids(filter: *Filter, value: std.json.Value) FilterParseError!voi
         return error.InvalidFilter;
     }
 
+    if (value.array.items.len == 0) {
+        return error.InvalidFilter;
+    }
+
     var index: u32 = 0;
     while (index < value.array.items.len) : (index += 1) {
         if (filter.ids_count == limits.filter_ids_max) {
             return error.TooManyIds;
         }
 
-        const parsed = try parse_filter_hex_32(value.array.items[index]);
-        filter.ids[filter.ids_count] = parsed;
+        const parsed_prefix = try parse_filter_hex_prefix_32(value.array.items[index]);
+        filter.ids[filter.ids_count] = parsed_prefix.bytes;
+        filter.ids_prefix_nibbles[filter.ids_count] = parsed_prefix.nibbles;
         filter.ids_count += 1;
     }
 }
@@ -443,14 +462,19 @@ fn parse_filter_authors(filter: *Filter, value: std.json.Value) FilterParseError
         return error.InvalidFilter;
     }
 
+    if (value.array.items.len == 0) {
+        return error.InvalidFilter;
+    }
+
     var index: u32 = 0;
     while (index < value.array.items.len) : (index += 1) {
         if (filter.authors_count == limits.filter_authors_max) {
             return error.TooManyAuthors;
         }
 
-        const parsed = try parse_filter_hex_32(value.array.items[index]);
-        filter.authors[filter.authors_count] = parsed;
+        const parsed_prefix = try parse_filter_hex_prefix_32(value.array.items[index]);
+        filter.authors[filter.authors_count] = parsed_prefix.bytes;
+        filter.authors_prefix_nibbles[filter.authors_count] = parsed_prefix.nibbles;
         filter.authors_count += 1;
     }
 }
@@ -460,6 +484,10 @@ fn parse_filter_kinds(filter: *Filter, value: std.json.Value) FilterParseError!v
     std.debug.assert(@sizeOf(u32) == 4);
 
     if (value != .array) {
+        return error.InvalidFilter;
+    }
+
+    if (value.array.items.len == 0) {
         return error.InvalidFilter;
     }
 
@@ -522,22 +550,49 @@ fn parse_filter_u16(value: std.json.Value) FilterParseError!u16 {
     return parsed;
 }
 
-fn parse_filter_hex_32(value: std.json.Value) FilterParseError![32]u8 {
+const HexPrefix32 = struct {
+    bytes: [32]u8,
+    nibbles: u8,
+};
+
+fn parse_filter_hex_prefix_32(value: std.json.Value) FilterParseError!HexPrefix32 {
     std.debug.assert(limits.id_hex_length == 64);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
-    var output: [32]u8 = undefined;
+    var output: [32]u8 = [_]u8{0} ** 32;
     const source = if (value == .string) value.string else return error.InvalidFilter;
-    try validate_filter_lower_hex(source, 64);
-    _ = std.fmt.hexToBytes(&output, source) catch return error.InvalidHex;
-    return output;
+    try validate_filter_lower_hex(source, 1, 64);
+
+    var source_index: u32 = 0;
+    var output_index: u32 = 0;
+    while (source_index + 1 < source.len) : (source_index += 2) {
+        const high_nibble = hex_char_to_nibble(source[source_index]);
+        const low_nibble = hex_char_to_nibble(source[source_index + 1]);
+        output[output_index] = (high_nibble << 4) | low_nibble;
+        output_index += 1;
+    }
+
+    const has_odd_nibble = (source.len % 2) == 1;
+    if (has_odd_nibble) {
+        const last_nibble = hex_char_to_nibble(source[source.len - 1]);
+        output[output_index] = last_nibble << 4;
+    }
+
+    return .{ .bytes = output, .nibbles = @intCast(source.len) };
 }
 
-fn validate_filter_lower_hex(source: []const u8, expected_length: u8) FilterParseError!void {
-    std.debug.assert(expected_length > 0);
-    std.debug.assert(expected_length == 64);
+fn validate_filter_lower_hex(
+    source: []const u8,
+    min_length: u8,
+    max_length: u8,
+) FilterParseError!void {
+    std.debug.assert(min_length > 0);
+    std.debug.assert(min_length <= max_length);
 
-    if (source.len != expected_length) {
+    if (source.len < min_length) {
+        return error.InvalidHex;
+    }
+    if (source.len > max_length) {
         return error.InvalidHex;
     }
 
@@ -554,6 +609,41 @@ fn validate_filter_lower_hex(source: []const u8, expected_length: u8) FilterPars
             return error.InvalidHex;
         }
     }
+}
+
+fn hex_char_to_nibble(character: u8) u8 {
+    std.debug.assert(character <= 127);
+    std.debug.assert(
+        (character >= '0' and character <= '9') or (character >= 'a' and character <= 'f'),
+    );
+
+    if (character >= '0' and character <= '9') {
+        return character - '0';
+    }
+    return character - 'a' + 10;
+}
+
+fn prefix_matches_hex_bytes(prefix: *const [32]u8, nibbles: u8, target: *const [32]u8) bool {
+    std.debug.assert(nibbles > 0);
+    std.debug.assert(nibbles <= 64);
+
+    const full_bytes = @as(u8, nibbles / 2);
+    var index: u8 = 0;
+    while (index < full_bytes) : (index += 1) {
+        if (prefix[index] != target[index]) {
+            return false;
+        }
+    }
+
+    if ((nibbles % 2) == 1) {
+        const masked_prefix = prefix[full_bytes] & 0xF0;
+        const masked_target = target[full_bytes] & 0xF0;
+        if (masked_prefix != masked_target) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 fn write_repeated_string_filter_json(
@@ -611,8 +701,8 @@ fn force_filter_parse_error(
     expected_error: FilterParseError,
     allocator: std.mem.Allocator,
 ) !void {
-    std.debug.assert(input.len <= limits.event_json_max + 1);
     std.debug.assert(@intFromPtr(allocator.ptr) != 0);
+    std.debug.assert(@intFromError(expected_error) >= 0);
 
     try std.testing.expectError(expected_error, filter_parse_json(input, allocator));
 }
@@ -626,7 +716,7 @@ test "filters OR behavior is deterministic" {
         .created_at = 123,
         .content = "ok",
     };
-    event.id = nip01_event.event_compute_id(&event);
+    event.id = try nip01_event.event_compute_id(&event);
 
     var filter_reject = Filter{};
     filter_reject.kinds[0] = 999;
@@ -670,6 +760,58 @@ test "parsed filter fields drive deterministic matching" {
     const matched_b = filter_matches_event(&filter, &event);
     try std.testing.expect(matched_a);
     try std.testing.expect(matched_b);
+}
+
+test "filter ids and authors support lowercase hex prefixes" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const filter = try filter_parse_json(
+        "{\"ids\":[\"aa\"],\"authors\":[\"bbb\"],\"kinds\":[1]}",
+        arena.allocator(),
+    );
+    const event = nip01_event.Event{
+        .id = [_]u8{0xaa} ** 32,
+        .pubkey = [_]u8{0} ** 32,
+        .sig = [_]u8{0} ** 64,
+        .kind = 1,
+        .created_at = 150,
+        .content = "ok",
+    };
+
+    var matching_event = event;
+    matching_event.pubkey = [_]u8{0} ** 32;
+    matching_event.pubkey[0] = 0xbb;
+    matching_event.pubkey[1] = 0xb1;
+
+    var non_matching_event = matching_event;
+    non_matching_event.pubkey[1] = 0xa1;
+
+    try std.testing.expect(filter_matches_event(&filter, &matching_event));
+    try std.testing.expect(!filter_matches_event(&filter, &non_matching_event));
+}
+
+test "odd-length id prefix uses nibble-precision matching" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const filter = try filter_parse_json("{\"ids\":[\"abc\"]}", arena.allocator());
+    var matched_event = nip01_event.Event{
+        .id = [_]u8{0} ** 32,
+        .pubkey = [_]u8{6} ** 32,
+        .sig = [_]u8{0} ** 64,
+        .kind = 7,
+        .created_at = 123,
+        .content = "ok",
+    };
+    matched_event.id[0] = 0xab;
+    matched_event.id[1] = 0xc7;
+
+    var rejected_event = matched_event;
+    rejected_event.id[1] = 0xd7;
+
+    try std.testing.expect(filter_matches_event(&filter, &matched_event));
+    try std.testing.expect(!filter_matches_event(&filter, &rejected_event));
 }
 
 test "filter parse value copies tag values into scratch" {
@@ -718,7 +860,7 @@ test "parsed filters keep OR-across-filters deterministic" {
         .created_at = 123,
         .content = "ok",
     };
-    event.id = nip01_event.event_compute_id(&event);
+    event.id = try nip01_event.event_compute_id(&event);
 
     const filters = [_]Filter{ reject_filter, accept_filter };
     try std.testing.expect(filters_match_event(filters[0..], &event));
@@ -773,6 +915,37 @@ test "parsed tag filter matches event tags deterministically" {
     try std.testing.expect(filter_matches_event(&filter, &event));
 }
 
+test "filter parse rejects uppercase #X tag key" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    try std.testing.expectError(
+        error.InvalidTagKey,
+        filter_parse_json("{\"#E\":[\"target\"]}", arena.allocator()),
+    );
+}
+
+test "tag filter does not match non-indexed tag values" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const filter = try filter_parse_json("{\"#e\":[\"target\"]}", arena.allocator());
+    const tag_items = [_][]const u8{ "e", "indexed", "target" };
+    const tags = [_]nip01_event.EventTag{.{ .items = tag_items[0..] }};
+    const event = nip01_event.Event{
+        .id = [_]u8{0xaa} ** 32,
+        .pubkey = [_]u8{0xbb} ** 32,
+        .sig = [_]u8{0} ** 64,
+        .kind = 1,
+        .created_at = 100,
+        .content = "ok",
+        .tags = tags[0..],
+    };
+
+    try std.testing.expect(!filter_matches_event(&filter, &event));
+    try std.testing.expect(!filter_matches_event(&filter, &event));
+}
+
 test "filter parse returns TooManyTagValues for #x overflow" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
@@ -808,6 +981,24 @@ test "filter parse rejects empty #x value arrays" {
     );
 }
 
+test "filter parse rejects empty ids authors and kinds arrays" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    try std.testing.expectError(
+        error.InvalidFilter,
+        filter_parse_json("{\"ids\":[]}", arena.allocator()),
+    );
+    try std.testing.expectError(
+        error.InvalidFilter,
+        filter_parse_json("{\"authors\":[]}", arena.allocator()),
+    );
+    try std.testing.expectError(
+        error.InvalidFilter,
+        filter_parse_json("{\"kinds\":[]}", arena.allocator()),
+    );
+}
+
 test "filter parse forces InputTooLong and InvalidFilter" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
@@ -827,6 +1018,22 @@ test "filter parse forces InvalidHex and InvalidTagKey" {
         arena.allocator(),
     );
     try force_filter_parse_error("{\"#ab\":[\"abc\"]}", error.InvalidTagKey, arena.allocator());
+}
+
+test "filter parse forces TooManyTagKeys overflow variant" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    var conditions: [limits.filter_tag_keys_max + 1]FilterTagCondition = undefined;
+    var index: u32 = 0;
+    while (index < conditions.len) : (index += 1) {
+        conditions[index] = .{ .key = 'a', .values = &.{"x"} };
+    }
+
+    try std.testing.expectError(
+        error.TooManyTagKeys,
+        finalize_tag_conditions(arena.allocator(), conditions[0..]),
+    );
 }
 
 test "filter parse forces TooManyIds overflow" {

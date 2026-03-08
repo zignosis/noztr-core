@@ -206,12 +206,101 @@ Immutable record of accepted planning decisions.
     required_bits`).
   - closed: `auth_validate_event` expected challenge bounds guard rejects empty and oversized
     `expected_challenge` inputs.
-  - open: `event_compute_id` compatibility fallback returns all-zero id for invalid runtime shape
-    (`src/nip01_event.zig`); mitigation: keep strict call sites on `event_verify_id` and checked
-    wrappers, and track typed strict helper follow-up if misuse appears.
-  - open: LLM-first usability evaluation remains pending post-security checkpoint and before RC API
-    freeze (`D-009`, `OQ-E-006`).
+  - closed: `event_compute_id` invalid runtime shape now fails with typed error instead of
+    all-zero compatibility fallback (`src/nip01_event.zig`).
+  - superseded: LLM-first usability evaluation status moved to `D-014` (`OQ-E-006`).
   - canonical tracker: `docs/plans/security-hardening-register.md`.
+
+## D-014: Start LLM-usability pass and track OQ-E-006 closure criteria
+
+- Date: 2026-03-07
+- Status: accepted
+- Decision: start the LLM-first usability pass and treat `docs/plans/llm-usability-pass.md` as the
+  working artifact for OQ-E-006 execution status, findings, recommendations, and closure criteria.
+- Why: hardening defaults are now stable and usability evaluation should run on the hardened API
+  surface before RC freeze.
+- Tradeoff: additional near-term documentation and evaluation overhead versus earlier API ergonomics
+  signal on strict, security-finalized surfaces.
+- Related Tradeoff: T-0-004.
+- Reversal Trigger: security-critical regressions require pausing usability work until hardening
+  stability is restored.
+- Supersedes: none
+
+- Status snapshot:
+  - `event_compute_id` all-zero fallback follow-up: closed (canonical typed runtime-shape failure).
+  - LLM-first usability evaluation (`OQ-E-006`): in-progress (`docs/plans/llm-usability-pass.md`).
+  - security hardening tracker remains canonical: `docs/plans/security-hardening-register.md`.
+
+## D-015: Record Tiger cleanliness and strictness-profile evaluation inputs
+
+- Date: 2026-03-07
+- Status: accepted
+- Decision: record current implementation hygiene and interoperability evaluation inputs as follows:
+  - Tiger hard rules are currently clean for `src/` on hard checks (`>100` columns: none,
+    `>70`-line functions: none).
+  - strict-width and anti-pattern cleanup remains tracked as quality follow-up where applicable.
+  - strictness/interoperability choices remain under evaluation through `OQ-E-006`: strict filter full-hex
+    requirement, unknown filter-field rejection, strict relay `OK` status-prefix validation,
+    and strict NIP-42 origin matching (path-bound plus `ws`/`wss` distinction).
+- Why: keeps current implementation hygiene and strictness-default evaluation criteria explicit before RC
+  profile defaults are frozen.
+- Tradeoff: additional documentation maintenance versus lower policy drift across planning artifacts.
+- Related Tradeoff: T-0-001, T-0-004.
+- Reversal Trigger: accepted strictness-profile defaults or Tiger baseline regressions require policy
+  update.
+- Supersedes: none
+
+## D-016: Adopt dedicated NOZTR style profile and planning links
+
+- Date: 2026-03-07
+- Status: accepted
+- Decision: adopt `docs/guides/NOZTR_STYLE.md` as the dedicated project style profile and link it from
+  active planning artifacts (`docs/plans/build-plan.md`, `docs/plans/decision-log.md`, `handoff.md`).
+  The profile freezes core defaults for strict protocol-kernel behavior, typed trust-boundary errors,
+  bounded memory/work, caller-owned buffers, strict-default plus explicit compatibility adapters, and
+  one-obvious-way canonical safe trust-boundary entry points.
+- Why: centralizes strictness and API-usage expectations in one stable reference and reduces policy
+  drift between implementation, planning, and LLM usability evaluation.
+- Tradeoff: one additional artifact to maintain versus clearer enforcement and lower ambiguity.
+- Related Tradeoff: T-0-001, T-0-003, T-0-004.
+- Reversal Trigger: the style profile duplicates existing canonical defaults without improving
+  strictness decisions or usability outcomes.
+- Supersedes: none
+
+## D-017: Adopt two-layer architecture intent and strictness evaluation loop
+
+- Date: 2026-03-07
+- Status: accepted
+- Decision: keep Layer 1 as the strict protocol kernel and treat Layer 2 as an explicit
+  compatibility/ergonomic adapter lane. Layer 1 defaults are lowercase-only critical hex and unknown
+  filter-field rejection; compatibility tolerance is evaluated and introduced only in Layer 2 through
+  the `OQ-E-006` loop (boundary choice -> tradeoff record -> forcing vectors -> usability evidence ->
+  decision-log freeze).
+- Why: preserves deterministic kernel guarantees while allowing practical interop improvements without
+  silent default drift.
+- Tradeoff: additional adapter design/test effort versus clearer guarantees and lower trust-boundary
+  ambiguity in core modules.
+- Related Tradeoff: T-0-001, T-0-003, T-0-004.
+- Reversal Trigger: standards-backed evidence shows strict Layer 1 defaults block required parity and
+  cannot be handled safely by Layer 2 adapters.
+- Supersedes: none
+
+## D-018: Overengineering mitigation pass for trust boundaries and strict filters
+
+- Date: 2026-03-08
+- Status: accepted
+- Decision: apply a focused overengineering/correctness mitigation pass that (1) clarifies the
+  canonical trust-boundary path to checked strict entry points, (2) reduces parser error ambiguity by
+  documenting implemented typed variants at the message boundary, and (3) tightens strict
+  `nip01_filter` semantics to deterministic lowercase hex-prefix matching for `ids`/`authors`
+  (`1..64`) with lowercase-only `#x` keys.
+- Why: removes avoidable ambiguity in policy-facing docs while matching current implementation
+  behavior and preserving deterministic strict defaults.
+- Tradeoff: tighter and more explicit strict contracts versus reduced permissiveness and less
+  shorthand flexibility in docs.
+- Related Tradeoff: T-0-001, T-0-003, T-0-004.
+- Reversal Trigger: standards-backed parity evidence requires broader permissive defaults at Layer 1.
+- Supersedes: none
 
 ## Phase Closure Evidence
 

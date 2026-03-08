@@ -31,6 +31,7 @@ pub const FilterParseError = error{
     InvalidFilter,
     InvalidHex,
     InvalidTagKey,
+    TooManyTagKeys,
     TooManyIds,
     TooManyAuthors,
     TooManyKinds,
@@ -72,6 +73,17 @@ fn force_filter_parse_error(fail: bool) FilterParseError!void {
     return;
 }
 
+fn force_filter_parse_capacity_error(fail: bool) FilterParseError!void {
+    std.debug.assert(fail);
+    std.debug.assert(!@inComptime());
+
+    if (fail) {
+        return error.TooManyTagKeys;
+    }
+
+    return;
+}
+
 test "typed event verify errors are forceable" {
     try std.testing.expectError(error.InvalidSignature, force_event_verify_error(true));
     try std.testing.expectError(
@@ -82,6 +94,7 @@ test "typed event verify errors are forceable" {
 
 test "typed filter parse errors are forceable" {
     try std.testing.expectError(error.InvalidTagKey, force_filter_parse_error(true));
+    try std.testing.expectError(error.TooManyTagKeys, force_filter_parse_capacity_error(true));
 }
 
 test "encode error variants stay explicit" {

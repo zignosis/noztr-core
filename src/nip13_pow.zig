@@ -10,7 +10,10 @@ pub const PowError = error{
     InvalidNonceCommitment,
 };
 
-/// Typed failures for PoW checks that must first verify event id integrity.
+/// Typed failures for canonical trust-boundary PoW checks.
+///
+/// `InvalidId` is emitted when in-memory event shape is invalid for canonical id verification
+/// or when `event.id` does not match canonical serialization.
 pub const PowVerifiedIdError = PowError || error{InvalidId};
 
 /// Counts leading zero bits in a 32-byte event id.
@@ -76,7 +79,11 @@ pub fn pow_extract_nonce_target(event: *const nip01_event.Event) PowError!?u16 {
     return nonce_target;
 }
 
-/// Validates nonce-tag shape and compares event id difficulty against the required threshold.
+/// Non-canonical compatibility-only PoW helper.
+///
+/// This function validates nonce-tag shape and compares `event.id` difficulty to `required_bits`,
+/// but does not verify `event.id` integrity. It is not safe at trust boundaries where events are
+/// untrusted. Use `pow_meets_difficulty_verified_id` for canonical trust-boundary behavior.
 pub fn pow_meets_difficulty(event: *const nip01_event.Event, required_bits: u16) PowError!bool {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.id.len == 32);
@@ -114,7 +121,11 @@ fn enforce_nonce_commitment_policy(
     }
 }
 
-/// Verifies event id integrity first, then checks PoW difficulty with strict nonce validation.
+/// Canonical trust-boundary PoW wrapper.
+///
+/// This wrapper verifies `event.id` against canonical event serialization first, then applies the
+/// strict nonce-shape and difficulty checks from `pow_meets_difficulty`. Use this entry point for
+/// untrusted event inputs and relay-facing policy checks.
 pub fn pow_meets_difficulty_verified_id(
     event: *const nip01_event.Event,
     required_bits: u16,
@@ -388,7 +399,7 @@ test "pow verified-id wrapper accepts valid id path" {
     const tags = [_]nip01_event.EventTag{.{ .items = nonce_items[0..] }};
 
     var event = test_event([_]u8{0} ** 32, tags[0..]);
-    event.id = nip01_event.event_compute_id(&event);
+    event.id = try nip01_event.event_compute_id(&event);
 
     try std.testing.expect(try pow_meets_difficulty_verified_id(&event, 0));
 }
@@ -398,10 +409,24 @@ test "pow verified-id wrapper rejects invalid event id before pow check" {
     const tags = [_]nip01_event.EventTag{.{ .items = nonce_items[0..] }};
 
     var event = test_event([_]u8{0} ** 32, tags[0..]);
-    event.id = nip01_event.event_compute_id(&event);
+    event.id = try nip01_event.event_compute_id(&event);
     event.id[0] ^= 0x01;
 
     try std.testing.expectError(error.InvalidId, pow_meets_difficulty_verified_id(&event, 0));
+}
+
+test "pow unchecked helper can accept forged id while verified wrapper rejects" {
+    const nonce_items = [_][]const u8{ "nonce", "300" };
+    const tags = [_]nip01_event.EventTag{.{ .items = nonce_items[0..] }};
+
+    var event = test_event([_]u8{0} ** 32, tags[0..]);
+    event.id = try nip01_event.event_compute_id(&event);
+    try std.testing.expect(try pow_meets_difficulty_verified_id(&event, 0));
+
+    event.id = [_]u8{0} ** 32;
+
+    try std.testing.expect(try pow_meets_difficulty(&event, 8));
+    try std.testing.expectError(error.InvalidId, pow_meets_difficulty_verified_id(&event, 8));
 }
 
 test "pow verified-id wrapper preserves existing pow errors" {
@@ -409,7 +434,7 @@ test "pow verified-id wrapper preserves existing pow errors" {
     const tags = [_]nip01_event.EventTag{.{ .items = nonce_bad_counter[0..] }};
 
     var event = test_event([_]u8{0} ** 32, tags[0..]);
-    event.id = nip01_event.event_compute_id(&event);
+    event.id = try nip01_event.event_compute_id(&event);
 
     try std.testing.expectError(
         error.InvalidNonceCounter,
@@ -431,8 +456,14 @@ test "pow oversized nonce counter and target lengths return typed errors" {
     const event_counter = test_event([_]u8{0} ** 32, tags_counter[0..]);
     const event_target = test_event([_]u8{0} ** 32, tags_target[0..]);
 
-    try std.testing.expectError(error.InvalidNonceCounter, pow_extract_nonce_target(&event_counter));
-    try std.testing.expectError(error.InvalidNonceCommitment, pow_extract_nonce_target(&event_target));
+    try std.testing.expectError(
+        error.InvalidNonceCounter,
+        pow_extract_nonce_target(&event_counter),
+    );
+    try std.testing.expectError(
+        error.InvalidNonceCommitment,
+        pow_extract_nonce_target(&event_target),
+    );
 }
 
 test "pow verified-id wrapper preflight rejects malformed in-memory event shape" {

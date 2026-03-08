@@ -5,6 +5,16 @@ Date: 2026-03-05
 Purpose: implementation-ready handoff for the first coding slice only (`I0`/`I1`) with strict phase
 gates, exact file targets, and deterministic verification cadence.
 
+## Current Status
+
+- `I0`-`I4` are complete and validated.
+- I4 optional modules are implemented with required non-interference coverage.
+- Current next execution phase is `I5` (`nip44`, `nip59_wrap`).
+- Layer 2 adapter work is deferred pending resolution of `OQ-E-006`.
+
+Historical kickoff decisions and steps below are preserved as baseline context, not current next-step
+execution guidance.
+
 ## Decisions
 
 - `PF-001`: start implementation with `I0` then `I1` only; do not begin `I2+` until `I1` exit gate
@@ -19,7 +29,7 @@ gates, exact file targets, and deterministic verification cadence.
   pinned `bitcoin-core/secp256k1` BIP340/Schnorr backend, with all backend calls behind one boundary
   module.
 
-## First Implementation Slice (I0/I1)
+## First Implementation Slice (I0/I1) — Historical Baseline
 
 ### I0: Foundation and Shared Contracts
 
