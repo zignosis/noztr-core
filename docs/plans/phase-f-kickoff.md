@@ -13,6 +13,8 @@ Purpose: start Phase F execution tracking on the post-I7 baseline without changi
   `docs/plans/i7-phase-f-kickoff-handoff.md`.
 - Carry-forward accepted risks remain: `UT-E-001`, `UT-E-002`, `UT-E-003`, `UT-E-004`, `A-D-001`.
 - Default-policy posture is unchanged (`D-001`..`D-004` and accepted strictness defaults remain frozen).
+- Phase F first concrete burn-down pass is executed and recorded in
+  `docs/plans/phase-f-risk-burndown.md`.
 
 ## UT-E-003 and UT-E-004 Burn-Down Worklist
 
@@ -27,6 +29,13 @@ Purpose: start Phase F execution tracking on the post-I7 baseline without changi
 - Immediate task 3: map any divergence to typed boundary behavior and required follow-up vectors.
 
 Burn-down guardrail: execute these tasks as depth expansion only; do not change strict defaults.
+
+## First Pass Status
+
+- First replay/boundary pass status: executed.
+- First replay delta run status: executed with build-wired NIP-44 and secp parity commands.
+- Canonical evidence artifact: `docs/plans/phase-f-risk-burndown.md`.
+- Defaults/frozen policy status: unchanged.
 
 ## Optional Corpus Review Triggers (`UT-E-001` / `A-D-001`)
 

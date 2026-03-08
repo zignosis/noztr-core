@@ -355,6 +355,23 @@ Immutable record of accepted planning decisions.
 
 - Policy note: no frozen-default or strictness-policy changes are introduced by this kickoff update.
 
+## D-022: Record Phase F first-pass risk burn-down evidence
+
+- Date: 2026-03-08
+- Status: accepted
+- Decision: capture the first concrete Phase F replay/boundary pass for `UT-E-003` and `UT-E-004` in
+  `docs/plans/phase-f-risk-burndown.md`, including baseline snapshot, replay matrix template, command
+  evidence, outcomes, and next owners.
+- Why: establish auditable execution evidence for carry-forward risk burn-down without waiting for
+  phase closure.
+- Tradeoff: one additional status artifact to maintain versus lower execution-status drift.
+- Related Tradeoff: T-0-004, T-E-001.
+- Reversal Trigger: Phase F execution evidence is moved into another canonical artifact with equal or
+  better traceability.
+- Supersedes: none
+
+- Policy note: this evidence-capture decision introduces no frozen-default or strictness-policy change.
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

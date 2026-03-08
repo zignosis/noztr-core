@@ -8,6 +8,10 @@ This handoff captures the current documentation status and immediate direction f
   `docs/plans/decision-log.md`, high-impact decision-needed count 0).
 - Active execution state is Phase F on the post-I7 baseline.
 - Phase F kickoff tracking is active in `docs/plans/phase-f-kickoff.md`.
+- Phase F risk burn-down started with first replay pass evidence in
+  `docs/plans/phase-f-risk-burndown.md`.
+- First replay delta run is executed with build-wired NIP-44 and secp parity commands;
+  defaults remain unchanged.
 - No frozen-default or strictness-policy changes are introduced by kickoff activation.
 - Implementation status snapshot: I0-I7 are complete and validated on current protocol fixes.
 - I4 optional modules are implemented with required non-interference coverage.

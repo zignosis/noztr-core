@@ -82,6 +82,8 @@ Implementation status snapshot (post-I7 closure):
   `false` in the compatibility path and unchecked helper behavior is internal-only.
 - Phase F execution is active on the post-I7 baseline; kickoff tracking is in
   `docs/plans/phase-f-kickoff.md`.
+- Phase F risk burn-down is started with first replay pass evidence in
+  `docs/plans/phase-f-risk-burndown.md` (`UT-E-003`/`UT-E-004`).
 - Current implementation state remains post-I7 closure baseline; no default-policy changes are
   introduced by kickoff tracking.
 - Layer 2 compatibility/ergonomic adapter work remains deferred until Layer 1 execution and
