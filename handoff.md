@@ -27,6 +27,11 @@ This handoff captures the current documentation status and immediate direction f
 - Persistent replay classification outcomes for `UT-E-003` are now recorded as
   Go `pass`, Rust `pass`, TypeScript `pass` in
   `docs/plans/phase-f-risk-burndown.md`.
+- Persistent rust-nostr parity-all harness is now maintained at
+  `tools/interop/rust-nostr-parity-all` for full implemented-NIP overlap checks.
+- rust-nostr parity-all matrix pass is recorded as `pass` in
+  `docs/plans/phase-f-rust-nostr-parity.md` with explicit `UNSUPPORTED` reporting for
+  `NIP-40`, `NIP-45`, `NIP-50`, `NIP-70`, `NIP-77`.
 - Step 3 local replay expansion for `UT-E-004` is recorded as `pass` in
   `docs/plans/phase-f-risk-burndown.md`.
 - Step 3 typed-class mapping stability for `UT-E-004` is recorded as `no-drift`;
@@ -43,6 +48,7 @@ This handoff captures the current documentation status and immediate direction f
   policy/default changes were considered.
 - Rule remains: any future trigger firing must be captured in
   `docs/plans/decision-log.md` before default changes.
+- Explicit policy note for parity-all pass: no frozen-default or strictness-policy change.
 - No frozen-default or strictness-policy changes are introduced by kickoff activation.
 - Implementation status snapshot: I0-I7 are complete and validated on current protocol fixes.
 - I4 optional modules are implemented with required non-interference coverage.
@@ -341,6 +347,17 @@ This handoff captures the current documentation status and immediate direction f
   - `tools/interop/ts-nostr-tools-nip44/package.json`
   - `tools/interop/ts-nostr-tools-nip44/tsconfig.json`
   - `tools/interop/ts-nostr-tools-nip44/index.ts`
+
+- Created (Phase F rust parity-all):
+  - `tools/interop/rust-nostr-parity-all/Cargo.toml`
+  - `tools/interop/rust-nostr-parity-all/src/main.rs`
+  - `docs/plans/phase-f-rust-nostr-parity.md`
+
+- Updated (Phase F rust parity-all tracking):
+  - `tools/interop/README.md`
+  - `docs/plans/phase-f-risk-burndown.md`
+  - `docs/plans/phase-f-kickoff.md`
+  - `handoff.md`
 
 ## Next Steps To Continue
 

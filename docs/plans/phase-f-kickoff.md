@@ -25,6 +25,9 @@ Purpose: start Phase F execution tracking on the post-I7 baseline without changi
 - Phase F Step 6 replay classification outcomes are now recorded as
   Go `pass`, Rust `pass`, TypeScript `pass` in
   `docs/plans/phase-f-risk-burndown.md`.
+- Phase F Step 7 rust-nostr parity-all matrix pass is recorded in
+  `docs/plans/phase-f-risk-burndown.md` and
+  `docs/plans/phase-f-rust-nostr-parity.md`.
 - Phase F Step 3 `UT-E-004` replay expansion is recorded in
   `docs/plans/phase-f-risk-burndown.md` with expanded mutation classes and `no-drift`
   typed-class mapping stability.
@@ -62,7 +65,10 @@ Burn-down guardrail: execute these tasks as depth expansion only; do not change 
   class parity assertions for wrong-length/non-hex classes).
 - Step 6 persistent cross-language replay status: executed
   (`UT-E-003-FX-001`..`UT-E-003-FX-005` passed in persistent Go/Rust/TypeScript harnesses).
+- Step 7 rust-nostr parity-all status: executed (all supported overlap checks passed; implemented
+  unsupported NIPs explicitly reported as `UNSUPPORTED`).
 - Canonical evidence artifact: `docs/plans/phase-f-risk-burndown.md`.
+- Canonical parity matrix artifact: `docs/plans/phase-f-rust-nostr-parity.md`.
 - Canonical replay input artifact: `docs/plans/phase-f-replay-inputs.md`.
 - Defaults/frozen policy status: unchanged.
 - Step 5 governance status: no `UT-E-001`/`A-D-001` trigger criteria fired, so no policy/default

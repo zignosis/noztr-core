@@ -177,6 +177,21 @@ Step 6 conclusion:
 - Replay classification outcomes: Go `pass`, Rust `pass`, TypeScript `pass`.
 - Explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
 
+## Step 7 Pass Entry (rust-nostr parity-all matrix)
+
+- Step: 7 (comprehensive overlap validation for all currently implemented `noztr` NIPs).
+- Harness: `tools/interop/rust-nostr-parity-all` (`nostr` crate `v0.44.2`, `all-nips`).
+- Matrix artifact: `docs/plans/phase-f-rust-nostr-parity.md`.
+
+| Step | Risk ID | Command | Result | Outcome classification | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `7` | `UT-E-003` | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | pass (`NIP-01/02/09/11/13/19/21/42/44/59/65 PASS`; `NIP-40/45/50/70/77 UNSUPPORTED`) | `pass` | supported overlap checks passed; unsupported NIPs explicitly reported |
+
+Step 7 conclusion:
+- rust-nostr parity-all pass classification is `pass` for this execution slice.
+- Canonical matrix coverage for all implemented NIPs is now recorded.
+- Explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
+
 ## Next Burndown Tasks
 
 1. `UT-E-003` owner: Phase F owner
