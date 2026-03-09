@@ -1,17 +1,23 @@
 # Handoff
 
-Current project context for the next Phase F execution slice.
+Current project context for the Phase G kickoff baseline.
 
 ## Current Phase Status
 
 - Planning phase records remain closed in `docs/plans/decision-log.md`.
-- Active execution state is Phase F on post-I7 baseline.
+- Active execution state is Phase G on post-`no-dr3` baseline.
 - Frozen defaults and strictness posture remain unchanged.
 - Canonical Phase F trackers:
   - `docs/plans/phase-f-kickoff.md`
   - `docs/plans/phase-f-parity-matrix.md`
   - `docs/plans/phase-f-parity-ledger.md`
   - `docs/plans/phase-f-risk-burndown.md`
+
+## Phase G Kickoff
+
+- Active execution state is Phase G kickoff baseline.
+- `UT-E-003` and `UT-E-004` are maintenance-mode only; reopen only on new behavior-class discovery.
+- Active blocker: `no-3uj` (git/Dolt remote + sync readiness).
 
 ## Active Parity Gate
 

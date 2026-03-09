@@ -133,6 +133,13 @@ Phase F next actions from current baseline:
   pre-check: `count=0`, ids: none; post-check: `count=0`, ids: none.
 - Policy note: rust lane remains active and TS lane remains archived historical evidence only.
 
+### Phase G transition note (kickoff baseline)
+
+- Phase F hard-gate closure (`no-dr3`) is complete and preserved as historical evidence.
+- Active execution state is now Phase G kickoff baseline.
+- `UT-E-003` and `UT-E-004` are in maintenance mode; reopen only on new behavior-class discovery.
+- Blocker visibility: `no-3uj` remains open for git/Dolt remote + sync readiness.
+
 ### Phase I0 - Foundation and Shared Contracts
 
 - Modules/files: `src/root.zig`, `src/limits.zig`, `src/errors.zig`, `build.zig` test wiring.
