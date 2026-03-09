@@ -37,6 +37,10 @@ This artifact is finalized for implementation execution and is aligned to:
   trust-boundary API shape, compatibility isolation, and caller-owned buffer conventions.
 - `PE-011`: evaluate compatibility and ergonomics through an explicit Layer 2 adapter track; use
   `OQ-E-006` to decide adapter behavior and freeze it only after vectors and usability evidence.
+- `PE-012`: adopt Phase F parity execution model v1 for interop parity-all lanes: canonical taxonomy
+  (`LIB_SUPPORTED`, `HARNESS_COVERED`, `NOT_COVERED_IN_THIS_PASS`, `LIB_UNSUPPORTED`), canonical
+  depth labels (`BASELINE`, `EDGE`, `DEEP`), non-zero exit only on `HARNESS_COVERED` failures,
+  and no default use of overloaded `unsupported` wording.
 
 ## Strategic Notes
 
@@ -92,6 +96,11 @@ Implementation status snapshot (post-I7 closure):
 - Trigger-governance status: no `UT-E-001`/`A-D-001` trigger criteria fired, so no
   policy/default changes were considered.
 - Rule remains: any future trigger firing requires a decision-log entry before any default changes.
+- Phase F parity model v1 canonical artifacts are active:
+  - `docs/plans/phase-f-parity-matrix.md`
+  - `docs/plans/phase-f-parity-ledger.md`
+- Policy note: parity model v1 adoption changes interop reporting shape only; strictness/default
+  policy remains unchanged.
 - Layer 2 compatibility/ergonomic adapter work remains deferred until Layer 1 execution and
   `OQ-E-006` closure.
 

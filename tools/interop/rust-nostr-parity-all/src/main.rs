@@ -16,10 +16,66 @@ use nostr::{Event, EventBuilder, EventId, JsonUtil, Keys, Kind, PublicKey, Relay
 use rand::{CryptoRng, RngCore};
 use serde::Deserialize;
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[allow(dead_code)]
+enum Taxonomy {
+    LibSupported,
+    HarnessCovered,
+    NotCoveredInThisPass,
+    LibUnsupported,
+}
+
+impl Taxonomy {
+    fn as_str(self) -> &'static str {
+        match self {
+            Taxonomy::LibSupported => "LIB_SUPPORTED",
+            Taxonomy::HarnessCovered => "HARNESS_COVERED",
+            Taxonomy::NotCoveredInThisPass => "NOT_COVERED_IN_THIS_PASS",
+            Taxonomy::LibUnsupported => "LIB_UNSUPPORTED",
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+enum Depth {
+    Baseline,
+    Edge,
+    Deep,
+}
+
+impl Depth {
+    fn as_str(self) -> &'static str {
+        match self {
+            Depth::Baseline => "BASELINE",
+            Depth::Edge => "EDGE",
+            Depth::Deep => "DEEP",
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum CheckResult {
+    Pass,
+    Fail,
+    NotRun,
+}
+
+impl CheckResult {
+    fn as_str(self) -> &'static str {
+        match self {
+            CheckResult::Pass => "PASS",
+            CheckResult::Fail => "FAIL",
+            CheckResult::NotRun => "NOT_RUN",
+        }
+    }
+}
+
 #[derive(Clone)]
 struct NipResult {
     nip: &'static str,
-    status: &'static str,
+    taxonomy: Taxonomy,
+    depth: Depth,
+    result: CheckResult,
     detail: Option<String>,
 }
 
@@ -98,19 +154,38 @@ fn parse_keys() -> Result<Keys, String> {
         .map_err(|e| format!("keys parse: {e}"))
 }
 
-fn push_supported(results: &mut Vec<NipResult>, nip: &'static str, result: Result<(), String>) {
+fn push_harness_covered(
+    results: &mut Vec<NipResult>,
+    nip: &'static str,
+    depth: Depth,
+    result: Result<(), String>,
+) {
     match result {
         Ok(()) => results.push(NipResult {
             nip,
-            status: "PASS",
+            taxonomy: Taxonomy::HarnessCovered,
+            depth,
+            result: CheckResult::Pass,
             detail: None,
         }),
         Err(detail) => results.push(NipResult {
             nip,
-            status: "FAIL",
+            taxonomy: Taxonomy::HarnessCovered,
+            depth,
+            result: CheckResult::Fail,
             detail: Some(detail),
         }),
     }
+}
+
+fn push_not_covered(results: &mut Vec<NipResult>, nip: &'static str, depth: Depth, detail: &str) {
+    results.push(NipResult {
+        nip,
+        taxonomy: Taxonomy::NotCoveredInThisPass,
+        depth,
+        result: CheckResult::NotRun,
+        detail: Some(detail.to_string()),
+    });
 }
 
 fn check_nip01() -> Result<(), String> {
@@ -296,8 +371,8 @@ fn check_nip44() -> Result<(), String> {
         let conversation_key = parse_array_32("key", &fixture.conversation_key_hex)
             .map(ConversationKey::new)
             .map_err(|e| format!("fixture key parse: {e}"))?;
-        let nonce = parse_array_32("nonce", &fixture.nonce_hex)
-            .map_err(|e| format!("fixture nonce parse: {e}"))?;
+        let nonce =
+            parse_array_32("nonce", &fixture.nonce_hex).map_err(|e| format!("fixture nonce parse: {e}"))?;
         let payload = STANDARD
             .decode(&fixture.payload_expectation_base64)
             .map_err(|e| format!("fixture payload decode: {e}"))?;
@@ -311,9 +386,8 @@ fn check_nip44() -> Result<(), String> {
         }
 
         let mut rng = FixedNonceRng::new(nonce);
-        let encrypted =
-            encrypt_to_bytes_with_rng(&mut rng, &conversation_key, fixture.plaintext.as_bytes())
-                .map_err(|e| format!("encrypt failure: {e}"))?;
+        let encrypted = encrypt_to_bytes_with_rng(&mut rng, &conversation_key, fixture.plaintext.as_bytes())
+            .map_err(|e| format!("encrypt failure: {e}"))?;
         let encoded = STANDARD.encode(encrypted);
         if encoded != fixture.payload_expectation_base64 {
             return Err("fixture encrypt mismatch".to_string());
@@ -357,10 +431,8 @@ async fn check_nip59() -> Result<(), String> {
 
 fn check_nip65() -> Result<(), String> {
     let keys = parse_keys()?;
-    let relay_a =
-        RelayUrl::parse("wss://relay-a.example").map_err(|e| format!("relay-a parse: {e}"))?;
-    let relay_b =
-        RelayUrl::parse("wss://relay-b.example").map_err(|e| format!("relay-b parse: {e}"))?;
+    let relay_a = RelayUrl::parse("wss://relay-a.example").map_err(|e| format!("relay-a parse: {e}"))?;
+    let relay_b = RelayUrl::parse("wss://relay-b.example").map_err(|e| format!("relay-b parse: {e}"))?;
     let event = EventBuilder::relay_list([
         (relay_a.clone(), Some(RelayMetadata::Read)),
         (relay_b.clone(), Some(RelayMetadata::Write)),
@@ -394,60 +466,79 @@ fn check_nip65() -> Result<(), String> {
 async fn main() {
     let mut results: Vec<NipResult> = Vec::new();
 
-    push_supported(&mut results, "NIP-01", check_nip01());
-    push_supported(&mut results, "NIP-02", check_nip02());
-    push_supported(&mut results, "NIP-09", check_nip09());
-    push_supported(&mut results, "NIP-11", check_nip11());
-    push_supported(&mut results, "NIP-13", check_nip13());
-    push_supported(&mut results, "NIP-19", check_nip19());
-    push_supported(&mut results, "NIP-21", check_nip21());
-    push_supported(&mut results, "NIP-42", check_nip42());
-    push_supported(&mut results, "NIP-44", check_nip44());
-    push_supported(&mut results, "NIP-59", check_nip59().await);
-    push_supported(&mut results, "NIP-65", check_nip65());
+    push_harness_covered(&mut results, "NIP-01", Depth::Baseline, check_nip01());
+    push_harness_covered(&mut results, "NIP-02", Depth::Baseline, check_nip02());
+    push_harness_covered(&mut results, "NIP-09", Depth::Baseline, check_nip09());
+    push_harness_covered(&mut results, "NIP-11", Depth::Baseline, check_nip11());
+    push_harness_covered(&mut results, "NIP-13", Depth::Baseline, check_nip13());
+    push_harness_covered(&mut results, "NIP-19", Depth::Edge, check_nip19());
+    push_harness_covered(&mut results, "NIP-21", Depth::Edge, check_nip21());
+    push_harness_covered(&mut results, "NIP-42", Depth::Edge, check_nip42());
+    push_harness_covered(&mut results, "NIP-44", Depth::Deep, check_nip44());
+    push_harness_covered(&mut results, "NIP-59", Depth::Baseline, check_nip59().await);
+    push_harness_covered(&mut results, "NIP-65", Depth::Edge, check_nip65());
 
-    for nip in ["NIP-40", "NIP-70", "NIP-45", "NIP-50", "NIP-77"] {
-        results.push(NipResult {
+    for nip in ["NIP-40", "NIP-45", "NIP-50", "NIP-70", "NIP-77"] {
+        push_not_covered(
+            &mut results,
             nip,
-            status: "UNSUPPORTED",
-            detail: Some("no rust-nostr overlap helper in this pass".to_string()),
-        });
+            Depth::Baseline,
+            "implemented in noztr; no overlap check added in this pass",
+        );
     }
 
     let mut pass_count = 0usize;
     let mut fail_count = 0usize;
-    let mut unsupported_count = 0usize;
+    let mut harness_covered_count = 0usize;
+    let mut lib_supported_count = 0usize;
+    let mut not_covered_count = 0usize;
+    let mut lib_unsupported_count = 0usize;
 
     for result in &results {
-        match result.status {
-            "PASS" => {
-                pass_count += 1;
-                println!("{} PASS", result.nip);
+        match result.taxonomy {
+            Taxonomy::HarnessCovered => {
+                harness_covered_count += 1;
+                if result.result == CheckResult::Pass {
+                    pass_count += 1;
+                } else if result.result == CheckResult::Fail {
+                    fail_count += 1;
+                }
             }
-            "FAIL" => {
-                fail_count += 1;
-                println!(
-                    "{} FAIL{}",
-                    result.nip,
-                    result
-                        .detail
-                        .as_ref()
-                        .map(|d| format!(": {d}"))
-                        .unwrap_or_default()
-                );
+            Taxonomy::LibSupported => {
+                lib_supported_count += 1;
             }
-            _ => {
-                unsupported_count += 1;
-                println!("{} UNSUPPORTED", result.nip);
+            Taxonomy::NotCoveredInThisPass => {
+                not_covered_count += 1;
+            }
+            Taxonomy::LibUnsupported => {
+                lib_unsupported_count += 1;
             }
         }
+
+        let detail = result
+            .detail
+            .as_ref()
+            .map(|d| format!(" | detail={d}"))
+            .unwrap_or_default();
+        println!(
+            "{} | taxonomy={} | depth={} | result={}{}",
+            result.nip,
+            result.taxonomy.as_str(),
+            result.depth.as_str(),
+            result.result.as_str(),
+            detail
+        );
     }
 
     println!(
-        "SUMMARY pass={} fail={} unsupported={} total={}",
+        "SUMMARY pass={} fail={} harness_covered={} lib_supported={} \
+not_covered_in_this_pass={} lib_unsupported={} total={}",
         pass_count,
         fail_count,
-        unsupported_count,
+        harness_covered_count,
+        lib_supported_count,
+        not_covered_count,
+        lib_unsupported_count,
         results.len()
     );
 

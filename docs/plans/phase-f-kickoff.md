@@ -31,6 +31,14 @@ Purpose: start Phase F execution tracking on the post-I7 baseline without changi
 - Phase F Step 8 ts-nostr parity-all matrix pass is recorded in
   `docs/plans/phase-f-risk-burndown.md` and
   `docs/plans/phase-f-ts-nostr-tools-parity.md`.
+- Phase F Step 10 parity model v1 rollout is recorded in
+  `docs/plans/phase-f-risk-burndown.md` and canonicalized in:
+  - `docs/plans/phase-f-parity-matrix.md`
+  - `docs/plans/phase-f-parity-ledger.md`
+- Parity-all lanes now emit taxonomy/depth output fields with stable parse shape:
+  `NIP-XX | taxonomy=<...> | depth=<...> | result=<...>`.
+- Implemented but untested NIPs are reported as `NOT_COVERED_IN_THIS_PASS`
+  (not `LIB_UNSUPPORTED` by default).
 - Phase F Step 9 rust-nostr parity-all depth notch (malformed/edge expansion with same
   coverage set) is recorded in `docs/plans/phase-f-risk-burndown.md` and
   `docs/plans/phase-f-rust-nostr-parity.md`.
@@ -73,15 +81,14 @@ Burn-down guardrail: execute these tasks as depth expansion only; do not change 
 - Step 6 persistent cross-language replay status: executed
   (`UT-E-003-FX-001`..`UT-E-003-FX-005` passed in persistent Go/Rust/TypeScript harnesses).
 - Step 7 rust-nostr parity-all status: executed (all supported overlap checks passed; implemented
-  unsupported NIPs explicitly reported as `UNSUPPORTED`).
+  untested NIPs explicitly reported as `NOT_COVERED_IN_THIS_PASS`).
 - Step 8 ts-nostr parity-all status: executed (all supported overlap checks passed; implemented
-  unsupported NIPs explicitly reported as `UNSUPPORTED`).
+  untested NIPs explicitly reported as `NOT_COVERED_IN_THIS_PASS`).
 - Step 9 rust-nostr parity-all depth-notch status: executed (supported overlap checks passed with
-  added malformed/edge negatives for `NIP-19/21/42/44/65`; implemented unsupported NIPs unchanged).
+  added malformed/edge negatives for `NIP-19/21/42/44/65`; implemented untested NIPs unchanged).
 - Canonical evidence artifact: `docs/plans/phase-f-risk-burndown.md`.
-- Canonical parity matrix artifact: `docs/plans/phase-f-rust-nostr-parity.md`.
-- Canonical parity matrix artifact (TypeScript lane):
-  `docs/plans/phase-f-ts-nostr-tools-parity.md`.
+- Canonical parity matrix artifact: `docs/plans/phase-f-parity-matrix.md`.
+- Canonical parity ledger artifact: `docs/plans/phase-f-parity-ledger.md`.
 - Canonical replay input artifact: `docs/plans/phase-f-replay-inputs.md`.
 - Defaults/frozen policy status: unchanged.
 - Step 5 governance status: no `UT-E-001`/`A-D-001` trigger criteria fired, so no

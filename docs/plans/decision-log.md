@@ -422,6 +422,31 @@ Immutable record of accepted planning decisions.
   policy/default changes were considered.
 - Rule note: any future trigger firing requires a decision-log entry before any default changes.
 
+## D-026: Adopt Phase F parity execution model v1
+
+- Date: 2026-03-09
+- Status: accepted
+- Decision: adopt parity execution model v1 for parity-all interop harnesses and docs with:
+  - canonical taxonomy terms: `LIB_SUPPORTED`, `HARNESS_COVERED`,
+    `NOT_COVERED_IN_THIS_PASS`, `LIB_UNSUPPORTED`.
+  - canonical depth labels: `BASELINE`, `EDGE`, `DEEP`.
+  - stable output shape per check: `NIP-XX | taxonomy=<...> | depth=<...> | result=<...>`.
+  - non-zero process exit only when a `HARNESS_COVERED` check fails.
+  - implemented-but-untested NIPs default to `NOT_COVERED_IN_THIS_PASS`.
+  - `LIB_UNSUPPORTED` is emitted only when explicitly proven in harness code.
+  - canonical parity status lives in:
+    - `docs/plans/phase-f-parity-matrix.md`
+    - `docs/plans/phase-f-parity-ledger.md`
+- Why: remove overloaded unsupported wording, stabilize machine/human parse output, and keep one
+  canonical parity status source across lanes.
+- Tradeoff: extra taxonomy/depth bookkeeping versus clearer parity semantics and lower status drift.
+- Related Tradeoff: T-0-004, T-E-001.
+- Reversal Trigger: taxonomy/depth model adds sustained maintenance cost without improving parity
+  traceability.
+- Supersedes: none
+
+- Policy note: this adoption introduces no frozen-default or strictness-policy change.
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

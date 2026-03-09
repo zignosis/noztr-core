@@ -30,7 +30,7 @@ This handoff captures the current documentation status and immediate direction f
 - Persistent rust-nostr parity-all harness is now maintained at
   `tools/interop/rust-nostr-parity-all` for full implemented-NIP overlap checks.
 - rust-nostr parity-all matrix pass is recorded as `pass` in
-  `docs/plans/phase-f-rust-nostr-parity.md` with explicit `UNSUPPORTED` reporting for
+  `docs/plans/phase-f-rust-nostr-parity.md` with `NOT_COVERED_IN_THIS_PASS` reporting for
   `NIP-40`, `NIP-45`, `NIP-50`, `NIP-70`, `NIP-77`.
 - rust-nostr parity-all depth-notch expansion is recorded as `pass` in
   `docs/plans/phase-f-rust-nostr-parity.md` and `docs/plans/phase-f-risk-burndown.md`
@@ -40,9 +40,16 @@ This handoff captures the current documentation status and immediate direction f
   `tools/interop/ts-nostr-parity-all` for full implemented-NIP overlap checks in the
   TypeScript lane.
 - ts-nostr parity-all matrix pass is recorded as `pass` in
-  `docs/plans/phase-f-ts-nostr-tools-parity.md` with explicit `UNSUPPORTED` reporting for
+  `docs/plans/phase-f-ts-nostr-tools-parity.md` with `NOT_COVERED_IN_THIS_PASS` reporting for
   `NIP-02`, `NIP-09`, `NIP-11`, `NIP-40`, `NIP-45`, `NIP-50`, `NIP-59`, `NIP-65`,
   `NIP-70`, `NIP-77`.
+- Parity execution model v1 is now adopted with canonical taxonomy/depth output in both
+  parity-all harnesses.
+- Canonical parity artifacts are now:
+  - `docs/plans/phase-f-parity-matrix.md`
+  - `docs/plans/phase-f-parity-ledger.md`
+- Policy note: parity model v1 adoption changes reporting shape only; no frozen-default or
+  strictness-policy change.
 - Step 3 local replay expansion for `UT-E-004` is recorded as `pass` in
   `docs/plans/phase-f-risk-burndown.md`.
 - Step 3 typed-class mapping stability for `UT-E-004` is recorded as `no-drift`;
@@ -372,6 +379,10 @@ This handoff captures the current documentation status and immediate direction f
   - `tools/interop/ts-nostr-parity-all/tsconfig.json`
   - `tools/interop/ts-nostr-parity-all/index.ts`
   - `docs/plans/phase-f-ts-nostr-tools-parity.md`
+
+- Created (Phase F parity model v1 canonical artifacts):
+  - `docs/plans/phase-f-parity-matrix.md`
+  - `docs/plans/phase-f-parity-ledger.md`
 
 - Updated (Phase F rust parity-all tracking):
   - `tools/interop/README.md`

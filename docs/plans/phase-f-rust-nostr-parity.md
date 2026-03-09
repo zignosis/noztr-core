@@ -8,32 +8,23 @@ Purpose: record one-pass rust-nostr overlap validation for all currently impleme
 
 - `PF-RNP-001`: add persistent harness `tools/interop/rust-nostr-parity-all` for reusable
   overlap checks across implemented and future NIPs.
-- `PF-RNP-002`: classify this pass as `pass` when all supported overlap checks return `PASS`.
-- `PF-RNP-003`: report explicit `UNSUPPORTED` for implemented NIPs without rust-nostr overlap
-  helpers in this pass (`NIP-40`, `NIP-45`, `NIP-50`, `NIP-70`, `NIP-77`).
+- `PF-RNP-002`: adopt parity model v1 taxonomy/depth output in the rust parity-all harness.
+- `PF-RNP-003`: use canonical matrix/ledger artifacts for parity status;
+  this document is lane-local execution evidence only.
 - `PF-RNP-004`: expand depth (not breadth) for supported overlap checks with one malformed/edge
   notch in `NIP-19`, `NIP-21`, `NIP-42`, `NIP-44`, and `NIP-65`.
 
-## Parity Matrix
+## Canonical References
 
-| NIP | rust-nostr support status | validation outcome | command/evidence reference | notes |
-| --- | --- | --- | --- | --- |
-| NIP-01 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | event parse/verify baseline |
-| NIP-02 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | contact-list builder/tag presence |
-| NIP-09 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | deletion builder semantics baseline |
-| NIP-11 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | relay-info parse/roundtrip baseline |
-| NIP-13 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | deterministic leading-zero sample |
-| NIP-19 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | bech32 roundtrip plus invalid-prefix and invalid-decode negative assertions |
-| NIP-21 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | nostr URI roundtrip plus invalid-URI and forbidden-entity (`nsec`) negative assertions |
-| NIP-40 | unsupported overlap | UNSUPPORTED | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | explicit unsupported report |
-| NIP-42 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | auth helper plus challenge-mismatch, relay-mismatch, and non-auth-kind negative assertions |
-| NIP-44 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | replays `tools/interop/fixtures/nip44_ut_e_003.json` plus malformed-payload negative assertion |
-| NIP-45 | unsupported overlap | UNSUPPORTED | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | explicit unsupported report |
-| NIP-50 | unsupported overlap | UNSUPPORTED | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | explicit unsupported report |
-| NIP-59 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | gift-wrap unwrap happy-path baseline |
-| NIP-65 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | relay metadata extraction plus invalid-marker negative assertion |
-| NIP-70 | unsupported overlap | UNSUPPORTED | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | explicit unsupported report |
-| NIP-77 | unsupported overlap | UNSUPPORTED | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | explicit unsupported report |
+- Canonical side-by-side parity matrix: `docs/plans/phase-f-parity-matrix.md`.
+- Canonical parity ledger and deltas: `docs/plans/phase-f-parity-ledger.md`.
+
+## Rust Lane Evidence
+
+- Command: `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`.
+- Output contract: `NIP-XX | taxonomy=<...> | depth=<...> | result=<...>` with summary counters.
+- Current lane result: `pass` (`HARNESS_COVERED` checks all `PASS`; remaining implemented NIPs are
+  `NOT_COVERED_IN_THIS_PASS`).
 
 Pass classification: `pass`.
 

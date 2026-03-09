@@ -8,35 +8,25 @@ Purpose: record one-pass `nostr-tools` overlap validation for all currently impl
 
 - `PF-TNP-001`: add persistent harness `tools/interop/ts-nostr-parity-all` for reusable overlap
   checks across implemented and future NIPs.
-- `PF-TNP-002`: classify this pass as `pass` when all supported overlap checks return `PASS`.
-- `PF-TNP-003`: report explicit `UNSUPPORTED` for implemented NIPs without sufficient
-  `nostr-tools` overlap helpers in this pass (`NIP-02`, `NIP-09`, `NIP-11`, `NIP-40`, `NIP-45`,
-  `NIP-50`, `NIP-59`, `NIP-65`, `NIP-70`, `NIP-77`).
+- `PF-TNP-002`: adopt parity model v1 taxonomy/depth output in the TypeScript parity-all harness.
+- `PF-TNP-003`: use canonical matrix/ledger artifacts for parity status;
+  this document is lane-local execution evidence only.
 
-## Parity Matrix
+## Canonical References
 
-| NIP | `nostr-tools` support status | validation outcome | command/evidence reference | notes |
-| --- | --- | --- | --- | --- |
-| NIP-01 | supported overlap | PASS | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | finalize/verify baseline (`finalizeEvent`, `verifyEvent`, `getEventHash`) |
-| NIP-02 | unsupported overlap | UNSUPPORTED | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | explicit unsupported report |
-| NIP-09 | unsupported overlap | UNSUPPORTED | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | explicit unsupported report |
-| NIP-11 | unsupported overlap | UNSUPPORTED | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | explicit unsupported report |
-| NIP-13 | supported overlap | PASS | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | deterministic PoW helper sample (`getPow`) |
-| NIP-19 | supported overlap | PASS | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | encode/decode roundtrip (`npub`, `note`) |
-| NIP-21 | supported overlap | PASS | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | parse/roundtrip baseline (`nostr:` URI) |
-| NIP-40 | unsupported overlap | UNSUPPORTED | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | explicit unsupported report |
-| NIP-42 | supported overlap | PASS | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | `makeAuthEvent` baseline structure |
-| NIP-44 | supported overlap | PASS | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | fixture replay (`tools/interop/fixtures/nip44_ut_e_003.json`) |
-| NIP-45 | unsupported overlap | UNSUPPORTED | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | explicit unsupported report |
-| NIP-50 | unsupported overlap | UNSUPPORTED | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | explicit unsupported report |
-| NIP-59 | unsupported overlap | UNSUPPORTED | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | explicit unsupported report |
-| NIP-65 | unsupported overlap | UNSUPPORTED | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | explicit unsupported report |
-| NIP-70 | unsupported overlap | UNSUPPORTED | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | explicit unsupported report |
-| NIP-77 | unsupported overlap | UNSUPPORTED | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | explicit unsupported report |
+- Canonical side-by-side parity matrix: `docs/plans/phase-f-parity-matrix.md`.
+- Canonical parity ledger and deltas: `docs/plans/phase-f-parity-ledger.md`.
+
+## TypeScript Lane Evidence
+
+- Command: `npm run run` (in `tools/interop/ts-nostr-parity-all`).
+- Output contract: `NIP-XX | taxonomy=<...> | depth=<...> | result=<...>` with summary counters.
+- Current lane result: `pass` (`HARNESS_COVERED` checks all `PASS`; remaining implemented NIPs are
+  `NOT_COVERED_IN_THIS_PASS`).
 
 Harness summary output:
 
-- `SUMMARY pass=6 fail=0 unsupported=10 total=16`
+- `SUMMARY pass=6 fail=0 harness_covered=6 lib_supported=0 not_covered_in_this_pass=10 lib_unsupported=0 total=16`
 
 Pass classification: `pass`.
 

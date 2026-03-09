@@ -101,3 +101,13 @@ It complements TigerStyle and v1 planning artifacts with project-specific defaul
 - Explicit bounds and fixed-capacity runtime state.
 - One obvious safe trust-boundary call per misuse-prone module.
 - Compatibility behavior isolated and opt-in.
+
+## Parity Reporting Model v1
+
+- Interop parity-all harnesses use canonical taxonomy terms only:
+  `LIB_SUPPORTED`, `HARNESS_COVERED`, `NOT_COVERED_IN_THIS_PASS`, `LIB_UNSUPPORTED`.
+- Interop parity-all harnesses label check depth as `BASELINE`, `EDGE`, or `DEEP`.
+- Do not use overloaded `unsupported` wording in parity status reporting.
+- Implemented-but-untested NIPs default to `NOT_COVERED_IN_THIS_PASS`.
+- Emit `LIB_UNSUPPORTED` only when unsupported status is explicitly proven in harness code.
+- Policy guardrail: reporting model changes do not change strict defaults or strictness policy.

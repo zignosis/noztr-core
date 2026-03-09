@@ -184,7 +184,7 @@ Step 6 conclusion:
 
 | Step | Risk ID | Command | Result | Outcome classification | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `7` | `UT-E-003` | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | pass (`NIP-01/02/09/11/13/19/21/42/44/59/65 PASS`; `NIP-40/45/50/70/77 UNSUPPORTED`) | `pass` | supported overlap checks passed; unsupported NIPs explicitly reported |
+| `7` | `UT-E-003` | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | pass (`HARNESS_COVERED` checks `PASS`; `NIP-40/45/50/70/77 NOT_COVERED_IN_THIS_PASS`) | `pass` | supported overlap checks passed; non-covered implemented NIPs explicitly classified |
 
 Step 7 conclusion:
 - rust-nostr parity-all pass classification is `pass` for this execution slice.
@@ -200,7 +200,7 @@ Step 7 conclusion:
 
 | Step | Risk ID | Command | Result | Outcome classification | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `8` | `UT-E-003` | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | pass (`NIP-01/13/19/21/42/44 PASS`; `NIP-02/09/11/40/45/50/59/65/70/77 UNSUPPORTED`; `SUMMARY pass=6 fail=0 unsupported=10 total=16`) | `pass` | supported overlap checks passed; remaining implemented NIPs explicitly reported as `UNSUPPORTED` |
+| `8` | `UT-E-003` | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | pass (`HARNESS_COVERED` checks `PASS`; `NIP-02/09/11/40/45/50/59/65/70/77 NOT_COVERED_IN_THIS_PASS`; summary contract includes taxonomy counters) | `pass` | supported overlap checks passed; remaining implemented NIPs explicitly classified |
 
 Step 8 conclusion:
 - ts-nostr parity-all pass classification is `pass` for this execution slice.
@@ -215,12 +215,30 @@ Step 8 conclusion:
 
 | Step | Risk ID | Command | Result | Outcome classification | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `9` | `UT-E-003` | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | pass (`NIP-01/02/09/11/13/19/21/42/44/59/65 PASS`; `NIP-40/45/50/70/77 UNSUPPORTED`; `SUMMARY pass=11 fail=0 unsupported=5 total=16`) | `pass` | coverage set unchanged; added malformed/edge negatives for `NIP-19/21/42/44/65` |
+| `9` | `UT-E-003` | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | pass (`NIP-01/02/09/11/13/19/21/42/44/59/65 HARNESS_COVERED PASS`; `NIP-40/45/50/70/77 NOT_COVERED_IN_THIS_PASS NOT_RUN`) | `pass` | coverage set unchanged; added malformed/edge negatives for `NIP-19/21/42/44/65` |
 | `9` | `UT-E-004` | `zig build test --summary all && zig build` | pass (`454/456` tests passed, `2` skipped; build pass) | `pass` | aggregate gate remains green after parity-depth increment |
 
 Step 9 conclusion:
 - rust-nostr parity-all depth-notch classification is `pass`.
 - Coverage breadth is unchanged; only supported-check malformed/edge depth increased.
+- Explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
+
+## Step 10 Pass Entry (Parity Model v1 rollout)
+
+- Step: 10 (adopt parity model v1 taxonomy/depth contract and canonical matrix/ledger docs).
+- Canonical parity artifacts:
+  - `docs/plans/phase-f-parity-matrix.md`
+  - `docs/plans/phase-f-parity-ledger.md`
+
+| Step | Risk ID | Command | Result | Outcome classification | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `10` | `UT-E-003` | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | pass (`SUMMARY pass=11 fail=0 harness_covered=11 lib_supported=0 not_covered_in_this_pass=5 lib_unsupported=0 total=16`) | `pass` | output now includes stable `taxonomy` and `depth` fields |
+| `10` | `UT-E-003` | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | pass (`SUMMARY pass=6 fail=0 harness_covered=6 lib_supported=0 not_covered_in_this_pass=10 lib_unsupported=0 total=16`) | `pass` | output now includes stable `taxonomy` and `depth` fields |
+| `10` | `UT-E-004` | `zig build test --summary all && zig build` | pass (`454/456` tests passed, `2` skipped; build pass) | `pass` | aggregate gates remain green after rollout |
+
+Step 10 conclusion:
+- Parity model v1 is adopted as the Phase F execution model baseline.
+- No overloaded `unsupported` wording remains in parity-all lane reporting.
 - Explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
 
 ## Next Burndown Tasks

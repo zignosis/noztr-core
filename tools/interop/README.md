@@ -2,6 +2,22 @@
 
 Persistent interop harnesses for NIP-44 replay and parity-all checks.
 
+## Parity Model v1 (taxonomy + depth)
+
+- Taxonomy terms (canonical):
+  - `LIB_SUPPORTED`
+  - `HARNESS_COVERED`
+  - `NOT_COVERED_IN_THIS_PASS`
+  - `LIB_UNSUPPORTED`
+- Depth labels (canonical):
+  - `BASELINE`
+  - `EDGE`
+  - `DEEP`
+- Default rule for this rollout:
+  - implemented `noztr` NIPs without an executed overlap check are
+    `NOT_COVERED_IN_THIS_PASS`.
+  - do not emit `LIB_UNSUPPORTED` unless the harness code proves it explicitly.
+
 ## Fixture source
 
 - Shared fixture file: `tools/interop/fixtures/nip44_ut_e_003.json`
@@ -46,17 +62,19 @@ npm --prefix tools/interop/ts-nostr-parity-all run run
 
 - Harness path: `tools/interop/rust-nostr-parity-all`
 - Scope: runtime overlap checks for implemented `noztr` NIPs against `nostr` crate (`v0.44.2`).
-- Per-NIP output format: `NIP-XX PASS|FAIL|UNSUPPORTED`
+- Per-NIP output format (stable parse shape):
+  - `NIP-XX | taxonomy=<...> | depth=<...> | result=PASS|FAIL|NOT_RUN [| detail=<...>]`
 - Expected summary shape:
-  - `SUMMARY pass=<n> fail=0 unsupported=<n> total=<n>` on success.
-  - process exits non-zero on any supported-NIP failure.
+  - `SUMMARY pass=<n> fail=<n> harness_covered=<n> lib_supported=<n> not_covered_in_this_pass=<n> lib_unsupported=<n> total=<n>`
+  - process exits non-zero only when a `HARNESS_COVERED` check fails.
 
 ## ts-nostr parity-all harness
 
 - Harness path: `tools/interop/ts-nostr-parity-all`
 - Scope: runtime overlap checks for implemented `noztr` NIPs against `nostr-tools`.
 - Supported checks in this lane: `NIP-01`, `NIP-13`, `NIP-19`, `NIP-21`, `NIP-42`, `NIP-44`.
-- Per-NIP output format: `NIP-XX PASS|FAIL|UNSUPPORTED`
+- Per-NIP output format (stable parse shape):
+  - `NIP-XX | taxonomy=<...> | depth=<...> | result=PASS|FAIL|NOT_RUN [| detail=<...>]`
 - Expected summary shape:
-  - `SUMMARY pass=<n> fail=0 unsupported=<n> total=<n>` on success.
-  - process exits non-zero on any supported-NIP failure.
+  - `SUMMARY pass=<n> fail=<n> harness_covered=<n> lib_supported=<n> not_covered_in_this_pass=<n> lib_unsupported=<n> total=<n>`
+  - process exits non-zero only when a `HARNESS_COVERED` check fails.

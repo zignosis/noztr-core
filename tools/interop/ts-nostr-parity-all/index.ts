@@ -14,11 +14,21 @@ import { makeAuthEvent } from "nostr-tools/nip42";
 import { decrypt, encrypt } from "nostr-tools/nip44";
 import { parse as parseNostrUri } from "nostr-tools/nip21";
 
-type NipStatus = "PASS" | "FAIL" | "UNSUPPORTED";
+type Taxonomy =
+    | "LIB_SUPPORTED"
+    | "HARNESS_COVERED"
+    | "NOT_COVERED_IN_THIS_PASS"
+    | "LIB_UNSUPPORTED";
+
+type Depth = "BASELINE" | "EDGE" | "DEEP";
+
+type CheckResult = "PASS" | "FAIL" | "NOT_RUN";
 
 type NipResult = {
     nip: string;
-    status: NipStatus;
+    taxonomy: Taxonomy;
+    depth: Depth;
+    result: CheckResult;
     detail?: string;
 };
 
@@ -58,14 +68,35 @@ function ensure(condition: boolean, detail: string): void {
     }
 }
 
-function push_supported(results: NipResult[], nip: string, check: () => void): void {
+function push_harness_covered(
+    results: NipResult[],
+    nip: string,
+    depth: Depth,
+    check: () => void,
+): void {
     try {
         check();
-        results.push({ nip, status: "PASS" });
+        results.push({ nip, taxonomy: "HARNESS_COVERED", depth, result: "PASS" });
     } catch (error) {
         const detail = error instanceof Error ? error.message : String(error);
-        results.push({ nip, status: "FAIL", detail });
+        results.push({
+            nip,
+            taxonomy: "HARNESS_COVERED",
+            depth,
+            result: "FAIL",
+            detail,
+        });
     }
+}
+
+function push_not_covered(results: NipResult[], nip: string, depth: Depth, detail: string): void {
+    results.push({
+        nip,
+        taxonomy: "NOT_COVERED_IN_THIS_PASS",
+        depth,
+        result: "NOT_RUN",
+        detail,
+    });
 }
 
 function check_nip01(): void {
@@ -172,12 +203,12 @@ function check_nip44(): void {
 function main(): void {
     const results: NipResult[] = [];
 
-    push_supported(results, "NIP-01", check_nip01);
-    push_supported(results, "NIP-13", check_nip13);
-    push_supported(results, "NIP-19", check_nip19);
-    push_supported(results, "NIP-21", check_nip21);
-    push_supported(results, "NIP-42", check_nip42);
-    push_supported(results, "NIP-44", check_nip44);
+    push_harness_covered(results, "NIP-01", "BASELINE", check_nip01);
+    push_harness_covered(results, "NIP-13", "BASELINE", check_nip13);
+    push_harness_covered(results, "NIP-19", "EDGE", check_nip19);
+    push_harness_covered(results, "NIP-21", "EDGE", check_nip21);
+    push_harness_covered(results, "NIP-42", "EDGE", check_nip42);
+    push_harness_covered(results, "NIP-44", "DEEP", check_nip44);
 
     for (const nip of [
         "NIP-02",
@@ -191,39 +222,52 @@ function main(): void {
         "NIP-70",
         "NIP-77",
     ]) {
-        results.push({
+        push_not_covered(
+            results,
             nip,
-            status: "UNSUPPORTED",
-            detail: "no nostr-tools overlap helper in this pass",
-        });
+            "BASELINE",
+            "implemented in noztr; no overlap check added in this pass",
+        );
     }
 
     let pass_count = 0;
     let fail_count = 0;
-    let unsupported_count = 0;
+    let harness_covered_count = 0;
+    let lib_supported_count = 0;
+    let not_covered_count = 0;
+    let lib_unsupported_count = 0;
 
     for (const result of results) {
-        if (result.status === "PASS") {
-            pass_count += 1;
-            console.log(`${result.nip} PASS`);
-            continue;
-        }
-
-        if (result.status === "FAIL") {
-            fail_count += 1;
-            console.log(`${result.nip} FAIL`);
-            if (result.detail !== undefined) {
-                console.log(`  detail: ${result.detail}`);
+        if (result.taxonomy === "HARNESS_COVERED") {
+            harness_covered_count += 1;
+            if (result.result === "PASS") {
+                pass_count += 1;
             }
-            continue;
+            if (result.result === "FAIL") {
+                fail_count += 1;
+            }
+        }
+        if (result.taxonomy === "LIB_SUPPORTED") {
+            lib_supported_count += 1;
+        }
+        if (result.taxonomy === "NOT_COVERED_IN_THIS_PASS") {
+            not_covered_count += 1;
+        }
+        if (result.taxonomy === "LIB_UNSUPPORTED") {
+            lib_unsupported_count += 1;
         }
 
-        unsupported_count += 1;
-        console.log(`${result.nip} UNSUPPORTED`);
+        const detail_suffix = result.detail === undefined ? "" : ` | detail=${result.detail}`;
+        console.log(
+            `${result.nip} | taxonomy=${result.taxonomy} | depth=${result.depth} | result=${result.result}${detail_suffix}`,
+        );
     }
 
     console.log(
-        `SUMMARY pass=${pass_count} fail=${fail_count} unsupported=${unsupported_count} total=${results.length}`,
+        "SUMMARY " +
+            `pass=${pass_count} fail=${fail_count} harness_covered=${harness_covered_count} ` +
+            `lib_supported=${lib_supported_count} not_covered_in_this_pass=${not_covered_count} ` +
+            `lib_unsupported=${lib_unsupported_count} total=${results.length}`,
     );
 
     if (fail_count > 0) {
