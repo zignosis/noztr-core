@@ -27,3 +27,5 @@ Malformed boundary increment (deterministic reject corpus):
 - Added case: `UT-E-003-MAL-001` using known-good key
   `c41c775356fd92eadc63ff5a0dc1da211b268cbea22316767095b2871ea1412d`,
   payload `AQ==`, expectation `decrypt_reject`.
+- Added case: `UT-E-003-MAL-002` using the same known-good key,
+  payload `AA==`, expectation `decrypt_reject`.

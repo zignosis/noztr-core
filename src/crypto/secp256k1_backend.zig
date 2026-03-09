@@ -643,7 +643,6 @@ test "wrong-length message and signature classes keep boundary-direct parity" {
                 vector.signature_hex,
                 .invalid_signature,
             );
-
             const short_signature_hex = vector.signature_hex[0 .. vector.signature_hex.len - 2];
             try run_hex_input_parity_case(
                 vector.public_key_hex,
@@ -651,6 +650,52 @@ test "wrong-length message and signature classes keep boundary-direct parity" {
                 short_signature_hex,
                 .invalid_signature,
             );
+            var overlength_message_hex: [66]u8 = undefined;
+            std.mem.copyForwards(u8, overlength_message_hex[0..64], vector.message_hex);
+            overlength_message_hex[64] = '0';
+            overlength_message_hex[65] = '0';
+            const overlength_message_boundary_class = classify_boundary_hex_inputs(
+                vector.public_key_hex,
+                overlength_message_hex[0..],
+                vector.signature_hex,
+            );
+            const overlength_message_direct_class = classify_direct_hex_inputs(
+                vector.public_key_hex,
+                overlength_message_hex[0..],
+                vector.signature_hex,
+            );
+            try std.testing.expectEqual(
+                overlength_message_direct_class,
+                overlength_message_boundary_class,
+            );
+            try std.testing.expectEqual(
+                VerifyClass.invalid_signature,
+                overlength_message_boundary_class,
+            );
+            try std.testing.expect(overlength_message_boundary_class != .backend_unavailable);
+            var overlength_signature_hex: [130]u8 = undefined;
+            std.mem.copyForwards(u8, overlength_signature_hex[0..128], vector.signature_hex);
+            overlength_signature_hex[128] = '0';
+            overlength_signature_hex[129] = '0';
+            const overlength_signature_boundary_class = classify_boundary_hex_inputs(
+                vector.public_key_hex,
+                vector.message_hex,
+                overlength_signature_hex[0..],
+            );
+            const overlength_signature_direct_class = classify_direct_hex_inputs(
+                vector.public_key_hex,
+                vector.message_hex,
+                overlength_signature_hex[0..],
+            );
+            try std.testing.expectEqual(
+                overlength_signature_direct_class,
+                overlength_signature_boundary_class,
+            );
+            try std.testing.expectEqual(
+                VerifyClass.invalid_signature,
+                overlength_signature_boundary_class,
+            );
+            try std.testing.expect(overlength_signature_boundary_class != .backend_unavailable);
         }
     }
 }
