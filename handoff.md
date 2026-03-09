@@ -41,7 +41,8 @@ Current project context for the next Phase F execution slice.
 - `UT-E-004`: active, with expanded typed boundary replay checks recorded as `pass`/`no-drift`,
   including overlength pubkey wrong-shape (`64+2` hex) classified `invalid_public_key` with
   boundary/direct parity, plus overlength message (`64+2`) and signature (`128+2`) wrong-shape
-  cases classified `invalid_signature` with boundary/direct parity.
+  cases classified `invalid_signature` with boundary/direct parity, and odd-length wrong-shape
+  coverage (`63` pubkey/message, `127` signature) passing with the same no-drift parity mapping.
 - Trigger-governance status unchanged: no `UT-E-001`/`A-D-001` trigger criteria fired.
 
 ## Pending Actions

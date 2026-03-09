@@ -33,6 +33,8 @@ Purpose: track active burn-down for `UT-E-003` and `UT-E-004` from the rust-deep
   `invalid_public_key` with boundary/direct parity.
 - `UT-E-004` depth increment added overlength message (`64+2`) and signature (`128+2`) wrong-shape
   cases and passed as `invalid_signature` with boundary/direct parity.
+- `UT-E-004` odd-length wrong-shape class added (`63` pubkey/message, `127` signature) and passing
+  with boundary/direct parity (`no-drift`).
 - `UT-E-003` malformed-boundary increment executed: deterministic `AQ==` reject case added and enforced
   in active rust parity-all harness.
 - `UT-E-003` malformed-boundary increment expanded: second deterministic `AA==` reject case executed
