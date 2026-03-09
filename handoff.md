@@ -44,7 +44,9 @@ Current project context for the next Phase F execution slice.
   cases classified `invalid_signature` with boundary/direct parity, and odd-length wrong-shape
   coverage (`63` pubkey/message, `127` signature) passing with the same no-drift parity mapping,
   plus multi-invalid odd-length precedence coverage (`63` pubkey + `63` message + `127` signature)
-  passing with deterministic `invalid_public_key` precedence.
+  passing with deterministic `invalid_public_key` precedence, plus multi-invalid full-length
+  non-hex precedence coverage (`64` pubkey + `64` message + `128` signature) passing with the same
+  deterministic `invalid_public_key` no-drift mapping.
 - Trigger-governance status unchanged: no `UT-E-001`/`A-D-001` trigger criteria fired.
 
 ## Pending Actions

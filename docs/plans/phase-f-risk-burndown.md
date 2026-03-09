@@ -37,6 +37,9 @@ Purpose: track active burn-down for `UT-E-003` and `UT-E-004` from the rust-deep
   with boundary/direct parity (`no-drift`).
 - `UT-E-004` multi-invalid odd-length precedence case (`63` pubkey + `63` message + `127` signature)
   added and passing with boundary/direct parity and deterministic `invalid_public_key` precedence.
+- `UT-E-004` multi-invalid full-length non-hex precedence case (`64` pubkey + `64` message +
+  `128` signature) added and passing with boundary/direct parity and deterministic
+  `invalid_public_key` precedence (`no-drift`).
 - `UT-E-003` malformed-boundary increment executed: deterministic `AQ==` reject case added and enforced
   in active rust parity-all harness.
 - `UT-E-003` malformed-boundary increment expanded: second deterministic `AA==` reject case executed
