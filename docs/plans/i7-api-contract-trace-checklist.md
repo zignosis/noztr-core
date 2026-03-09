@@ -28,8 +28,6 @@ Status key: `covered` means API symbol exists and is exercised by a direct modul
 | `nip01_message.relay_message_serialize_json` | `src/nip01_message.zig:181` | `src/nip01_message.zig:1659` | covered |
 | `nip01_message.transcript_mark_client_req` | `src/nip01_message.zig:282` | `src/nip01_message.zig:1748` | covered |
 | `nip01_message.transcript_apply_relay` | `src/nip01_message.zig:1187` | `src/nip01_message.zig:1728` | covered |
-| `nip01_message.transcript_apply`* | `src/nip01_message.zig:269` | `src/nip01_message.zig:1750` | covered |
-| `nip01_message.transcript_apply_compat`* | `src/nip01_message.zig:253` | `src/nip01_message.zig:1861` | covered |
 | `nip42_auth.auth_state_init` | `src/nip42_auth.zig:33` | `src/nip42_auth.zig:593` | covered |
 | `nip42_auth.auth_state_set_challenge` | `src/nip42_auth.zig:40` | `src/nip42_auth.zig:594` | covered |
 | `nip42_auth.auth_validate_event` | `src/nip42_auth.zig:61` | `src/nip42_auth.zig:630` | covered |
@@ -44,7 +42,6 @@ Status key: `covered` means API symbol exists and is exercised by a direct modul
 | `nip40_expire.event_is_expired_at` | `src/nip40_expire.zig:30` | `src/nip40_expire.zig:189` | covered |
 | `nip13_pow.pow_leading_zero_bits` | `src/nip13_pow.zig:20` | `src/nip13_pow.zig:285` | covered |
 | `nip13_pow.pow_extract_nonce_target` | `src/nip13_pow.zig:46` | `src/nip13_pow.zig:335` | covered |
-| `nip13_pow.pow_meets_difficulty` | `src/nip13_pow.zig:112` | `src/nip13_pow.zig:325` | covered |
 | `nip13_pow.pow_meets_difficulty_verified_id` | `src/nip13_pow.zig:152` | `src/nip13_pow.zig:523` | covered |
 | `nip19_bech32.nip19_encode` | `src/nip19_bech32.zig:57` | `src/nip19_bech32.zig:673` | covered |
 | `nip19_bech32.nip19_decode` | `src/nip19_bech32.zig:80` | `src/nip19_bech32.zig:674` | covered |
@@ -75,6 +72,4 @@ Status key: `covered` means API symbol exists and is exercised by a direct modul
 | `nip11.nip11_parse_document` | `src/nip11.zig:33` | `src/nip11.zig:354` | covered |
 | `nip11.nip11_validate_known_fields` | `src/nip11.zig:71` | `src/nip11.zig:505` | covered |
 
-`*` Compatibility/extension API surface. Canonical strict transcript flow remains
-`transcript_mark_client_req` + `transcript_apply_relay`; `transcript_apply` and
-`transcript_apply_compat` remain alias-compatible wrappers.
+`*` Compatibility/extension API surface.

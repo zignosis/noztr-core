@@ -58,6 +58,22 @@ Purpose: start Phase F execution tracking on the post-I7 baseline without changi
   - rust lane promoted `NIP-40/45/50/70/77` to executable `HARNESS_COVERED` checks.
   - TS lane promoted `NIP-40/45/50/70` to executable `HARNESS_COVERED` checks, including
     offline mocked-websocket `Relay.count` flow and NIP-40 file-URL import fallback.
+- Phase F Step 14 incremental parity depth raise is recorded in
+  `docs/plans/phase-f-risk-burndown.md` with:
+  - rust lane depth labels raised for `NIP-40` and `NIP-70` after new edge negatives.
+  - TS lane keeps `NIP-40` at `EDGE` with extra negatives and raises `NIP-70` to `EDGE`.
+  - canonical release-facing divergence note added in
+    `docs/release/intentional-divergences.md`.
+- Governance scope update: rust lane remains the only active parity gate lane.
+- TypeScript parity-all lane (`tools/interop/ts-nostr-parity-all`) is archived for historical
+  evidence only and is excluded from active pass/fail cadence.
+- Historical TS parity evidence remains preserved in canonical artifacts.
+- Phase F Step 15 rust `NIP-59` deep parity check is recorded in
+  `docs/plans/phase-f-risk-burndown.md` with deep rejection/consistency outcomes and unchanged
+  output shape.
+- Phase F Step 16 rust all-NIP deep parity sweep is recorded in
+  `docs/plans/phase-f-risk-burndown.md` with `DEEP` depth now recorded for all implemented rust-lane
+  NIPs (`16/16`) and unchanged output/exit semantics.
 - Phase F Step 3 `UT-E-004` replay expansion is recorded in
   `docs/plans/phase-f-risk-burndown.md` with expanded mutation classes and `no-drift`
   typed-class mapping stability.
@@ -109,14 +125,24 @@ Burn-down guardrail: execute these tasks as depth expansion only; do not change 
   `NOT_COVERED_IN_THIS_PASS`; `lib_unsupported=0`).
 - Step 13 remaining-NIP parity expansion status: executed (rust summary `pass=16/fail=0`,
   TS summary `pass=16/fail=0`; both lanes now `HARNESS_COVERED` on all implemented NIPs).
+- Step 14 incremental parity-depth status: executed (rust summary `pass=16/fail=0`,
+  TS summary `pass=16/fail=0`; `NIP-40/NIP-70` depth raised where edge evidence was added).
+- Step 15 rust `NIP-59` deep parity status: executed (rust `NIP-59` is now
+  `taxonomy=HARNESS_COVERED depth=DEEP result=PASS`; noztr `nip59` test filter pass is recorded).
+- Step 16 rust all-NIP deep parity status: executed (rust summary `pass=16/fail=0`; all implemented
+  checks now emit `depth=DEEP` with additional malformed/negative assertions per NIP).
+- Active parity cadence status: rust parity-all harness plus aggregate `zig` gates only.
 - Canonical evidence artifact: `docs/plans/phase-f-risk-burndown.md`.
 - Canonical parity matrix artifact: `docs/plans/phase-f-parity-matrix.md`.
 - Canonical parity ledger artifact: `docs/plans/phase-f-parity-ledger.md`.
+- Canonical release divergence artifact: `docs/release/intentional-divergences.md`.
 - Canonical replay input artifact: `docs/plans/phase-f-replay-inputs.md`.
 - Defaults/frozen policy status: unchanged.
 - Step 5 governance status: no `UT-E-001`/`A-D-001` trigger criteria fired, so no
   policy/default changes were considered.
 - Rule remains: any future trigger firing requires a decision-log entry before any default changes.
+- Policy note: governance scope changed for parity operations only; library behavior defaults are
+  unchanged.
 
 ## Optional Corpus Review Triggers (`UT-E-001` / `A-D-001`)
 

@@ -19,9 +19,8 @@ default freezing.
   semantics.
 - In scope: trust-boundary wrapper ergonomics (`pow_meets_difficulty_verified_id`,
   `delete_extract_targets_checked`, transcript marker/apply functions).
-- In scope: transcript naming cleanup for compatibility aliasing (`transcript_apply_compat`, with
-  `transcript_apply` as alias) and strict canonical path (`transcript_mark_client_req` +
-  `transcript_apply_relay`).
+- In scope: canonical transcript path clarity (`transcript_mark_client_req` +
+  `transcript_apply_relay`) and canonical-only unreleased API wording.
 - Out of scope: transport/runtime integration helpers, post-RC API redesign.
 
 ## Task Battery
@@ -34,7 +33,7 @@ default freezing.
   `EVENT* -> EOSE -> CLOSED` and `REQ -> CLOSED` early-close branch.
 - T5 `auth/protected`: validate strict challenge/relay/timestamp checks and protected-event policy
   coupling.
-- T6 `policy wrappers`: compare wrapper-safe flows vs compatibility helpers for PoW/delete call sites.
+- T6 `policy wrappers`: validate canonical checked wrappers for PoW/delete trust-boundary call sites.
 
 ## Rubric
 
@@ -65,13 +64,12 @@ Initial findings after parity refresh of current docs:
 - `F1`: event API naming drift existed in contracts (`EventComputeIdError` vs implemented
   `EventShapeError`, missing `event_serialize_canonical_json` / checked id surfaces).
 - `F2`: message transcript semantics drift existed in contracts (`CLOSED` now allowed pre-EOSE,
-  plus explicit `transcript_apply` helper).
+  plus canonical `transcript_apply_relay` usage).
 - `F3`: PoW wrapper error naming drift existed in contracts (`InvalidEventId` vs canonical
   `InvalidId` under `PowVerifiedIdError`).
 - `F4`: security follow-up status drift existed for usability sequencing (pending vs started).
-- `F5`: transcript naming needed explicit doc cleanup so compatibility aliasing does not hide the
-  strict canonical path (`transcript_mark_client_req` + `transcript_apply_relay`), while
-  preserving alias discoverability (`transcript_apply_compat` and `transcript_apply`).
+- `F5`: transcript naming needed explicit doc cleanup so canonical strict flow
+  (`transcript_mark_client_req` + `transcript_apply_relay`) is the only public Layer 1 path.
 
 Recommendations:
 
@@ -83,9 +81,8 @@ Recommendations:
   `v1-api-contracts.md` is updated.
 - `REC-4`: track OQ-E-006 progress only through this artifact plus
   `docs/plans/security-hardening-register.md` to avoid status drift.
-- `REC-5`: keep `transcript_apply_compat` documented as compatibility alias only, with canonical
-  strict flow documented as `transcript_mark_client_req` then `transcript_apply_relay`; keep
-  `transcript_apply` documented as alias-equivalent to `transcript_apply_compat`.
+- `REC-5`: document canonical-only transcript flow for unreleased Layer 1 APIs:
+  `transcript_mark_client_req` then `transcript_apply_relay`.
 
 ## Strictness Profile Decision Inputs (Current)
 
@@ -135,9 +132,9 @@ Recommendations:
 
 ## Open Questions
 
-- `OQ-UL-001`: does transcript helper naming (`transcript_apply_compat`/`transcript_apply` aliases
-  versus canonical `transcript_mark_client_req` + `transcript_apply_relay`) require an
-  example-first docs update beyond current signatures to reduce LLM misuse risk.
+- `OQ-UL-001`: does canonical transcript helper naming
+  (`transcript_mark_client_req` + `transcript_apply_relay`) require an example-first docs update
+  beyond current signatures to reduce LLM misuse risk.
 - `OQ-UL-002`: should RC defaults preserve the current strict profile on filter/relay-origin/status
   parsing, or downgrade selected paths for interoperability.
 

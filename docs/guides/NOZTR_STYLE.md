@@ -61,6 +61,7 @@ It complements TigerStyle and v1 planning artifacts with project-specific defaul
 - Compatibility behavior is explicit, isolated, and opt-in.
 - Compatibility adapters must not change strict-default semantics.
 - Every compatibility branch requires typed outcomes, forcing tests, and a tradeoff record.
+- Unreleased Layer 1 API surface is canonical-only: do not publish compatibility alias symbols.
 
 ## One Obvious Way At Trust Boundaries
 

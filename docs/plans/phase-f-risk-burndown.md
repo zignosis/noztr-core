@@ -1,6 +1,6 @@
 # Phase F Risk Burndown
 
-Date: 2026-03-08
+Date: 2026-03-09
 
 Purpose: record the first concrete Phase F execution pass for `UT-E-003` and `UT-E-004`.
 
@@ -308,6 +308,66 @@ Step 13 conclusion:
 - Parity model v1 output shape and exit semantics remain unchanged.
 - Explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
 
+## Step 14 Pass Entry (NIP-40/NIP-70 incremental depth raise)
+
+- Step: 14 (incremental depth raise on newest covered NIPs first, without broad surface churn).
+- Scope:
+  - rust lane: `NIP-40` adds malformed-expiration negative; `NIP-70` adds close-variant non-protected
+    negative.
+  - TS lane: `NIP-40` adds exact-boundary plus malformed-expiration invalid-Date negative;
+    `NIP-70` adds malformed protected-tag shape negative.
+- Release-facing divergence note added: `docs/release/intentional-divergences.md`.
+
+| Step | Risk ID | Command | Result | Outcome classification | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `14` | `UT-E-003` | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | pass (`SUMMARY pass=16 fail=0 harness_covered=16 lib_supported=0 not_covered_in_this_pass=0 lib_unsupported=0 total=16`) | `pass` | rust depth labels raised `NIP-40: BASELINE->EDGE`, `NIP-70: BASELINE->EDGE` |
+| `14` | `UT-E-003` | `npm install && npm run run` (in `tools/interop/ts-nostr-parity-all`) | pass (`SUMMARY pass=16 fail=0 harness_covered=16 lib_supported=0 not_covered_in_this_pass=0 lib_unsupported=0 total=16`) | `pass` | TS depth labels: `NIP-40` stays `EDGE` with added negatives, `NIP-70: BASELINE->EDGE` |
+| `14` | `UT-E-004` | `zig build test --summary all && zig build` | pass (`454/456` tests passed, `2` skipped; build pass) | `pass` | aggregate gates remain green after parity depth increment |
+
+Step 14 conclusion:
+- Incremental depth is raised with evidence-first changes focused on `NIP-40` and `NIP-70`.
+- Canonical parity artifacts are synchronized (`phase-f-parity-matrix`, `phase-f-parity-ledger`).
+- Explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
+
+## Step 15 Pass Entry (NIP-59 deep parity check, rust active lane)
+
+- Step: 15 (raise rust `NIP-59` parity depth from `BASELINE` to `DEEP` with additional edge/negative
+  checks).
+- Scope:
+  - rust harness `check_nip59` now includes baseline unwrap, wrong-recipient reject,
+    non-giftwrap reject, sender-mismatch reject, and repeated-unwrap consistency.
+  - TypeScript lane remains archived/historical evidence only; no active cadence execution.
+
+| Step | Risk ID | Command | Result | Outcome classification | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `15` | `UT-E-003` | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | pass (`NIP-59 taxonomy=HARNESS_COVERED depth=DEEP result=PASS`; `SUMMARY pass=16 fail=0 ...`) | `pass` | output format unchanged; only `NIP-59` depth/evidence expanded |
+| `15` | `UT-E-003` | `zig build test --summary all -- --test-filter "nip59"` | pass | `pass` | noztr `src/nip59_wrap.zig` module tests pass against deep parity target area |
+| `15` | `UT-E-004` | `zig build test --summary all && zig build` | pass | `pass` | aggregate gates remain green after rust `NIP-59` depth raise |
+
+Step 15 conclusion:
+- Rust-only active parity cadence is unchanged.
+- `NIP-59` deep parity outcome is `PASS` in rust harness and `PASS` in noztr NIP-59 module tests.
+- Explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
+
+## Step 16 Pass Entry (rust all-NIP deep parity sweep)
+
+- Step: 16 (raise parity depth to `DEEP` for all currently implemented rust-lane NIP checks).
+- Scope:
+  - rust harness expands each check function with at least one additional malformed/negative assertion
+    across `NIP-01/02/09/11/13/19/21/40/42/44/45/50/59/65/70/77`.
+  - output contract is unchanged (`NIP-XX | taxonomy=<...> | depth=<...> | result=<...>`), and
+    process exit remains non-zero only for `HARNESS_COVERED` failures.
+
+| Step | Risk ID | Command | Result | Outcome classification | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `16` | `UT-E-003` | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | pass (`SUMMARY pass=16 fail=0 harness_covered=16 lib_supported=0 not_covered_in_this_pass=0 lib_unsupported=0 total=16`) | `pass` | rust lane now reports `depth=DEEP` on all 16 implemented NIPs with expanded negative coverage |
+| `16` | `UT-E-004` | `zig build test --summary all && zig build` | pass (`450/450` tests passed; build pass) | `pass` | aggregate gates remain green after full deep sweep |
+
+Step 16 conclusion:
+- rust active parity gate lane now has deep-pass evidence for all implemented NIPs.
+- canonical parity model output shape and failure semantics are unchanged.
+- explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
+
 ## Next Burndown Tasks
 
 1. `UT-E-003` owner: Phase F owner
@@ -316,3 +376,16 @@ Step 13 conclusion:
    - Expand boundary corpus depth beyond current parity replay and record typed mismatch mapping if observed.
 3. Shared owner: active phase owner
    - Re-run aggregate gates after each replay addition and append outcomes in this artifact.
+
+## Governance Scope Update (2026-03-09)
+
+- Active parity gate lane is now rust-only: `tools/interop/rust-nostr-parity-all`.
+- `tools/interop/ts-nostr-parity-all` remains in-repo as archived/historical evidence and is not part
+  of active pass/fail cadence.
+- Historical TS step records in this artifact (Steps `8`, `11`, `12`, `13`, `14`) remain preserved
+  for audit traceability.
+- Active parity operations now run:
+  - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
+  - `zig build test --summary all && zig build`
+- Policy note: this governance update changes parity operations scope only; frozen defaults and
+  strictness/library behavior remain unchanged.

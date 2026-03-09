@@ -139,10 +139,6 @@ pub fn relay_message_serialize_json(output: []u8, message: *const RelayMessage)
     MessageEncodeError![]const u8;
 pub fn transcript_mark_client_req(state: *TranscriptState, subscription_id: []const u8)
     error{InvalidTranscriptTransition}!void;
-pub fn transcript_apply(state: *TranscriptState, message: *const RelayMessage)
-    error{InvalidTranscriptTransition}!void;
-pub fn transcript_apply_compat(state: *TranscriptState, message: *const RelayMessage)
-    error{InvalidTranscriptTransition}!void;
 pub fn transcript_apply_relay(state: *TranscriptState, message: RelayMessage)
     error{InvalidTranscriptTransition}!void;
 ```
@@ -158,9 +154,8 @@ pub fn transcript_apply_relay(state: *TranscriptState, message: RelayMessage)
 - Deterministic behavior: same message bytes parse to same union variant; transcript transition
   decisions are deterministic per prior state and explicit client `REQ` marker, with strict flow
   semantics (`REQ marker; relay EVENT* -> EOSE? -> EVENT* -> CLOSED?`) and terminal `CLOSED`.
-- Canonical-vs-compat transcript wording: canonical strict path is
-  `transcript_mark_client_req` + `transcript_apply_relay`; `transcript_apply` and
-  `transcript_apply_compat` are compatibility alias wrappers.
+- Canonical transcript wording: canonical strict path is
+  `transcript_mark_client_req` + `transcript_apply_relay`.
 - Assertion pairs: assert command token valid and assert explicit reject for unknown token; assert
   expected arity and reject all other arities.
 - Vectors: happy (`mark REQ; relay EVENT* -> EOSE -> EVENT* -> CLOSED`, `mark REQ -> CLOSED`
@@ -299,8 +294,6 @@ pub const PowVerifiedIdError = PowError || error{ InvalidId };
 pub fn pow_leading_zero_bits(id: *const [32]u8) u16;
 pub fn pow_extract_nonce_target(event: *const Event)
     PowError!?u16;
-pub fn pow_meets_difficulty(event: *const Event, required_bits: u16)
-    PowError!bool;
 pub fn pow_meets_difficulty_verified_id(event: *const Event, required_bits: u16)
     PowVerifiedIdError!bool;
 ```
@@ -311,8 +304,6 @@ pub fn pow_meets_difficulty_verified_id(event: *const Event, required_bits: u16)
 - Deterministic behavior: leading-zero count is deterministic bit scan of event id bytes; when nonce
   commitment is present, strict validation enforces `actual_bits >= commitment` and
   `commitment >= required_bits`.
-- Compatibility default: `pow_meets_difficulty` is safe-by-default compatibility behavior and returns
-  `false` for invalid/non-canonical event ids.
 - Internal helper: `pow_meets_difficulty_unchecked` remains internal-only.
 - Safe wrapper: `pow_meets_difficulty_verified_id` first checks event id canonical validity before PoW
   comparison and returns `InvalidId` on shape/verification mismatch while preserving all `PowError`

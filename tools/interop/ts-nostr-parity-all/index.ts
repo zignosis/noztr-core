@@ -131,6 +131,8 @@ async function check_nip40(): Promise<void> {
     try {
         Date.now = () => (expiration_seconds - 1) * 1000;
         ensure(!nip40.isEventExpired(event), "NIP-40 event expired before boundary");
+        Date.now = () => expiration_seconds * 1000;
+        ensure(!nip40.isEventExpired(event), "NIP-40 event expired at exact boundary second");
         Date.now = () => (expiration_seconds + 1) * 1000;
         ensure(nip40.isEventExpired(event), "NIP-40 event not expired after boundary");
     } finally {
@@ -147,6 +149,26 @@ async function check_nip40(): Promise<void> {
         secret_key,
     );
     ensure(!nip40.isEventExpired(non_expiring_event), "NIP-40 non-expiring event marked expired");
+
+    const malformed_expiration_event = finalizeEvent(
+        {
+            kind: 1,
+            created_at: 1_708_000_052,
+            tags: [["expiration", "not-a-number"]],
+            content: "nip40 malformed expiration",
+        },
+        secret_key,
+    );
+    const malformed_expiration = nip40.getExpiration(malformed_expiration_event);
+    ensure(malformed_expiration !== undefined, "NIP-40 malformed expiration should return Date object");
+    ensure(
+        Number.isNaN(malformed_expiration.getTime()),
+        "NIP-40 malformed expiration should produce invalid Date time value",
+    );
+    ensure(
+        !nip40.isEventExpired(malformed_expiration_event),
+        "NIP-40 malformed expiration event marked expired",
+    );
 }
 
 class MockCountWebSocket {
@@ -250,7 +272,7 @@ function check_nip70(): void {
         secret_key,
     );
     ensure(verifyEvent(event), "NIP-70 protected event verify failed");
-    const has_protected_tag = event.tags.some(tag => tag.length >= 1 && tag[0] === "-");
+    const has_protected_tag = event.tags.some(tag => tag.length === 1 && tag[0] === "-");
     ensure(has_protected_tag, "NIP-70 protected event missing '-' tag");
 
     const regular = finalizeEvent(
@@ -264,6 +286,23 @@ function check_nip70(): void {
     );
     const regular_has_protected = regular.tags.some(tag => tag.length >= 1 && tag[0] === "-");
     ensure(!regular_has_protected, "NIP-70 regular event unexpectedly has '-' tag");
+
+    const malformed_shape = finalizeEvent(
+        {
+            kind: 1,
+            created_at: 1_708_000_062,
+            tags: [["-", "extra"]],
+            content: "nip70 malformed protected shape",
+        },
+        secret_key,
+    );
+    const malformed_shape_has_canonical = malformed_shape.tags.some(
+        tag => tag.length === 1 && tag[0] === "-",
+    );
+    ensure(
+        !malformed_shape_has_canonical,
+        "NIP-70 malformed protected-tag shape matched canonical '-' semantics",
+    );
 }
 
 function check_nip02(): void {
@@ -645,7 +684,7 @@ async function main(): Promise<void> {
     await push_harness_covered(results, "NIP-40", "EDGE", check_nip40);
     await push_harness_covered(results, "NIP-45", "EDGE", check_nip45);
     await push_harness_covered(results, "NIP-50", "EDGE", check_nip50);
-    await push_harness_covered(results, "NIP-70", "BASELINE", check_nip70);
+    await push_harness_covered(results, "NIP-70", "EDGE", check_nip70);
 
     let pass_count = 0;
     let fail_count = 0;

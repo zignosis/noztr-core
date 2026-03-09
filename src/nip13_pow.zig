@@ -105,25 +105,6 @@ fn pow_meets_difficulty_unchecked(
     return leading_zero_bits >= required_bits;
 }
 
-/// Compatibility-preserving safe-default PoW check.
-///
-/// This entry point keeps the historical signature while hardening trust-boundary behavior:
-/// canonical `event.id` validity is checked first and invalid ids return `false`.
-pub fn pow_meets_difficulty(event: *const nip01_event.Event, required_bits: u16) PowError!bool {
-    std.debug.assert(@intFromPtr(event) != 0);
-    std.debug.assert(event.id.len == 32);
-
-    if (!event_shape_is_valid_for_id_verify(event)) {
-        return false;
-    }
-
-    nip01_event.event_verify_id(event) catch {
-        return false;
-    };
-
-    return pow_meets_difficulty_unchecked(event, required_bits);
-}
-
 fn enforce_nonce_commitment_policy(
     nonce_target: ?u16,
     required_bits: u16,
@@ -313,7 +294,7 @@ test "pow extracts valid nonce targets for 2 and 3 item nonce shapes" {
     try std.testing.expectEqual(@as(u16, 20), target_three.?);
 }
 
-test "pow meets difficulty valid vectors include required bits 0 and 256" {
+test "pow verified-id valid vectors include required bits 0 and 256" {
     const nonce_two_items = [_][]const u8{ "nonce", "101" };
     const nonce_three_items = [_][]const u8{ "nonce", "102", "0" };
     const nonce_two_tags = [_]nip01_event.EventTag{.{ .items = nonce_two_items[0..] }};
@@ -322,18 +303,18 @@ test "pow meets difficulty valid vectors include required bits 0 and 256" {
     const event_two = try test_event_with_computed_id(nonce_two_tags[0..]);
     const event_three = try test_event_with_computed_id(nonce_three_tags[0..]);
 
-    try std.testing.expect(try pow_meets_difficulty(&event_two, 0));
-    try std.testing.expect(!(try pow_meets_difficulty(&event_two, 256)));
-    try std.testing.expect(try pow_meets_difficulty(&event_three, 0));
+    try std.testing.expect(try pow_meets_difficulty_verified_id(&event_two, 0));
+    try std.testing.expect(!(try pow_meets_difficulty_verified_id(&event_two, 256)));
+    try std.testing.expect(try pow_meets_difficulty_verified_id(&event_three, 0));
 }
 
-test "pow returns false when nonce tag is absent" {
+test "pow verified-id returns false when nonce tag is absent" {
     const subject_items = [_][]const u8{ "subject", "no-nonce" };
     const tags = [_]nip01_event.EventTag{.{ .items = subject_items[0..] }};
     const event = try test_event_with_computed_id(tags[0..]);
 
     try std.testing.expect((try pow_extract_nonce_target(&event)) == null);
-    try std.testing.expect(!(try pow_meets_difficulty(&event, 0)));
+    try std.testing.expect(!(try pow_meets_difficulty_verified_id(&event, 0)));
 }
 
 test "pow forcing errors covers all PowError variants" {
@@ -370,7 +351,7 @@ test "pow forcing errors covers all PowError variants" {
     const valid_event = try test_event_with_computed_id(tags_valid[0..]);
     try std.testing.expectError(
         error.DifficultyOutOfRange,
-        pow_meets_difficulty(&valid_event, 257),
+        pow_meets_difficulty_verified_id(&valid_event, 257),
     );
 }
 
@@ -381,7 +362,7 @@ test "pow invalid nonce arity over 3 is rejected" {
     event.id = try nip01_event.event_compute_id(&event);
 
     try std.testing.expectError(error.InvalidNonceTag, pow_extract_nonce_target(&event));
-    try std.testing.expectError(error.InvalidNonceTag, pow_meets_difficulty(&event, 10));
+    try std.testing.expectError(error.InvalidNonceTag, pow_meets_difficulty_verified_id(&event, 10));
 }
 
 test "pow duplicate nonce tags are rejected as malformed shape" {
@@ -395,7 +376,7 @@ test "pow duplicate nonce tags are rejected as malformed shape" {
     event.id = try nip01_event.event_compute_id(&event);
 
     try std.testing.expectError(error.InvalidNonceTag, pow_extract_nonce_target(&event));
-    try std.testing.expectError(error.InvalidNonceTag, pow_meets_difficulty(&event, 1));
+    try std.testing.expectError(error.InvalidNonceTag, pow_meets_difficulty_verified_id(&event, 1));
 }
 
 test "pow rejects nonce commitment below required threshold" {
@@ -403,7 +384,10 @@ test "pow rejects nonce commitment below required threshold" {
     const tags = [_]nip01_event.EventTag{.{ .items = nonce_items[0..] }};
     const event = try test_event_with_computed_id(tags[0..]);
 
-    try std.testing.expectError(error.InvalidNonceCommitment, pow_meets_difficulty(&event, 12));
+    try std.testing.expectError(
+        error.InvalidNonceCommitment,
+        pow_meets_difficulty_verified_id(&event, 12),
+    );
 }
 
 test "pow rejects nonce commitment overstating actual leading-zero bits" {
@@ -411,7 +395,10 @@ test "pow rejects nonce commitment overstating actual leading-zero bits" {
     const tags = [_]nip01_event.EventTag{.{ .items = nonce_items[0..] }};
     const event = try test_event_with_computed_id(tags[0..]);
 
-    try std.testing.expectError(error.InvalidNonceCommitment, pow_meets_difficulty(&event, 0));
+    try std.testing.expectError(
+        error.InvalidNonceCommitment,
+        pow_meets_difficulty_verified_id(&event, 0),
+    );
 }
 
 test "pow accepts nonce commitment satisfied by actual leading-zero bits" {
@@ -419,7 +406,7 @@ test "pow accepts nonce commitment satisfied by actual leading-zero bits" {
     const tags = [_]nip01_event.EventTag{.{ .items = nonce_items[0..] }};
     const event = try test_event_with_computed_id(tags[0..]);
 
-    try std.testing.expect(try pow_meets_difficulty(&event, 0));
+    try std.testing.expect(try pow_meets_difficulty_verified_id(&event, 0));
 }
 
 test "pow verified-id wrapper accepts valid id path" {
@@ -443,7 +430,7 @@ test "pow verified-id wrapper rejects invalid event id before pow check" {
     try std.testing.expectError(error.InvalidId, pow_meets_difficulty_verified_id(&event, 0));
 }
 
-test "pow unchecked helper can accept forged id while verified wrapper rejects" {
+test "pow unchecked helper can accept forged id while verified-id rejects" {
     const nonce_items = [_][]const u8{ "nonce", "300" };
     const tags = [_]nip01_event.EventTag{.{ .items = nonce_items[0..] }};
 
@@ -454,21 +441,7 @@ test "pow unchecked helper can accept forged id while verified wrapper rejects" 
     event.id = [_]u8{0} ** 32;
 
     try std.testing.expect(try pow_meets_difficulty_unchecked(&event, 8));
-    try std.testing.expect(!(try pow_meets_difficulty(&event, 8)));
     try std.testing.expectError(error.InvalidId, pow_meets_difficulty_verified_id(&event, 8));
-}
-
-test "pow safe default diverges from unchecked helper on forged ids" {
-    const nonce_valid = [_][]const u8{ "nonce", "77" };
-    const tags_valid = [_]nip01_event.EventTag{.{ .items = nonce_valid[0..] }};
-
-    var event = try test_event_with_computed_id(tags_valid[0..]);
-    try std.testing.expect(try pow_meets_difficulty(&event, 0));
-    try std.testing.expect(try pow_meets_difficulty_unchecked(&event, 0));
-
-    event.id = [_]u8{0} ** 32;
-    try std.testing.expect(!(try pow_meets_difficulty(&event, 0)));
-    try std.testing.expect(try pow_meets_difficulty_unchecked(&event, 0));
 }
 
 test "pow verified-id wrapper preserves existing pow errors" {
@@ -482,8 +455,6 @@ test "pow verified-id wrapper preserves existing pow errors" {
         error.InvalidNonceCounter,
         pow_meets_difficulty_verified_id(&event, 1),
     );
-
-    try std.testing.expectError(error.InvalidNonceCounter, pow_meets_difficulty(&event, 1));
 }
 
 test "pow oversized nonce counter and target lengths return typed errors" {

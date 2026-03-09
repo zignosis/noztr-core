@@ -447,6 +447,43 @@ Immutable record of accepted planning decisions.
 
 - Policy note: this adoption introduces no frozen-default or strictness-policy change.
 
+## D-027: Narrow active parity reference scope to rust-nostr
+
+- Date: 2026-03-09
+- Status: accepted
+- Decision: keep `rust-nostr` as the only active parity gate lane and archive
+  `nostr-tools` parity-all operations as historical evidence only. Preserve all existing
+  TypeScript parity results in canonical Phase F artifacts.
+- Why: a single active parity gate lane reduces operational cadence overhead while preserving
+  historical cross-language evidence for auditability.
+- Tradeoff: less active cross-language pass/fail signal versus simpler, more stable gate operations.
+- Related Tradeoff: T-0-004, T-E-001.
+- Reversal Trigger: sustained parity drift or integration demand requires reactivating a
+  second active gate lane.
+- Supersedes: none
+
+- Policy note: this governance-scope decision does not change frozen defaults or strictness/library
+  behavior.
+
+## D-028: Record NIP-59 deep parity evidence on rust active lane
+
+- Date: 2026-03-09
+- Status: accepted
+- Decision: raise rust parity-all `NIP-59` depth from `BASELINE` to `DEEP` and record comparative
+  evidence against existing `noztr` NIP-59 module tests while keeping TypeScript parity lane archived
+  as historical-only evidence.
+- Why: increases parity confidence on the active lane with sender/recipient boundary negatives and
+  deterministic repeated-unwrap checks without changing gate operations scope.
+- Tradeoff: slightly higher harness maintenance cost versus stronger active-lane NIP-59 rejection
+  coverage.
+- Related Tradeoff: T-0-004, T-E-001.
+- Reversal Trigger: deep-case maintenance cost outweighs parity confidence benefit or active lane
+  changes from rust-only governance.
+- Supersedes: none
+
+- Policy note: this parity-depth evidence decision does not change frozen defaults or strictness/library
+  behavior.
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

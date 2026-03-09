@@ -1036,39 +1036,22 @@ test "filter parse forces InvalidHex and InvalidTagKey" {
     try force_filter_parse_error("{\"#ab\":[\"abc\"]}", error.InvalidTagKey, arena.allocator());
 }
 
-test "filter parse returns TooManyTagKeys for distinct #x overflow" {
+test "finalize tag conditions returns TooManyTagKeys for synthetic overflow" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
 
-    const tag_key_alphabet = "abcdefghijklmnopqrstuvwxyz";
-    const required_keys = limits.filter_tag_keys_max + 1;
-    if (required_keys > tag_key_alphabet.len) {
-        return error.SkipZigTest;
-    }
-
-    var input_buffer: [limits.event_json_max]u8 = undefined;
-    var stream = std.io.fixedBufferStream(&input_buffer);
-    const writer = stream.writer();
-
-    try writer.writeAll("{");
+    var synthetic: [limits.filter_tag_keys_max + 1]FilterTagCondition = undefined;
     var index: u32 = 0;
-    while (index < required_keys) : (index += 1) {
-        if (index > 0) {
-            try writer.writeAll(",");
-        }
-
-        const key = tag_key_alphabet[index];
-        try writer.writeByte('"');
-        try writer.writeByte('#');
-        try writer.writeByte(key);
-        try writer.writeAll("\":[\"x\"]");
+    while (index < synthetic.len) : (index += 1) {
+        synthetic[index] = .{
+            .key = @as(u8, 'a') + @as(u8, @intCast(index % 26)),
+            .values = &.{"x"},
+        };
     }
-    try writer.writeAll("}");
 
-    const input = input_buffer[0..stream.pos];
     try std.testing.expectError(
         error.TooManyTagKeys,
-        filter_parse_json(input, arena.allocator()),
+        finalize_tag_conditions(arena.allocator(), synthetic[0..]),
     );
 }
 

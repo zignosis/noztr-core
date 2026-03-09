@@ -244,39 +244,6 @@ pub fn relay_message_serialize_json(
     return output[0..index];
 }
 
-/// Compatibility-only transcript helper.
-///
-/// Deprecated for new strict call sites: use
-/// `transcript_mark_client_req` then `transcript_apply_relay`.
-/// This symbol is kept for compatibility and is a thin wrapper over
-/// `transcript_apply_relay`.
-pub fn transcript_apply_compat(
-    state: *TranscriptState,
-    message: *const RelayMessage,
-) error{InvalidTranscriptTransition}!void {
-    std.debug.assert(state.subscription_id_len <= limits.subscription_id_bytes_max);
-    std.debug.assert(@intFromPtr(state) != 0);
-    std.debug.assert(@intFromPtr(message) != 0);
-
-    return transcript_apply_relay(state, message.*);
-}
-
-/// Compatibility alias retained for existing integrations.
-///
-/// Deprecated for new strict call sites: use
-/// `transcript_mark_client_req` then `transcript_apply_relay`.
-/// This alias is a thin wrapper over `transcript_apply_compat`.
-pub fn transcript_apply(
-    state: *TranscriptState,
-    message: *const RelayMessage,
-) error{InvalidTranscriptTransition}!void {
-    std.debug.assert(state.subscription_id_len <= limits.subscription_id_bytes_max);
-    std.debug.assert(@intFromPtr(state) != 0);
-    std.debug.assert(@intFromPtr(message) != 0);
-
-    return transcript_apply_compat(state, message);
-}
-
 /// Marks that a client `REQ` was sent for `subscription_id`.
 /// Must be called before relay transcript transitions are applied.
 pub fn transcript_mark_client_req(
@@ -1729,7 +1696,7 @@ test "transcript_apply_relay rejects relay before mark" {
     );
 }
 
-test "transcript_apply accepts mark and valid sequence" {
+test "transcript_apply_relay accepts mark and valid sequence" {
     var state = TranscriptState{};
     const first_event = RelayMessage{ .event = .{
         .subscription_id = "sub-1",
@@ -1747,38 +1714,38 @@ test "transcript_apply accepts mark and valid sequence" {
 
     try transcript_mark_client_req(&state, "sub-1");
     try std.testing.expect(state.stage == .req_sent);
-    try transcript_apply(&state, &first_event);
-    try transcript_apply(&state, &second_event);
-    try transcript_apply(&state, &eose);
-    try transcript_apply(&state, &first_event);
-    try transcript_apply(&state, &closed);
+    try transcript_apply_relay(&state, first_event);
+    try transcript_apply_relay(&state, second_event);
+    try transcript_apply_relay(&state, eose);
+    try transcript_apply_relay(&state, first_event);
+    try transcript_apply_relay(&state, closed);
     try std.testing.expect(state.stage == .closed);
 }
 
-test "transcript_apply accepts post-EOSE event for same subscription" {
+test "transcript_apply_relay accepts post-EOSE event for same subscription" {
     var state = TranscriptState{};
     const event = RelayMessage{ .event = .{ .subscription_id = "sub-1", .event = sample_event() } };
     const eose = RelayMessage{ .eose = .{ .subscription_id = "sub-1" } };
 
     try transcript_mark_client_req(&state, "sub-1");
-    try transcript_apply(&state, &eose);
+    try transcript_apply_relay(&state, eose);
     try std.testing.expect(state.stage == .eose_received);
-    try transcript_apply(&state, &event);
+    try transcript_apply_relay(&state, event);
     try std.testing.expect(state.stage == .eose_received);
 }
 
-test "transcript_apply rejects mismatched subscription" {
+test "transcript_apply_relay rejects mismatched subscription" {
     var state = TranscriptState{};
     const event = RelayMessage{ .event = .{ .subscription_id = "sub-2", .event = sample_event() } };
 
     try transcript_mark_client_req(&state, "sub-1");
     try std.testing.expectError(
         error.InvalidTranscriptTransition,
-        transcript_apply(&state, &event),
+        transcript_apply_relay(&state, event),
     );
 }
 
-test "transcript_apply rejects invalid ordering" {
+test "transcript_apply_relay rejects invalid ordering" {
     var state = TranscriptState{};
     const event = RelayMessage{ .event = .{ .subscription_id = "sub-1", .event = sample_event() } };
     const eose = RelayMessage{ .eose = .{ .subscription_id = "sub-1" } };
@@ -1788,19 +1755,19 @@ test "transcript_apply rejects invalid ordering" {
     } };
 
     try transcript_mark_client_req(&state, "sub-1");
-    try transcript_apply(&state, &closed);
+    try transcript_apply_relay(&state, closed);
     try std.testing.expect(state.stage == .closed);
     try std.testing.expectError(
         error.InvalidTranscriptTransition,
-        transcript_apply(&state, &event),
+        transcript_apply_relay(&state, event),
     );
     try std.testing.expectError(
         error.InvalidTranscriptTransition,
-        transcript_apply(&state, &eose),
+        transcript_apply_relay(&state, eose),
     );
 }
 
-test "transcript_apply keeps CLOSED terminal after EOSE path" {
+test "transcript_apply_relay keeps CLOSED terminal after EOSE path" {
     var state = TranscriptState{};
     const event = RelayMessage{ .event = .{ .subscription_id = "sub-1", .event = sample_event() } };
     const eose = RelayMessage{ .eose = .{ .subscription_id = "sub-1" } };
@@ -1810,17 +1777,17 @@ test "transcript_apply keeps CLOSED terminal after EOSE path" {
     } };
 
     try transcript_mark_client_req(&state, "sub-1");
-    try transcript_apply(&state, &eose);
-    try transcript_apply(&state, &event);
-    try transcript_apply(&state, &closed);
+    try transcript_apply_relay(&state, eose);
+    try transcript_apply_relay(&state, event);
+    try transcript_apply_relay(&state, closed);
     try std.testing.expect(state.stage == .closed);
     try std.testing.expectError(
         error.InvalidTranscriptTransition,
-        transcript_apply(&state, &event),
+        transcript_apply_relay(&state, event),
     );
 }
 
-test "transcript_apply accepts req to closed transition" {
+test "transcript_apply_relay accepts req to closed transition" {
     var state = TranscriptState{};
     const closed = RelayMessage{ .closed = .{
         .subscription_id = "sub-1",
@@ -1828,11 +1795,11 @@ test "transcript_apply accepts req to closed transition" {
     } };
 
     try transcript_mark_client_req(&state, "sub-1");
-    try transcript_apply(&state, &closed);
+    try transcript_apply_relay(&state, closed);
     try std.testing.expect(state.stage == .closed);
 }
 
-test "transcript_apply rejects non-transcript relay variants" {
+test "transcript_apply_relay rejects non-transcript relay variants" {
     var state = TranscriptState{};
     const notice = RelayMessage{ .notice = .{ .message = "heads up" } };
     const auth = RelayMessage{ .auth = .{ .challenge = "challenge" } };
@@ -1840,49 +1807,12 @@ test "transcript_apply rejects non-transcript relay variants" {
     try transcript_mark_client_req(&state, "sub-1");
     try std.testing.expectError(
         error.InvalidTranscriptTransition,
-        transcript_apply(&state, &notice),
+        transcript_apply_relay(&state, notice),
     );
     try std.testing.expectError(
         error.InvalidTranscriptTransition,
-        transcript_apply(&state, &auth),
+        transcript_apply_relay(&state, auth),
     );
-}
-
-test "transcript_apply_compat parity with transcript_apply_relay" {
-    var canonical_state = TranscriptState{};
-    var compat_state = TranscriptState{};
-    const eose = RelayMessage{ .eose = .{ .subscription_id = "sub-1" } };
-    const event = RelayMessage{ .event = .{ .subscription_id = "sub-1", .event = sample_event() } };
-
-    try transcript_mark_client_req(&canonical_state, "sub-1");
-    try transcript_mark_client_req(&compat_state, "sub-1");
-
-    try transcript_apply_relay(&canonical_state, eose);
-    try transcript_apply_compat(&compat_state, &eose);
-    try std.testing.expect(canonical_state.stage == compat_state.stage);
-
-    try transcript_apply_relay(&canonical_state, event);
-    try transcript_apply_compat(&compat_state, &event);
-    try std.testing.expect(canonical_state.stage == compat_state.stage);
-}
-
-test "transcript_apply alias parity with transcript_apply_relay" {
-    var canonical_state = TranscriptState{};
-    var alias_state = TranscriptState{};
-    const notice = RelayMessage{ .notice = .{ .message = "heads up" } };
-
-    try transcript_mark_client_req(&canonical_state, "sub-1");
-    try transcript_mark_client_req(&alias_state, "sub-1");
-
-    try std.testing.expectError(
-        error.InvalidTranscriptTransition,
-        transcript_apply_relay(&canonical_state, notice),
-    );
-    try std.testing.expectError(
-        error.InvalidTranscriptTransition,
-        transcript_apply(&alias_state, &notice),
-    );
-    try std.testing.expect(canonical_state.stage == alias_state.stage);
 }
 
 const sample_event_json_text = "{" ++

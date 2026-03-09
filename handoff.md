@@ -58,9 +58,35 @@ This handoff captures the current documentation status and immediate direction f
   - rust lane promoted `NIP-40/45/50/70/77` to executable `HARNESS_COVERED` checks.
   - TS lane promoted `NIP-40/45/50/70` to executable `HARNESS_COVERED` checks (including
     mocked-websocket `Relay.count` and NIP-40 file-URL fallback import path).
+- Phase F Step 14 incremental parity depth raise is recorded as `pass` in
+  `docs/plans/phase-f-risk-burndown.md`:
+  - rust lane raised depth labels for `NIP-40` and `NIP-70` to `EDGE` after additional edge checks.
+  - TS lane kept `NIP-40` at `EDGE` with additional edge checks and raised `NIP-70` to `EDGE`.
 - Canonical parity artifacts are now:
   - `docs/plans/phase-f-parity-matrix.md`
   - `docs/plans/phase-f-parity-ledger.md`
+- Parity governance scope update is accepted in `D-027`:
+  - rust lane (`tools/interop/rust-nostr-parity-all`) is the only active parity gate lane.
+  - TypeScript lane (`tools/interop/ts-nostr-parity-all`) is archived/historical evidence only.
+  - historical TS parity evidence remains preserved in Phase F artifacts.
+- NIP-59 deep parity evidence is recorded in `D-028`:
+  - rust harness `check_nip59` depth is now `DEEP` with baseline + wrong-recipient + non-giftwrap
+    + sender-mismatch + repeated-unwrap consistency checks.
+  - comparative noztr evidence command is
+   `zig build test --summary all -- --test-filter "nip59"` over `src/nip59_wrap.zig`.
+   - defaults and strictness policy remain unchanged.
+- Rust parity deep-pass expansion now covers all implemented NIPs (`16/16`) in
+  `tools/interop/rust-nostr-parity-all/src/main.rs`:
+  - each `check_nipXX` now includes at least one additional malformed/negative assertion.
+  - active-lane matrix depth is now `DEEP` for `NIP-01/02/09/11/13/19/21/40/42/44/45/50/59/65/70/77`.
+  - output shape and non-zero exit semantics are unchanged.
+- Phase F Step 16 rust all-NIP deep parity sweep is recorded as `pass` in
+  `docs/plans/phase-f-risk-burndown.md` and synchronized in:
+  - `docs/plans/phase-f-parity-matrix.md`
+  - `docs/plans/phase-f-parity-ledger.md`
+  - `docs/plans/phase-f-kickoff.md`
+- Canonical release-facing divergence artifact is now:
+  - `docs/release/intentional-divergences.md`
 - Policy note: parity model v1 adoption changes reporting shape only; no frozen-default or
   strictness-policy change.
 - Step 3 local replay expansion for `UT-E-004` is recorded as `pass` in
@@ -82,6 +108,8 @@ This handoff captures the current documentation status and immediate direction f
 - Explicit policy note for parity-all pass: no frozen-default or strictness-policy change.
 - Explicit policy note for ts parity-all pass: defaults unchanged; no frozen-default or
   strictness-policy change.
+- Policy note for parity governance update: operations scope changed, but defaults and strictness
+  policy remain unchanged.
 - No frozen-default or strictness-policy changes are introduced by kickoff activation.
 - Implementation status snapshot: I0-I7 are complete and validated on current protocol fixes.
 - I4 optional modules are implemented with required non-interference coverage.
@@ -110,12 +138,11 @@ This handoff captures the current documentation status and immediate direction f
 - Overengineering/correctness mitigation pass is recorded in active planning docs:
   - canonical trust-boundary path wording is clarified for strict checked entry points,
   - message parse error contract now reflects implemented `InvalidFilter` and `InvalidEvent`,
-  - transcript naming cleanup is documented: `transcript_apply_compat` is alias-only wording and
-    canonical strict flow remains `transcript_mark_client_req` + `transcript_apply_relay`,
+  - transcript naming cleanup is documented: canonical strict flow is
+    `transcript_mark_client_req` + `transcript_apply_relay` (no public alias surface),
   - strict filter semantics are documented as deterministic lowercase prefix matching for
     `ids`/`authors` (`1..64`) with lowercase-only `#x` keys and typed `TooManyTagKeys` overflow.
-  - PoW trust-boundary docs now pin `pow_meets_difficulty` as safe-by-default compatibility behavior
-    (`invalid id -> false`), keep `pow_meets_difficulty_verified_id` as the canonical strict path,
+  - PoW trust-boundary docs now keep `pow_meets_difficulty_verified_id` as the canonical strict path,
     and treat unchecked helper behavior as internal-only.
   - delete checked extractor contract now matches implementation typing
     (`DeleteExtractCheckedError`, including `BufferTooSmall`).
@@ -254,9 +281,8 @@ This handoff captures the current documentation status and immediate direction f
 - Started LLM-first usability pass (`OQ-E-006`):
   - created `docs/plans/llm-usability-pass.md` with scope snapshot, task battery, rubric,
     initial findings/recommendations, and closure criteria.
-  - usability scope now includes implemented I4 modules and transcript naming cleanup context
-    (`transcript_apply_compat` alias wording with canonical strict path
-    `transcript_mark_client_req` + `transcript_apply_relay`).
+  - usability scope now includes implemented I4 modules and canonical transcript path clarity
+    (`transcript_mark_client_req` + `transcript_apply_relay`).
   - updated planning artifacts to mark usability sequencing as in-progress (`D-014`).
 - Recorded current Tiger hard-rule cleanliness baseline for `src/`:
   - `>100`-column lines: none.
@@ -282,11 +308,11 @@ This handoff captures the current documentation status and immediate direction f
 
 - Start Phase F kickoff actions from the I7 closure baseline and keep build-plan ordering intact.
 - Execute Phase F kickoff worklist from `docs/plans/phase-f-kickoff.md` and keep defaults unchanged.
+- For active parity cadence, run rust parity-all plus aggregate `zig` gates only.
 - Keep the secp boundary narrowed to approved exports only; preserve commit-SHA pinning policy when
   updating backend references.
-- Keep PoW trust-boundary docs explicit: `pow_meets_difficulty` stays compatibility-only and strict
-  callers use `pow_meets_difficulty_verified_id`; compatibility path is safe-by-default
-  (`invalid id -> false`) and unchecked helper behavior remains internal-only.
+- Keep PoW trust-boundary docs explicit: strict callers use
+  `pow_meets_difficulty_verified_id`; unchecked helper behavior remains internal-only.
 - Maintain `docs/plans/security-hardening-register.md` as the canonical hardening status ledger.
 - Keep LLM-first usability evaluation in progress and close `OQ-E-006` via
   `docs/plans/llm-usability-pass.md` before first RC API freeze.
@@ -396,6 +422,9 @@ This handoff captures the current documentation status and immediate direction f
 - Created (Phase F parity model v1 canonical artifacts):
   - `docs/plans/phase-f-parity-matrix.md`
   - `docs/plans/phase-f-parity-ledger.md`
+
+- Created (release-facing parity divergence note):
+  - `docs/release/intentional-divergences.md`
 
 - Updated (Phase F rust parity-all tracking):
   - `tools/interop/README.md`

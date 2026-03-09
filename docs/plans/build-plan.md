@@ -41,6 +41,8 @@ This artifact is finalized for implementation execution and is aligned to:
   (`LIB_SUPPORTED`, `HARNESS_COVERED`, `NOT_COVERED_IN_THIS_PASS`, `LIB_UNSUPPORTED`), canonical
   depth labels (`BASELINE`, `EDGE`, `DEEP`), non-zero exit only on `HARNESS_COVERED` failures,
   and no default use of overloaded `unsupported` wording.
+- `PE-013`: restrict active parity gate operations to the rust lane (`rust-nostr`) and archive the
+  TypeScript `nostr-tools` parity-all lane as historical evidence only.
 
 ## Strategic Notes
 
@@ -78,21 +80,25 @@ Implementation status snapshot (post-I7 closure):
   return semantics, parser `OutOfMemory` variants are documented where implemented,
   strict event/filter kind boundary is `<= 65535`, NIP-50 unsupported multi-colon tokens are
   ignored, and NIP-09 coordinate matching rejects duplicate `d` tags.
-- Transcript naming cleanup is tracked in docs: `transcript_apply_compat` is compatibility alias
-  wording only; canonical strict path remains `transcript_mark_client_req` plus
-  `transcript_apply_relay`.
-- PoW trust-boundary path is explicit: `pow_meets_difficulty` remains compatibility-only; canonical
-  strict callers use `pow_meets_difficulty_verified_id`; invalid/non-canonical ids now return
-  `false` in the compatibility path and unchecked helper behavior is internal-only.
+- Transcript naming cleanup is tracked in docs: canonical strict path is
+  `transcript_mark_client_req` plus `transcript_apply_relay`.
+- PoW trust-boundary path is explicit: canonical strict callers use
+  `pow_meets_difficulty_verified_id`; unchecked helper behavior is internal-only.
 - Phase F execution is active on the post-I7 baseline; kickoff tracking is in
   `docs/plans/phase-f-kickoff.md`.
 - Phase F risk burn-down is started with first replay pass evidence in
   `docs/plans/phase-f-risk-burndown.md` (`UT-E-003`/`UT-E-004`).
 - Current implementation state remains post-I7 closure baseline; no default-policy changes are
   introduced by kickoff tracking.
-- Aggregate dual-run gates were executed after each cadence increment:
-  TS parity-all step (`8`) and rust depth-notch step (`9`); latest aggregate result remains
-  `454/456` passed, `2` skipped.
+- Historical dual-lane cadence evidence remains recorded in Phase F artifacts.
+- Active parity cadence now runs rust parity-all plus aggregate `zig` gates only.
+- Rust parity depth update: `NIP-59` is now `DEEP` in active rust parity-all harness
+  (`check_nip59`: baseline + wrong-recipient + non-giftwrap + sender-mismatch + repeated-unwrap
+  consistency).
+- Comparative evidence path for NIP-59 remains:
+  `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` and
+  `zig build test --summary all -- --test-filter "nip59"` (`src/nip59_wrap.zig`).
+- Latest aggregate `zig` result remains `454/456` passed, `2` skipped.
 - Trigger-governance status: no `UT-E-001`/`A-D-001` trigger criteria fired, so no
   policy/default changes were considered.
 - Rule remains: any future trigger firing requires a decision-log entry before any default changes.
@@ -101,6 +107,8 @@ Implementation status snapshot (post-I7 closure):
   - `docs/plans/phase-f-parity-ledger.md`
 - Policy note: parity model v1 adoption changes interop reporting shape only; strictness/default
   policy remains unchanged.
+- Policy note: rust-only active parity governance changes operations scope only; strictness/default
+  policy and library behavior remain unchanged.
 - Layer 2 compatibility/ergonomic adapter work remains deferred until Layer 1 execution and
   `OQ-E-006` closure.
 
@@ -313,11 +321,9 @@ Implementation status snapshot (post-I7 closure):
 - Status: edge-case audit is closed with no unresolved Medium+ findings.
 - Security hardening register: `docs/plans/security-hardening-register.md`.
 - LLM-usability artifact: `docs/plans/llm-usability-pass.md`.
-- Transcript canonical path reference: `transcript_mark_client_req` then `transcript_apply_relay`
-  (`transcript_apply_compat` documented as alias-only wording).
+- Transcript canonical path reference: `transcript_mark_client_req` then `transcript_apply_relay`.
 - PoW canonical trust-boundary reference: `pow_meets_difficulty_verified_id`
-  (`pow_meets_difficulty` is safe-by-default compatibility behavior; unchecked helper is
-  internal-only).
+  (unchecked helper is internal-only).
 - Follow-up observations (low):
   - closed: normalized-path binding in NIP-42 relay origin matching (`/` default;
     query/fragment ignored).

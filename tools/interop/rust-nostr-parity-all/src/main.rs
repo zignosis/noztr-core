@@ -11,7 +11,7 @@ use nostr::nips::nip19::{FromBech32, ToBech32};
 use nostr::nips::nip21::{Nip21, ToNostrUri};
 use nostr::nips::nip42;
 use nostr::nips::nip44::v2::{decrypt_to_bytes, encrypt_to_bytes_with_rng, ConversationKey};
-use nostr::nips::nip59::UnwrappedGift;
+use nostr::nips::nip59::{self, UnwrappedGift};
 use nostr::nips::nip65::{self, RelayMetadata};
 use nostr::filter::MatchEventOptions;
 use nostr::{
@@ -204,6 +204,15 @@ fn check_nip01() -> Result<(), String> {
         return Err("tampered signature accepted".to_string());
     }
 
+    let mut tampered_content_value: serde_json::Value =
+        serde_json::from_str(&json).map_err(|e| format!("tampered content json parse: {e}"))?;
+    tampered_content_value["content"] = serde_json::Value::String("tampered-content".to_string());
+    let tampered_content = Event::from_json(tampered_content_value.to_string())
+        .map_err(|e| format!("tampered content event parse: {e}"))?;
+    if tampered_content.verify().is_ok() {
+        return Err("tampered content accepted".to_string());
+    }
+
     Ok(())
 }
 
@@ -228,6 +237,17 @@ fn check_nip02() -> Result<(), String> {
         .map_err(|e| format!("sign non-contact event: {e}"))?;
     if non_contact.tags.public_keys().any(|k| *k == target) {
         return Err("text note unexpectedly exposed contact p tag".to_string());
+    }
+
+    let malformed_contact = EventBuilder::new(Kind::ContactList, "")
+        .tags([
+            Tag::parse(vec!["p", "not-hex-pubkey"])
+                .map_err(|e| format!("malformed p tag parse failed: {e}"))?,
+        ])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("sign malformed contact event: {e}"))?;
+    if malformed_contact.tags.public_keys().next().is_some() {
+        return Err("malformed contact p tag unexpectedly parsed as public key".to_string());
     }
 
     Ok(())
@@ -262,6 +282,17 @@ fn check_nip09() -> Result<(), String> {
         return Err("empty delete request unexpectedly contains e tag".to_string());
     }
 
+    let malformed_delete = EventBuilder::new(Kind::EventDeletion, "")
+        .tags([
+            Tag::parse(vec!["e", "not-hex-event-id"])
+                .map_err(|e| format!("malformed e tag parse failed: {e}"))?,
+        ])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("sign malformed delete event: {e}"))?;
+    if malformed_delete.tags.event_ids().next().is_some() {
+        return Err("malformed delete e tag unexpectedly parsed as event id".to_string());
+    }
+
     Ok(())
 }
 
@@ -283,6 +314,13 @@ fn check_nip11() -> Result<(), String> {
         return Err("relay info accepted malformed supported_nips type".to_string());
     }
 
+    let unknown_field = r#"{"name":"Parity Relay","supported_nips":[1,9,11],"x-extra":"ok"}"#;
+    let unknown_doc = RelayInformationDocument::from_json(unknown_field)
+        .map_err(|e| format!("relay info unknown-field parse: {e}"))?;
+    if unknown_doc.name.as_deref() != Some("Parity Relay") {
+        return Err("relay info unknown-field parse changed known fields".to_string());
+    }
+
     Ok(())
 }
 
@@ -296,6 +334,11 @@ fn check_nip13() -> Result<(), String> {
     let no_zero_bits = nostr::nips::nip13::get_leading_zero_bits(vec![0xff]);
     if no_zero_bits != 0 {
         return Err(format!("leading-zero bits mismatch: got {no_zero_bits} want 0"));
+    }
+
+    let empty_bits = nostr::nips::nip13::get_leading_zero_bits(Vec::new());
+    if empty_bits != 0 {
+        return Err(format!("empty input leading-zero bits mismatch: got {empty_bits} want 0"));
     }
     Ok(())
 }
@@ -316,6 +359,12 @@ fn check_nip19() -> Result<(), String> {
     }
     if PublicKey::from_bech32("npub1invalid").is_ok() {
         return Err("invalid bech32 pubkey decode accepted".to_string());
+    }
+
+    let mut mixed_case = npub.clone();
+    mixed_case.replace_range(4..5, "A");
+    if PublicKey::from_bech32(&mixed_case).is_ok() {
+        return Err("mixed-case bech32 pubkey decode accepted".to_string());
     }
 
     let event_id =
@@ -360,6 +409,10 @@ fn check_nip21() -> Result<(), String> {
     if Nip21::parse(&forbidden_uri).is_ok() {
         return Err("forbidden nsec uri accepted".to_string());
     }
+
+    if Nip21::parse("nostr:npub1invalid").is_ok() {
+        return Err("malformed npub nostr uri accepted".to_string());
+    }
     Ok(())
 }
 
@@ -388,6 +441,25 @@ fn check_nip42() -> Result<(), String> {
         .map_err(|e| format!("sign non-auth event: {e}"))?;
     if nip42::is_valid_auth_event(&not_auth, &relay_url, challenge) {
         return Err("non-auth event accepted".to_string());
+    }
+
+    let auth_json = event.as_json();
+    let mut auth_value: serde_json::Value =
+        serde_json::from_str(&auth_json).map_err(|e| format!("auth json parse: {e}"))?;
+    let tags = auth_value
+        .get_mut("tags")
+        .and_then(|value| value.as_array_mut())
+        .ok_or_else(|| "auth event missing tags array".to_string())?;
+    tags.retain(|tag| {
+        tag.get(0)
+            .and_then(|value| value.as_str())
+            .map(|name| name != "challenge")
+            .unwrap_or(true)
+    });
+    let missing_challenge = Event::from_json(auth_value.to_string())
+        .map_err(|e| format!("missing challenge auth parse: {e}"))?;
+    if nip42::is_valid_auth_event(&missing_challenge, &relay_url, challenge) {
+        return Err("auth event missing challenge tag accepted".to_string());
     }
     Ok(())
 }
@@ -431,6 +503,15 @@ fn check_nip44() -> Result<(), String> {
                 return Err("malformed payload accepted".to_string());
             }
         }
+
+        if !payload.is_empty() {
+            let mut malformed_mac = payload.clone();
+            let last_index = malformed_mac.len() - 1;
+            malformed_mac[last_index] ^= 0x01;
+            if decrypt_to_bytes(&conversation_key, &malformed_mac).is_ok() {
+                return Err("tampered-mac payload accepted".to_string());
+            }
+        }
     }
 
     Ok(())
@@ -441,25 +522,85 @@ async fn check_nip59() -> Result<(), String> {
         .map_err(|e| format!("sender key parse: {e}"))?;
     let receiver = Keys::parse("7b911fd37cdf5c81d4c0adb1ab7fa822ed253ab0ad9aa18d77257c88b29b718e")
         .map_err(|e| format!("receiver key parse: {e}"))?;
+    let impersonated = Keys::parse("5b911fd37cdf5c81d4c0adb1ab7fa822ed253ab0ad9aa18d77257c88b29b718e")
+        .map_err(|e| format!("impersonated key parse: {e}"))?;
+
+    // 1) valid wrap/unwrap baseline
     let rumor = EventBuilder::text_note("nip59 baseline").build(sender.public_key());
     let gift_wrap = EventBuilder::gift_wrap(&sender, &receiver.public_key(), rumor, [])
         .await
         .map_err(|e| format!("gift_wrap compose: {e}"))?;
-    let unwrapped = UnwrappedGift::from_gift_wrap(&receiver, &gift_wrap)
+    let unwrapped_first = UnwrappedGift::from_gift_wrap(&receiver, &gift_wrap)
         .await
         .map_err(|e| format!("gift_wrap unwrap: {e}"))?;
-    if unwrapped.sender != sender.public_key() {
+    if unwrapped_first.sender != sender.public_key() {
         return Err("sender mismatch after unwrap".to_string());
     }
-    if unwrapped.rumor.kind != Kind::TextNote {
+    if unwrapped_first.rumor.kind != Kind::TextNote {
         return Err("rumor kind mismatch".to_string());
     }
-    if unwrapped.rumor.content != "nip59 baseline" {
+    if unwrapped_first.rumor.content != "nip59 baseline" {
         return Err("rumor content mismatch".to_string());
     }
 
+    // 2) wrong recipient rejection
     if UnwrappedGift::from_gift_wrap(&sender, &gift_wrap).await.is_ok() {
         return Err("gift_wrap unwrap accepted wrong recipient".to_string());
+    }
+
+    // 3) non-giftwrap event rejection
+    let non_gift_wrap = EventBuilder::text_note("nip59 not giftwrap")
+        .sign_with_keys(&sender)
+        .map_err(|e| format!("non-giftwrap compose: {e}"))?;
+    match UnwrappedGift::from_gift_wrap(&receiver, &non_gift_wrap).await {
+        Err(nip59::Error::NotGiftWrap) => {}
+        Err(other) => {
+            return Err(format!("non-giftwrap returned unexpected error: {other}"));
+        }
+        Ok(_) => {
+            return Err("non-giftwrap event accepted".to_string());
+        }
+    }
+
+    // 4) sender-mismatch rejection (spoofed rumor pubkey)
+    let spoofed_rumor = EventBuilder::text_note("nip59 spoofed sender")
+        .build(impersonated.public_key());
+    let spoofed_wrap = EventBuilder::gift_wrap(&sender, &receiver.public_key(), spoofed_rumor, [])
+        .await
+        .map_err(|e| format!("spoofed gift_wrap compose: {e}"))?;
+    match UnwrappedGift::from_gift_wrap(&receiver, &spoofed_wrap).await {
+        Err(nip59::Error::SenderMismatch) => {}
+        Err(other) => {
+            return Err(format!("sender mismatch returned unexpected error: {other}"));
+        }
+        Ok(_) => {
+            return Err("sender mismatch spoof accepted".to_string());
+        }
+    }
+
+    // 5) deterministic repeated unwrap consistency
+    let unwrapped_second = UnwrappedGift::from_gift_wrap(&receiver, &gift_wrap)
+        .await
+        .map_err(|e| format!("gift_wrap second unwrap: {e}"))?;
+    if unwrapped_second.sender != unwrapped_first.sender {
+        return Err("repeated unwrap sender mismatch".to_string());
+    }
+    if unwrapped_second.rumor != unwrapped_first.rumor {
+        return Err("repeated unwrap rumor mismatch".to_string());
+    }
+
+    // 6) malformed payload rejection on gift_wrap content
+    let gift_wrap_json = gift_wrap.as_json();
+    let mut malformed_content_value: serde_json::Value =
+        serde_json::from_str(&gift_wrap_json).map_err(|e| format!("gift_wrap json parse: {e}"))?;
+    malformed_content_value["content"] = serde_json::Value::String("not-a-valid-giftwrap".to_string());
+    let malformed_content_event = Event::from_json(malformed_content_value.to_string())
+        .map_err(|e| format!("gift_wrap malformed content parse: {e}"))?;
+    if UnwrappedGift::from_gift_wrap(&receiver, &malformed_content_event)
+        .await
+        .is_ok()
+    {
+        return Err("gift_wrap malformed payload accepted".to_string());
     }
 
     Ok(())
@@ -503,6 +644,16 @@ fn check_nip65() -> Result<(), String> {
         return Err("non-relay event unexpectedly produced relay metadata".to_string());
     }
 
+    let malformed_url_event = EventBuilder::new(Kind::RelayList, "")
+        .tags([
+            Tag::parse(vec!["r", "not-a-url"]).map_err(|e| format!("malformed r tag parse: {e}"))?,
+        ])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("sign malformed relay event: {e}"))?;
+    if nip65::extract_relay_list(&malformed_url_event).next().is_some() {
+        return Err("relay list extracted malformed relay url".to_string());
+    }
+
     Ok(())
 }
 
@@ -524,6 +675,26 @@ fn check_nip40() -> Result<(), String> {
         .map_err(|e| format!("regular event build failed: {e}"))?;
     if regular_event.is_expired_at(&Timestamp::from(9_999_u64)) {
         return Err("event without expiration tag was treated as expired".to_string());
+    }
+
+    let malformed_expiration_event = EventBuilder::text_note("nip40 malformed expiration")
+        .tags([Tag::parse(vec!["expiration", "not-a-number"])
+            .map_err(|e| format!("malformed expiration tag parse failed: {e}"))?])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("malformed expiration event build failed: {e}"))?;
+    if malformed_expiration_event.is_expired_at(&Timestamp::from(9_999_u64)) {
+        return Err("malformed expiration value unexpectedly marked event expired".to_string());
+    }
+
+    let missing_expiration_value_event = EventBuilder::text_note("nip40 missing expiration value")
+        .tags([
+            Tag::parse(vec!["expiration"])
+                .map_err(|e| format!("missing expiration value tag parse failed: {e}"))?,
+        ])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("missing expiration value event build failed: {e}"))?;
+    if missing_expiration_value_event.is_expired_at(&Timestamp::from(9_999_u64)) {
+        return Err("expiration tag without value unexpectedly marked event expired".to_string());
     }
 
     Ok(())
@@ -553,6 +724,9 @@ fn check_nip45() -> Result<(), String> {
     }
     if RelayMessage::from_json(r#"["COUNT","sub-a",{"count":"bad"}]"#).is_ok() {
         return Err("COUNT malformed relay payload was accepted".to_string());
+    }
+    if RelayMessage::from_json(r#"{"type":"COUNT"}"#).is_ok() {
+        return Err("COUNT malformed relay top-level object was accepted".to_string());
     }
 
     Ok(())
@@ -596,6 +770,9 @@ fn check_nip50() -> Result<(), String> {
     if Filter::from_json(r#"{"search":{"q":"bad"}}"#).is_ok() {
         return Err("invalid search field type accepted".to_string());
     }
+    if Filter::from_json(r#"{"search":["bad"]}"#).is_ok() {
+        return Err("array search field type accepted".to_string());
+    }
 
     Ok(())
 }
@@ -622,6 +799,26 @@ fn check_nip70() -> Result<(), String> {
         .map_err(|e| format!("regular event build failed: {e}"))?;
     if regular_event.is_protected() {
         return Err("regular event flagged as protected".to_string());
+    }
+
+    let close_variant_event = EventBuilder::text_note("nip70 close variant")
+        .tags([Tag::parse(vec!["--"])
+            .map_err(|e| format!("close-variant protected tag parse failed: {e}"))?])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("close-variant event build failed: {e}"))?;
+    if close_variant_event.is_protected() {
+        return Err("close-variant protected tag was treated as protected".to_string());
+    }
+
+    let malformed_dash_key_event = EventBuilder::text_note("nip70 malformed dash key")
+        .tags([
+            Tag::parse(vec![" -"])
+                .map_err(|e| format!("malformed-dash protected tag parse failed: {e}"))?,
+        ])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("malformed-dash event build failed: {e}"))?;
+    if malformed_dash_key_event.is_protected() {
+        return Err("malformed dash key tag was treated as protected".to_string());
     }
 
     Ok(())
@@ -697,6 +894,9 @@ fn check_nip77() -> Result<(), String> {
     if RelayMessage::from_json(r#"["NEG-ERR","sub-b",{}]"#).is_ok() {
         return Err("malformed NEG-ERR shape was accepted".to_string());
     }
+    if ClientMessage::from_json(r#"["NEG-MSG",123,"0102"]"#).is_ok() {
+        return Err("malformed NEG-MSG subscription id type was accepted".to_string());
+    }
 
     Ok(())
 }
@@ -705,23 +905,23 @@ fn check_nip77() -> Result<(), String> {
 async fn main() {
     let mut results: Vec<NipResult> = Vec::new();
 
-    push_harness_covered(&mut results, "NIP-01", Depth::Baseline, check_nip01());
-    push_harness_covered(&mut results, "NIP-02", Depth::Baseline, check_nip02());
-    push_harness_covered(&mut results, "NIP-09", Depth::Baseline, check_nip09());
-    push_harness_covered(&mut results, "NIP-11", Depth::Baseline, check_nip11());
-    push_harness_covered(&mut results, "NIP-13", Depth::Baseline, check_nip13());
-    push_harness_covered(&mut results, "NIP-19", Depth::Edge, check_nip19());
-    push_harness_covered(&mut results, "NIP-21", Depth::Edge, check_nip21());
-    push_harness_covered(&mut results, "NIP-42", Depth::Edge, check_nip42());
+    push_harness_covered(&mut results, "NIP-01", Depth::Deep, check_nip01());
+    push_harness_covered(&mut results, "NIP-02", Depth::Deep, check_nip02());
+    push_harness_covered(&mut results, "NIP-09", Depth::Deep, check_nip09());
+    push_harness_covered(&mut results, "NIP-11", Depth::Deep, check_nip11());
+    push_harness_covered(&mut results, "NIP-13", Depth::Deep, check_nip13());
+    push_harness_covered(&mut results, "NIP-19", Depth::Deep, check_nip19());
+    push_harness_covered(&mut results, "NIP-21", Depth::Deep, check_nip21());
+    push_harness_covered(&mut results, "NIP-42", Depth::Deep, check_nip42());
     push_harness_covered(&mut results, "NIP-44", Depth::Deep, check_nip44());
-    push_harness_covered(&mut results, "NIP-59", Depth::Baseline, check_nip59().await);
-    push_harness_covered(&mut results, "NIP-65", Depth::Edge, check_nip65());
+    push_harness_covered(&mut results, "NIP-59", Depth::Deep, check_nip59().await);
+    push_harness_covered(&mut results, "NIP-65", Depth::Deep, check_nip65());
 
-    push_harness_covered(&mut results, "NIP-40", Depth::Baseline, check_nip40());
-    push_harness_covered(&mut results, "NIP-45", Depth::Edge, check_nip45());
-    push_harness_covered(&mut results, "NIP-50", Depth::Edge, check_nip50());
-    push_harness_covered(&mut results, "NIP-70", Depth::Baseline, check_nip70());
-    push_harness_covered(&mut results, "NIP-77", Depth::Edge, check_nip77());
+    push_harness_covered(&mut results, "NIP-40", Depth::Deep, check_nip40());
+    push_harness_covered(&mut results, "NIP-45", Depth::Deep, check_nip45());
+    push_harness_covered(&mut results, "NIP-50", Depth::Deep, check_nip50());
+    push_harness_covered(&mut results, "NIP-70", Depth::Deep, check_nip70());
+    push_harness_covered(&mut results, "NIP-77", Depth::Deep, check_nip77());
 
     let mut pass_count = 0usize;
     let mut fail_count = 0usize;

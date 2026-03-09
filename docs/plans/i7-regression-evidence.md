@@ -34,8 +34,7 @@ vector/forcing coverage posture.
   - canonical transcript flow accept (`transcript_mark_client_req` + `transcript_apply_relay`),
   - post-EOSE same-subscription event accept,
   - mismatched-subscription and invalid-order rejects,
-  - terminal `CLOSED` behavior,
-  - alias parity (`transcript_apply` and `transcript_apply_compat` wrappers).
+  - terminal `CLOSED` behavior.
 
 ## Crypto Check-Order Replay Evidence
 
