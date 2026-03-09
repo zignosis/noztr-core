@@ -39,7 +39,8 @@ Current project context for the next Phase F execution slice.
   including deterministic malformed boundary `AQ==`, `AA==`, `Ag==`, and `Aw==` plus empty-payload
   and truncated-version (`AgA=`) plus short-truncated (`AgAA`) reject coverage in active rust
   parity-all checks, plus length-4 truncated-body (`AgAAAA==`) and length-5 truncated-body
-  (`AgAAAAA=`) reject coverage, plus length-6 truncated-body (`AgAAAAAA`) reject coverage.
+  (`AgAAAAA=`) reject coverage, plus length-6 truncated-body (`AgAAAAAA`) reject coverage,
+  plus length-7 truncated-body (`AgAAAAAAAA==`) reject coverage.
 - `UT-E-004`: active, with expanded typed boundary replay checks recorded as `pass`/`no-drift`,
   including overlength pubkey wrong-shape (`64+2` hex) classified `invalid_public_key` with
   boundary/direct parity, plus overlength message (`64+2`) and signature (`128+2`) wrong-shape
