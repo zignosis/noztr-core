@@ -36,8 +36,8 @@ Current project context for the next Phase F execution slice.
 ## Burn-Down Status
 
 - `UT-E-003`: active, with persistent NIP-44 replay harnesses and fixture evidence in place,
-  including deterministic malformed boundary `AQ==` and `AA==` reject coverage in active rust
-  parity-all checks.
+  including deterministic malformed boundary `AQ==`, `AA==`, and `Ag==` reject coverage in active
+  rust parity-all checks.
 - `UT-E-004`: active, with expanded typed boundary replay checks recorded as `pass`/`no-drift`,
   including overlength pubkey wrong-shape (`64+2` hex) classified `invalid_public_key` with
   boundary/direct parity, plus overlength message (`64+2`) and signature (`128+2`) wrong-shape

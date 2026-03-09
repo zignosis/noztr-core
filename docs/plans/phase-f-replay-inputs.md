@@ -29,3 +29,5 @@ Malformed boundary increment (deterministic reject corpus):
   payload `AQ==`, expectation `decrypt_reject`.
 - Added case: `UT-E-003-MAL-002` using the same known-good key,
   payload `AA==`, expectation `decrypt_reject`.
+- Added case: `UT-E-003-MAL-003` using the same known-good key,
+  payload `Ag==`, expectation `decrypt_reject`.
