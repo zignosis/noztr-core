@@ -32,6 +32,17 @@ This handoff captures the current documentation status and immediate direction f
 - rust-nostr parity-all matrix pass is recorded as `pass` in
   `docs/plans/phase-f-rust-nostr-parity.md` with explicit `UNSUPPORTED` reporting for
   `NIP-40`, `NIP-45`, `NIP-50`, `NIP-70`, `NIP-77`.
+- rust-nostr parity-all depth-notch expansion is recorded as `pass` in
+  `docs/plans/phase-f-rust-nostr-parity.md` and `docs/plans/phase-f-risk-burndown.md`
+  with added malformed/edge negatives for supported overlap checks in
+  `NIP-19`, `NIP-21`, `NIP-42`, `NIP-44`, and `NIP-65` (coverage breadth unchanged).
+- Persistent ts-nostr parity-all harness is now maintained at
+  `tools/interop/ts-nostr-parity-all` for full implemented-NIP overlap checks in the
+  TypeScript lane.
+- ts-nostr parity-all matrix pass is recorded as `pass` in
+  `docs/plans/phase-f-ts-nostr-tools-parity.md` with explicit `UNSUPPORTED` reporting for
+  `NIP-02`, `NIP-09`, `NIP-11`, `NIP-40`, `NIP-45`, `NIP-50`, `NIP-59`, `NIP-65`,
+  `NIP-70`, `NIP-77`.
 - Step 3 local replay expansion for `UT-E-004` is recorded as `pass` in
   `docs/plans/phase-f-risk-burndown.md`.
 - Step 3 typed-class mapping stability for `UT-E-004` is recorded as `no-drift`;
@@ -42,13 +53,15 @@ This handoff captures the current documentation status and immediate direction f
   message/signature/pubkey classes through existing hex-input seams.
 - Step 4 typed-class mapping stability remains `no-drift`; frozen defaults and strictness
   policy remain unchanged.
-- Aggregate dual-run gates were executed after each increment pass in Step 2 and Step 4
-  (expanded matrix); latest aggregate result is `454/456` passed, `2` skipped.
+- Aggregate dual-run gates were executed after each cadence increment:
+  TS parity-all step (`8`) and rust depth-notch step (`9`); latest aggregate result remains
+  `454/456` passed, `2` skipped.
 - Trigger-governance status: no `UT-E-001`/`A-D-001` trigger criteria fired, so no
   policy/default changes were considered.
-- Rule remains: any future trigger firing must be captured in
-  `docs/plans/decision-log.md` before default changes.
+- Rule remains: any future trigger firing requires a decision-log entry before any default changes.
 - Explicit policy note for parity-all pass: no frozen-default or strictness-policy change.
+- Explicit policy note for ts parity-all pass: defaults unchanged; no frozen-default or
+  strictness-policy change.
 - No frozen-default or strictness-policy changes are introduced by kickoff activation.
 - Implementation status snapshot: I0-I7 are complete and validated on current protocol fixes.
 - I4 optional modules are implemented with required non-interference coverage.
@@ -353,7 +366,20 @@ This handoff captures the current documentation status and immediate direction f
   - `tools/interop/rust-nostr-parity-all/src/main.rs`
   - `docs/plans/phase-f-rust-nostr-parity.md`
 
+- Created (Phase F ts parity-all):
+  - `tools/interop/ts-nostr-parity-all/package.json`
+  - `tools/interop/ts-nostr-parity-all/package-lock.json`
+  - `tools/interop/ts-nostr-parity-all/tsconfig.json`
+  - `tools/interop/ts-nostr-parity-all/index.ts`
+  - `docs/plans/phase-f-ts-nostr-tools-parity.md`
+
 - Updated (Phase F rust parity-all tracking):
+  - `tools/interop/README.md`
+  - `docs/plans/phase-f-risk-burndown.md`
+  - `docs/plans/phase-f-kickoff.md`
+  - `handoff.md`
+
+- Updated (Phase F ts parity-all tracking):
   - `tools/interop/README.md`
   - `docs/plans/phase-f-risk-burndown.md`
   - `docs/plans/phase-f-kickoff.md`

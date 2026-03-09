@@ -12,7 +12,7 @@ use nostr::nips::nip42;
 use nostr::nips::nip44::v2::{decrypt_to_bytes, encrypt_to_bytes_with_rng, ConversationKey};
 use nostr::nips::nip59::UnwrappedGift;
 use nostr::nips::nip65::{self, RelayMetadata};
-use nostr::{Event, EventBuilder, EventId, JsonUtil, Keys, Kind, PublicKey, RelayUrl};
+use nostr::{Event, EventBuilder, EventId, JsonUtil, Keys, Kind, PublicKey, RelayUrl, SecretKey};
 use rand::{CryptoRng, RngCore};
 use serde::Deserialize;
 
@@ -120,9 +120,7 @@ fn check_nip01() -> Result<(), String> {
         .map_err(|e| format!("sign event: {e}"))?;
     let json = signed.as_json();
     let parsed = Event::from_json(&json).map_err(|e| format!("parse event: {e}"))?;
-    parsed
-        .verify()
-        .map_err(|e| format!("verify event: {e}"))?;
+    parsed.verify().map_err(|e| format!("verify event: {e}"))?;
     if parsed.id != signed.id {
         return Err("id mismatch after parse".to_string());
     }
@@ -131,10 +129,9 @@ fn check_nip01() -> Result<(), String> {
 
 fn check_nip02() -> Result<(), String> {
     let keys = parse_keys()?;
-    let target = PublicKey::from_hex(
-        "f831caf722214748c72db4829986bd0cbb2bb8b3aeade1c959624a52a9629046",
-    )
-    .map_err(|e| format!("target pubkey parse: {e}"))?;
+    let target =
+        PublicKey::from_hex("f831caf722214748c72db4829986bd0cbb2bb8b3aeade1c959624a52a9629046")
+            .map_err(|e| format!("target pubkey parse: {e}"))?;
     let event = EventBuilder::contact_list([Contact::new(target)])
         .sign_with_keys(&keys)
         .map_err(|e| format!("sign contact list: {e}"))?;
@@ -150,11 +147,12 @@ fn check_nip02() -> Result<(), String> {
 
 fn check_nip09() -> Result<(), String> {
     let keys = parse_keys()?;
-    let target_id = EventId::from_hex(
-        "7469af3be8c8e06e1b50ef1caceba30392ddc0b6614507398b7d7daa4c218e96",
-    )
-    .map_err(|e| format!("target id parse: {e}"))?;
-    let request = EventDeletionRequest::new().id(target_id).reason("cleanup baseline");
+    let target_id =
+        EventId::from_hex("7469af3be8c8e06e1b50ef1caceba30392ddc0b6614507398b7d7daa4c218e96")
+            .map_err(|e| format!("target id parse: {e}"))?;
+    let request = EventDeletionRequest::new()
+        .id(target_id)
+        .reason("cleanup baseline");
     let event = EventBuilder::delete(request)
         .sign_with_keys(&keys)
         .map_err(|e| format!("sign delete event: {e}"))?;
@@ -173,8 +171,8 @@ fn check_nip09() -> Result<(), String> {
 
 fn check_nip11() -> Result<(), String> {
     let json = r#"{"name":"Parity Relay","supported_nips":[1,9,11]}"#;
-    let document = RelayInformationDocument::from_json(json)
-        .map_err(|e| format!("relay info parse: {e}"))?;
+    let document =
+        RelayInformationDocument::from_json(json).map_err(|e| format!("relay info parse: {e}"))?;
     if document.name.as_deref() != Some("Parity Relay") {
         return Err("relay info name mismatch".to_string());
     }
@@ -197,10 +195,9 @@ fn check_nip13() -> Result<(), String> {
 }
 
 fn check_nip19() -> Result<(), String> {
-    let pubkey = PublicKey::from_hex(
-        "aa4fc8665f5696e33db7e1a572e3b0f5b3d615837b0f362dcb1c8068b098c7b4",
-    )
-    .map_err(|e| format!("pubkey parse: {e}"))?;
+    let pubkey =
+        PublicKey::from_hex("aa4fc8665f5696e33db7e1a572e3b0f5b3d615837b0f362dcb1c8068b098c7b4")
+            .map_err(|e| format!("pubkey parse: {e}"))?;
     let npub = pubkey
         .to_bech32()
         .map_err(|e| format!("pubkey to_bech32: {e}"))?;
@@ -208,11 +205,16 @@ fn check_nip19() -> Result<(), String> {
     if pubkey_back != pubkey {
         return Err("pubkey bech32 roundtrip mismatch".to_string());
     }
+    if EventId::from_bech32(&npub).is_ok() {
+        return Err("invalid prefix accepted for event id decode".to_string());
+    }
+    if PublicKey::from_bech32("npub1invalid").is_ok() {
+        return Err("invalid bech32 pubkey decode accepted".to_string());
+    }
 
-    let event_id = EventId::from_hex(
-        "d94a3f4dd87b9a3b0bed183b32e916fa29c8020107845d1752d72697fe5309a5",
-    )
-    .map_err(|e| format!("event id parse: {e}"))?;
+    let event_id =
+        EventId::from_hex("d94a3f4dd87b9a3b0bed183b32e916fa29c8020107845d1752d72697fe5309a5")
+            .map_err(|e| format!("event id parse: {e}"))?;
     let note = event_id
         .to_bech32()
         .map_err(|e| format!("event id to_bech32: {e}"))?;
@@ -224,10 +226,9 @@ fn check_nip19() -> Result<(), String> {
 }
 
 fn check_nip21() -> Result<(), String> {
-    let pubkey = PublicKey::from_hex(
-        "aa4fc8665f5696e33db7e1a572e3b0f5b3d615837b0f362dcb1c8068b098c7b4",
-    )
-    .map_err(|e| format!("pubkey parse: {e}"))?;
+    let pubkey =
+        PublicKey::from_hex("aa4fc8665f5696e33db7e1a572e3b0f5b3d615837b0f362dcb1c8068b098c7b4")
+            .map_err(|e| format!("pubkey parse: {e}"))?;
     let uri = pubkey
         .to_nostr_uri()
         .map_err(|e| format!("to nostr uri: {e}"))?;
@@ -238,12 +239,30 @@ fn check_nip21() -> Result<(), String> {
     if roundtrip != uri {
         return Err("nostr uri roundtrip mismatch".to_string());
     }
+
+    if Nip21::parse("https://relay.damus.io").is_ok() {
+        return Err("non-nostr uri accepted".to_string());
+    }
+
+    let secret_key =
+        SecretKey::from_hex("6b911fd37cdf5c81d4c0adb1ab7fa822ed253ab0ad9aa18d77257c88b29b718e")
+            .map_err(|e| format!("secret key parse: {e}"))?;
+    let nsec = secret_key
+        .to_bech32()
+        .map_err(|e| format!("secret key to_bech32: {e}"))?;
+    let forbidden_uri = format!("nostr:{nsec}");
+    if Nip21::parse(&forbidden_uri).is_ok() {
+        return Err("forbidden nsec uri accepted".to_string());
+    }
     Ok(())
 }
 
 fn check_nip42() -> Result<(), String> {
     let keys = parse_keys()?;
-    let relay_url = RelayUrl::parse("wss://relay.damus.io").map_err(|e| format!("relay parse: {e}"))?;
+    let relay_url =
+        RelayUrl::parse("wss://relay.damus.io").map_err(|e| format!("relay parse: {e}"))?;
+    let other_relay_url =
+        RelayUrl::parse("wss://relay.example").map_err(|e| format!("other relay parse: {e}"))?;
     let challenge = "parity-challenge";
     let event = EventBuilder::auth(challenge, relay_url.clone())
         .sign_with_keys(&keys)
@@ -253,6 +272,16 @@ fn check_nip42() -> Result<(), String> {
     }
     if nip42::is_valid_auth_event(&event, &relay_url, "different") {
         return Err("invalid challenge accepted".to_string());
+    }
+    if nip42::is_valid_auth_event(&event, &other_relay_url, challenge) {
+        return Err("invalid relay accepted".to_string());
+    }
+
+    let not_auth = EventBuilder::text_note("nip42 negative kind")
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("sign non-auth event: {e}"))?;
+    if nip42::is_valid_auth_event(&not_auth, &relay_url, challenge) {
+        return Err("non-auth event accepted".to_string());
     }
     Ok(())
 }
@@ -282,11 +311,20 @@ fn check_nip44() -> Result<(), String> {
         }
 
         let mut rng = FixedNonceRng::new(nonce);
-        let encrypted = encrypt_to_bytes_with_rng(&mut rng, &conversation_key, fixture.plaintext.as_bytes())
-            .map_err(|e| format!("encrypt failure: {e}"))?;
+        let encrypted =
+            encrypt_to_bytes_with_rng(&mut rng, &conversation_key, fixture.plaintext.as_bytes())
+                .map_err(|e| format!("encrypt failure: {e}"))?;
         let encoded = STANDARD.encode(encrypted);
         if encoded != fixture.payload_expectation_base64 {
             return Err("fixture encrypt mismatch".to_string());
+        }
+
+        if payload.len() > 1 {
+            let mut malformed = payload.clone();
+            malformed.truncate(malformed.len() - 1);
+            if decrypt_to_bytes(&conversation_key, &malformed).is_ok() {
+                return Err("malformed payload accepted".to_string());
+            }
         }
     }
 
@@ -319,8 +357,10 @@ async fn check_nip59() -> Result<(), String> {
 
 fn check_nip65() -> Result<(), String> {
     let keys = parse_keys()?;
-    let relay_a = RelayUrl::parse("wss://relay-a.example").map_err(|e| format!("relay-a parse: {e}"))?;
-    let relay_b = RelayUrl::parse("wss://relay-b.example").map_err(|e| format!("relay-b parse: {e}"))?;
+    let relay_a =
+        RelayUrl::parse("wss://relay-a.example").map_err(|e| format!("relay-a parse: {e}"))?;
+    let relay_b =
+        RelayUrl::parse("wss://relay-b.example").map_err(|e| format!("relay-b parse: {e}"))?;
     let event = EventBuilder::relay_list([
         (relay_a.clone(), Some(RelayMetadata::Read)),
         (relay_b.clone(), Some(RelayMetadata::Write)),
@@ -342,6 +382,10 @@ fn check_nip65() -> Result<(), String> {
         .any(|(url, metadata)| url == relay_b.as_str() && *metadata == Some(RelayMetadata::Write));
     if !has_read || !has_write {
         return Err("relay metadata extraction mismatch".to_string());
+    }
+
+    if "invalid".parse::<RelayMetadata>().is_ok() {
+        return Err("invalid relay metadata marker accepted".to_string());
     }
     Ok(())
 }

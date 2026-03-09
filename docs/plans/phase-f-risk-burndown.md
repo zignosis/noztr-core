@@ -145,14 +145,13 @@ Step 4 conclusion:
 
 ## Step 5 Documentation Lock
 
-- Aggregate dual-run gates were executed after each increment pass for Step 2 and Step 4
-  (expanded matrix).
-- Latest aggregate result: `zig build test --summary all` pass (`454/456`, `2` skipped), `zig build`
-  pass.
-- Trigger-governance status: no `UT-E-001`/`A-D-001` trigger criteria fired, so no policy/default
-  changes were considered.
-- Rule remains: any future trigger firing must be captured in `docs/plans/decision-log.md` before
-  default changes.
+- Aggregate dual-run gates were executed after each cadence increment:
+  TS parity-all step (`8`) and rust depth-notch step (`9`).
+- Latest aggregate result remains passing: `zig build test --summary all` (`454/456`, `2` skipped)
+  and `zig build`.
+- Trigger-governance status: no `UT-E-001`/`A-D-001` trigger criteria fired, so no
+  policy/default changes were considered.
+- Rule remains: any future trigger firing requires a decision-log entry before any default changes.
 
 ## Step 6 Persistent Cross-Language Replay Harnesses
 
@@ -190,6 +189,38 @@ Step 6 conclusion:
 Step 7 conclusion:
 - rust-nostr parity-all pass classification is `pass` for this execution slice.
 - Canonical matrix coverage for all implemented NIPs is now recorded.
+- Explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
+
+## Step 8 Pass Entry (ts-nostr parity-all matrix)
+
+- Step: 8 (comprehensive overlap validation for all currently implemented `noztr` NIPs using
+  `nostr-tools`).
+- Harness: `tools/interop/ts-nostr-parity-all` (`nostr-tools` `v2.7.2`).
+- Matrix artifact: `docs/plans/phase-f-ts-nostr-tools-parity.md`.
+
+| Step | Risk ID | Command | Result | Outcome classification | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `8` | `UT-E-003` | `npm run run` (in `tools/interop/ts-nostr-parity-all`) | pass (`NIP-01/13/19/21/42/44 PASS`; `NIP-02/09/11/40/45/50/59/65/70/77 UNSUPPORTED`; `SUMMARY pass=6 fail=0 unsupported=10 total=16`) | `pass` | supported overlap checks passed; remaining implemented NIPs explicitly reported as `UNSUPPORTED` |
+
+Step 8 conclusion:
+- ts-nostr parity-all pass classification is `pass` for this execution slice.
+- Canonical matrix coverage for all implemented NIPs is now recorded for the TypeScript lane.
+- Explicit no-default-change note: defaults unchanged; frozen defaults and strictness policy remain unchanged.
+
+## Step 9 Pass Entry (rust-nostr parity-all depth notch)
+
+- Step: 9 (expand rust-nostr parity depth, not breadth, for supported overlap checks).
+- Harness: `tools/interop/rust-nostr-parity-all` (`nostr` crate `v0.44.2`, `all-nips`).
+- Depth targets: `NIP-19`, `NIP-21`, `NIP-42`, `NIP-44`, `NIP-65` malformed/edge negatives.
+
+| Step | Risk ID | Command | Result | Outcome classification | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `9` | `UT-E-003` | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | pass (`NIP-01/02/09/11/13/19/21/42/44/59/65 PASS`; `NIP-40/45/50/70/77 UNSUPPORTED`; `SUMMARY pass=11 fail=0 unsupported=5 total=16`) | `pass` | coverage set unchanged; added malformed/edge negatives for `NIP-19/21/42/44/65` |
+| `9` | `UT-E-004` | `zig build test --summary all && zig build` | pass (`454/456` tests passed, `2` skipped; build pass) | `pass` | aggregate gate remains green after parity-depth increment |
+
+Step 9 conclusion:
+- rust-nostr parity-all depth-notch classification is `pass`.
+- Coverage breadth is unchanged; only supported-check malformed/edge depth increased.
 - Explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
 
 ## Next Burndown Tasks

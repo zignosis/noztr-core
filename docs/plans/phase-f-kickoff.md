@@ -28,6 +28,12 @@ Purpose: start Phase F execution tracking on the post-I7 baseline without changi
 - Phase F Step 7 rust-nostr parity-all matrix pass is recorded in
   `docs/plans/phase-f-risk-burndown.md` and
   `docs/plans/phase-f-rust-nostr-parity.md`.
+- Phase F Step 8 ts-nostr parity-all matrix pass is recorded in
+  `docs/plans/phase-f-risk-burndown.md` and
+  `docs/plans/phase-f-ts-nostr-tools-parity.md`.
+- Phase F Step 9 rust-nostr parity-all depth notch (malformed/edge expansion with same
+  coverage set) is recorded in `docs/plans/phase-f-risk-burndown.md` and
+  `docs/plans/phase-f-rust-nostr-parity.md`.
 - Phase F Step 3 `UT-E-004` replay expansion is recorded in
   `docs/plans/phase-f-risk-burndown.md` with expanded mutation classes and `no-drift`
   typed-class mapping stability.
@@ -35,8 +41,9 @@ Purpose: start Phase F execution tracking on the post-I7 baseline without changi
   `docs/plans/phase-f-risk-burndown.md` with additional hex-input seam classes
   (wrong-length message/signature and non-hex message/signature/pubkey) and
   `pass` outcome classification.
-- Aggregate dual-run gates were executed after each increment pass for Step 2 and Step 4
-  (expanded matrix); latest aggregate result is `454/456` passed, `2` skipped.
+- Aggregate dual-run gates were executed after each cadence increment:
+  TS parity-all step (`8`) and rust depth-notch step (`9`); latest aggregate result remains
+  `454/456` passed, `2` skipped.
 
 ## UT-E-003 and UT-E-004 Burn-Down Worklist
 
@@ -67,14 +74,19 @@ Burn-down guardrail: execute these tasks as depth expansion only; do not change 
   (`UT-E-003-FX-001`..`UT-E-003-FX-005` passed in persistent Go/Rust/TypeScript harnesses).
 - Step 7 rust-nostr parity-all status: executed (all supported overlap checks passed; implemented
   unsupported NIPs explicitly reported as `UNSUPPORTED`).
+- Step 8 ts-nostr parity-all status: executed (all supported overlap checks passed; implemented
+  unsupported NIPs explicitly reported as `UNSUPPORTED`).
+- Step 9 rust-nostr parity-all depth-notch status: executed (supported overlap checks passed with
+  added malformed/edge negatives for `NIP-19/21/42/44/65`; implemented unsupported NIPs unchanged).
 - Canonical evidence artifact: `docs/plans/phase-f-risk-burndown.md`.
 - Canonical parity matrix artifact: `docs/plans/phase-f-rust-nostr-parity.md`.
+- Canonical parity matrix artifact (TypeScript lane):
+  `docs/plans/phase-f-ts-nostr-tools-parity.md`.
 - Canonical replay input artifact: `docs/plans/phase-f-replay-inputs.md`.
 - Defaults/frozen policy status: unchanged.
-- Step 5 governance status: no `UT-E-001`/`A-D-001` trigger criteria fired, so no policy/default
-  changes were considered.
-- Rule remains: any future trigger firing must be captured in
-  `docs/plans/decision-log.md` before default changes.
+- Step 5 governance status: no `UT-E-001`/`A-D-001` trigger criteria fired, so no
+  policy/default changes were considered.
+- Rule remains: any future trigger firing requires a decision-log entry before any default changes.
 
 ## Optional Corpus Review Triggers (`UT-E-001` / `A-D-001`)
 

@@ -404,6 +404,24 @@ Immutable record of accepted planning decisions.
   policy/default changes were considered.
 - Rule note: any future trigger firing must be captured in this decision log before default changes.
 
+## D-025: Phase F cadence/governance check (TS parity-all and rust depth-notch)
+
+- Date: 2026-03-09
+- Status: accepted
+- Decision: record that aggregate dual-run gates were executed after each cadence increment for the
+  TS parity-all step and the rust depth-notch step; latest aggregate remains `454/456` passed,
+  `2` skipped.
+- Why: keeps increment-level gate cadence and governance posture explicit as replay depth expands.
+- Tradeoff: one additional decision-log checkpoint versus lower governance-state drift.
+- Related Tradeoff: T-0-004, T-E-001.
+- Reversal Trigger: `UT-E-001` or `A-D-001` trigger criteria fire and require default-policy
+  change consideration.
+- Supersedes: none
+
+- Policy note: no `UT-E-001`/`A-D-001` trigger criteria fired at this checkpoint, so no
+  policy/default changes were considered.
+- Rule note: any future trigger firing requires a decision-log entry before any default changes.
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

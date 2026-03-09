@@ -11,6 +11,8 @@ Purpose: record one-pass rust-nostr overlap validation for all currently impleme
 - `PF-RNP-002`: classify this pass as `pass` when all supported overlap checks return `PASS`.
 - `PF-RNP-003`: report explicit `UNSUPPORTED` for implemented NIPs without rust-nostr overlap
   helpers in this pass (`NIP-40`, `NIP-45`, `NIP-50`, `NIP-70`, `NIP-77`).
+- `PF-RNP-004`: expand depth (not breadth) for supported overlap checks with one malformed/edge
+  notch in `NIP-19`, `NIP-21`, `NIP-42`, `NIP-44`, and `NIP-65`.
 
 ## Parity Matrix
 
@@ -21,19 +23,21 @@ Purpose: record one-pass rust-nostr overlap validation for all currently impleme
 | NIP-09 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | deletion builder semantics baseline |
 | NIP-11 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | relay-info parse/roundtrip baseline |
 | NIP-13 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | deterministic leading-zero sample |
-| NIP-19 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | bech32 roundtrip for pubkey/event id |
-| NIP-21 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | nostr URI parse/roundtrip |
+| NIP-19 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | bech32 roundtrip plus invalid-prefix and invalid-decode negative assertions |
+| NIP-21 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | nostr URI roundtrip plus invalid-URI and forbidden-entity (`nsec`) negative assertions |
 | NIP-40 | unsupported overlap | UNSUPPORTED | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | explicit unsupported report |
-| NIP-42 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | auth event validation helper |
-| NIP-44 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | replays `tools/interop/fixtures/nip44_ut_e_003.json` |
+| NIP-42 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | auth helper plus challenge-mismatch, relay-mismatch, and non-auth-kind negative assertions |
+| NIP-44 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | replays `tools/interop/fixtures/nip44_ut_e_003.json` plus malformed-payload negative assertion |
 | NIP-45 | unsupported overlap | UNSUPPORTED | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | explicit unsupported report |
 | NIP-50 | unsupported overlap | UNSUPPORTED | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | explicit unsupported report |
 | NIP-59 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | gift-wrap unwrap happy-path baseline |
-| NIP-65 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | relay metadata extraction baseline |
+| NIP-65 | supported overlap | PASS | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | relay metadata extraction plus invalid-marker negative assertion |
 | NIP-70 | unsupported overlap | UNSUPPORTED | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | explicit unsupported report |
 | NIP-77 | unsupported overlap | UNSUPPORTED | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | explicit unsupported report |
 
 Pass classification: `pass`.
+
+Depth-notch classification (malformed/edge expansion, same coverage set): `pass`.
 
 Policy note: no frozen-default or strictness-policy change is introduced by this pass.
 

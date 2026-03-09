@@ -86,12 +86,12 @@ Implementation status snapshot (post-I7 closure):
   `docs/plans/phase-f-risk-burndown.md` (`UT-E-003`/`UT-E-004`).
 - Current implementation state remains post-I7 closure baseline; no default-policy changes are
   introduced by kickoff tracking.
-- Aggregate dual-run gates were executed after each increment pass for Step 2 and Step 4
-  (expanded matrix); latest aggregate result is `454/456` passed, `2` skipped.
-- Trigger-governance status: no `UT-E-001`/`A-D-001` trigger criteria fired, so no policy/default
-  changes were considered.
-- Rule remains: any future trigger firing must be captured in
-  `docs/plans/decision-log.md` before default changes.
+- Aggregate dual-run gates were executed after each cadence increment:
+  TS parity-all step (`8`) and rust depth-notch step (`9`); latest aggregate result remains
+  `454/456` passed, `2` skipped.
+- Trigger-governance status: no `UT-E-001`/`A-D-001` trigger criteria fired, so no
+  policy/default changes were considered.
+- Rule remains: any future trigger firing requires a decision-log entry before any default changes.
 - Layer 2 compatibility/ergonomic adapter work remains deferred until Layer 1 execution and
   `OQ-E-006` closure.
 
