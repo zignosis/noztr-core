@@ -92,6 +92,12 @@
       "conversation_key_hex": "c41c775356fd92eadc63ff5a0dc1da211b268cbea22316767095b2871ea1412d",
       "payload_base64": "AgAAAAA=",
       "expectation": "decrypt_reject"
+    },
+    {
+      "id": "UT-E-003-MAL-010",
+      "conversation_key_hex": "c41c775356fd92eadc63ff5a0dc1da211b268cbea22316767095b2871ea1412d",
+      "payload_base64": "AgAAAAAA",
+      "expectation": "decrypt_reject"
     }
   ]
 }
