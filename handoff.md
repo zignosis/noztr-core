@@ -29,9 +29,8 @@ This handoff captures the current documentation status and immediate direction f
   `docs/plans/phase-f-risk-burndown.md`.
 - Persistent rust-nostr parity-all harness is now maintained at
   `tools/interop/rust-nostr-parity-all` for full implemented-NIP overlap checks.
-- rust-nostr parity-all matrix pass is recorded as `pass` in
-  `docs/plans/phase-f-rust-nostr-parity.md` with `NOT_COVERED_IN_THIS_PASS` reporting for
-  `NIP-40`, `NIP-45`, `NIP-50`, `NIP-70`, `NIP-77`.
+- Current rust-nostr parity-all status is recorded in canonical model-v1 artifacts with
+  `HARNESS_COVERED` for all 16/16 implemented NIPs.
 - rust-nostr parity-all depth-notch expansion is recorded as `pass` in
   `docs/plans/phase-f-rust-nostr-parity.md` and `docs/plans/phase-f-risk-burndown.md`
   with added malformed/edge negatives for supported overlap checks in
@@ -40,8 +39,7 @@ This handoff captures the current documentation status and immediate direction f
   `tools/interop/ts-nostr-parity-all` for full implemented-NIP overlap checks in the
   TypeScript lane.
 - Current ts-nostr parity-all status is recorded in canonical model-v1 artifacts with
-  `HARNESS_COVERED` for 12/16 implemented NIPs and probe-backed
-  `NOT_COVERED_IN_THIS_PASS` for `NIP-40/45/50/70`.
+  `HARNESS_COVERED` for all 16/16 implemented NIPs.
 - Parity execution model v1 is now adopted with canonical taxonomy/depth output in both
   parity-all harnesses.
 - Phase F Step 11 parity-expansion pass is recorded as `pass` in
@@ -55,6 +53,11 @@ This handoff captures the current documentation status and immediate direction f
     `NIP-02`, `NIP-09`, and `NIP-65`.
   - Remaining TS uncovered NIPs (`NIP-40/45/50/70`) are runtime probe-backed as supported
     public API paths and are classified `NOT_COVERED_IN_THIS_PASS` (`lib_unsupported=0`).
+- Phase F Step 13 remaining-NIP parity expansion pass is recorded as `pass` in
+  `docs/plans/phase-f-risk-burndown.md`:
+  - rust lane promoted `NIP-40/45/50/70/77` to executable `HARNESS_COVERED` checks.
+  - TS lane promoted `NIP-40/45/50/70` to executable `HARNESS_COVERED` checks (including
+    mocked-websocket `Relay.count` and NIP-40 file-URL fallback import path).
 - Canonical parity artifacts are now:
   - `docs/plans/phase-f-parity-matrix.md`
   - `docs/plans/phase-f-parity-ledger.md`

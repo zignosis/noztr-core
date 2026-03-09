@@ -53,6 +53,11 @@ Purpose: start Phase F execution tracking on the post-I7 baseline without changi
     baselines.
   - Remaining TS uncovered NIPs (`NIP-40/45/50/70`) use explicit runtime capability probes and
     classify as `NOT_COVERED_IN_THIS_PASS` (no proven `LIB_UNSUPPORTED` entries).
+- Phase F Step 13 remaining-NIP parity expansion is recorded in
+  `docs/plans/phase-f-risk-burndown.md` with:
+  - rust lane promoted `NIP-40/45/50/70/77` to executable `HARNESS_COVERED` checks.
+  - TS lane promoted `NIP-40/45/50/70` to executable `HARNESS_COVERED` checks, including
+    offline mocked-websocket `Relay.count` flow and NIP-40 file-URL import fallback.
 - Phase F Step 3 `UT-E-004` replay expansion is recorded in
   `docs/plans/phase-f-risk-burndown.md` with expanded mutation classes and `no-drift`
   typed-class mapping stability.
@@ -102,6 +107,8 @@ Burn-down guardrail: execute these tasks as depth expansion only; do not change 
 - Step 12 TS thorough parity expansion status: executed (TS summary `pass=12/fail=0`,
   with `NIP-02/09/65` now covered and `NIP-40/45/50/70` probe-backed as
   `NOT_COVERED_IN_THIS_PASS`; `lib_unsupported=0`).
+- Step 13 remaining-NIP parity expansion status: executed (rust summary `pass=16/fail=0`,
+  TS summary `pass=16/fail=0`; both lanes now `HARNESS_COVERED` on all implemented NIPs).
 - Canonical evidence artifact: `docs/plans/phase-f-risk-burndown.md`.
 - Canonical parity matrix artifact: `docs/plans/phase-f-parity-matrix.md`.
 - Canonical parity ledger artifact: `docs/plans/phase-f-parity-ledger.md`.

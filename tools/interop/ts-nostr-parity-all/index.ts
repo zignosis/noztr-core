@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 import {
     finalizeEvent,
@@ -16,6 +16,7 @@ import { makeAuthEvent } from "nostr-tools/nip42";
 import { decrypt, encrypt } from "nostr-tools/nip44";
 import { parse as parseNostrUri } from "nostr-tools/nip21";
 import * as kinds from "nostr-tools/kinds";
+import { Relay, useWebSocketImplementation } from "nostr-tools/relay";
 
 type Taxonomy =
     | "LIB_SUPPORTED"
@@ -48,13 +49,13 @@ type FixtureSet = {
     fixtures: Fixture[];
 };
 
-type CapabilityProbe =
-    | { kind: "supported"; detail: string }
-    | { kind: "unsupported"; detail: string }
-    | { kind: "inconclusive"; detail: string };
-
 const FIXED_SECRET_KEY_HEX =
     "6b911fd37cdf5c81d4c0adb1ab7fa822ed253ab0ad9aa18d77257c88b29b718e";
+const LOCAL_FILE = fileURLToPath(import.meta.url);
+const LOCAL_DIR = dirname(LOCAL_FILE);
+const NIP40_FILE_URL = pathToFileURL(
+    join(LOCAL_DIR, "node_modules", "nostr-tools", "lib", "esm", "nip40.js"),
+).href;
 
 function to_bytes(value_hex: string): Uint8Array {
     if (value_hex.length % 2 !== 0) {
@@ -97,130 +98,124 @@ async function push_harness_covered(
     }
 }
 
-function push_not_covered(results: NipResult[], nip: string, depth: Depth, detail: string): void {
-    results.push({
-        nip,
-        taxonomy: "NOT_COVERED_IN_THIS_PASS",
-        depth,
-        result: "NOT_RUN",
-        detail,
-    });
-}
-
-function push_lib_unsupported(
-    results: NipResult[],
-    nip: string,
-    depth: Depth,
-    detail: string,
-): void {
-    results.push({
-        nip,
-        taxonomy: "LIB_UNSUPPORTED",
-        depth,
-        result: "NOT_RUN",
-        detail,
-    });
-}
-
-function push_not_covered_with_probe(
-    results: NipResult[],
-    nip: string,
-    depth: Depth,
-    probe: CapabilityProbe,
-): void {
-    if (probe.kind === "supported") {
-        push_not_covered(results, nip, depth, `capability_probe=supported (${probe.detail})`);
-        return;
-    }
-    if (probe.kind === "inconclusive") {
-        push_not_covered(results, nip, depth, `capability_probe=inconclusive (${probe.detail})`);
-        return;
-    }
-    push_lib_unsupported(results, nip, depth, `capability_probe=unsupported (${probe.detail})`);
-}
-
-async function probe_module(specifier: string): Promise<CapabilityProbe> {
+async function import_nip40_module(): Promise<{ getExpiration: (event: unknown) => Date | undefined; isEventExpired: (event: unknown) => boolean }> {
     try {
-        await import(specifier);
-        return { kind: "supported", detail: `imported ${specifier}` };
-    } catch (error) {
-        const detail = error instanceof Error ? error.message : String(error);
-        if (
-            detail.includes("Cannot find module") ||
-            detail.includes("ERR_MODULE_NOT_FOUND") ||
-            detail.includes("ERR_PACKAGE_PATH_NOT_EXPORTED") ||
-            detail.includes("is not defined by \"exports\"")
-        ) {
-            return { kind: "unsupported", detail: `${specifier} missing` };
-        }
-        return { kind: "inconclusive", detail: `${specifier} probe failed: ${detail}` };
+        return await import("nostr-tools/nip40");
+    } catch {
+        return await import(NIP40_FILE_URL);
     }
 }
 
-async function probe_nip40(): Promise<CapabilityProbe> {
-    const module_probe = await probe_module("nostr-tools/nip40");
-    if (module_probe.kind === "supported") {
-        return { kind: "supported", detail: "public module path nostr-tools/nip40" };
-    }
-
+async function check_nip40(): Promise<void> {
+    const nip40 = await import_nip40_module();
     const secret_key = to_bytes_32(FIXED_SECRET_KEY_HEX);
+    const expiration_seconds = 1_708_000_350;
     const event = finalizeEvent(
         {
             kind: 1,
             created_at: 1_708_000_050,
-            tags: [["expiration", "1708000350"]],
-            content: "nip40 probe",
+            tags: [["expiration", `${expiration_seconds}`]],
+            content: "nip40 baseline",
         },
         secret_key,
     );
 
-    if (!verifyEvent(event)) {
-        return { kind: "inconclusive", detail: "core event verify failed for expiration-tag probe" };
-    }
-    const has_expiration_tag = event.tags.some(
-        tag => tag.length >= 2 && tag[0] === "expiration" && tag[1] === "1708000350",
+    const expiration = nip40.getExpiration(event);
+    ensure(expiration !== undefined, "NIP-40 getExpiration returned undefined for expiration tag");
+    ensure(
+        expiration.getTime() === expiration_seconds * 1000,
+        "NIP-40 expiration timestamp mismatch",
     );
-    if (!has_expiration_tag) {
-        return {
-            kind: "inconclusive",
-            detail: "core event API did not preserve expiration tag in probe",
-        };
+
+    const date_now_original = Date.now;
+    try {
+        Date.now = () => (expiration_seconds - 1) * 1000;
+        ensure(!nip40.isEventExpired(event), "NIP-40 event expired before boundary");
+        Date.now = () => (expiration_seconds + 1) * 1000;
+        ensure(nip40.isEventExpired(event), "NIP-40 event not expired after boundary");
+    } finally {
+        Date.now = date_now_original;
     }
-    return {
-        kind: "supported",
-        detail: "core event API supports expiration-tag structural path",
-    };
+
+    const non_expiring_event = finalizeEvent(
+        {
+            kind: 1,
+            created_at: 1_708_000_051,
+            tags: [],
+            content: "nip40 negative",
+        },
+        secret_key,
+    );
+    ensure(!nip40.isEventExpired(non_expiring_event), "NIP-40 non-expiring event marked expired");
 }
 
-async function probe_nip45(): Promise<CapabilityProbe> {
-    const module_probe = await probe_module("nostr-tools/nip45");
-    if (module_probe.kind === "supported") {
-        return { kind: "supported", detail: "public module path nostr-tools/nip45" };
+class MockCountWebSocket {
+    static OPEN = 1;
+    static CLOSED = 3;
+
+    readyState = MockCountWebSocket.OPEN;
+    url: string;
+    onopen?: () => void;
+    onclose?: () => void;
+    onerror?: (error: Error) => void;
+    onmessage?: (event: { data: string }) => void;
+
+    constructor(url: string) {
+        this.url = url;
+        queueMicrotask(() => this.onopen?.());
     }
 
-    const relay_ctor = nostr_tools.Relay;
-    if (relay_ctor === undefined) {
-        return { kind: "unsupported", detail: "nostr-tools Relay export missing" };
+    close(): void {
+        this.readyState = MockCountWebSocket.CLOSED;
+        this.onclose?.({ message: "mock websocket closed" } as never);
     }
-    const has_count = typeof relay_ctor.prototype.count === "function";
-    if (!has_count) {
-        return { kind: "unsupported", detail: "Relay.count method missing" };
+
+    send(message: string): void {
+        const payload = JSON.parse(message) as unknown[];
+        if (payload[0] !== "COUNT") {
+            return;
+        }
+        const subscription_id = String(payload[1]);
+        const filter_payload = payload[2] as Record<string, unknown>;
+        const has_expected_kind = Array.isArray(filter_payload?.kinds) && filter_payload.kinds[0] === 1;
+        if (!has_expected_kind) {
+            this.onerror?.(new Error("COUNT request missing expected kinds filter"));
+            return;
+        }
+
+        if (subscription_id === "count-baseline") {
+            this.onmessage?.({ data: `["COUNT","${subscription_id}",{"count":2}]` });
+            return;
+        }
+        if (subscription_id === "count-edge") {
+            this.onmessage?.({ data: `["COUNT","${subscription_id}",{}]` });
+        }
     }
-    return {
-        kind: "supported",
-        detail: "Relay.count public API exists for COUNT message path",
-    };
 }
 
-async function probe_nip50(): Promise<CapabilityProbe> {
-    const module_probe = await probe_module("nostr-tools/nip50");
-    if (module_probe.kind === "supported") {
-        return { kind: "supported", detail: "public module path nostr-tools/nip50" };
-    }
+async function check_nip45(): Promise<void> {
+    const native_websocket = (globalThis as { WebSocket?: unknown }).WebSocket;
+    useWebSocketImplementation(MockCountWebSocket as unknown as typeof WebSocket);
 
-    if (typeof nostr_tools.matchFilter !== "function") {
-        return { kind: "unsupported", detail: "matchFilter export missing" };
+    const relay = await Relay.connect("wss://relay.mock");
+    try {
+        const count = await relay.count([{ kinds: [1], search: "nostr parity" }], {
+            id: "count-baseline",
+        });
+        ensure(count === 2, `NIP-45 baseline count mismatch: got ${String(count)}`);
+
+        const malformed_count = await relay.count([{ kinds: [1] }], { id: "count-edge" });
+        ensure(
+            malformed_count === undefined,
+            "NIP-45 malformed COUNT payload should resolve undefined",
+        );
+    } finally {
+        relay.close();
+        useWebSocketImplementation(native_websocket as typeof WebSocket);
     }
+}
+
+function check_nip50(): void {
     const event = finalizeEvent(
         {
             kind: 1,
@@ -230,43 +225,45 @@ async function probe_nip50(): Promise<CapabilityProbe> {
         },
         to_bytes_32(FIXED_SECRET_KEY_HEX),
     );
-    const matched = nostr_tools.matchFilter({ search: "nostr parity" }, event);
-    if (typeof matched !== "boolean") {
-        return { kind: "inconclusive", detail: "matchFilter did not return boolean for search" };
-    }
-    return {
-        kind: "supported",
-        detail: "filter.search accepted by matchFilter public API",
-    };
+    const matched = nostr_tools.matchFilter({ search: "nostr parity", ids: [event.id] }, event);
+    ensure(matched, "NIP-50 search filter baseline did not match event");
+
+    const unmatched = nostr_tools.matchFilter(
+        {
+            search: "nostr parity",
+            ids: ["ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"],
+        },
+        event,
+    );
+    ensure(!unmatched, "NIP-50 negative filter unexpectedly matched event");
 }
 
-async function probe_nip70(): Promise<CapabilityProbe> {
-    const module_probe = await probe_module("nostr-tools/nip70");
-    if (module_probe.kind === "supported") {
-        return { kind: "supported", detail: "public module path nostr-tools/nip70" };
-    }
-
+function check_nip70(): void {
     const secret_key = to_bytes_32(FIXED_SECRET_KEY_HEX);
     const event = finalizeEvent(
         {
             kind: 1,
             created_at: 1_708_000_060,
             tags: [["-"]],
-            content: "nip70 probe",
+            content: "nip70 baseline",
         },
         secret_key,
     );
-    if (!verifyEvent(event)) {
-        return { kind: "inconclusive", detail: "core event verify failed for protected-tag probe" };
-    }
+    ensure(verifyEvent(event), "NIP-70 protected event verify failed");
     const has_protected_tag = event.tags.some(tag => tag.length >= 1 && tag[0] === "-");
-    if (!has_protected_tag) {
-        return { kind: "inconclusive", detail: "core event API did not preserve '-' tag" };
-    }
-    return {
-        kind: "supported",
-        detail: "core event API supports protected-tag structural path",
-    };
+    ensure(has_protected_tag, "NIP-70 protected event missing '-' tag");
+
+    const regular = finalizeEvent(
+        {
+            kind: 1,
+            created_at: 1_708_000_061,
+            tags: [],
+            content: "nip70 negative",
+        },
+        secret_key,
+    );
+    const regular_has_protected = regular.tags.some(tag => tag.length >= 1 && tag[0] === "-");
+    ensure(!regular_has_protected, "NIP-70 regular event unexpectedly has '-' tag");
 }
 
 function check_nip02(): void {
@@ -523,9 +520,7 @@ async function check_nip11(): Promise<void> {
 }
 
 function check_nip44(): void {
-    const local_file = fileURLToPath(import.meta.url);
-    const local_dir = dirname(local_file);
-    const fixture_path = join(local_dir, "..", "fixtures", "nip44_ut_e_003.json");
+    const fixture_path = join(LOCAL_DIR, "..", "fixtures", "nip44_ut_e_003.json");
     const fixture_text = readFileSync(fixture_path, "utf8");
     const fixture_set = JSON.parse(fixture_text) as FixtureSet;
 
@@ -647,31 +642,10 @@ async function main(): Promise<void> {
     await push_harness_covered(results, "NIP-59", "EDGE", check_nip59);
     await push_harness_covered(results, "NIP-65", "BASELINE", check_nip65);
     await push_harness_covered(results, "NIP-77", "EDGE", check_nip77);
-
-    push_not_covered_with_probe(
-        results,
-        "NIP-40",
-        "BASELINE",
-        await probe_nip40(),
-    );
-    push_not_covered_with_probe(
-        results,
-        "NIP-45",
-        "BASELINE",
-        await probe_nip45(),
-    );
-    push_not_covered_with_probe(
-        results,
-        "NIP-50",
-        "BASELINE",
-        await probe_nip50(),
-    );
-    push_not_covered_with_probe(
-        results,
-        "NIP-70",
-        "BASELINE",
-        await probe_nip70(),
-    );
+    await push_harness_covered(results, "NIP-40", "EDGE", check_nip40);
+    await push_harness_covered(results, "NIP-45", "EDGE", check_nip45);
+    await push_harness_covered(results, "NIP-50", "EDGE", check_nip50);
+    await push_harness_covered(results, "NIP-70", "BASELINE", check_nip70);
 
     let pass_count = 0;
     let fail_count = 0;

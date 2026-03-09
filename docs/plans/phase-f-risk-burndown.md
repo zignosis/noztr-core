@@ -287,6 +287,27 @@ Step 12 conclusion:
   `NOT_COVERED_IN_THIS_PASS`, not `LIB_UNSUPPORTED`.
 - Explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
 
+## Step 13 Pass Entry (Remaining NIPs full parity expansion)
+
+- Step: 13 (promote remaining uncovered NIPs to executable `HARNESS_COVERED` checks in both lanes
+  where practical).
+- Scope:
+  - rust lane: promote `NIP-40`, `NIP-45`, `NIP-50`, `NIP-70`, `NIP-77` from probe-only to
+    executable overlap checks.
+  - TS lane: promote `NIP-40`, `NIP-45`, `NIP-50`, `NIP-70` from probe-only to executable overlap
+    checks (including offline mocked websocket COUNT flow).
+
+| Step | Risk ID | Command | Result | Outcome classification | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `13` | `UT-E-003` | `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml` | pass (`SUMMARY pass=16 fail=0 harness_covered=16 lib_supported=0 not_covered_in_this_pass=0 lib_unsupported=0 total=16`) | `pass` | rust remaining NIPs now fully executable with baseline/edge checks |
+| `13` | `UT-E-003` | `npm install && npm run run` (in `tools/interop/ts-nostr-parity-all`) | pass (`SUMMARY pass=16 fail=0 harness_covered=16 lib_supported=0 not_covered_in_this_pass=0 lib_unsupported=0 total=16`) | `pass` | TS remaining NIPs now fully executable; NIP-40 uses documented file-URL fallback path |
+| `13` | `UT-E-004` | `zig build test --summary all && zig build` | pass (`454/456` tests passed, `2` skipped; build pass) | `pass` | aggregate gates remain green after parity expansion pass |
+
+Step 13 conclusion:
+- Both parity lanes now classify all implemented NIPs as `HARNESS_COVERED` with executable checks.
+- Parity model v1 output shape and exit semantics remain unchanged.
+- Explicit no-default-change note: frozen defaults and strictness policy remain unchanged.
+
 ## Next Burndown Tasks
 
 1. `UT-E-003` owner: Phase F owner

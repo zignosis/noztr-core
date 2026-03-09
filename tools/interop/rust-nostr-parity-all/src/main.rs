@@ -1,5 +1,6 @@
 use std::fs;
 use std::process;
+use std::{borrow::Cow};
 
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
@@ -12,9 +13,10 @@ use nostr::nips::nip42;
 use nostr::nips::nip44::v2::{decrypt_to_bytes, encrypt_to_bytes_with_rng, ConversationKey};
 use nostr::nips::nip59::UnwrappedGift;
 use nostr::nips::nip65::{self, RelayMetadata};
+use nostr::filter::MatchEventOptions;
 use nostr::{
-    ClientMessage, Event, EventBuilder, EventId, Filter, JsonUtil, Keys, Kind, PublicKey, RelayUrl,
-    SecretKey, SubscriptionId, Tag, Timestamp,
+    ClientMessage, Event, EventBuilder, EventId, Filter, JsonUtil, Keys, Kind, PublicKey,
+    RelayMessage, RelayUrl, SecretKey, SubscriptionId, Tag, Timestamp,
 };
 use rand::{CryptoRng, RngCore};
 use serde::Deserialize;
@@ -60,7 +62,6 @@ impl Depth {
 enum CheckResult {
     Pass,
     Fail,
-    NotRun,
 }
 
 impl CheckResult {
@@ -68,7 +69,6 @@ impl CheckResult {
         match self {
             CheckResult::Pass => "PASS",
             CheckResult::Fail => "FAIL",
-            CheckResult::NotRun => "NOT_RUN",
         }
     }
 }
@@ -98,13 +98,6 @@ struct Fixture {
 struct FixedNonceRng {
     nonce: [u8; 32],
     offset: usize,
-}
-
-#[allow(dead_code)]
-enum CapabilityProbe {
-    Supported(String),
-    Unsupported(String),
-    Inconclusive(String),
 }
 
 impl FixedNonceRng {
@@ -185,55 +178,6 @@ fn push_harness_covered(
             result: CheckResult::Fail,
             detail: Some(detail),
         }),
-    }
-}
-
-fn push_not_covered(results: &mut Vec<NipResult>, nip: &'static str, depth: Depth, detail: &str) {
-    results.push(NipResult {
-        nip,
-        taxonomy: Taxonomy::NotCoveredInThisPass,
-        depth,
-        result: CheckResult::NotRun,
-        detail: Some(detail.to_string()),
-    });
-}
-
-fn push_lib_unsupported(results: &mut Vec<NipResult>, nip: &'static str, depth: Depth, detail: String) {
-    results.push(NipResult {
-        nip,
-        taxonomy: Taxonomy::LibUnsupported,
-        depth,
-        result: CheckResult::NotRun,
-        detail: Some(detail),
-    });
-}
-
-fn push_not_covered_with_probe(
-    results: &mut Vec<NipResult>,
-    nip: &'static str,
-    depth: Depth,
-    probe: CapabilityProbe,
-) {
-    match probe {
-        CapabilityProbe::Supported(detail) => {
-            push_not_covered(results, nip, depth, &format!("capability_probe=supported ({detail})"));
-        }
-        CapabilityProbe::Inconclusive(detail) => {
-            push_not_covered(
-                results,
-                nip,
-                depth,
-                &format!("capability_probe=inconclusive ({detail})"),
-            );
-        }
-        CapabilityProbe::Unsupported(detail) => {
-            push_lib_unsupported(
-                results,
-                nip,
-                depth,
-                format!("capability_probe=unsupported ({detail})"),
-            );
-        }
     }
 }
 
@@ -562,116 +506,199 @@ fn check_nip65() -> Result<(), String> {
     Ok(())
 }
 
-fn probe_nip40() -> CapabilityProbe {
-    let keys = match parse_keys() {
-        Ok(k) => k,
-        Err(e) => return CapabilityProbe::Inconclusive(format!("key setup failed: {e}")),
-    };
-    let event = match EventBuilder::text_note("nip40 probe")
+fn check_nip40() -> Result<(), String> {
+    let keys = parse_keys()?;
+    let event = EventBuilder::text_note("nip40 baseline")
         .tags([Tag::expiration(Timestamp::from(2_u64))])
         .sign_with_keys(&keys)
-    {
-        Ok(e) => e,
-        Err(e) => {
-            return CapabilityProbe::Inconclusive(format!("expiration-tag event build failed: {e}"));
-        }
-    };
-    let active = event.is_expired_at(&Timestamp::from(2_u64));
-    let expired = event.is_expired_at(&Timestamp::from(3_u64));
-    if active || !expired {
-        return CapabilityProbe::Inconclusive(
-            "expiration helper behavior did not match expected boundary".to_string(),
-        );
+        .map_err(|e| format!("expiration-tag event build failed: {e}"))?;
+    if event.is_expired_at(&Timestamp::from(2_u64)) {
+        return Err("expiration boundary mismatch at exact second".to_string());
     }
-    CapabilityProbe::Supported("event expiration helper available".to_string())
+    if !event.is_expired_at(&Timestamp::from(3_u64)) {
+        return Err("expiration boundary mismatch after second".to_string());
+    }
+
+    let regular_event = EventBuilder::text_note("nip40 negative")
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("regular event build failed: {e}"))?;
+    if regular_event.is_expired_at(&Timestamp::from(9_999_u64)) {
+        return Err("event without expiration tag was treated as expired".to_string());
+    }
+
+    Ok(())
 }
 
-fn probe_nip45() -> CapabilityProbe {
-    let message = match ClientMessage::from_json(r#"["COUNT","sub-a",{"kinds":[1]}]"#) {
-        Ok(message) => message,
-        Err(e) => {
-            return CapabilityProbe::Inconclusive(format!("COUNT parse failed unexpectedly: {e}"));
-        }
-    };
+fn check_nip45() -> Result<(), String> {
+    let message =
+        ClientMessage::from_json(r#"["COUNT","sub-a",{"kinds":[1]}]"#)
+            .map_err(|e| format!("COUNT parse failed unexpectedly: {e}"))?;
     if !matches!(message, ClientMessage::Count { .. }) {
-        return CapabilityProbe::Inconclusive("COUNT parse did not return Count variant".to_string());
+        return Err("COUNT parse did not return Count variant".to_string());
     }
+    let roundtrip = message.as_json();
+    if !roundtrip.contains("\"COUNT\"") {
+        return Err("COUNT serialization missing command".to_string());
+    }
+
+    let relay_count =
+        RelayMessage::from_json(r#"["COUNT","sub-a",{"count":7}]"#)
+            .map_err(|e| format!("relay COUNT parse failed unexpectedly: {e}"))?;
+    if !matches!(relay_count, RelayMessage::Count { .. }) {
+        return Err("relay COUNT parse did not return Count variant".to_string());
+    }
+
     if ClientMessage::from_json(r#"["COUNT","sub-a"]"#).is_ok() {
-        return CapabilityProbe::Inconclusive("COUNT malformed shape was accepted".to_string());
+        return Err("COUNT malformed client shape was accepted".to_string());
     }
-    CapabilityProbe::Supported("COUNT client message parse path available".to_string())
+    if RelayMessage::from_json(r#"["COUNT","sub-a",{"count":"bad"}]"#).is_ok() {
+        return Err("COUNT malformed relay payload was accepted".to_string());
+    }
+
+    Ok(())
 }
 
-fn probe_nip50() -> CapabilityProbe {
-    let filter = match Filter::from_json(r#"{"search":"nostr parity"}"#) {
-        Ok(filter) => filter,
-        Err(e) => {
-            return CapabilityProbe::Inconclusive(format!("search filter parse failed: {e}"));
-        }
-    };
-    if filter.search.as_deref() != Some("nostr parity") {
-        return CapabilityProbe::Inconclusive("search field not preserved in parsed filter".to_string());
+fn check_nip50() -> Result<(), String> {
+    let filter = Filter::new().search("nostr parity");
+    let parsed =
+        Filter::from_json(r#"{"search":"nostr parity","kinds":[1]}"#)
+            .map_err(|e| format!("search filter parse failed: {e}"))?;
+    if parsed.search.as_deref() != Some("nostr parity") {
+        return Err("search field not preserved in parsed filter".to_string());
     }
+
+    let keys = parse_keys()?;
+    let event = EventBuilder::text_note("nostr parity baseline")
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("search baseline event build failed: {e}"))?;
+    if !filter.match_event(&event, MatchEventOptions::new()) {
+        return Err("search-enabled filter failed baseline event match".to_string());
+    }
+
+    let non_match_event = EventBuilder::text_note("different content")
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("search negative event build failed: {e}"))?;
+    let opts_nip50_enabled = MatchEventOptions::new().nip50(true);
+    if filter.match_event(&non_match_event, opts_nip50_enabled) {
+        return Err("search-enabled match options accepted mismatched content".to_string());
+    }
+
+    let opts_nip50_disabled = MatchEventOptions::new().nip50(false);
+    if !filter.match_event(&non_match_event, opts_nip50_disabled) {
+        return Err("match options with nip50 disabled unexpectedly rejected event".to_string());
+    }
+
+    let kind_mismatch_filter = Filter::new().search("nostr parity").kind(Kind::Metadata);
+    if kind_mismatch_filter.match_event(&event, MatchEventOptions::new()) {
+        return Err("filter accepted event with mismatched kind".to_string());
+    }
+
     if Filter::from_json(r#"{"search":{"q":"bad"}}"#).is_ok() {
-        return CapabilityProbe::Inconclusive("invalid search field type accepted".to_string());
+        return Err("invalid search field type accepted".to_string());
     }
-    CapabilityProbe::Supported("search field parser available".to_string())
+
+    Ok(())
 }
 
-fn probe_nip70() -> CapabilityProbe {
-    let keys = match parse_keys() {
-        Ok(k) => k,
-        Err(e) => return CapabilityProbe::Inconclusive(format!("key setup failed: {e}")),
-    };
-    let protected_event = match EventBuilder::text_note("nip70 probe")
+fn check_nip70() -> Result<(), String> {
+    let keys = parse_keys()?;
+    let protected_event = EventBuilder::text_note("nip70 baseline")
         .tags([Tag::protected()])
         .sign_with_keys(&keys)
-    {
-        Ok(e) => e,
-        Err(e) => {
-            return CapabilityProbe::Inconclusive(format!("protected-tag event build failed: {e}"));
-        }
-    };
+        .map_err(|e| format!("protected-tag event build failed: {e}"))?;
     if !protected_event.is_protected() {
-        return CapabilityProbe::Inconclusive("protected event was not detected".to_string());
+        return Err("protected event was not detected".to_string());
     }
-    let regular_event = match EventBuilder::text_note("nip70 probe regular").sign_with_keys(&keys) {
-        Ok(e) => e,
-        Err(e) => {
-            return CapabilityProbe::Inconclusive(format!("regular event build failed: {e}"));
-        }
-    };
+    let has_dash_tag = protected_event
+        .tags
+        .iter()
+        .any(|tag| tag.as_slice().len() == 1 && tag.as_slice()[0] == "-");
+    if !has_dash_tag {
+        return Err("protected event missing structural '-' tag".to_string());
+    }
+
+    let regular_event = EventBuilder::text_note("nip70 regular")
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("regular event build failed: {e}"))?;
     if regular_event.is_protected() {
-        return CapabilityProbe::Inconclusive("regular event flagged as protected".to_string());
+        return Err("regular event flagged as protected".to_string());
     }
-    CapabilityProbe::Supported("protected-event detector available".to_string())
+
+    Ok(())
 }
 
-fn probe_nip77() -> CapabilityProbe {
-    let message = match ClientMessage::from_json(r#"["NEG-OPEN","sub-b",{},"00"]"#) {
-        Ok(message) => message,
-        Err(e) => {
-            return CapabilityProbe::Inconclusive(format!("NEG-OPEN parse failed unexpectedly: {e}"));
-        }
-    };
+fn check_nip77() -> Result<(), String> {
+    let message =
+        ClientMessage::from_json(r#"["NEG-OPEN","sub-b",{},"00"]"#)
+            .map_err(|e| format!("NEG-OPEN parse failed unexpectedly: {e}"))?;
     if !matches!(message, ClientMessage::NegOpen { .. }) {
-        return CapabilityProbe::Inconclusive(
-            "NEG-OPEN parse did not return NegOpen variant".to_string(),
-        );
+        return Err("NEG-OPEN parse did not return NegOpen variant".to_string());
     }
-    let serialized = ClientMessage::neg_open(
+    let open_serialized = ClientMessage::neg_open(
         SubscriptionId::new("sub-b"),
         Filter::new(),
         "00".to_string(),
     )
     .as_json();
-    if !serialized.contains("NEG-OPEN") {
-        return CapabilityProbe::Inconclusive("NEG-OPEN serialization missing command".to_string());
+    if !open_serialized.contains("NEG-OPEN") {
+        return Err("NEG-OPEN serialization missing command".to_string());
     }
+
+    let neg_msg = ClientMessage::from_json(r#"["NEG-MSG","sub-b","0102"]"#)
+        .map_err(|e| format!("NEG-MSG parse failed unexpectedly: {e}"))?;
+    if !matches!(neg_msg, ClientMessage::NegMsg { .. }) {
+        return Err("NEG-MSG parse did not return NegMsg variant".to_string());
+    }
+    let neg_close = ClientMessage::from_json(r#"["NEG-CLOSE","sub-b"]"#)
+        .map_err(|e| format!("NEG-CLOSE parse failed unexpectedly: {e}"))?;
+    if !matches!(neg_close, ClientMessage::NegClose { .. }) {
+        return Err("NEG-CLOSE parse did not return NegClose variant".to_string());
+    }
+
+    let relay_neg_msg = RelayMessage::from_json(r#"["NEG-MSG","sub-b","0203"]"#)
+        .map_err(|e| format!("relay NEG-MSG parse failed unexpectedly: {e}"))?;
+    if !matches!(relay_neg_msg, RelayMessage::NegMsg { .. }) {
+        return Err("relay NEG-MSG parse did not return NegMsg variant".to_string());
+    }
+    let relay_neg_err = RelayMessage::from_json(r#"["NEG-ERR","sub-b","bad-frame"]"#)
+        .map_err(|e| format!("relay NEG-ERR parse failed unexpectedly: {e}"))?;
+    if !matches!(relay_neg_err, RelayMessage::NegErr { .. }) {
+        return Err("relay NEG-ERR parse did not return NegErr variant".to_string());
+    }
+
+    let msg_serialized = ClientMessage::NegMsg {
+        subscription_id: Cow::Owned(SubscriptionId::new("sub-b")),
+        message: Cow::Owned("0203".to_string()),
+    }
+    .as_json();
+    if !msg_serialized.contains("NEG-MSG") {
+        return Err("NEG-MSG serialization missing command".to_string());
+    }
+    let close_serialized = ClientMessage::NegClose {
+        subscription_id: Cow::Owned(SubscriptionId::new("sub-b")),
+    }
+    .as_json();
+    if !close_serialized.contains("NEG-CLOSE") {
+        return Err("NEG-CLOSE serialization missing command".to_string());
+    }
+
+    let relay_err_serialized = RelayMessage::NegErr {
+        subscription_id: Cow::Owned(SubscriptionId::new("sub-b")),
+        message: Cow::Owned("bad-frame".to_string()),
+    }
+    .as_json();
+    if !relay_err_serialized.contains("NEG-ERR") {
+        return Err("NEG-ERR serialization missing command".to_string());
+    }
+
     if ClientMessage::from_json(r#"["NEG-OPEN","sub-b",{}]"#).is_ok() {
-        return CapabilityProbe::Inconclusive("malformed NEG-OPEN shape was accepted".to_string());
+        return Err("malformed NEG-OPEN shape was accepted".to_string());
     }
-    CapabilityProbe::Supported("NEG-OPEN/NEG-MSG parser path available".to_string())
+    if RelayMessage::from_json(r#"["NEG-ERR","sub-b",{}]"#).is_ok() {
+        return Err("malformed NEG-ERR shape was accepted".to_string());
+    }
+
+    Ok(())
 }
 
 #[tokio::main]
@@ -690,11 +717,11 @@ async fn main() {
     push_harness_covered(&mut results, "NIP-59", Depth::Baseline, check_nip59().await);
     push_harness_covered(&mut results, "NIP-65", Depth::Edge, check_nip65());
 
-    push_not_covered_with_probe(&mut results, "NIP-40", Depth::Baseline, probe_nip40());
-    push_not_covered_with_probe(&mut results, "NIP-45", Depth::Baseline, probe_nip45());
-    push_not_covered_with_probe(&mut results, "NIP-50", Depth::Baseline, probe_nip50());
-    push_not_covered_with_probe(&mut results, "NIP-70", Depth::Baseline, probe_nip70());
-    push_not_covered_with_probe(&mut results, "NIP-77", Depth::Baseline, probe_nip77());
+    push_harness_covered(&mut results, "NIP-40", Depth::Baseline, check_nip40());
+    push_harness_covered(&mut results, "NIP-45", Depth::Edge, check_nip45());
+    push_harness_covered(&mut results, "NIP-50", Depth::Edge, check_nip50());
+    push_harness_covered(&mut results, "NIP-70", Depth::Baseline, check_nip70());
+    push_harness_covered(&mut results, "NIP-77", Depth::Edge, check_nip77());
 
     let mut pass_count = 0usize;
     let mut fail_count = 0usize;
