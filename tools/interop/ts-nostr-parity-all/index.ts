@@ -14,6 +14,7 @@ import { getPow } from "nostr-tools/nip13";
 import { decode, noteEncode, npubEncode } from "nostr-tools/nip19";
 import { makeAuthEvent } from "nostr-tools/nip42";
 import { decrypt, encrypt } from "nostr-tools/nip44";
+import * as nip10 from "nostr-tools/nip10";
 import { parse as parseNostrUri } from "nostr-tools/nip21";
 import * as kinds from "nostr-tools/kinds";
 import { Relay, useWebSocketImplementation } from "nostr-tools/relay";
@@ -624,6 +625,56 @@ function check_nip59(): void {
     ensure(wrong_recipient_rejected, "NIP-59 unwrap accepted wrong recipient key");
 }
 
+function check_nip10(): void {
+    const root_id = "1111111111111111111111111111111111111111111111111111111111111111";
+    const reply_id = "2222222222222222222222222222222222222222222222222222222222222222";
+    const mention_id = "3333333333333333333333333333333333333333333333333333333333333333";
+    const reply_author =
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+    const mention_author =
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc";
+
+    const parsed_marked = nip10.parse({
+        tags: [
+            ["e", root_id, "", "root"],
+            ["e", mention_id, "", "mention", mention_author],
+            ["e", reply_id, "wss://relay.example", "reply", reply_author],
+        ],
+    });
+    ensure(parsed_marked.root?.id === root_id, "NIP-10 root marker parse mismatch");
+    ensure(parsed_marked.reply?.id === reply_id, "NIP-10 reply marker parse mismatch");
+    ensure(
+        parsed_marked.reply?.author === reply_author,
+        "NIP-10 reply marker author mismatch",
+    );
+    ensure(parsed_marked.mentions.length === 1, "NIP-10 mention marker count mismatch");
+    ensure(parsed_marked.mentions[0].id === mention_id, "NIP-10 mention marker id mismatch");
+    ensure(
+        parsed_marked.mentions[0].author === mention_author,
+        "NIP-10 mention marker author mismatch",
+    );
+
+    const parsed_mention_only = nip10.parse({
+        tags: [["e", mention_id, "", "mention"]],
+    });
+    ensure(parsed_mention_only.root === undefined, "NIP-10 mention-only unexpectedly set root");
+    ensure(parsed_mention_only.reply === undefined, "NIP-10 mention-only unexpectedly set reply");
+    ensure(
+        parsed_mention_only.mentions.length === 1,
+        "NIP-10 mention-only mention count mismatch",
+    );
+
+    const widened_pubkey =
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    const parsed_widened = nip10.parse({
+        tags: [["e", root_id, "", widened_pubkey]],
+    });
+    ensure(parsed_widened.root?.id === root_id, "NIP-10 widened root mismatch");
+    ensure(parsed_widened.reply?.id === root_id, "NIP-10 widened reply mismatch");
+    ensure(parsed_widened.reply?.author === undefined, "NIP-10 widened author should be absent");
+    ensure(parsed_widened.mentions.length === 0, "NIP-10 widened tag produced mentions");
+}
+
 function check_nip77(): void {
     const local = new nostr_tools.nip77.NegentropyStorageVector();
     const remote = new nostr_tools.nip77.NegentropyStorageVector();
@@ -672,6 +723,7 @@ async function main(): Promise<void> {
     await push_harness_covered(results, "NIP-01", "EDGE", check_nip01);
     await push_harness_covered(results, "NIP-02", "BASELINE", check_nip02);
     await push_harness_covered(results, "NIP-09", "BASELINE", check_nip09);
+    await push_harness_covered(results, "NIP-10", "EDGE", check_nip10);
     await push_harness_covered(results, "NIP-11", "EDGE", check_nip11);
     await push_harness_covered(results, "NIP-13", "EDGE", check_nip13);
     await push_harness_covered(results, "NIP-19", "EDGE", check_nip19);

@@ -38,12 +38,28 @@ pub const ThreadInfo = struct {
 
 const ParsedThreadTag = struct {
     reference: ThreadReference,
-    marker: ?ThreadMarker = null,
+    kind: ThreadTagKind = .unmarked,
 };
 
-const MarkerAndPubkey = struct {
-    marker: ?ThreadMarker = null,
+const ThreadTagKind = enum {
+    unmarked,
+    root,
+    reply,
+    mention,
+};
+
+const TagTail = struct {
+    kind: ThreadTagKind = .unmarked,
     author_pubkey: ?[32]u8 = null,
+};
+
+const ThreadScan = struct {
+    info: ThreadInfo = .{},
+    saw_root_or_reply: bool = false,
+    explicit_mention_count: u16 = 0,
+    unmarked_count: u16 = 0,
+    first_unmarked: ?ThreadReference = null,
+    last_unmarked: ?ThreadReference = null,
 };
 
 /// Parses a NIP-10 thread marker token.
@@ -75,35 +91,12 @@ pub fn thread_extract(
         return error.InvalidEventKind;
     }
 
-    var info = ThreadInfo{};
-    var saw_marked_tag = false;
-    var mention_count: u16 = 0;
-    for (event.tags) |tag| {
-        const parsed = try parse_thread_tag(tag);
-        if (parsed == null) {
-            continue;
-        }
-        if (parsed.?.marker) |marker| {
-            saw_marked_tag = true;
-            try apply_marked_reference(&info, marker, parsed.?.reference);
-            continue;
-        }
-        if (mention_count == mentions_out.len) {
-            return error.BufferTooSmall;
-        }
-        mentions_out[mention_count] = parsed.?.reference;
-        mention_count += 1;
+    const scan = try scan_thread_tags(event);
+    const mention_count = try final_mention_count(scan, mentions_out.len);
+    if (scan.saw_root_or_reply) {
+        return fill_explicit_mode(event, mentions_out, scan, mention_count);
     }
-
-    if (saw_marked_tag) {
-        info.mention_count = mention_count;
-        if (info.root != null and info.reply == null) {
-            info.reply = info.root;
-        }
-        return info;
-    }
-
-    return apply_positional_fallback(mentions_out, mention_count);
+    return fill_positional_mode(event, mentions_out, scan, mention_count);
 }
 
 fn apply_marked_reference(
@@ -125,37 +118,6 @@ fn apply_marked_reference(
         return error.DuplicateReplyTag;
     }
     info.reply = reference;
-}
-
-fn apply_positional_fallback(
-    mentions_out: []ThreadReference,
-    total_count: u16,
-) ThreadInfo {
-    std.debug.assert(mentions_out.len <= std.math.maxInt(u16));
-    std.debug.assert(total_count <= mentions_out.len);
-
-    var info = ThreadInfo{};
-    if (total_count == 0) {
-        return info;
-    }
-
-    info.root = mentions_out[0];
-    if (total_count == 1) {
-        info.reply = mentions_out[0];
-        return info;
-    }
-
-    info.reply = mentions_out[total_count - 1];
-    if (total_count == 2) {
-        return info;
-    }
-
-    var index: u16 = 1;
-    while (index < total_count - 1) : (index += 1) {
-        mentions_out[index - 1] = mentions_out[index];
-    }
-    info.mention_count = total_count - 2;
-    return info;
 }
 
 fn parse_thread_tag(tag: nip01_event.EventTag) ThreadError!?ParsedThreadTag {
@@ -184,7 +146,7 @@ fn parse_thread_tag(tag: nip01_event.EventTag) ThreadError!?ParsedThreadTag {
             return error.InvalidRelayHint;
         };
     }
-    const parsed_tail = try parse_marker_and_pubkey(tag);
+    const parsed_tail = try parse_tag_tail(tag);
 
     return .{
         .reference = .{
@@ -192,11 +154,11 @@ fn parse_thread_tag(tag: nip01_event.EventTag) ThreadError!?ParsedThreadTag {
             .relay_hint = relay_hint,
             .author_pubkey = parsed_tail.author_pubkey,
         },
-        .marker = parsed_tail.marker,
+        .kind = parsed_tail.kind,
     };
 }
 
-fn parse_marker_and_pubkey(tag: nip01_event.EventTag) ThreadError!MarkerAndPubkey {
+fn parse_tag_tail(tag: nip01_event.EventTag) ThreadError!TagTail {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(nip10_e_tag_items_max == 5);
 
@@ -209,24 +171,172 @@ fn parse_marker_and_pubkey(tag: nip01_event.EventTag) ThreadError!MarkerAndPubke
         tag_4 = tag.items[4];
     }
 
-    var parsed = MarkerAndPubkey{};
+    var parsed = TagTail{};
+    if (tag_3 != null and std.mem.eql(u8, tag_3.?, "mention")) {
+        parsed.kind = .mention;
+        if (tag_4 != null) {
+            parsed.author_pubkey = try parse_pubkey(tag_4.?);
+        }
+        return parsed;
+    }
     if (tag_3 != null and tag_4 != null) {
-        parsed.marker = thread_marker_parse(tag_3.?) catch return error.InvalidMarker;
+        parsed.kind = marker_kind(thread_marker_parse(tag_3.?) catch return error.InvalidMarker);
         parsed.author_pubkey = try parse_pubkey(tag_4.?);
         return parsed;
     }
     if (tag_3 != null and tag_4 == null) {
         const maybe_marker = thread_marker_parse(tag_3.?) catch null;
         if (maybe_marker) |marker| {
-            parsed.marker = marker;
+            parsed.kind = marker_kind(marker);
             return parsed;
         }
-        return error.InvalidMarker;
+        parsed.author_pubkey = parse_pubkey(tag_3.?) catch return error.InvalidMarker;
+        return parsed;
     }
     if (tag_3 == null and tag_4 != null) {
         parsed.author_pubkey = try parse_pubkey(tag_4.?);
     }
     return parsed;
+}
+
+fn marker_kind(marker: ThreadMarker) ThreadTagKind {
+    std.debug.assert(@intFromEnum(marker) <= @intFromEnum(ThreadMarker.reply));
+    std.debug.assert(@intFromEnum(ThreadTagKind.mention) == 3);
+
+    return switch (marker) {
+        .root => .root,
+        .reply => .reply,
+    };
+}
+
+fn scan_thread_tags(event: *const nip01_event.Event) ThreadError!ThreadScan {
+    std.debug.assert(@intFromPtr(event) != 0);
+    std.debug.assert(event.tags.len <= limits.tags_max);
+
+    var scan = ThreadScan{};
+    for (event.tags) |tag| {
+        const parsed = try parse_thread_tag(tag);
+        if (parsed == null) {
+            continue;
+        }
+        switch (parsed.?.kind) {
+            .root => {
+                scan.saw_root_or_reply = true;
+                try apply_marked_reference(&scan.info, .root, parsed.?.reference);
+            },
+            .reply => {
+                scan.saw_root_or_reply = true;
+                try apply_marked_reference(&scan.info, .reply, parsed.?.reference);
+            },
+            .mention => scan.explicit_mention_count += 1,
+            .unmarked => {
+                scan.unmarked_count += 1;
+                if (scan.first_unmarked == null) {
+                    scan.first_unmarked = parsed.?.reference;
+                }
+                scan.last_unmarked = parsed.?.reference;
+            },
+        }
+    }
+    return scan;
+}
+
+fn final_mention_count(scan: ThreadScan, output_len: usize) ThreadError!u16 {
+    std.debug.assert(output_len <= std.math.maxInt(u16));
+    std.debug.assert(scan.explicit_mention_count <= limits.tags_max);
+
+    var count = scan.explicit_mention_count;
+    if (scan.saw_root_or_reply) {
+        count += scan.unmarked_count;
+    } else if (scan.unmarked_count > 2) {
+        count += scan.unmarked_count - 2;
+    }
+    if (count > output_len) {
+        return error.BufferTooSmall;
+    }
+    return count;
+}
+
+fn fill_explicit_mode(
+    event: *const nip01_event.Event,
+    mentions_out: []ThreadReference,
+    scan: ThreadScan,
+    mention_count: u16,
+) ThreadError!ThreadInfo {
+    std.debug.assert(@intFromPtr(event) != 0);
+    std.debug.assert(mention_count <= mentions_out.len);
+
+    var info = scan.info;
+    var write_index: u16 = 0;
+    for (event.tags) |tag| {
+        const parsed = try parse_thread_tag(tag);
+        if (parsed == null) {
+            continue;
+        }
+        if (parsed.?.kind == .root or parsed.?.kind == .reply) {
+            continue;
+        }
+        mentions_out[write_index] = parsed.?.reference;
+        write_index += 1;
+    }
+    info.mention_count = mention_count;
+    if (info.root != null and info.reply == null) {
+        info.reply = info.root;
+    }
+    return info;
+}
+
+fn fill_positional_mode(
+    event: *const nip01_event.Event,
+    mentions_out: []ThreadReference,
+    scan: ThreadScan,
+    mention_count: u16,
+) ThreadError!ThreadInfo {
+    std.debug.assert(@intFromPtr(event) != 0);
+    std.debug.assert(mention_count <= mentions_out.len);
+
+    var info = scan.info;
+    if (scan.unmarked_count != 0) {
+        info.root = scan.first_unmarked;
+        info.reply = scan.last_unmarked;
+    }
+    if (scan.unmarked_count == 1) {
+        info.reply = scan.first_unmarked;
+    }
+
+    var write_index: u16 = 0;
+    var unmarked_index: u16 = 0;
+    for (event.tags) |tag| {
+        const parsed = try parse_thread_tag(tag);
+        if (parsed == null) {
+            continue;
+        }
+        if (parsed.?.kind == .mention) {
+            mentions_out[write_index] = parsed.?.reference;
+            write_index += 1;
+            continue;
+        }
+        if (parsed.?.kind != .unmarked) {
+            continue;
+        }
+        if (is_unmarked_mention(unmarked_index, scan.unmarked_count)) {
+            mentions_out[write_index] = parsed.?.reference;
+            write_index += 1;
+        }
+        unmarked_index += 1;
+    }
+    info.mention_count = mention_count;
+    return info;
+}
+
+fn is_unmarked_mention(index: u16, total_count: u16) bool {
+    std.debug.assert(index < total_count or total_count == 0);
+    std.debug.assert(total_count <= limits.tags_max);
+
+    if (total_count <= 2) {
+        return false;
+    }
+    return index != 0 and index + 1 != total_count;
 }
 
 fn parse_pubkey(text: []const u8) ThreadError![32]u8 {
@@ -367,7 +477,7 @@ test "thread extract marked tags keep unmarked mentions and empty hints absent" 
     try std.testing.expect(mentions[0].author_pubkey.?[0] == 0xcc);
 }
 
-test "thread extract rejects 4-slot pubkey in marker position" {
+test "thread extract accepts 4-slot pubkey fallback in canonical thread reference" {
     const widened_tag = [_][]const u8{
         "e",
         "3333333333333333333333333333333333333333333333333333333333333333",
@@ -376,10 +486,13 @@ test "thread extract rejects 4-slot pubkey in marker position" {
     };
     var mentions: [1]ThreadReference = undefined;
 
-    try std.testing.expectError(
-        error.InvalidMarker,
-        thread_extract(&thread_event(&.{.{ .items = widened_tag[0..] }}), mentions[0..]),
-    );
+    const parsed = try thread_extract(&thread_event(&.{.{ .items = widened_tag[0..] }}), mentions[0..]);
+
+    try std.testing.expect(parsed.root != null);
+    try std.testing.expect(parsed.reply != null);
+    try std.testing.expect(parsed.root.?.event_id[0] == 0x33);
+    try std.testing.expect(parsed.reply.?.author_pubkey.?[0] == 0xcc);
+    try std.testing.expectEqual(@as(u16, 0), parsed.mention_count);
 }
 
 test "thread extract positional fallback resolves root mentions and reply" {
@@ -433,7 +546,26 @@ test "thread extract positional fallback with one e tag uses same root and reply
     try std.testing.expectEqual(@as(u16, 0), parsed.mention_count);
 }
 
-test "thread extract rejects wrong kind duplicates and marker misuse" {
+test "thread extract handles legacy mention marker as mention-only reference" {
+    const mention_tag = [_][]const u8{
+        "e",
+        "9999999999999999999999999999999999999999999999999999999999999999",
+        "",
+        "mention",
+        "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    };
+    var mentions: [1]ThreadReference = undefined;
+
+    const parsed = try thread_extract(&thread_event(&.{.{ .items = mention_tag[0..] }}), mentions[0..]);
+
+    try std.testing.expect(parsed.root == null);
+    try std.testing.expect(parsed.reply == null);
+    try std.testing.expectEqual(@as(u16, 1), parsed.mention_count);
+    try std.testing.expect(mentions[0].event_id[0] == 0x99);
+    try std.testing.expect(mentions[0].author_pubkey.?[0] == 0xdd);
+}
+
+test "thread extract rejects wrong kind and duplicate root tags" {
     const root_tag = [_][]const u8{
         "e",
         "1111111111111111111111111111111111111111111111111111111111111111",
@@ -444,21 +576,11 @@ test "thread extract rejects wrong kind duplicates and marker misuse" {
         .{ .items = root_tag[0..] },
         .{ .items = root_tag[0..] },
     };
-    const bad_marker_tag = [_][]const u8{
-        "e",
-        "1111111111111111111111111111111111111111111111111111111111111111",
-        "",
-        "mention",
-    };
-    const bad_marker_tags = [_]nip01_event.EventTag{.{ .items = bad_marker_tag[0..] }};
+    const root_tags = [_]nip01_event.EventTag{.{ .items = root_tag[0..] }};
     var out: [2]ThreadReference = undefined;
 
     try std.testing.expectError(error.DuplicateRootTag, thread_extract(&thread_event(
         duplicate_root_tags[0..],
-    ), out[0..]));
-
-    try std.testing.expectError(error.InvalidMarker, thread_extract(&thread_event(
-        bad_marker_tags[0..],
     ), out[0..]));
 
     try std.testing.expectError(
@@ -471,7 +593,7 @@ test "thread extract rejects wrong kind duplicates and marker misuse" {
                 .kind = 42,
                 .created_at = 0,
                 .content = "",
-                .tags = bad_marker_tags[0..],
+                .tags = root_tags[0..],
             },
             out[0..],
         ),
@@ -500,6 +622,8 @@ test "thread extract rejects malformed tags and output overflow" {
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     };
     const overflow_tags = [_]nip01_event.EventTag{
+        .{ .items = good_tag[0..] },
+        .{ .items = good_tag[0..] },
         .{ .items = good_tag[0..] },
         .{ .items = good_tag[0..] },
     };

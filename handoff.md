@@ -34,8 +34,9 @@ Current project context for the Phase H kickoff baseline.
 - Wave 1 progress:
   - `NIP-25` is complete in `src/nip25_reactions.zig` with reviewed strict custom-emoji shortcode
     and URL validation retained as an accepted strict-path improvement
-  - `NIP-10` is complete in `src/nip10_threads.zig` with reviewed strict rejection of four-slot
-    pubkey-in-marker-position `e` tags; compatibility pressure follow-up is tracked in `no-4iw`
+  - `NIP-10` audit is complete in `src/nip10_threads.zig`: legacy `mention` markers now parse as
+    explicit mentions, four-slot pubkey fallback is accepted, rust parity remains `DEEP PASS`, TS
+    audit parity is now `HARNESS_COVERED EDGE PASS`, and `no-4iw` is resolved by the audit
   - `NIP-18` is complete in `src/nip18_reposts.zig` with strict embedded-event consistency checks
     across `e`, `p`, `k`, and `a` tags; core builder semantics are parity-covered and the
     addressable repost builder shape is source-reviewed in this pass
@@ -115,8 +116,7 @@ Current project context for the Phase H kickoff baseline.
    in `docs/plans/build-plan.md`, with `rust-nostr` as the active parity lane and archived
    `nostr-tools` as a secondary non-gating ecosystem signal. Every implemented NIP must be
    cross-checked against both references during the audit.
-5. Resolve `no-4iw` during the NIP-10 audit before treating that divergence as a settled quality
-   improvement.
+5. Continue from the completed NIP-10 audit to the next implemented NIP audit item.
 6. Start Wave 2 / `NIP-46` only after the implemented-NIP audit reaches an acceptable stopping
    point or explicitly recorded partial cutoff.
 7. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.

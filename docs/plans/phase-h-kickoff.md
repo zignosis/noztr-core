@@ -39,15 +39,15 @@ the validated maintenance baseline.
   - optional empty relay-hint fields are normalized to absent rather than treated as a target change
 - `NIP-10` is complete in the current Wave 1 loop:
   - strict kind-1 thread/reply helpers implemented in `src/nip10_threads.zig`
-  - marked `e` tags support `root` and `reply` only; duplicate marked targets are rejected
-  - author pubkeys are accepted only in the canonical fifth `e`-tag slot; four-slot
-    pubkey-in-marker-position input is rejected in the strict path for now
+  - marked `e` tags support `root` and `reply`; duplicate marked targets are rejected
+  - legacy `mention` markers are accepted as explicit mention references instead of failing the
+    whole extract path
+  - four-slot `e` tags with a valid pubkey in slot four are accepted as bounded compatibility input
+    and preserve the author pubkey in `noztr`
   - unmarked `e` tags fall back to positional NIP-10 semantics when no marked tags are present
   - empty relay-hint fields normalize to absent
-  - removed `mention` marker is rejected in the strict path and recorded as an intentional
-    divergence from permissive ecosystem parsing
-  - follow-up: compatibility pressure for the four-slot pubkey shape is tracked in `no-4iw` before
-    any adapter/default change
+  - audit outcome: prior strict rejection of removed `mention` and four-slot pubkey fallback was
+    judged as unnecessary compatibility loss and corrected during the implemented-NIP audit
 - `NIP-18` is complete in the current Wave 1 loop:
   - strict repost helpers implemented in `src/nip18_reposts.zig`
   - kind-6 reposts require a relay-hinted `e` tag
@@ -106,7 +106,7 @@ the validated maintenance baseline.
 - Keep Wave 1 closure evidence current and retain the serial loop doc as the canonical execution
   model.
 - Run the implemented-NIP audit before beginning Wave 2 execution.
-- Resolve `no-4iw` as part of the NIP-10 audit, not after the audit.
+- `no-4iw` is resolved by the NIP-10 audit and no longer blocks interpretation of NIP-10 quality.
 - Keep TypeScript parity references non-gating and use them only as secondary ecosystem audit
   evidence.
 

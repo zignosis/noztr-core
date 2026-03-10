@@ -32,16 +32,13 @@ Release-facing note for behavior differences that are intentional in `noztr` Lay
   strict integration entry points are explicit (`pow_meets_difficulty_verified_id`,
   `delete_extract_targets_checked`, `transcript_mark_client_req`, `transcript_apply_relay`) to avoid
   partial/unchecked call paths.
-- **Strict NIP-10 removed-marker rejection:**
-  `noztr` rejects the removed `mention` marker in strict NIP-10 thread parsing, while permissive
-  ecosystem parsers may ignore it or treat it as non-fatal compatibility input. This remains an
-  accepted strict-path improvement because it removes ambiguity with low compatibility value.
-- **Strict NIP-10 fifth-slot pubkey enforcement:**
-  `noztr` accepts author pubkeys only in the canonical fifth `e`-tag slot and rejects the
-  permissive four-slot pubkey-in-marker-position shape that `rust-nostr` still accepts when parsing
-  standardized event tags. This is currently a provisional strict Layer 1 divergence, not a settled
-  improvement; compatibility pressure is tracked for follow-up in `no-4iw` to determine whether a
-  future explicit adapter should absorb this shape.
+- **NIP-10 bounded compatibility handling:**
+  `noztr` no longer rejects legacy `mention` markers or four-slot pubkey fallback in NIP-10 thread
+  extraction. It accepts `mention` as an explicit mention reference and accepts a valid slot-four
+  pubkey as bounded compatibility input, preserving that author pubkey in extracted references.
+  This aligns the trust-boundary helper better with deployed ecosystem behavior while staying
+  deterministic. `nostr-tools` still drops the author in the four-slot case, so `noztr` remains
+  slightly richer than the JS reference on that one shape.
 - **Strict NIP-25 NIP-30 shortcode enforcement:**
   `noztr` requires custom emoji shortcodes to satisfy the NIP-30 alphanumeric-or-underscore rule,
   while `rust-nostr` currently accepts broader shortcode text as long as the emoji tag URL parses.

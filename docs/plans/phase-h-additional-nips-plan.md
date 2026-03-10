@@ -38,7 +38,7 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
 | 03 | defer | OpenTimestamps verification is useful but needs tighter bounded-proof validation scope before implementation. |
 | 06 | h0-complete | Phase H0 is now complete: the `libwally-core` pin target, one-module boundary, typed error posture, and vector corpus floor are frozen for later implementation. |
 | 07 | rejected | Browser `window.nostr` capability is runtime/platform integration, outside protocol-kernel scope. |
-| 10 | wave-1-complete | Strict kind-1 thread/reply helpers are now implemented with marked-tag parsing, positional fallback, typed malformed-tag failures, and strict rejection of the removed `mention` marker. |
+| 10 | wave-1-complete | Strict kind-1 thread/reply helpers are now implemented with marked-tag parsing, positional fallback, typed malformed-tag failures, legacy `mention` compatibility handling, and accepted four-slot pubkey fallback. |
 | 17 | defer | Private DM conventions add orchestration and policy complexity beyond current NIP-44/NIP-59 kernel baseline. |
 | 18 | wave-1-complete | Strict repost parsing/helpers are now implemented with deterministic embedded-event consistency checks across `e`, `p`, `k`, and `a` data. |
 | 22 | wave-1-complete | Strict comment root/parent linkage helpers are now implemented with mandatory `K/k`, author linkage, and NIP-73-consistent external validation. |
@@ -158,13 +158,16 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
       - marked `root` and `reply` tags are parsed explicitly
       - duplicate `root` or `reply` tags are rejected
       - a root-only marked reply is treated as a direct reply to the root target
-      - author pubkeys are accepted only in the canonical fifth `e`-tag slot; four-slot
-        pubkey-in-marker-position input is rejected in the strict path for now, with compatibility
-        pressure tracked separately before any adapter/default decision
+      - legacy `mention` markers are accepted as explicit mention references rather than rejecting
+        the extract path
+      - four-slot `e` tags with a valid pubkey in slot four are accepted as bounded compatibility
+        input, and `noztr` preserves that author pubkey in the extracted reference
       - when no marked tags are present, positional fallback resolves `root`, `reply`, and middle
         mentions deterministically
       - empty optional relay-hint fields normalize to absent
-    - accepted strict divergence: removed `mention` marker is rejected rather than ignored
+    - audit result:
+      - previous strict rejection of legacy `mention` and four-slot pubkey fallback was judged to
+        create unnecessary ecosystem friction and was removed
   - `25`
     - implemented scope: native kind-7 reaction parsing/helpers only
     - accepted semantics:

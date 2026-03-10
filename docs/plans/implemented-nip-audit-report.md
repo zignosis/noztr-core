@@ -36,7 +36,7 @@ completes.
 | 01 | pending | - | - | - | - | - | - |
 | 02 | pending | - | - | - | - | - | - |
 | 09 | pending | - | - | - | - | - | - |
-| 10 | pending | - | - | - | - | - | includes `no-4iw` |
+| 10 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | Removed unnecessary rejection of legacy `mention`; removed unnecessary rejection of four-slot pubkey fallback | none | `no-4iw` closed | `noztr` now preserves four-slot author pubkey; `nostr-tools` accepts the shape but drops author |
 | 11 | pending | - | - | - | - | - | - |
 | 13 | pending | - | - | - | - | - | - |
 | 18 | pending | - | - | - | - | - | - |
@@ -58,7 +58,10 @@ completes.
 
 ## Decision Summary
 
-- none yet
+- NIP-10: accept legacy `mention` tags as explicit mentions in thread extraction instead of failing
+  the helper on that input.
+- NIP-10: accept four-slot `e` tags with a valid slot-four pubkey as bounded compatibility input
+  instead of rejecting the whole extract path.
 
 ## Accepted Risks
 
@@ -66,4 +69,4 @@ completes.
 
 ## Follow-up Summary
 
-- none yet
+- NIP-10: no follow-up remains from `no-4iw`; the prior provisional divergence is resolved.
