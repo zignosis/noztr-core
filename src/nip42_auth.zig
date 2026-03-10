@@ -19,7 +19,7 @@ pub const AuthError = error{
 };
 
 pub const auth_event_kind: u32 = 22242;
-pub const challenge_max_bytes: u8 = 64;
+pub const challenge_max_bytes: usize = 255;
 pub const authenticated_pubkeys_max: u16 = 64;
 
 pub const AuthState = struct {
@@ -42,7 +42,7 @@ pub fn auth_state_set_challenge(
     challenge: []const u8,
 ) error{ ChallengeEmpty, ChallengeTooLong }!void {
     std.debug.assert(@intFromPtr(state) != 0);
-    std.debug.assert(challenge_max_bytes == 64);
+    std.debug.assert(challenge_max_bytes <= std.math.maxInt(u8));
 
     if (challenge.len == 0) {
         return error.ChallengeEmpty;
@@ -234,7 +234,6 @@ fn relay_urls_match(left: []const u8, right: []const u8) bool {
 
 fn parse_relay_origin(url: []const u8) ?relay_origin.WebsocketOrigin {
     std.debug.assert(url.len <= std.math.maxInt(u32));
-    std.debug.assert(challenge_max_bytes == 64);
 
     return relay_origin.parse_websocket_origin(url);
 }
@@ -274,6 +273,29 @@ test "auth validates event and accepts state" {
 
     try auth_validate_event(&event, "wss://relay.example.com/path", "challenge-1", 10_010, 60);
     try auth_state_accept_event(&state, &event, "wss://relay.example.com/path", 10_010, 60);
+    try std.testing.expect(auth_state_is_pubkey_authenticated(&state, &event.pubkey));
+    try std.testing.expectEqual(@as(u16, 1), state.authenticated_count);
+}
+
+test "auth accepts long challenge within fixed bound" {
+    var state = AuthState{};
+    auth_state_init(&state);
+
+    const long_challenge = [_]u8{'c'} ** 128;
+    try auth_state_set_challenge(&state, long_challenge[0..]);
+
+    var fixture: AuthTagFixture = undefined;
+    auth_tag_fixture_init(&fixture, "wss://relay.example.com/path", long_challenge[0..]);
+    var event = build_signed_auth_event(fixture.tags[0..], 10_100);
+
+    try auth_validate_event(
+        &event,
+        "wss://relay.example.com/path",
+        long_challenge[0..],
+        10_110,
+        60,
+    );
+    try auth_state_accept_event(&state, &event, "wss://relay.example.com/path", 10_110, 60);
     try std.testing.expect(auth_state_is_pubkey_authenticated(&state, &event.pubkey));
     try std.testing.expectEqual(@as(u16, 1), state.authenticated_count);
 }

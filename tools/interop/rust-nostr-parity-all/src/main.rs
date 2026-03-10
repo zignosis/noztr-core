@@ -1130,6 +1130,14 @@ fn check_nip42() -> Result<(), String> {
     if nip42::is_valid_auth_event(&missing_challenge, &relay_url, challenge) {
         return Err("auth event missing challenge tag accepted".to_string());
     }
+
+    let long_challenge = "x".repeat(128);
+    let long_event = EventBuilder::auth(long_challenge.clone(), relay_url.clone())
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("sign long auth event: {e}"))?;
+    if !nip42::is_valid_auth_event(&long_event, &relay_url, &long_challenge) {
+        return Err("long auth challenge rejected".to_string());
+    }
     Ok(())
 }
 

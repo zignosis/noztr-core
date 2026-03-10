@@ -44,6 +44,9 @@ Current project context for the Phase H kickoff baseline.
     mandatory `K/k`, required author linkage for Nostr targets, accepted support for addressable
     `a+e` comment targets, NIP-73-consistent external validation, and an accepted strict
     trust-boundary divergence from permissive rust-style missing-root / optional-kind extraction
+  - `NIP-42` audit is complete in `src/nip42_auth.zig`: the auth challenge bound is widened from
+    `64` to `255`, while path-bound websocket origin matching, duplicate required-tag rejection,
+    and unbracketed IPv6 rejection remain accepted trust-boundary behavior
   - `NIP-27` is complete in `src/nip27_references.zig` with strict `nostr:` URI extraction,
     stable byte spans, decoded NIP-21 entities, and accepted malformed-fragment fallback that
     matches rust parser tokenization behavior
@@ -74,7 +77,7 @@ Current project context for the Phase H kickoff baseline.
 - Latest cadence run (2026-03-10): rust parity harness passed
   (`SUMMARY pass=22 fail=0 harness_covered=22 total=22`).
 - Latest cadence run (2026-03-10): `zig build test --summary all` passed
-  (`Build Summary: 8/8 steps succeeded; 572/572 tests passed`).
+  (`Build Summary: 8/8 steps succeeded; 576/576 tests passed`).
 - Latest cadence run (2026-03-10): `zig build` passed.
 - Active cadence commands:
   - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
@@ -116,7 +119,8 @@ Current project context for the Phase H kickoff baseline.
    in `docs/plans/build-plan.md`, with `rust-nostr` as the active parity lane and archived
    `nostr-tools` as a secondary non-gating ecosystem signal. Every implemented NIP must be
    cross-checked against both references during the audit.
-5. Continue from the completed NIP-10 and NIP-22 audits to the next implemented NIP audit item.
+5. Continue from the completed NIP-10, NIP-22, and NIP-42 audits to the next implemented NIP audit
+   item.
 6. Start Wave 2 / `NIP-46` only after the implemented-NIP audit reaches an acceptable stopping
    point or explicitly recorded partial cutoff.
 7. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.

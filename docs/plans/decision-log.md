@@ -680,6 +680,22 @@ Immutable record of accepted planning decisions.
   or needs to become an active gate lane to remain useful.
 - Supersedes: none
 
+## D-038: Widen the NIP-42 challenge bound while keeping fixed-state auth handling
+
+- Date: 2026-03-10
+- Status: accepted
+- Decision: widen the fixed NIP-42 challenge bound from `64` bytes to `255` bytes in
+  `nip42_auth`, while keeping challenge storage static and typed.
+- Why: NIP-42 does not define a `64`-byte challenge maximum, and both `rust-nostr` and
+  `nostr-tools` accept longer challenge strings. The `64`-byte cap created unnecessary
+  interoperability risk without materially improving trust-boundary correctness.
+- Tradeoff: slightly larger fixed auth state versus lower compatibility friction with relays that
+  issue longer opaque challenges.
+- Related Tradeoff: T-0-001, T-0-003.
+- Reversal Trigger: production evidence shows a lower bound is required for safety or operational
+  reasons beyond the existing fixed-state limit.
+- Supersedes: none
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

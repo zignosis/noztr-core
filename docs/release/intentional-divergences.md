@@ -27,7 +27,9 @@ Release-facing note for behavior differences that are intentional in `noztr` Lay
   accepting broad permissive shapes.
 - **Auth origin/path strictness (NIP-42):**
   `noztr` binds normalized scheme/host/port/path (`/` default), ignores query/fragment for matching,
-  and rejects unbracketed IPv6 authorities.
+  and rejects unbracketed IPv6 authorities. The earlier `64`-byte local challenge cap was removed
+  during the implemented-NIP audit because it was narrower than the protocol and major references
+  without improving trust-boundary safety.
 - **Canonical checked APIs for trust boundaries:**
   strict integration entry points are explicit (`pow_meets_difficulty_verified_id`,
   `delete_extract_targets_checked`, `transcript_mark_client_req`, `transcript_apply_relay`) to avoid

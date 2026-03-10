@@ -188,11 +188,11 @@ pub fn auth_state_accept_event(state: *AuthState, auth_event: *const Event,
 pub fn auth_state_is_pubkey_authenticated(state: *const AuthState, pubkey: *const [32]u8) bool;
 ```
 
-- Bounds: challenge length `1..64`; authenticated key store fixed-capacity; timestamp skew bounded by
+- Bounds: challenge length `1..255`; authenticated key store fixed-capacity; timestamp skew bounded by
   `window_seconds` (`u32`) as bounded symmetric skew (`created_at` within `[now-window,
   now+window]` is accepted); future beyond window rejects `FutureTimestamp`, stale beyond window
   rejects `StaleTimestamp`; `auth_validate_event` expected challenge input must also be length
-  `1..64`.
+  `1..255`.
 - Failure modes: empty challenge set attempt, too-long challenge set attempt, wrong kind,
    missing/mismatched `relay` or `challenge`, invalid signature, duplicate required tags,
    expected challenge empty/too-long reject in `auth_validate_event`,

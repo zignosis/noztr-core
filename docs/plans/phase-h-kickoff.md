@@ -100,6 +100,10 @@ the validated maintenance baseline.
     and optional fourth-slot NIP-30 emoji-set builder support remains Zig/spec-driven coverage
 - Wave 1 status: complete.
 - Active next execution focus: implemented-NIP audit.
+- Implemented-NIP audit status:
+  - `NIP-10`, `NIP-22`, and `NIP-42` audits are complete
+  - `NIP-42` widened the auth challenge bound from `64` to `255` after reference review; remaining
+    path-bound websocket origin strictness is retained
 - Next expansion phase-order item: Wave 2 / `NIP-46` in `no-czg`
 
 ## Immediate Work Tracks

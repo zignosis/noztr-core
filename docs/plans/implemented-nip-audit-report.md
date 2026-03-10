@@ -46,7 +46,7 @@ completes.
 | 25 | pending | - | - | - | - | - | - |
 | 27 | pending | - | - | - | - | - | - |
 | 40 | pending | - | - | - | - | - | - |
-| 42 | pending | - | - | - | - | - | - |
+| 42 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | Widened NIP-42 challenge bound from `64` to `255`; retained path-bound websocket origin matching, duplicate-tag rejection, and unbracketed IPv6 rejection | none | none | `rust-nostr` and `nostr-tools` both accept long challenges; current remaining strictness is judged trust-boundary-positive rather than ecosystem-hostile |
 | 44 | pending | - | - | - | - | - | - |
 | 45 | pending | - | - | - | - | - | - |
 | 50 | pending | - | - | - | - | - | - |
@@ -65,6 +65,9 @@ completes.
 - NIP-22: keep strict root/parent scope, mandatory `K/k`, mandatory `P/p` for Nostr targets, and
   kind-1 rejection; `rust-nostr` permissive extraction is treated as a compatibility signal, not a
   reason to weaken the Layer 1 parser.
+- NIP-42: widen the challenge bound to `255` bytes, but keep path-bound websocket origin matching,
+  duplicate required-tag rejection, and unbracketed IPv6 rejection as accepted trust-boundary
+  behavior.
 
 ## Accepted Risks
 

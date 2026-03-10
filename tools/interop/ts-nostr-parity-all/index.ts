@@ -528,6 +528,13 @@ function check_nip42(): void {
         tag => tag.length >= 2 && tag[0] === "challenge" && tag[1] === "mismatch",
     );
     ensure(!wrong_challenge_tag, "auth event unexpectedly contains mismatched challenge tag");
+
+    const long_challenge = "x".repeat(128);
+    const long_auth_template = makeAuthEvent(relay_url, long_challenge);
+    const has_long_challenge_tag = long_auth_template.tags.some(
+        tag => tag.length >= 2 && tag[0] === "challenge" && tag[1] === long_challenge,
+    );
+    ensure(has_long_challenge_tag, "auth event long challenge tag mismatch");
 }
 
 async function check_nip11(): Promise<void> {
