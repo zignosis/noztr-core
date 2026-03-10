@@ -99,7 +99,8 @@ Each Wave 1 NIP must complete the full loop below before the next NIP begins.
    - review for parity third: rust lane comparison results, missing parity cases, and any strict
      intentional divergence.
    - review for overengineering fourth: remove speculative helpers, extra abstraction layers, generic
-     parsers, or API breadth not required by the accepted contract.
+     parsers, API breadth not required by the accepted contract, or reinvention of functionality
+     already available in Zig stdlib, approved backend boundaries, or existing in-repo helpers.
    - review for style fifth: Tiger line/function limits, assertions, explicit widths, and no compound
      control-flow shortcuts.
    - review for usability sixth:
@@ -210,6 +211,8 @@ Each Wave 1 NIP must complete the full loop below before the next NIP begins.
   - no abstraction introduced without direct domain need
   - no broad generic helper introduced where one explicit helper is clearer
   - no future-phase API breadth slipped into the current NIP
+  - no reinvention of stdlib, approved backend-boundary, or existing in-repo functionality without
+    a documented bounded-contract reason
 - Style
   - no function over 70 lines
   - no line over 100 columns

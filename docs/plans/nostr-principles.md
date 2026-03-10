@@ -81,6 +81,8 @@ Change requires a new entry in `docs/plans/decision-log.md`.
   typed error or explicit compatibility branch.
 - Forbidden shortcut: narrowing accepted behavior beyond the NIP or real ecosystem need without a
   documented tradeoff and compatibility review.
+- Forbidden shortcut: reinventing functionality already provided by Zig stdlib, approved backend
+  boundaries, or existing in-repo utilities unless a concrete bounded-contract gap is documented.
 - Forbidden shortcut: coupling core APIs to one transport stack, one relay provider,
   or one app-specific workflow.
 - Forbidden shortcut: introducing dynamic, unbounded allocation growth in hot paths.

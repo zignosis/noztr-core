@@ -153,6 +153,28 @@ Use this matrix when reviewing implemented behavior for accidental over-narrowin
 ecosystem friction. The standard is not "be permissive"; it is "be deterministic, bounded, and
 compatible unless there is a concrete reason not to be."
 
+Review axes for every implemented NIP:
+- NIP text: what the relevant NIP(s) actually require, permit, or leave open.
+- Real ecosystem prevalence: what widely deployed producers and consumers appear to emit or accept.
+- `rust-nostr` parity signal: what a strong production reference does in practice and what that
+  implies for compatibility confidence.
+- Security / trust-boundary impact: whether acceptance or rejection preserves cryptographic
+  validity, typed failures, explicit bounds, deterministic state transitions, zeroization where
+  required, and resistance to ambiguity or malformed input.
+- Zig-native bounded-contract quality: whether the behavior keeps the API explicit, caller-buffer
+  first where appropriate, bounded, simple to reason about, and production-useful for both humans
+  and LLM agents.
+
+Cross-cutting review lenses for every implemented NIP:
+- Compatibility cost versus benefit: do not pay ecosystem friction unless correctness, safety,
+  determinism, or boundedness actually improves.
+- Overengineering / unnecessary reinvention: do not reinvent what Zig stdlib, approved pinned
+  backend boundaries, or existing in-repo helpers already provide; do not add speculative helpers,
+  generic layers, or API breadth that turns the library into infrastructure for hypothetical future
+  libraries instead of a production protocol kernel.
+- LLM and human usability: public names, typed errors, and call sequences should be easy to
+  discover and reason about without hidden context.
+
 | NIP | Review Criteria From `D-036` |
 | --- | --- |
 | 01 | Preserve hard rejection for cryptographic invalidity and malformed critical fields; review filter-field rejection, lowercase-only critical hex, and relay `OK` status rules to confirm each narrowing is protocol-necessary or materially safer rather than merely tidier. |
