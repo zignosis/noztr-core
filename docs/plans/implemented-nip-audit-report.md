@@ -18,7 +18,7 @@ completes.
 - relevant NIP text
 - current `noztr` code and tests
 - `rust-nostr` harness/source behavior
-- `nostr-tools` harness/source behavior where available
+- `nostr-tools` harness/source behavior for every implemented NIP
 - existing in-repo ecosystem notes and intentional-divergence records
 
 ## Review Standard
@@ -31,30 +31,30 @@ completes.
 
 ## Audit Status
 
-| NIP | Status | Findings | Decision Points | Follow-ups | Notes |
-| --- | --- | --- | --- | --- | --- |
-| 01 | pending | - | - | - | - |
-| 02 | pending | - | - | - | - |
-| 09 | pending | - | - | - | - |
-| 10 | pending | - | - | - | includes `no-4iw` |
-| 11 | pending | - | - | - | - |
-| 13 | pending | - | - | - | - |
-| 18 | pending | - | - | - | - |
-| 19 | pending | - | - | - | - |
-| 21 | pending | - | - | - | - |
-| 22 | pending | - | - | - | - |
-| 25 | pending | - | - | - | - |
-| 27 | pending | - | - | - | - |
-| 40 | pending | - | - | - | - |
-| 42 | pending | - | - | - | - |
-| 44 | pending | - | - | - | - |
-| 45 | pending | - | - | - | - |
-| 50 | pending | - | - | - | - |
-| 51 | pending | - | - | - | - |
-| 59 | pending | - | - | - | - |
-| 65 | pending | - | - | - | - |
-| 70 | pending | - | - | - | - |
-| 77 | pending | - | - | - | - |
+| NIP | Status | Rust Evidence | TS Evidence | Findings | Decision Points | Follow-ups | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 01 | pending | - | - | - | - | - | - |
+| 02 | pending | - | - | - | - | - | - |
+| 09 | pending | - | - | - | - | - | - |
+| 10 | pending | - | - | - | - | - | includes `no-4iw` |
+| 11 | pending | - | - | - | - | - | - |
+| 13 | pending | - | - | - | - | - | - |
+| 18 | pending | - | - | - | - | - | - |
+| 19 | pending | - | - | - | - | - | - |
+| 21 | pending | - | - | - | - | - | - |
+| 22 | pending | - | - | - | - | - | - |
+| 25 | pending | - | - | - | - | - | - |
+| 27 | pending | - | - | - | - | - | - |
+| 40 | pending | - | - | - | - | - | - |
+| 42 | pending | - | - | - | - | - | - |
+| 44 | pending | - | - | - | - | - | - |
+| 45 | pending | - | - | - | - | - | - |
+| 50 | pending | - | - | - | - | - | - |
+| 51 | pending | - | - | - | - | - | - |
+| 59 | pending | - | - | - | - | - | - |
+| 65 | pending | - | - | - | - | - | - |
+| 70 | pending | - | - | - | - | - | - |
+| 77 | pending | - | - | - | - | - | - |
 
 ## Decision Summary
 

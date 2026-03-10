@@ -113,7 +113,8 @@ Current project context for the Phase H kickoff baseline.
    Wave 1 is complete: `25`, `10`, `18`, `22`, `27`, `51`.
 4. Run the implemented-NIP audit serially using the canonical review criteria and execution policy
    in `docs/plans/build-plan.md`, with `rust-nostr` as the active parity lane and archived
-   `nostr-tools` as a secondary non-gating ecosystem signal.
+   `nostr-tools` as a secondary non-gating ecosystem signal. Every implemented NIP must be
+   cross-checked against both references during the audit.
 5. Resolve `no-4iw` during the NIP-10 audit before treating that divergence as a settled quality
    improvement.
 6. Start Wave 2 / `NIP-46` only after the implemented-NIP audit reaches an acceptable stopping

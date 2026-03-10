@@ -161,6 +161,8 @@ Review axes for every implemented NIP:
   implies for compatibility confidence.
 - `nostr-tools` ecosystem signal: what the largest widely used JavaScript library appears to emit or
   accept, used as a secondary non-gating compatibility signal rather than an active release gate.
+  Every implemented NIP audit must include a `nostr-tools` cross-check, using runtime harness
+  coverage when possible and explicit source-review evidence otherwise.
 - Security / trust-boundary impact: whether acceptance or rejection preserves cryptographic
   validity, typed failures, explicit bounds, deterministic state transitions, zeroization where
   required, and resistance to ambiguity or malformed input.
@@ -224,7 +226,7 @@ Per-NIP audit steps:
    - relevant NIP text
    - current `noztr` code and tests
    - `rust-nostr` harness/source behavior
-   - archived `nostr-tools` harness/source behavior where available
+   - `nostr-tools` harness/source behavior for the same NIP
    - existing in-repo notes about real producer or ecosystem behavior
 3. Review with the required axes and cross-cutting lenses above.
 4. Record findings only when they are evidence-backed:
@@ -250,6 +252,8 @@ Audit quality rules:
 - No reference library is treated as protocol authority.
 - No finding is accepted without a severity, evidence basis, and interoperability rationale.
 - "No issue found" is recorded explicitly when that is the result.
+- Every implemented NIP audit must record both `rust-nostr` and `nostr-tools` evidence status,
+  even when one of them is only `SOURCE_REVIEW_ONLY`.
 
 Consolidated audit artifact:
 - `docs/plans/implemented-nip-audit-report.md` is the canonical summary for audit findings,
