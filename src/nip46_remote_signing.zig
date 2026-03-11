@@ -86,6 +86,12 @@ pub const Response = struct {
     error_text: ?[]const u8 = null,
 };
 
+/// Typed `connect` response outcome.
+pub const ConnectResult = union(enum) {
+    ack,
+    secret_echo: []const u8,
+};
+
 pub const Message = union(enum) {
     request: Request,
     response: Response,
@@ -283,15 +289,7 @@ pub fn response_validate(
     std.debug.assert(@intFromPtr(response) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
-    try validate_message_id(response.id);
-    if (response.error_text) |text| {
-        if (!std.unicode.utf8ValidateSlice(text)) {
-            return error.InvalidResponse;
-        }
-    }
-    if (response.error_text == null and response.result == .absent) {
-        return error.InvalidResponse;
-    }
+    try validate_response_common(response);
     switch (response.result) {
         .absent => {},
         .null_result => {
@@ -301,6 +299,58 @@ pub fn response_validate(
         },
         .value => |result| try validate_response_result(result, method, scratch),
     }
+}
+
+/// Parse a validated `connect` response into `ack` or a secret echo.
+pub fn response_result_connect(response: *const Response) Nip46Error!ConnectResult {
+    std.debug.assert(@intFromPtr(response) != 0);
+    std.debug.assert(@sizeOf(ConnectResult) > 0);
+
+    try validate_response_common(response);
+    const text = try response_text_payload(response);
+    if (std.mem.eql(u8, text, "ack")) {
+        return .ack;
+    }
+    return .{ .secret_echo = text };
+}
+
+/// Parse a validated `get_public_key` response into the returned pubkey.
+pub fn response_result_get_public_key(response: *const Response) Nip46Error![32]u8 {
+    std.debug.assert(@intFromPtr(response) != 0);
+    std.debug.assert(limits.pubkey_hex_length == 64);
+
+    try validate_response_common(response);
+    const text = try response_text_payload(response);
+    return parse_lower_hex_32(text) catch return error.InvalidPubkey;
+}
+
+/// Parse a validated `sign_event` response into the signed event payload.
+pub fn response_result_sign_event(
+    response: *const Response,
+    scratch: std.mem.Allocator,
+) Nip46Error!nip01_event.Event {
+    std.debug.assert(@intFromPtr(response) != 0);
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+
+    try validate_response_common(response);
+    const text = try response_text_payload(response);
+    return nip01_event.event_parse_json(text, scratch) catch return error.InvalidSignedEvent;
+}
+
+/// Parse a validated `switch_relays` response into an updated relay list or `null`.
+pub fn response_result_switch_relays(response: *const Response) Nip46Error!?[]const []const u8 {
+    std.debug.assert(@intFromPtr(response) != 0);
+    std.debug.assert(@sizeOf(ResponsePayload) > 0);
+
+    try validate_response_common(response);
+    return switch (response.result) {
+        .null_result => null,
+        .value => |payload| switch (payload) {
+            .relay_list => |relays| relays,
+            .text => error.InvalidResponse,
+        },
+        .absent => error.InvalidResponse,
+    };
 }
 
 pub fn uri_parse(input: []const u8, scratch: std.mem.Allocator) Nip46Error!ConnectionUri {
@@ -606,6 +656,34 @@ fn validate_message_id(id: []const u8) Nip46Error!void {
     if (!std.unicode.utf8ValidateSlice(id)) {
         return error.InvalidId;
     }
+}
+
+fn validate_response_common(response: *const Response) Nip46Error!void {
+    std.debug.assert(@intFromPtr(response) != 0);
+    std.debug.assert(@sizeOf(ResponsePayload) > 0);
+
+    try validate_message_id(response.id);
+    if (response.error_text) |text| {
+        if (!std.unicode.utf8ValidateSlice(text)) {
+            return error.InvalidResponse;
+        }
+    }
+    if (response.error_text == null and response.result == .absent) {
+        return error.InvalidResponse;
+    }
+}
+
+fn response_text_payload(response: *const Response) Nip46Error![]const u8 {
+    std.debug.assert(@intFromPtr(response) != 0);
+    std.debug.assert(@sizeOf(ResponsePayload) > 0);
+
+    return switch (response.result) {
+        .value => |payload| switch (payload) {
+            .text => |text| text,
+            .relay_list => error.InvalidResponse,
+        },
+        .absent, .null_result => error.InvalidResponse,
+    };
 }
 
 fn validate_connect_params(
@@ -1620,6 +1698,59 @@ test "switch_relays null result is preserved and valid" {
     var output: [128]u8 = undefined;
     const encoded = try message_serialize_json(output[0..], message);
     try std.testing.expectEqualStrings(response_json, encoded);
+}
+
+test "typed response helpers expose current NIP-46 result shapes" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const connect_ack = Response{
+        .id = "connect-1",
+        .result = .{ .value = .{ .text = "ack" } },
+    };
+    const connect_result = try response_result_connect(&connect_ack);
+    try std.testing.expect(connect_result == .ack);
+
+    const pubkey_response = Response{
+        .id = "pubkey-1",
+        .result = .{ .value = .{
+            .text = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        } },
+    };
+    const pubkey = try response_result_get_public_key(&pubkey_response);
+    try std.testing.expectEqualStrings(
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        &std.fmt.bytesToHex(pubkey, .lower),
+    );
+
+    const sign_response = Response{
+        .id = "sign-1",
+        .result = .{ .value = .{
+            .text =
+                "{\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
+                "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
+                "\"created_at\":1,\"kind\":1,\"tags\":[],\"content\":\"ok\"," ++
+                "\"sig\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ++
+                "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}",
+        } },
+    };
+    const signed_event = try response_result_sign_event(&sign_response, arena.allocator());
+    try std.testing.expectEqual(@as(u32, 1), signed_event.kind);
+    try std.testing.expectEqualStrings("ok", signed_event.content);
+
+    const relay_response = Response{
+        .id = "relay-1",
+        .result = .{ .value = .{ .relay_list = &.{"wss://relay.one"} } },
+    };
+    const relays = (try response_result_switch_relays(&relay_response)).?;
+    try std.testing.expectEqual(@as(usize, 1), relays.len);
+    try std.testing.expectEqualStrings("wss://relay.one", relays[0]);
+
+    const null_response = Response{
+        .id = "relay-2",
+        .result = .null_result,
+    };
+    try std.testing.expect((try response_result_switch_relays(&null_response)) == null);
 }
 
 test "uri parse and serialize follow current bunker and nostrconnect forms" {

@@ -185,6 +185,8 @@ the validated maintenance baseline.
       NIP-44 payload framing validation
     - explicit `result: null` preservation for valid `switch_relays` responses instead of
       collapsing `null` into an omitted result field
+    - typed result helpers for `connect`, `get_public_key`, `sign_event`, and
+      `switch_relays`
   - parity/evidence status:
     - rust parity overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
     - TypeScript audit overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
@@ -192,8 +194,8 @@ the validated maintenance baseline.
       `metadata=` client-URI shape and lacks `switch_relays`, while `noztr` and
       `nostr-tools` follow the current split-query URI and method surface
   - current deferred scope inside the active Wave 2 item:
-    - any additional typed convenience wrappers beyond the current generic core surface
-    - decision on whether to expose richer typed `sign_event` / `switch_relays` result wrappers
+    - any additional typed request builders or broader discovery helpers beyond the current
+      bounded core and result-helper surface
 
 ## Immediate Work Tracks
 

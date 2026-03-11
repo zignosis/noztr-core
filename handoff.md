@@ -140,7 +140,7 @@ Current project context for the Phase H kickoff baseline.
 - Latest cadence run (2026-03-11): TS audit harness passed
   (`SUMMARY pass=21 fail=0 harness_covered=21 total=21`).
 - Latest cadence run (2026-03-11): `zig build test --summary all` passed
-  (`Build Summary: 8/8 steps succeeded; 614/614 tests passed`).
+  (`Build Summary: 8/8 steps succeeded; 616/616 tests passed`).
 - Latest cadence run (2026-03-11): `zig build` passed.
 - Active cadence commands:
   - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
@@ -188,6 +188,8 @@ Current project context for the Phase H kickoff baseline.
      URI parse+compose, and strict kind-24133 envelope validation.
    - valid `switch_relays` responses with `result: null` are now preserved explicitly instead of
      being collapsed into the same state as an omitted `result` field.
+   - typed result helpers now cover `connect`, `get_public_key`, `sign_event`, and
+     `switch_relays`.
    Completed evidence:
    - rust overlap parity is now `HARNESS_COVERED`, `BASELINE`, `PASS`
    - TypeScript overlap evidence is now `HARNESS_COVERED`, `BASELINE`, `PASS`
@@ -195,8 +197,8 @@ Current project context for the Phase H kickoff baseline.
      `switch_relays`; `noztr` keeps the current-spec split-query URI and method surface that
      matches `nostr-tools`
    Remaining Wave 2 work:
-   - decide whether to expose richer typed convenience wrappers beyond the current generic core
-     message/result surface
+   - decide whether to add typed request builders or broader discovery helpers beyond the current
+     bounded core and result-helper surface
    - update tracker state when `bd` localhost access is available again in-session
 7. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.
 
