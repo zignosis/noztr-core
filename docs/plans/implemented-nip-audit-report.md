@@ -45,7 +45,7 @@ completes.
 | 22 | complete | `HARNESS_COVERED DEEP PASS` | `SOURCE_REVIEW_ONLY no dedicated NIP-22 helper beyond kind constant` | No Layer 1 change required; current root/parent, `K/k`, `P/p`, and kind-1 rejection posture remains justified | none | none | `rust-nostr` emits canonical full linkage when given a root target but still extracts parent-only / optional-kind shapes; `noztr` keeps the stricter trust-boundary contract |
 | 25 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | Accepted the optional NIP-30 fourth-slot emoji-set coordinate on reaction `emoji` tags; retained strict shortcode and URL validation; now reject contradictory optional target metadata and unsupported `a` kinds | none | none | `rust-nostr` remains permissive on shortcode text and still standardizes only three-slot emoji tags; `nostr-tools` aligns on last-`e`/last-`p` target selection and strict shortcode matching |
 | 27 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | Narrowed inline extraction to profile/event/address references by dropping `nrelay` as a NIP-27 content reference; retained ignore-as-plain-text fallback for malformed, uppercase, forbidden, and payload-empty fragments | none | none | `rust-nostr` and `nostr-tools` both treat malformed and forbidden fragments as plain text; neither treats `nrelay` as an inline content reference in this pass |
-| 40 | pending | - | - | - | - | - | - |
+| 40 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | Malformed expiration metadata no longer hard-fails the helper path; the first valid expiration tag now wins deterministically | none | none | `rust-nostr` and `nostr-tools` both treat malformed expiration data as non-expiring rather than exceptional; the previous typed-error path created unnecessary compatibility friction for advisory metadata |
 | 42 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | Widened NIP-42 challenge bound from `64` to `255`; retained path-bound websocket origin matching, duplicate-tag rejection, and unbracketed IPv6 rejection | none | none | `rust-nostr` and `nostr-tools` both accept long challenges; current remaining strictness is judged trust-boundary-positive rather than ecosystem-hostile |
 | 44 | pending | - | - | - | - | - | - |
 | 45 | pending | - | - | - | - | - | - |
@@ -78,6 +78,8 @@ completes.
   encode and decode instead of rejecting them as malformed.
 - NIP-21: no separate Layer 1 change required; keep the current strict URI parser while pinning
   replaceable-`naddr` URI compatibility through explicit coverage.
+- NIP-40: treat malformed expiration metadata as absent and use the first valid expiration tag
+  deterministically instead of failing the helper path on malformed or conflicting optional tags.
 - NIP-18: reject contradictory repost target metadata when empty-content reposts cannot prove the
   target via embedded JSON, while retaining current embedded-event consistency checks and the kind-6
   relay-hint requirement.

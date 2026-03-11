@@ -855,6 +855,23 @@ Immutable record of accepted planning decisions.
   ecosystem evidence shows the widened shape is harmful or ambiguous.
 - Supersedes: none
 
+## D-048: Treat malformed NIP-40 expiration metadata as absent
+
+- Date: 2026-03-11
+- Status: accepted
+- Decision: widen `nip40_expire` so malformed `expiration` tags no longer fail the helper path.
+  The first valid expiration tag wins deterministically; malformed or conflicting later tags are
+  ignored.
+- Why: `expiration` is advisory optional metadata. `rust-nostr` and `nostr-tools` both treat
+  malformed expiration data as effectively non-expiring rather than exceptional. The prior `noztr`
+  typed-error path created unnecessary compatibility friction without improving safety.
+- Tradeoff: broader tolerance for malformed optional expiration metadata versus fewer typed helper
+  failures and materially better ecosystem alignment.
+- Related Tradeoff: T-0-001, T-0-002, T-0-003.
+- Reversal Trigger: future NIP guidance requires malformed expiration metadata to invalidate the
+  event or strong ecosystem evidence shows first-valid expiration handling is harmful.
+- Supersedes: none
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

@@ -1,7 +1,7 @@
 const std = @import("std");
 const nip01_event = @import("nip01_event.zig");
 
-pub const ExpirationError = error{ InvalidExpirationTag, InvalidTimestamp };
+pub const ExpirationError = error{InvalidExpirationTag};
 
 pub fn event_expiration_unix_seconds(event: *const nip01_event.Event) ExpirationError!?u64 {
     std.debug.assert(@intFromPtr(event) != 0);
@@ -14,14 +14,8 @@ pub fn event_expiration_unix_seconds(event: *const nip01_event.Event) Expiration
         if (value == null) {
             continue;
         }
-
-        if (parsed_expiration == null) {
-            parsed_expiration = value;
-        } else {
-            if (parsed_expiration.? != value.?) {
-                return error.InvalidExpirationTag;
-            }
-        }
+        parsed_expiration = value;
+        break;
     }
 
     return parsed_expiration;
@@ -57,15 +51,13 @@ fn parse_expiration_tag_value(tag: nip01_event.EventTag) ExpirationError!?u64 {
         return null;
     }
     if (tag.items.len != 2) {
-        return error.InvalidExpirationTag;
+        return null;
     }
     if (tag.items[1].len == 0) {
-        return error.InvalidTimestamp;
+        return null;
     }
 
-    const parsed = std.fmt.parseUnsigned(u64, tag.items[1], 10) catch {
-        return error.InvalidTimestamp;
-    };
+    const parsed = std.fmt.parseUnsigned(u64, tag.items[1], 10) catch return null;
     return parsed;
 }
 
@@ -150,54 +142,58 @@ test "expiration vectors invalid include malformed shape and malformed timestamp
         .{ .items = dup_b[0..] },
     };
 
-    try std.testing.expectError(
-        error.InvalidExpirationTag,
-        event_expiration_unix_seconds(&event_for_tags(tags_arity_one[0..])),
+    try std.testing.expect(
+        (try event_expiration_unix_seconds(&event_for_tags(tags_arity_one[0..]))) == null,
     );
-    try std.testing.expectError(
-        error.InvalidExpirationTag,
-        event_expiration_unix_seconds(&event_for_tags(tags_arity_three[0..])),
+    try std.testing.expect(
+        (try event_expiration_unix_seconds(&event_for_tags(tags_arity_three[0..]))) == null,
     );
-    try std.testing.expectError(
-        error.InvalidTimestamp,
-        event_expiration_unix_seconds(&event_for_tags(tags_empty_value[0..])),
+    try std.testing.expect(
+        (try event_expiration_unix_seconds(&event_for_tags(tags_empty_value[0..]))) == null,
     );
-    try std.testing.expectError(
-        error.InvalidTimestamp,
-        event_expiration_unix_seconds(&event_for_tags(tags_negative_value[0..])),
+    try std.testing.expect(
+        (try event_expiration_unix_seconds(&event_for_tags(tags_negative_value[0..]))) == null,
     );
-    try std.testing.expectError(
-        error.InvalidTimestamp,
-        event_expiration_unix_seconds(&event_for_tags(tags_alpha_value[0..])),
+    try std.testing.expect(
+        (try event_expiration_unix_seconds(&event_for_tags(tags_alpha_value[0..]))) == null,
     );
-    try std.testing.expectError(
-        error.InvalidTimestamp,
-        event_expiration_unix_seconds(&event_for_tags(tags_overflow_value[0..])),
+    try std.testing.expect(
+        (try event_expiration_unix_seconds(&event_for_tags(tags_overflow_value[0..]))) == null,
     );
-    try std.testing.expectError(
-        error.InvalidExpirationTag,
-        event_expiration_unix_seconds(&event_for_tags(tags_dup_conflict[0..])),
+    try std.testing.expectEqual(
+        @as(?u64, 100),
+        try event_expiration_unix_seconds(&event_for_tags(tags_dup_conflict[0..])),
     );
 }
 
-test "expiration forcing test for InvalidExpirationTag" {
+test "expiration malformed tags are ignored deterministically" {
     const bad_shape = [_][]const u8{ "expiration", "3", "extra" };
     const bad_tags = [_]nip01_event.EventTag{.{ .items = bad_shape[0..] }};
 
-    try std.testing.expectError(
-        error.InvalidExpirationTag,
-        event_is_expired_at(&event_for_tags(bad_tags[0..]), 4),
-    );
+    try std.testing.expect(!(try event_is_expired_at(&event_for_tags(bad_tags[0..]), 4)));
 }
 
-test "expiration forcing test for InvalidTimestamp" {
+test "expiration malformed timestamps are ignored deterministically" {
     const bad_value = [_][]const u8{ "expiration", "not-a-u64" };
     const bad_tags = [_]nip01_event.EventTag{.{ .items = bad_value[0..] }};
 
-    try std.testing.expectError(
-        error.InvalidTimestamp,
-        event_is_expired_at(&event_for_tags(bad_tags[0..]), 4),
+    try std.testing.expect(!(try event_is_expired_at(&event_for_tags(bad_tags[0..]), 4)));
+}
+
+test "expiration conflicting duplicates use the first valid tag deterministically" {
+    const first = [_][]const u8{ "expiration", "100" };
+    const second = [_][]const u8{ "expiration", "200" };
+    const tags = [_]nip01_event.EventTag{
+        .{ .items = first[0..] },
+        .{ .items = second[0..] },
+    };
+
+    try std.testing.expectEqual(
+        @as(?u64, 100),
+        try event_expiration_unix_seconds(&event_for_tags(tags[0..])),
     );
+    try std.testing.expect(!(try event_is_expired_at(&event_for_tags(tags[0..]), 100)));
+    try std.testing.expect(try event_is_expired_at(&event_for_tags(tags[0..]), 101));
 }
 
 test "expiration oversized item count returns InvalidExpirationTag" {
