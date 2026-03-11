@@ -28,9 +28,27 @@ Current project context for the Phase H kickoff baseline.
   - `docs/plans/phase-h-additional-nips-plan.md`
   - `docs/plans/phase-h-wave1-loop.md`
   - implemented-NIP audit execution policy now lives in `docs/plans/build-plan.md`
-- H0 status:
+  - H0 status:
   - NIP-06 pin target, one-module boundary, typed failure posture, zeroization set, and corpus floor
     are frozen
+  - Wave 3 / `NIP-06` is implemented in `src/nip06_mnemonic.zig` and pending operator review
+    before closure:
+    - current implemented scope:
+      - English mnemonic validation
+      - mnemonic plus optional passphrase to 64-byte seed
+      - canonical `m/44'/1237'/<account>'/0/0` secret-key derivation
+    - current evidence:
+      - official BIP39 seed vectors covered
+      - both official NIP-06 vectors covered
+      - pinned rust-nostr extra mnemonic vector covered
+      - fixed `account = 1` vector covered
+      - invalid matrix covered for malformed length, unknown word, checksum mismatch, invalid
+        UTF-8, invalid seed boundary, invalid account, and buffer-too-small outputs
+    - review finding fixed:
+      - higher-account derivation no longer aliases libwally parent/output key buffers
+    - pending operator review point:
+      - current Phase H behavior validates UTF-8 but does not add an explicit NFKD normalization
+        adapter for non-ASCII mnemonic/passphrase parity
 - Wave 1 progress:
   - `NIP-01` audit is complete across `src/nip01_event.zig`, `src/nip01_filter.zig`, and
     `src/nip01_message.zig`: strict parsing now accepts uppercase single-letter `#X` filter keys,
@@ -140,7 +158,7 @@ Current project context for the Phase H kickoff baseline.
 - Latest cadence run (2026-03-11): TS audit harness passed
   (`SUMMARY pass=21 fail=0 harness_covered=21 total=21`).
 - Latest cadence run (2026-03-11): `zig build test --summary all` passed
-  (`Build Summary: 8/8 steps succeeded; 628/628 tests passed`).
+  (`Build Summary: 9/9 steps succeeded; 640/640 tests passed`).
 - Latest cadence run (2026-03-11): `zig build` passed.
 - Active cadence commands:
   - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
@@ -207,8 +225,16 @@ Current project context for the Phase H kickoff baseline.
    Accepted out-of-scope:
    - `nostrconnect_url` placeholder expansion or redirect/template rendering remains app-flow
      logic and is intentionally outside the protocol-kernel helper surface (`D-053`)
-   Remaining admin work:
-   - update tracker state when `bd` localhost access is available again in-session
+6. Wave 3 / `NIP-06` is implemented and green, but do not close `no-7lv` yet.
+   Current status:
+   - `src/nip06_mnemonic.zig` implements the frozen narrow libwally boundary with strict
+     zeroization and typed errors.
+   - `zig build test --summary all` and `zig build` are green after the NIP-06 corpus landed.
+   - the fixed review finding from implementation was parent/output key aliasing during child
+     derivation; separate key slots are now used.
+   Pending operator review point:
+   - decide whether the current UTF-8 validation without explicit NFKD normalization is an accepted
+     Phase H boundary limit or should be immediate follow-up work for non-ASCII parity.
 7. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.
 
 ## Repo Boundary Note

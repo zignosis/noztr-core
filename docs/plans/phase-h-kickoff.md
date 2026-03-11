@@ -204,6 +204,26 @@ the validated maintenance baseline.
   - accepted out-of-scope:
     - `nostrconnect_url` placeholder expansion or redirect/template rendering remains app-flow
       logic and is intentionally outside the protocol-kernel helper surface (`D-053`)
+- Wave 3 / `NIP-06` is implemented in `no-7lv` and is pending operator review before closure
+  - `src/nip06_mnemonic.zig` now implements the frozen narrow boundary:
+    - English mnemonic validation
+    - mnemonic plus optional passphrase to 64-byte seed
+    - canonical `m/44'/1237'/<account>'/0/0` secret-key derivation
+  - pinned vector/evidence status:
+    - official BIP39 seed vectors covered
+    - both official NIP-06 vectors covered
+    - pinned rust-nostr extra mnemonic vector covered
+    - fixed `account = 1` derivation vector covered
+    - invalid matrix covers malformed length, unknown word, checksum mismatch, invalid UTF-8,
+      invalid seed boundary, invalid account, and buffer-too-small failures
+  - review finding fixed during implementation:
+    - child derivation now uses separate parent/child key slots; aliasing libwally parent/output
+      buffers caused a real higher-account derivation failure and is no longer allowed
+  - operator review point before closure:
+    - current Phase H behavior validates UTF-8 but does not add an explicit NFKD normalization
+      adapter on top of `libwally-core`; this matters mainly for non-ASCII mnemonic/passphrase
+      cases and should be reviewed as an explicit compatibility decision rather than closed
+      implicitly
 
 ## Immediate Work Tracks
 
@@ -215,6 +235,8 @@ the validated maintenance baseline.
 - `no-4iw` is resolved by the NIP-10 audit and no longer blocks interpretation of NIP-10 quality.
 - Keep TypeScript parity references non-gating and use them only as secondary ecosystem audit
   evidence.
+- Hold `no-7lv` open until the NIP-06 Unicode-normalization review point is resolved or explicitly
+  accepted for the current Phase H boundary.
 
 ## Blocker Visibility
 
