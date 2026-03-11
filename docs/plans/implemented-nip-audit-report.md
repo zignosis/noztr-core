@@ -37,7 +37,7 @@ completes.
 | 02 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED BASELINE PASS` | No Layer 1 change required; valid relay-hint and petname shapes are already accepted | none | none | `rust-nostr` builders emit canonical `p` tags with optional relay and alias, but the available reference extraction surfaces are generic tag iterators rather than a dedicated strict contact-list helper |
 | 09 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED BASELINE PASS` | Tightened `a`-target deletion parsing so only valid replaceable/addressable coordinates are accepted | none | none | `rust-nostr` models delete coordinates through the NIP-01 coordinate type; TS coverage remains baseline builder/tag-shape signal only in this pass |
 | 10 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | Removed unnecessary rejection of legacy `mention`; removed unnecessary rejection of four-slot pubkey fallback | none | `no-4iw` closed | `noztr` now preserves four-slot author pubkey; `nostr-tools` accepts the shape but drops author |
-| 11 | pending | - | - | - | - | - | - |
+| 11 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | No Layer 1 change required; current bounded partial-document parse remains acceptable and now has an explicit full-spec-shaped compatibility vector | none | none | `noztr` intentionally exposes a typed subset of relay-info fields, but it ignores additional NIP-11 fields without disturbing the supported subset; both reference lanes tolerate the broader document shape |
 | 13 | pending | - | - | - | - | - | - |
 | 18 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | Reject contradictory repost target metadata without embedded-event proof; retained existing embedded-event consistency checks and kind-6 relay-hint requirement | none | none | `rust-nostr` builders already emit coherent repost metadata and add `a` only for coordinate-capable targets; `nostr-tools` runtime coverage now confirms kind-6/kind-16 builder behavior and protected-event empty-content handling |
 | 19 | pending | - | - | - | - | - | - |
@@ -70,6 +70,8 @@ completes.
   the helper on that input.
 - NIP-10: accept four-slot `e` tags with a valid slot-four pubkey as bounded compatibility input
   instead of rejecting the whole extract path.
+- NIP-11: no Layer 1 change required; keep the bounded partial relay-information surface, but
+  preserve compatibility with full spec-shaped documents by ignoring unmodeled fields cleanly.
 - NIP-18: reject contradictory repost target metadata when empty-content reposts cannot prove the
   target via embedded JSON, while retaining current embedded-event consistency checks and the kind-6
   relay-hint requirement.

@@ -412,6 +412,44 @@ test "nip11 valid vectors satisfy strict known-field and unknown-field behavior"
     try std.testing.expectEqual(@as(usize, 0), document_5.supported_nips.len);
 }
 
+test "nip11 parses full spec-shaped document while ignoring unmodeled fields" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const input =
+        "{" ++
+        "\"name\":\"relay-full\"," ++
+        "\"description\":\"relay description\"," ++
+        "\"banner\":\"https://example.com/banner.png\"," ++
+        "\"icon\":\"https://example.com/icon.png\"," ++
+        "\"pubkey\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
+        "\"self\":\"abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\"," ++
+        "\"contact\":\"mailto:relay@example.com\"," ++
+        "\"supported_nips\":[1,11,42,59]," ++
+        "\"software\":\"https://example.com/relay\"," ++
+        "\"version\":\"1.2.3\"," ++
+        "\"terms_of_service\":\"https://example.com/tos\"," ++
+        "\"limitation\":{" ++
+        "\"max_message_length\":16384," ++
+        "\"max_subscriptions\":200," ++
+        "\"auth_required\":true," ++
+        "\"payment_required\":false," ++
+        "\"restricted_writes\":true}}";
+    const document = try nip11_parse_document(input, arena.allocator());
+
+    try std.testing.expectEqualStrings("relay-full", document.name.?);
+    try std.testing.expectEqualStrings(
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        document.pubkey.?,
+    );
+    try std.testing.expectEqual(@as(usize, 4), document.supported_nips.len);
+    try std.testing.expectEqual(@as(u32, 42), document.supported_nips[2]);
+    try std.testing.expect(document.limitation != null);
+    try std.testing.expectEqual(@as(u32, 16384), document.limitation.?.max_message_length.?);
+    try std.testing.expectEqual(@as(u32, 200), document.limitation.?.max_subscriptions.?);
+    try std.testing.expect(document.limitation.?.max_filters == null);
+}
+
 test "nip11 parsed known strings stay valid after input mutation" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();

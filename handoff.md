@@ -42,6 +42,10 @@ Current project context for the Phase H kickoff baseline.
   - `NIP-09` audit is complete in `src/nip09_delete.zig`: delete `a` targets now have to satisfy
     the NIP-01 replaceable/addressable coordinate rules instead of only matching the raw
     `<kind>:<pubkey>:<identifier>` string shape
+  - `NIP-11` audit is complete in `src/nip11.zig`: no Layer 1 change was required because the
+    current bounded partial relay-information parser already ignores unmodeled NIP-11 fields
+    cleanly while preserving the supported subset, and the audit now pins a full-spec-shaped
+    compatibility vector so that broader relay documents keep parsing deterministically
   - `NIP-25` audit is complete in `src/nip25_reactions.zig`: reaction `emoji` tags now accept the
     optional NIP-30 fourth-slot emoji-set coordinate when it is a valid `30030` address, while
     strict shortcode and URL validation remain retained as the accepted Layer 1 posture, and
@@ -98,7 +102,7 @@ Current project context for the Phase H kickoff baseline.
 - Latest cadence run (2026-03-11): TS audit harness passed
   (`SUMMARY pass=20 fail=0 harness_covered=20 total=20`).
 - Latest cadence run (2026-03-11): `zig build test --summary all` passed
-  (`Build Summary: 8/8 steps succeeded; 586/586 tests passed`).
+  (`Build Summary: 8/8 steps succeeded; 588/588 tests passed`).
 - Latest cadence run (2026-03-11): `zig build` passed.
 - Active cadence commands:
   - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
@@ -141,8 +145,8 @@ Current project context for the Phase H kickoff baseline.
    in `docs/plans/build-plan.md`, with `rust-nostr` as the active parity lane and `nostr-tools` as
    a secondary non-gating ecosystem signal. Every implemented NIP must be cross-checked against
    both references during the audit.
-5. Continue from the completed NIP-01, NIP-02, NIP-09, NIP-10, NIP-18, NIP-22, NIP-25, NIP-27,
-   NIP-42, and NIP-51 audits to the next implemented NIP audit item.
+5. Continue from the completed NIP-01, NIP-02, NIP-09, NIP-10, NIP-11, NIP-18, NIP-22, NIP-25,
+   NIP-27, NIP-42, and NIP-51 audits to the next implemented NIP audit item.
 6. Start Wave 2 / `NIP-46` only after the implemented-NIP audit reaches an acceptable stopping
    point or explicitly recorded partial cutoff.
 7. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.
