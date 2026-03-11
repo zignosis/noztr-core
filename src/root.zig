@@ -66,6 +66,9 @@ pub const nip25_reactions = @import("nip25_reactions.zig");
 /// Phase H concrete export for the NIP-51 public-list module.
 pub const nip51_lists = @import("nip51_lists.zig");
 
+/// Phase H concrete export for the NIP-46 remote-signing module.
+pub const nip46_remote_signing = @import("nip46_remote_signing.zig");
+
 /// Phase I5 concrete export for the NIP-44 encrypted direct-message module.
 pub const nip44 = @import("nip44.zig");
 
@@ -133,6 +136,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip27_references.ReferencesError) == type);
     try std.testing.expect(@TypeOf(nip25_reactions.ReactionError) == type);
     try std.testing.expect(@TypeOf(nip51_lists.ListError) == type);
+    try std.testing.expect(@TypeOf(nip46_remote_signing.Nip46Error) == type);
     try std.testing.expect(@TypeOf(nip44.Nip44Error) == type);
     try std.testing.expect(@TypeOf(nip59_wrap.WrapError) == type);
     try std.testing.expectEqual(i6_extensions_enabled, @hasDecl(nip45_count, "CountError"));
@@ -153,6 +157,8 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip51_lists.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nip51_lists.BookmarkBuilderItem) == type);
     try std.testing.expect(@TypeOf(nip51_lists.ListItem) == type);
+    try std.testing.expect(@TypeOf(nip46_remote_signing.Message) == type);
+    try std.testing.expect(@TypeOf(nip46_remote_signing.ConnectionUri) == type);
     try std.testing.expect(@TypeOf(PowVerifiedIdError) == type);
     try std.testing.expect(@TypeOf(DeleteExtractCheckedError) == type);
     try std.testing.expect(
@@ -246,6 +252,22 @@ test "root exports limits and error namespaces" {
                 *nip51_lists.BuiltTag,
                 *const nip51_lists.ListEmoji,
             ) nip51_lists.ListError!nip01_event.EventTag,
+    );
+    try std.testing.expect(
+        @TypeOf(nip46_remote_signing.message_parse_json) ==
+            fn ([]const u8, std.mem.Allocator) nip46_remote_signing.Nip46Error!nip46_remote_signing.Message,
+    );
+    try std.testing.expect(
+        @TypeOf(nip46_remote_signing.message_serialize_json) ==
+            fn ([]u8, nip46_remote_signing.Message) nip46_remote_signing.Nip46Error![]const u8,
+    );
+    try std.testing.expect(
+        @TypeOf(nip46_remote_signing.uri_parse) ==
+            fn ([]const u8, std.mem.Allocator) nip46_remote_signing.Nip46Error!nip46_remote_signing.ConnectionUri,
+    );
+    try std.testing.expect(
+        @TypeOf(nip46_remote_signing.uri_serialize) ==
+            fn ([]u8, nip46_remote_signing.ConnectionUri) nip46_remote_signing.Nip46Error![]const u8,
     );
     try std.testing.expect(
         @TypeOf(nip44.nip44_get_conversation_key) ==

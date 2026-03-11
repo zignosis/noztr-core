@@ -179,7 +179,30 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
     - deferred scope: kind-17 external reactions pending NIP-73 support
 - Wave 1 status:
   - Wave 1 is complete.
-  - Next phase-order item is Wave 2 / `46`.
+  - Wave 2 / `46` is now in progress.
+
+## Wave 2 Status Snapshot
+
+- In progress:
+  - `46`
+    - implemented scope so far: bounded core helpers in `src/nip46_remote_signing.zig`
+    - current implemented semantics:
+      - method parsing covers `connect`, `sign_event`, `ping`, `get_public_key`,
+        `nip04_encrypt`, `nip04_decrypt`, `nip44_encrypt`, `nip44_decrypt`,
+        and `switch_relays`
+      - permission parsing/formatting supports the current `method[:params]` grammar with
+        typed `sign_event:<kind>` handling and bounded raw scopes for future method-specific
+        parameters
+      - request/response message parse/compose is implemented with typed validation of request
+        parameter shape and bounded response result forms
+      - current-spec `bunker://` and `nostrconnect://` URI parse/compose is implemented using
+        split query parameters (`relay`, `secret`, `perms`, `name`, `url`, `image`) rather than
+        the older rust `metadata=` shape
+      - strict kind-24133 event-envelope validation requires exactly one `p` tag target and valid
+        NIP-44 payload framing
+    - still pending inside the active Wave 2 item:
+      - parity harness/source coverage against `rust-nostr` overlap and `nostr-tools`
+      - any decision to add richer typed wrappers for `sign_event` and `switch_relays`
 
 ## NIP-06 Phase H Boundary Scope
 

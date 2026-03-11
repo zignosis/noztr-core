@@ -73,6 +73,14 @@ pub const Limits = struct {
 
     pub const nip45_hll_hex_length: u16 = 512;
 
+    pub const nip46_uri_bytes_max: u16 = 4_096;
+    pub const nip46_message_json_bytes_max: u32 = Limits.nip44_plaintext_max_bytes;
+    pub const nip46_message_id_bytes_max: u8 = 128;
+    pub const nip46_message_params_max: u8 = 8;
+    pub const nip46_relays_max: u8 = 32;
+    pub const nip46_permissions_max: u8 = 32;
+    pub const nip46_secret_bytes_max: u16 = 256;
+
     pub const nip50_search_field_bytes_max: u16 = Limits.tag_item_bytes_max;
 
     pub const nip77_negentropy_protocol_version: u8 = 0x61;
@@ -152,6 +160,14 @@ pub const nip44_payload_base64_min_bytes: u16 = Limits.nip44_payload_base64_min_
 pub const nip44_payload_base64_max_bytes: u32 = Limits.nip44_payload_base64_max_bytes;
 
 pub const nip45_hll_hex_length: u16 = Limits.nip45_hll_hex_length;
+
+pub const nip46_uri_bytes_max: u16 = Limits.nip46_uri_bytes_max;
+pub const nip46_message_json_bytes_max: u32 = Limits.nip46_message_json_bytes_max;
+pub const nip46_message_id_bytes_max: u8 = Limits.nip46_message_id_bytes_max;
+pub const nip46_message_params_max: u8 = Limits.nip46_message_params_max;
+pub const nip46_relays_max: u8 = Limits.nip46_relays_max;
+pub const nip46_permissions_max: u8 = Limits.nip46_permissions_max;
+pub const nip46_secret_bytes_max: u16 = Limits.nip46_secret_bytes_max;
 
 pub const nip50_search_field_bytes_max: u16 = Limits.nip50_search_field_bytes_max;
 
@@ -249,6 +265,15 @@ comptime {
 
     std.debug.assert(Limits.nip45_hll_hex_length == 512);
     std.debug.assert(Limits.nip45_hll_hex_length % 2 == 0);
+
+    std.debug.assert(Limits.nip46_uri_bytes_max >= Limits.tag_item_bytes_max);
+    std.debug.assert(Limits.nip46_message_json_bytes_max <= Limits.nip44_plaintext_max_bytes);
+    std.debug.assert(Limits.nip46_message_id_bytes_max > 0);
+    std.debug.assert(Limits.nip46_message_params_max > 0);
+    std.debug.assert(Limits.nip46_relays_max > 0);
+    std.debug.assert(Limits.nip46_permissions_max > 0);
+    std.debug.assert(Limits.nip46_secret_bytes_max > 0);
+    std.debug.assert(Limits.nip46_secret_bytes_max <= Limits.tag_item_bytes_max);
 
     std.debug.assert(Limits.nip50_search_field_bytes_max > 0);
     std.debug.assert(Limits.nip50_search_field_bytes_max <= Limits.tag_item_bytes_max);

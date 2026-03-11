@@ -171,7 +171,22 @@ the validated maintenance baseline.
     path-bound websocket origin strictness is retained
   - `NIP-51` widened bookmark extraction to accept bounded hashtag/URL items and now ignores
     unrelated unknown tags
-- Next expansion phase-order item: Wave 2 / `NIP-46` in `no-czg`
+- Wave 2 / `NIP-46` is now in progress in `no-czg`
+  - initial bounded `src/nip46_remote_signing.zig` surface is implemented
+  - current implemented scope:
+    - method parsing for `connect`, `sign_event`, `ping`, `get_public_key`,
+      `nip04_encrypt`, `nip04_decrypt`, `nip44_encrypt`, `nip44_decrypt`,
+      and `switch_relays`
+    - permission token parsing/formatting, including `sign_event:<kind>` and bounded
+      raw future-method scopes
+    - JSON parse/compose for request and response payloads with typed validation
+    - current-spec `bunker://` and `nostrconnect://` URI parse/compose
+    - strict kind-24133 event-envelope validation with exact single-`p` targeting and
+      NIP-44 payload framing validation
+  - current deferred scope inside the active Wave 2 item:
+    - rust / `nostr-tools` parity harness coverage
+    - any additional typed convenience wrappers beyond the current generic core surface
+    - decision on whether to expose richer typed `sign_event` / `switch_relays` result wrappers
 
 ## Immediate Work Tracks
 

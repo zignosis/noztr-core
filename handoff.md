@@ -181,7 +181,16 @@ Current project context for the Phase H kickoff baseline.
    Wave 1 is complete: `25`, `10`, `18`, `22`, `27`, `51`.
 4. Keep the implemented-NIP audit report current if future code changes reopen compatibility or
    strictness questions.
-5. Start Wave 2 / `NIP-46` as the next phase-order implementation item.
+5. Continue Wave 2 / `NIP-46`.
+   Current implemented baseline:
+   - `src/nip46_remote_signing.zig` now covers method parsing, permission parsing/formatting,
+     JSON request/response parse+compose, current-spec `bunker://` and `nostrconnect://`
+     URI parse+compose, and strict kind-24133 envelope validation.
+   Remaining Wave 2 work:
+   - add parity evidence against `rust-nostr` overlap and `nostr-tools`
+   - decide whether to expose richer typed convenience wrappers beyond the current generic core
+     message/result surface
+   - update tracker state when `bd` localhost access is available again in-session
 7. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.
 
 ## Additional Assets
