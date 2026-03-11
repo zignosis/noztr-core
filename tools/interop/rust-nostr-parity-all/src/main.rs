@@ -311,6 +311,17 @@ fn check_nip01() -> Result<(), String> {
         return Err("tampered content accepted".to_string());
     }
 
+    let uppercase_filter = Filter::from_json(r##"{"#P":["target-author"]}"##)
+        .map_err(|e| format!("uppercase filter parse: {e}"))?;
+    let tagged_event = EventBuilder::new(Kind::TextNote, "nip01 uppercase tag")
+        .tags([Tag::parse(vec!["P", "target-author"])
+            .map_err(|e| format!("uppercase tag parse: {e}"))?])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("sign uppercase tag event: {e}"))?;
+    if !uppercase_filter.match_event(&tagged_event, MatchEventOptions::new()) {
+        return Err("uppercase tag filter did not match uppercase event tag".to_string());
+    }
+
     Ok(())
 }
 

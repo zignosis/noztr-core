@@ -291,6 +291,11 @@ fn parse_filter_tag_key(key: []const u8) FilterParseError!u8 {
         return tag_key;
     }
 
+    const is_upper_ascii = tag_key >= 'A' and tag_key <= 'Z';
+    if (is_upper_ascii) {
+        return tag_key;
+    }
+
     return error.InvalidTagKey;
 }
 
@@ -919,14 +924,36 @@ test "parsed tag filter matches event tags deterministically" {
     try std.testing.expect(filter_matches_event(&filter, &event));
 }
 
-test "filter parse rejects uppercase #X tag key" {
+test "filter parse accepts uppercase #X tag key" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
 
-    try std.testing.expectError(
-        error.InvalidTagKey,
-        filter_parse_json("{\"#E\":[\"target\"]}", arena.allocator()),
-    );
+    const filter = try filter_parse_json("{\"#E\":[\"target\"]}", arena.allocator());
+
+    try std.testing.expectEqual(@as(usize, 1), filter.tag_conditions.len);
+    try std.testing.expectEqual(@as(u8, 'E'), filter.tag_conditions[0].key);
+    try std.testing.expectEqualStrings("target", filter.tag_conditions[0].values[0]);
+}
+
+test "parsed uppercase tag filter matches uppercase event tags deterministically" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const filter = try filter_parse_json("{\"#P\":[\"target\"]}", arena.allocator());
+    const tag_items = [_][]const u8{ "P", "target", "relay" };
+    const tags = [_]nip01_event.EventTag{.{ .items = tag_items[0..] }};
+    const event = nip01_event.Event{
+        .id = [_]u8{0xaa} ** 32,
+        .pubkey = [_]u8{0xbb} ** 32,
+        .sig = [_]u8{0} ** 64,
+        .kind = 1,
+        .created_at = 100,
+        .content = "ok",
+        .tags = tags[0..],
+    };
+
+    try std.testing.expect(filter_matches_event(&filter, &event));
+    try std.testing.expect(filter_matches_event(&filter, &event));
 }
 
 test "tag filter does not match non-indexed tag values" {

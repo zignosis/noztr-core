@@ -452,6 +452,20 @@ function check_nip01(): void {
         content: `${event.content}-tampered`,
     };
     ensure(!verifyEvent(tampered_event), "verifyEvent accepted tampered event payload");
+
+    const uppercase_tag_event = finalizeEvent(
+        {
+            kind: 1,
+            created_at: 1_708_000_001,
+            tags: [["P", "target-author"]],
+            content: "nip01 uppercase tag",
+        },
+        secret_key,
+    );
+    ensure(
+        nostr_tools.matchFilter({ "#P": ["target-author"] }, uppercase_tag_event),
+        "NIP-01 uppercase tag filter did not match uppercase event tag",
+    );
 }
 
 function check_nip13(): void {

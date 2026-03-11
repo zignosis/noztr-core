@@ -32,6 +32,10 @@ Current project context for the Phase H kickoff baseline.
   - NIP-06 pin target, one-module boundary, typed failure posture, zeroization set, and corpus floor
     are frozen
 - Wave 1 progress:
+  - `NIP-01` audit is complete across `src/nip01_event.zig`, `src/nip01_filter.zig`, and
+    `src/nip01_message.zig`: strict parsing now accepts uppercase single-letter `#X` filter keys,
+    while unknown filter-field rejection and prefixed rejection-status enforcement remain accepted
+    Layer 1 trust-boundary behavior
   - `NIP-25` audit is complete in `src/nip25_reactions.zig`: reaction `emoji` tags now accept the
     optional NIP-30 fourth-slot emoji-set coordinate when it is a valid `30030` address, while
     strict shortcode and URL validation remain retained as the accepted Layer 1 posture, and
@@ -88,7 +92,7 @@ Current project context for the Phase H kickoff baseline.
 - Latest cadence run (2026-03-11): TS audit harness passed
   (`SUMMARY pass=20 fail=0 harness_covered=20 total=20`).
 - Latest cadence run (2026-03-11): `zig build test --summary all` passed
-  (`Build Summary: 8/8 steps succeeded; 584/584 tests passed`).
+  (`Build Summary: 8/8 steps succeeded; 586/586 tests passed`).
 - Latest cadence run (2026-03-11): `zig build` passed.
 - Active cadence commands:
   - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
@@ -131,8 +135,8 @@ Current project context for the Phase H kickoff baseline.
    in `docs/plans/build-plan.md`, with `rust-nostr` as the active parity lane and `nostr-tools` as
    a secondary non-gating ecosystem signal. Every implemented NIP must be cross-checked against
    both references during the audit.
-5. Continue from the completed NIP-10, NIP-18, NIP-22, NIP-25, NIP-27, NIP-42, and NIP-51 audits
-   to the next implemented NIP audit item.
+5. Continue from the completed NIP-01, NIP-10, NIP-18, NIP-22, NIP-25, NIP-27, NIP-42, and NIP-51
+   audits to the next implemented NIP audit item.
 6. Start Wave 2 / `NIP-46` only after the implemented-NIP audit reaches an acceptable stopping
    point or explicitly recorded partial cutoff.
 7. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.

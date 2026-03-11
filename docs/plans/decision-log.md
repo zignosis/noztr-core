@@ -784,6 +784,24 @@ Immutable record of accepted planning decisions.
   common and interoperable inline content references rather than separate URI/use-case surfaces.
 - Supersedes: none
 
+## D-044: Accept uppercase single-letter NIP-01 filter keys
+
+- Date: 2026-03-11
+- Status: accepted
+- Decision: widen `nip01_filter` so strict filter parsing accepts uppercase single-letter `#X` tag
+  keys in addition to lowercase ones. Matching remains exact to the tag byte present on the event,
+  and the rest of the current NIP-01 filter/message strictness is unchanged.
+- Why: NIP-01 explicitly allows `#<single-letter (a-zA-Z)>` filter keys, `rust-nostr` models
+  uppercase single-letter tags directly, and `nostr-tools` matches uppercase `#X` filters as
+  written. Rejecting uppercase keys was narrower than the protocol and ecosystem without improving
+  safety or boundedness.
+- Tradeoff: slightly broader tag-filter input surface versus materially better spec and ecosystem
+  compatibility.
+- Related Tradeoff: T-0-001, T-0-002, T-0-003.
+- Reversal Trigger: strong interoperability evidence shows uppercase single-letter tag filters are
+  harmful or ambiguous at the trust boundary despite their NIP-01 allowance.
+- Supersedes: none
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

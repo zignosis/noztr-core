@@ -33,7 +33,7 @@ completes.
 
 | NIP | Status | Rust Evidence | TS Evidence | Findings | Decision Points | Follow-ups | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 01 | pending | - | - | - | - | - | - |
+| 01 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | Accepted uppercase single-letter `#X` filter keys; retained unknown filter-field rejection and prefixed rejection-status enforcement as accepted trust-boundary behavior | none | none | NIP-01 allows `a-zA-Z` tag-filter keys, and both reference lanes support uppercase matching; current unknown-field and status-prefix strictness remains more policyful but still spec-defensible |
 | 02 | pending | - | - | - | - | - | - |
 | 09 | pending | - | - | - | - | - | - |
 | 10 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | Removed unnecessary rejection of legacy `mention`; removed unnecessary rejection of four-slot pubkey fallback | none | `no-4iw` closed | `noztr` now preserves four-slot author pubkey; `nostr-tools` accepts the shape but drops author |
@@ -58,6 +58,9 @@ completes.
 
 ## Decision Summary
 
+- NIP-01: accept uppercase single-letter `#X` filter keys to match the NIP text and reference
+  library behavior, while retaining unknown filter-field rejection and prefixed rejection-status
+  enforcement as accepted Layer 1 trust-boundary behavior.
 - NIP-10: accept legacy `mention` tags as explicit mentions in thread extraction instead of failing
   the helper on that input.
 - NIP-10: accept four-slot `e` tags with a valid slot-four pubkey as bounded compatibility input
