@@ -6,15 +6,12 @@ exceptions recorded in the decision log.
 ## Session Startup
 
 - Run `./agent-brief` first.
-- Read these in order:
-  - `AGENTS.md`
-  - `docs/guides/TIGER_STYLE.md`
-  - `docs/guides/zig-patterns.md`
-  - `docs/guides/zig-anti-patterns.md` (if present)
-  - `docs/plans/nostr-principles.md` (if present)
-  - `docs/plans/decision-log.md` (if present)
-  - `docs/plans/build-plan.md`
-  - `docs/plans/prompts/README.md`
+- Read `AGENTS.md` and `handoff.md` every session.
+- Then read only the current execution files called out by `./agent-brief`.
+- Read `docs/guides/TIGER_STYLE.md`, `docs/guides/NOZTR_STYLE.md`,
+  `docs/guides/zig-patterns.md`, and `docs/guides/zig-anti-patterns.md` only when the task touches
+  Zig implementation, public API shape, or code review.
+- Read planning prompt artifacts only when the task is phase-planning work.
 - Work in phase order. Do not skip phase gates.
 
 ## Artifact Authority
@@ -54,12 +51,14 @@ Run tests after every code change.
   - Active phase owner updates `handoff.md` before phase closure.
   - Ensure `docs/plans/build-plan.md` reflects accepted decisions.
   - Ensure `docs/plans/decision-log.md` records accepted default changes.
-  - Ensure `./agent-brief` output reflects current artifact status.
+  - Ensure `./agent-brief` output reflects the current active execution path.
 - Do not rely on memory-only context between sessions.
 
 ## Coding Standards
 
-Read `docs/guides/TIGER_STYLE.md` — every word. Non-negotiable. The critical rules:
+Read `docs/guides/TIGER_STYLE.md` and `docs/guides/NOZTR_STYLE.md` for code work. Tiger is the
+hard engineering baseline; NOZTR Style is the project-specific protocol-kernel profile. The
+critical rules:
 
 - **70 lines per function** — no exceptions
 - **100 columns per line** — no exceptions
@@ -70,6 +69,9 @@ Read `docs/guides/TIGER_STYLE.md` — every word. Non-negotiable. The critical r
 - **Dependency default** — Zig stdlib only unless an approved pinned crypto backend exception is
   recorded in `docs/plans/decision-log.md`
 - Follow KISS — prefer the simplest solution that satisfies requirements
+- Keep protocol behavior simple, bounded, and not fussy — do not add narrow helper rules, extra
+  typed failures, or special-case parsing unless they materially improve trust-boundary behavior,
+  correctness, or interoperability
 - Reuse approved implementations before writing from scratch — approved means Zig stdlib or existing in-repo modules/utilities only
 - `defer` for cleanup, `errdefer` for error paths
 - All errors handled — never discarded
@@ -98,7 +100,11 @@ Read `docs/guides/TIGER_STYLE.md` — every word. Non-negotiable. The critical r
 
 ## Guides
 
-Read everything in `docs/guides/`.
+- `docs/guides/TIGER_STYLE.md`: hard engineering baseline
+- `docs/guides/NOZTR_STYLE.md`: noztr protocol-kernel style profile
+- `docs/guides/zig-patterns.md`: approved Zig-safe patterns
+- `docs/guides/zig-anti-patterns.md`: forbidden Zig footguns
+- Other guide documents are load-on-demand, not required startup context
 
 <!-- BEGIN BEADS INTEGRATION -->
 ## Issue Tracking with bd (beads)

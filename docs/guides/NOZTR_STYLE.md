@@ -1,6 +1,6 @@
 # NOZTR Style
 
-Date: 2026-03-07
+Date: 2026-03-11
 
 This document defines noztr's engineering style and strictness profile for protocol-kernel modules.
 It complements TigerStyle and v1 planning artifacts with project-specific defaults.
@@ -15,6 +15,14 @@ It complements TigerStyle and v1 planning artifacts with project-specific defaul
 - Keep ownership explicit: runtime encode/decode paths are caller-buffer-first; no hidden allocation
   growth.
 - Prefer pure helpers plus explicit state transition points so behavior remains testable and auditable.
+- Follow KISS in protocol posture, not just code shape: prefer the simplest bounded behavior that is
+  correct, deterministic, and ecosystem-compatible.
+- Do not add narrow helper rules, special-case parsing, or extra typed failure paths unless they buy
+  clear trust-boundary, correctness, or interoperability value.
+- When safe, ignore irrelevant, unknown, or future-compatible input instead of poisoning the whole
+  helper path.
+- Explicit is good; fussy is not. The strict kernel should be auditable and obvious, not
+  over-specified beyond what the NIPs and ecosystem evidence require.
 
 ## Dependency Policy
 
@@ -22,6 +30,9 @@ It complements TigerStyle and v1 planning artifacts with project-specific defaul
   `@import("std")` unless a narrower exception is explicitly accepted.
 - Approved pinned crypto backend exceptions are allowed only when recorded in
   `docs/plans/decision-log.md`.
+- Current accepted exception posture includes the narrowed secp boundary and the frozen
+  `libwally-core` NIP-06 boundary; both remain boundary-only exceptions rather than a general
+  dependency-policy widening.
 - Every approved backend exception must stay behind one narrow boundary module with typed error
   mapping, pinned source identity, differential/vector coverage, and no unbounded runtime allocation.
 
@@ -66,11 +77,14 @@ It complements TigerStyle and v1 planning artifacts with project-specific defaul
 
 ## Compatibility Profile
 
-- Core defaults remain strict (`D-003`).
+- Core defaults follow the deterministic-and-compatible Layer 1 posture (`D-036`).
 - Compatibility behavior is explicit, isolated, and opt-in.
 - Compatibility adapters must not change strict-default semantics.
 - Every compatibility branch requires typed outcomes, forcing tests, and a tradeoff record.
 - Unreleased Layer 1 API surface is canonical-only: do not publish compatibility alias symbols.
+- Layer 1 strictness should not become Layer 1 fussiness: keep the kernel narrow where it improves
+  safety or determinism, but do not turn optional or irrelevant ecosystem variance into gratuitous
+  whole-helper failure.
 
 ## One Obvious Way At Trust Boundaries
 
@@ -82,6 +96,16 @@ It complements TigerStyle and v1 planning artifacts with project-specific defaul
   - `transcript_mark_client_req`
   - `transcript_apply_relay`
 - New wrappers should be added only when they reduce ambiguity and preserve typed strict behavior.
+
+## Kernel Boundary Discipline
+
+- Keep protocol-kernel modules focused on parsing, validation, serialization, verification, and
+  bounded helper behavior.
+- Do not mix application-flow policy into Layer 1 helpers.
+- Validation of protocol fields belongs in the kernel; redirect rendering, placeholder expansion,
+  UI handoff, and connection-orchestration policy do not.
+- Current example: NIP-46 `nostrconnect_url` parsing belongs in the kernel, but template rendering
+  or redirect expansion remains outside it (`D-053`).
 
 ## Ecosystem Positioning (High Level)
 
@@ -121,3 +145,5 @@ It complements TigerStyle and v1 planning artifacts with project-specific defaul
 - Implemented-but-untested NIPs default to `NOT_COVERED_IN_THIS_PASS`.
 - Emit `LIB_UNSUPPORTED` only when unsupported status is explicitly proven in harness code.
 - Policy guardrail: reporting model changes do not change strict defaults or strictness policy.
+- Active gate posture: `rust-nostr` remains the active parity lane; the TypeScript lane is archived
+  historical evidence only and should not drive active gate wording.

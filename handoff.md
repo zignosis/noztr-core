@@ -211,12 +211,10 @@ Current project context for the Phase H kickoff baseline.
    - update tracker state when `bd` localhost access is available again in-session
 7. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.
 
-## Additional Assets
+## Repo Boundary Note
 
-- Process-boilerplate extraction task `no-6tu` is closed; starter-consistency and shared-corpus
-  evaluation task `no-tdt` is the active follow-on.
-- New reusable starter assets now live under `docs/process/` and `template/`.
-- Shared-corpus evaluation docs
-  (`docs/process/shared-knowledge-strategy.md`, `docs/process/research-guides-catalog.md`)
-  are process-evaluation artifacts only and are not canonical inputs for active Phase H execution.
-- These additions do not change Phase H Layer 1 defaults, parity cadence, or current Wave 1 order.
+- Shared-corpus and starter-framework work now lives outside `noztr` and is not part of the
+  canonical startup or execution context for this repo.
+- Deleted `docs/process/` and `template/` assets should not be treated as active `noztr` inputs.
+- Phase H defaults, parity cadence, and current execution order are defined only by the active
+  `docs/plans/*`, `docs/guides/*`, and source/test artifacts that still exist in this repo.
