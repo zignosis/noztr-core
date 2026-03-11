@@ -208,6 +208,8 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
         `switch_relays`
       - appendix discovery helpers now parse signer `nostr.json?name=_` NIP-46 discovery
         documents and extract bounded NIP-89 kind-`31990` remote-signer metadata
+      - signer `nostr.json` discovery accepts both the current `nip46.relays` shape and the older
+        deployed pubkey-keyed relay map used by `nostr-tools`
       - executed overlap evidence is now in place for both active reference lanes:
         - `rust-nostr`: `HARNESS_COVERED`, `BASELINE`, `PASS`
         - `nostr-tools`: `HARNESS_COVERED`, `BASELINE`, `PASS`

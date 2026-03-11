@@ -191,6 +191,8 @@ the validated maintenance baseline.
       `switch_relays`
     - appendix discovery helpers for `nostr.json?name=_` NIP-46 discovery data and
       kind-`31990` NIP-89 remote-signer events
+    - signer `nostr.json` discovery accepts both the current `nip46.relays` shape and the older
+      deployed pubkey-keyed relay map used by `nostr-tools`
   - parity/evidence status:
     - rust parity overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
     - TypeScript audit overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`

@@ -638,17 +638,10 @@ fn parse_well_known_root(
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     var partial = WellKnownPartial{};
-    var iterator = object.iterator();
-    while (iterator.next()) |entry| {
-        const key = entry.key_ptr.*;
-        const value = entry.value_ptr.*;
-        if (std.mem.eql(u8, key, "names")) {
-            partial.app_pubkey = try parse_well_known_names(value);
-            continue;
-        }
-        if (std.mem.eql(u8, key, "nip46")) {
-            try parse_well_known_nip46(&partial, value, scratch);
-        }
+    const names_value = object.get("names") orelse return error.MissingDiscoveryPubkey;
+    partial.app_pubkey = try parse_well_known_names(names_value);
+    if (object.get("nip46")) |nip46_value| {
+        try parse_well_known_nip46(&partial, nip46_value, partial.app_pubkey.?, scratch);
     }
     const app_pubkey = partial.app_pubkey orelse return error.MissingDiscoveryPubkey;
     return .{
@@ -675,6 +668,7 @@ fn parse_well_known_names(value: std.json.Value) Nip46Error![32]u8 {
 fn parse_well_known_nip46(
     partial: *WellKnownPartial,
     value: std.json.Value,
+    app_pubkey: [32]u8,
     scratch: std.mem.Allocator,
 ) Nip46Error!void {
     std.debug.assert(@intFromPtr(partial) != 0);
@@ -686,16 +680,24 @@ fn parse_well_known_nip46(
     var relay_buf: [limits.nip46_relays_max][]const u8 = undefined;
     var relay_count: u8 = 0;
     var discovery_url = partial.nostrconnect_url;
+    var saw_relays = false;
+    const pubkey_hex = std.fmt.bytesToHex(app_pubkey, .lower);
     var iterator = value.object.iterator();
     while (iterator.next()) |entry| {
         const key = entry.key_ptr.*;
         const field = entry.value_ptr.*;
         if (std.mem.eql(u8, key, "relays")) {
             try parse_well_known_relays(field, &relay_buf, &relay_count, scratch);
+            saw_relays = true;
             continue;
         }
         if (std.mem.eql(u8, key, "nostrconnect_url")) {
             discovery_url = try parse_well_known_discovery_url(field, scratch);
+            continue;
+        }
+        if (!saw_relays and std.mem.eql(u8, key, &pubkey_hex)) {
+            try parse_well_known_relays(field, &relay_buf, &relay_count, scratch);
+            saw_relays = true;
         }
     }
     partial.relays = try duplicate_relay_slice(relay_buf[0..relay_count], scratch);
@@ -2254,6 +2256,20 @@ test "discovery_parse_well_known extracts app pubkey and nip46 block" {
         "https://bunker.example/<nostrconnect>",
         info.nostrconnect_url.?,
     );
+}
+
+test "discovery_parse_well_known accepts legacy pubkey-keyed relay maps" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const document =
+        "{\"names\":{\"_\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}," ++
+        "\"nip46\":{\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\":" ++
+        "[\"wss://relay.one\"]}}";
+    const info = try discovery_parse_well_known(document, arena.allocator());
+    try std.testing.expectEqual(@as(usize, 1), info.relays.len);
+    try std.testing.expectEqualStrings("wss://relay.one", info.relays[0]);
+    try std.testing.expect(info.nostrconnect_url == null);
 }
 
 test "discovery_parse_nip89 extracts bounded remote-signer metadata" {

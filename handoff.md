@@ -140,7 +140,7 @@ Current project context for the Phase H kickoff baseline.
 - Latest cadence run (2026-03-11): TS audit harness passed
   (`SUMMARY pass=21 fail=0 harness_covered=21 total=21`).
 - Latest cadence run (2026-03-11): `zig build test --summary all` passed
-  (`Build Summary: 8/8 steps succeeded; 622/622 tests passed`).
+  (`Build Summary: 8/8 steps succeeded; 624/624 tests passed`).
 - Latest cadence run (2026-03-11): `zig build` passed.
 - Active cadence commands:
   - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
@@ -194,6 +194,8 @@ Current project context for the Phase H kickoff baseline.
      `switch_relays`.
    - appendix discovery helpers now parse signer `nostr.json?name=_` NIP-46 discovery data and
      extract bounded NIP-89 kind-`31990` remote-signer metadata.
+   - signer `nostr.json` discovery accepts both the current `nip46.relays` shape and the older
+     deployed pubkey-keyed relay map used by `nostr-tools`.
    Completed evidence:
    - rust overlap parity is now `HARNESS_COVERED`, `BASELINE`, `PASS`
    - TypeScript overlap evidence is now `HARNESS_COVERED`, `BASELINE`, `PASS`
