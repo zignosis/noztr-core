@@ -131,10 +131,11 @@ Current project context for the Phase H kickoff baseline.
     validation where NIP-51 specifies it, accepted broader bookmark extraction for bounded hashtag
     and URL items, ignored unrelated unknown tags, bounded broader bookmark/emoji tag builders, and
     deep rust parity coverage across all supported rust-backed public-list builders
-  - deferred NIP-51 follow-up `no-e7b` now tracks private encrypted list content plus any future
-    decision to widen extraction beyond the current strict Wave 1 subset
-  - Wave 1 is complete and the implemented-NIP audit is complete; the next execution focus is Wave
-    2 / `NIP-46`
+  - post-Wave follow-up `no-e7b` is now complete: `src/nip51_lists.zig` also supports bounded
+    private-list JSON serialization, bounded private-item extraction from decrypted JSON, and
+    direct NIP-44 private-list decrypt+extract
+  - deprecated NIP-04 private-list compatibility is now deferred separately in `no-urr`
+  - Wave 1, the implemented-NIP audit, Wave 2 / `NIP-46`, and Wave 3 / `NIP-06` are complete
 
 ## Phase G Closure Snapshot (non-remote)
 
@@ -241,7 +242,16 @@ Current project context for the Phase H kickoff baseline.
    - `no-09f` review is complete.
    - `no-2gp` tracks any future full BIP39-compatible NFKD normalization support for non-ASCII
      parity.
-7. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.
+7. Post-Wave NIP-51 private-list follow-up `no-e7b` is complete.
+   Current status:
+   - `src/nip51_lists.zig` now serializes private tag arrays into bounded JSON plaintext.
+   - it now extracts private items from decrypted JSON using the same supported-tag semantics as
+     public extraction.
+   - it now decrypts NIP-44 private list `event.content` directly and rejects legacy `?iv=` NIP-04
+     payloads with typed `UnsupportedPrivateEncoding`.
+   Explicit follow-up:
+   - `no-urr` tracks any future deprecated NIP-04 compatibility adapter for private lists.
+8. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.
 
 ## Repo Boundary Note
 

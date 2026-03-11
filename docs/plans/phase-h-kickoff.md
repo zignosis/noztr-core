@@ -104,13 +104,14 @@ the validated maintenance baseline.
   - `emoji` items accept the optional NIP-30 emoji-set address and validate it as a `30030`
     coordinate when present
   - builder helpers now emit the optional fourth-slot NIP-30 emoji-set coordinate when present
-  - private encrypted list content and remaining public list variants are deferred to follow-up
-    `no-e7b`
+  - private encrypted list content is now covered by dedicated NIP-44-first helpers in
+    `src/nip51_lists.zig`; deprecated NIP-04 compatibility is deferred in `no-urr`
   - parity harness now covers all supported rust-backed public-list builders at `DEEP` depth
   - audit outcome: widened bookmark extraction to remove unnecessary incompatibility with broader
     rust producer output while keeping malformed supported-tag rejection and coordinate-kind checks
 - Wave 1 status: complete.
-- Active next execution focus: implemented-NIP audit.
+- Active next execution focus: post-Wave follow-up prioritization after `no-e7b`, `no-09f`, and
+  `no-7lv` closure.
 - Implemented-NIP audit status:
   - `NIP-01`, `NIP-02`, `NIP-09`, `NIP-10`, `NIP-11`, `NIP-13`, `NIP-18`, `NIP-19`, `NIP-21`,
     `NIP-22`, `NIP-25`, `NIP-27`, `NIP-40`, `NIP-42`, `NIP-44`, `NIP-51`, `NIP-59`, and `NIP-65`
@@ -171,6 +172,8 @@ the validated maintenance baseline.
     path-bound websocket origin strictness is retained
   - `NIP-51` widened bookmark extraction to accept bounded hashtag/URL items and now ignores
     unrelated unknown tags
+  - `NIP-51` now supports bounded private-list JSON serialization and NIP-44 private-item
+    extraction while rejecting deprecated legacy `?iv=` payloads pending `no-urr`
 - Wave 2 / `NIP-46` is complete in `no-czg`
   - bounded `src/nip46_remote_signing.zig` surface is implemented
   - current implemented scope:

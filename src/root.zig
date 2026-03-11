@@ -139,6 +139,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip27_references.ReferencesError) == type);
     try std.testing.expect(@TypeOf(nip25_reactions.ReactionError) == type);
     try std.testing.expect(@TypeOf(nip51_lists.ListError) == type);
+    try std.testing.expect(@TypeOf(nip51_lists.PrivateListError) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.Nip46Error) == type);
     try std.testing.expect(@TypeOf(nip06_mnemonic.Nip06Error) == type);
     try std.testing.expect(@TypeOf(nip44.Nip44Error) == type);
@@ -161,6 +162,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip51_lists.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nip51_lists.BookmarkBuilderItem) == type);
     try std.testing.expect(@TypeOf(nip51_lists.ListItem) == type);
+    try std.testing.expect(@TypeOf(nip51_lists.PrivateListInfo) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.ConnectRequest) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.PubkeyTextRequest) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.BuiltRequest) == type);
@@ -187,6 +189,29 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip46_remote_signing.ConnectionUri) == type);
     try std.testing.expect(@TypeOf(PowVerifiedIdError) == type);
     try std.testing.expect(@TypeOf(DeleteExtractCheckedError) == type);
+    try std.testing.expect(
+        @TypeOf(nip51_lists.list_private_serialize_json) ==
+            fn ([]u8, []const nip01_event.EventTag) nip51_lists.PrivateListError![]const u8,
+    );
+    try std.testing.expect(
+        @TypeOf(nip51_lists.list_private_extract_json) ==
+            fn (
+                u32,
+                []const u8,
+                []nip51_lists.ListItem,
+                std.mem.Allocator,
+            ) nip51_lists.PrivateListError!nip51_lists.PrivateListInfo,
+    );
+    try std.testing.expect(
+        @TypeOf(nip51_lists.list_private_extract_nip44) ==
+            fn (
+                []u8,
+                *const nip01_event.Event,
+                *const [32]u8,
+                []nip51_lists.ListItem,
+                std.mem.Allocator,
+            ) nip51_lists.PrivateListError!nip51_lists.PrivateListInfo,
+    );
     try std.testing.expect(
         @TypeOf(nip19_bech32.nip19_encode) ==
             fn ([]u8, nip19_bech32.Nip19Entity) nip19_bech32.Nip19Error![]const u8,

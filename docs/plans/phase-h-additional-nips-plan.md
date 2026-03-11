@@ -49,7 +49,7 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
 | 29 | defer | Relay-based groups introduce state/policy complexity that exceeds current maintenance-phase expansion scope. |
 | 39 | defer | External identity claims expand trust-policy surface and need explicit verification-policy decisions first. |
 | 46 | expansion-candidate | Nostr Connect is strategically important and can be modeled via explicit message/verification boundaries. |
-| 51 | wave-1-complete | Strict public-list extraction for the common rust-backed NIP-51 kinds is implemented with explicit set metadata handling, coordinate-kind validation, bounded broader bookmark/emoji emission helpers, and deferred private/extraction-widening follow-up in `no-e7b`. |
+| 51 | wave-1-complete | Strict public-list extraction for the common rust-backed NIP-51 kinds is implemented with explicit set metadata handling, coordinate-kind validation, bounded broader bookmark/emoji emission helpers, and bounded NIP-44 private-list helpers; deprecated NIP-04 private-list compatibility is deferred in `no-urr`. |
 
 ## Proposed Implementation Waves
 
@@ -93,8 +93,8 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
       - `emoji` items accept the optional NIP-30 emoji-set address and require it to be a
         `30030:pubkey:d` coordinate when present
       - builder helpers now emit the optional fourth-slot NIP-30 emoji-set coordinate when present
-      - encrypted private list content in `event.content` is intentionally ignored by this Wave 1
-        helper and tracked for follow-up in `no-e7b`
+      - public `list_extract` still only covers tag-carried items; private `event.content` support
+        now lives in dedicated NIP-44-first helpers instead of widening the public extractor
     - review outcome:
       - rust parity harness now covers all supported rust-backed public-list builders at `DEEP`
         depth
@@ -181,6 +181,7 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
   - Wave 1 is complete.
   - Wave 2 / `46` is complete.
   - Wave 3 / `06` is complete.
+  - Post-wave NIP-51 private-list follow-up `no-e7b` is complete.
 
 ## Wave 2 Status Snapshot
 
@@ -425,3 +426,19 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
 - `P04`: relay/group and connection semantics (`29`, `46`) remain explicit policy surfaces.
 - `P05`: deterministic parse/validation and typed-error forcing are required in wave exits.
 - `P06`: bounded memory/work and Layer 1 defaults remain unchanged across all classifications.
+## Post-Wave Follow-Up Snapshot
+
+- `51`
+  - `no-e7b` is complete.
+  - current implemented scope in `src/nip51_lists.zig` now includes:
+    - bounded private-list JSON plaintext serialization
+    - bounded private-item extraction from decrypted JSON arrays
+    - direct NIP-44 decrypt+extract for private list `event.content`
+  - accepted semantics:
+    - private-item parsing reuses the same strict supported-tag semantics as public extraction
+    - unrelated unknown private tags are ignored instead of poisoning the full private extract path
+    - malformed supported private tags still return typed failures
+    - empty `event.content` remains a valid zero-private-item case
+    - legacy `?iv=` private-list payloads are rejected as unsupported deprecated encoding
+  - deferred scope:
+    - deprecated NIP-04 compatibility adapter is tracked in `no-urr`

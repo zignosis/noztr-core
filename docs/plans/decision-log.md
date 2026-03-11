@@ -1007,6 +1007,25 @@ Immutable record of accepted planning decisions.
   passphrase support worth the additional code/data or dependency-policy cost.
 - Supersedes: none
 
+## D-056: Implement NIP-51 private lists with an NIP-44-first boundary
+
+- Date: 2026-03-11
+- Status: accepted
+- Decision: complete `no-e7b` by adding bounded NIP-51 private-list helpers for JSON plaintext
+  serialization, private-item extraction from decrypted JSON, and direct NIP-44 decrypt+extract
+  support in `src/nip51_lists.zig`. Treat deprecated NIP-04 ciphertext discovery as unsupported in
+  the current kernel and track any compatibility adapter work separately in `no-urr`.
+- Why: `noztr` already has an audited NIP-44 boundary in `src/nip44.zig`, while NIP-04 remains
+  deferred and intentionally absent from the current kernel. Supporting NIP-44 private list content
+  now materially improves NIP-51 completeness without reopening deprecated DM crypto scope or
+  broadening the issue into a second encryption subsystem.
+- Tradeoff: modern private-list interoperability for current NIP-51 producers versus rejecting
+  legacy `?iv=` payloads until a narrow compatibility adapter is explicitly accepted.
+- Related Tradeoff: T-H-ANIP-001, T-H-ANIP-003, T-0-001, T-0-003.
+- Reversal Trigger: concrete ecosystem evidence shows that NIP-04 private-list compatibility is
+  still common enough to justify a bounded adapter in the kernel.
+- Supersedes: none
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

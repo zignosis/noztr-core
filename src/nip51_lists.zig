@@ -1,6 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const nip44 = @import("nip44.zig");
 const relay_origin = @import("internal/relay_origin.zig");
 
 pub const ListError = error{
@@ -29,6 +30,14 @@ pub const ListError = error{
     InvalidUrl,
     InvalidEmojiTag,
     BufferTooSmall,
+};
+
+pub const PrivateListError = ListError || nip44.Nip44Error || error{
+    InvalidPrivateJson,
+    InvalidPrivateTagArray,
+    TooManyPrivateTags,
+    TooManyPrivateTagItems,
+    UnsupportedPrivateEncoding,
 };
 
 pub const ListKind = enum(u32) {
@@ -93,6 +102,12 @@ pub const ListInfo = struct {
     kind: ListKind,
     metadata: ListMetadata = .{},
     item_count: u16,
+};
+
+pub const PrivateListInfo = struct {
+    kind: ListKind,
+    item_count: u16,
+    plaintext_json: []const u8,
 };
 
 pub const BuiltTag = struct {
@@ -263,6 +278,75 @@ pub fn emoji_build_tag(
     return output.as_event_tag();
 }
 
+/// Serializes private NIP-51 item tags into the encrypted JSON-array plaintext form.
+pub fn list_private_serialize_json(
+    output: []u8,
+    tags: []const nip01_event.EventTag,
+) PrivateListError![]const u8 {
+    std.debug.assert(output.len <= std.math.maxInt(usize));
+    std.debug.assert(tags.len <= std.math.maxInt(usize));
+
+    if (tags.len > limits.tags_max) {
+        return error.TooManyPrivateTags;
+    }
+
+    var stream = std.io.fixedBufferStream(output);
+    const writer = stream.writer();
+    try write_private_byte(writer, '[');
+    for (tags, 0..) |tag, index| {
+        if (index != 0) {
+            try write_private_byte(writer, ',');
+        }
+        try write_private_tag_json(writer, tag);
+    }
+    try write_private_byte(writer, ']');
+    return stream.getWritten();
+}
+
+/// Parses private NIP-51 item JSON into strict list items.
+pub fn list_private_extract_json(
+    event_kind: u32,
+    input_json: []const u8,
+    out: []ListItem,
+    scratch: std.mem.Allocator,
+) PrivateListError!PrivateListInfo {
+    std.debug.assert(event_kind <= limits.kind_max);
+    std.debug.assert(out.len <= std.math.maxInt(u16));
+
+    const kind = list_kind_classify(event_kind) orelse return error.UnsupportedListKind;
+    return list_private_extract_json_kind(kind, input_json, out, scratch);
+}
+
+/// Decrypts strict NIP-44 private list content and parses the contained item JSON.
+pub fn list_private_extract_nip44(
+    plaintext_output: []u8,
+    event: *const nip01_event.Event,
+    author_private_key: *const [32]u8,
+    out: []ListItem,
+    scratch: std.mem.Allocator,
+) PrivateListError!PrivateListInfo {
+    std.debug.assert(@intFromPtr(event) != 0);
+    std.debug.assert(@intFromPtr(author_private_key) != 0);
+
+    const kind = list_kind_classify(event.kind) orelse return error.UnsupportedListKind;
+    if (event.content.len == 0) {
+        return .{ .kind = kind, .item_count = 0, .plaintext_json = "" };
+    }
+    if (private_content_is_nip04_legacy(event.content)) {
+        return error.UnsupportedPrivateEncoding;
+    }
+
+    var conversation_key = try nip44.nip44_get_conversation_key(author_private_key, &event.pubkey);
+    defer std.crypto.secureZero(u8, conversation_key[0..]);
+
+    const plaintext = try nip44.nip44_decrypt_from_base64(
+        plaintext_output,
+        &conversation_key,
+        event.content,
+    );
+    return list_private_extract_json_kind(kind, plaintext, out, scratch);
+}
+
 fn apply_metadata_tag(
     kind: ListKind,
     tag: nip01_event.EventTag,
@@ -296,6 +380,185 @@ fn apply_metadata_tag(
         return true;
     }
     return false;
+}
+
+fn list_private_extract_json_kind(
+    kind: ListKind,
+    input_json: []const u8,
+    out: []ListItem,
+    scratch: std.mem.Allocator,
+) PrivateListError!PrivateListInfo {
+    std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
+    std.debug.assert(out.len <= std.math.maxInt(u16));
+
+    const root = try parse_private_json_root(input_json, scratch);
+    var info = PrivateListInfo{ .kind = kind, .item_count = 0, .plaintext_json = input_json };
+    for (root.array.items) |tag_value| {
+        const item = parse_private_json_tag(kind, tag_value) catch |err| switch (err) {
+            error.UnexpectedTag => continue,
+            else => return err,
+        };
+        if (info.item_count == out.len) {
+            return error.BufferTooSmall;
+        }
+        out[info.item_count] = item;
+        info.item_count += 1;
+    }
+    return info;
+}
+
+fn parse_private_json_root(
+    input_json: []const u8,
+    parse_allocator: std.mem.Allocator,
+) PrivateListError!std.json.Value {
+    std.debug.assert(input_json.len <= std.math.maxInt(usize));
+    std.debug.assert(@intFromPtr(parse_allocator.ptr) != 0);
+
+    if (input_json.len == 0 or input_json.len > limits.content_bytes_max) {
+        return error.InvalidPrivateJson;
+    }
+    if (!std.unicode.utf8ValidateSlice(input_json)) {
+        return error.InvalidPrivateJson;
+    }
+
+    const root = std.json.parseFromSliceLeaky(
+        std.json.Value,
+        parse_allocator,
+        input_json,
+        .{},
+    ) catch {
+        return error.InvalidPrivateJson;
+    };
+    if (root != .array) {
+        return error.InvalidPrivateJson;
+    }
+    if (root.array.items.len > limits.tags_max) {
+        return error.TooManyPrivateTags;
+    }
+    return root;
+}
+
+fn parse_private_json_tag(kind: ListKind, value: std.json.Value) PrivateListError!ListItem {
+    std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
+    std.debug.assert(@sizeOf(std.json.Value) > 0);
+
+    if (value != .array) {
+        return error.InvalidPrivateTagArray;
+    }
+    if (value.array.items.len == 0) {
+        return error.InvalidPrivateTagArray;
+    }
+    if (value.array.items.len > limits.tag_items_max) {
+        return error.TooManyPrivateTagItems;
+    }
+
+    var items: [limits.tag_items_max][]const u8 = undefined;
+    for (value.array.items, 0..) |item, index| {
+        if (item != .string) {
+            return error.InvalidPrivateTagArray;
+        }
+        try validate_private_tag_item(item.string);
+        items[index] = item.string;
+    }
+
+    return parse_item_tag(kind, .{ .items = items[0..value.array.items.len] });
+}
+
+fn validate_private_tag_item(item: []const u8) PrivateListError!void {
+    std.debug.assert(item.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max > 0);
+
+    if (item.len > limits.tag_item_bytes_max) {
+        return error.InvalidPrivateTagArray;
+    }
+    if (!std.unicode.utf8ValidateSlice(item)) {
+        return error.InvalidPrivateTagArray;
+    }
+}
+
+fn write_private_tag_json(writer: anytype, tag: nip01_event.EventTag) PrivateListError!void {
+    std.debug.assert(tag.items.len <= std.math.maxInt(usize));
+    std.debug.assert(@TypeOf(writer) != void);
+
+    if (tag.items.len > limits.tag_items_max) {
+        return error.TooManyPrivateTagItems;
+    }
+
+    try write_private_byte(writer, '[');
+    for (tag.items, 0..) |item, index| {
+        if (index != 0) {
+            try write_private_byte(writer, ',');
+        }
+        try validate_private_tag_item(item);
+        try write_private_string_json(writer, item);
+    }
+    try write_private_byte(writer, ']');
+}
+
+fn write_private_string_json(writer: anytype, value: []const u8) PrivateListError!void {
+    std.debug.assert(value.len <= std.math.maxInt(usize));
+    std.debug.assert(@TypeOf(writer) != void);
+
+    try write_private_byte(writer, '"');
+    for (value) |byte| {
+        if (byte == '"' or byte == '\\') {
+            try write_private_escape(writer, byte);
+            continue;
+        }
+        if (byte == '\n') {
+            try write_private_escape(writer, 'n');
+            continue;
+        }
+        if (byte == '\r') {
+            try write_private_escape(writer, 'r');
+            continue;
+        }
+        if (byte == '\t') {
+            try write_private_escape(writer, 't');
+            continue;
+        }
+        if (byte < 0x20) {
+            try write_private_control_escape(writer, byte);
+            continue;
+        }
+        try write_private_byte(writer, byte);
+    }
+    try write_private_byte(writer, '"');
+}
+
+fn write_private_escape(writer: anytype, escape_byte: u8) PrivateListError!void {
+    std.debug.assert(@TypeOf(writer) != void);
+    std.debug.assert(escape_byte > 0);
+
+    try write_private_byte(writer, '\\');
+    try write_private_byte(writer, escape_byte);
+}
+
+fn write_private_control_escape(writer: anytype, byte: u8) PrivateListError!void {
+    const hex = "0123456789abcdef";
+    std.debug.assert(@TypeOf(writer) != void);
+    std.debug.assert(byte < 0x20);
+
+    try write_private_byte(writer, '\\');
+    try write_private_byte(writer, 'u');
+    try write_private_byte(writer, '0');
+    try write_private_byte(writer, '0');
+    try write_private_byte(writer, hex[byte >> 4]);
+    try write_private_byte(writer, hex[byte & 0x0f]);
+}
+
+fn write_private_byte(writer: anytype, byte: u8) PrivateListError!void {
+    std.debug.assert(@TypeOf(writer) != void);
+    std.debug.assert(byte <= 255);
+
+    writer.writeByte(byte) catch return error.BufferTooSmall;
+}
+
+fn private_content_is_nip04_legacy(content: []const u8) bool {
+    std.debug.assert(content.len <= std.math.maxInt(usize));
+    std.debug.assert(@sizeOf(u8) == 1);
+
+    return std.mem.indexOf(u8, content, "?iv=") != null;
 }
 
 fn apply_identifier_tag(tag: nip01_event.EventTag, metadata: *ListMetadata) ListError!void {
@@ -883,6 +1146,30 @@ fn list_event(
         .content = content,
         .tags = tags,
     };
+}
+
+fn list_event_with_pubkey(
+    kind: u32,
+    pubkey: [32]u8,
+    content: []const u8,
+    tags: []const nip01_event.EventTag,
+) nip01_event.Event {
+    std.debug.assert(kind <= limits.kind_max);
+    std.debug.assert(content.len <= limits.content_bytes_max);
+
+    var event = list_event(kind, content, tags);
+    event.pubkey = pubkey;
+    return event;
+}
+
+fn parse_hex_32_test(hex: []const u8) ![32]u8 {
+    std.debug.assert(hex.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.id_hex_length == 64);
+
+    var output: [32]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, 64), hex.len);
+    _ = try std.fmt.hexToBytes(&output, hex);
+    return output;
 }
 
 fn expect_single_tag_error(
@@ -1521,4 +1808,149 @@ test "list extract returns buffer too small for public items" {
     var items: [1]ListItem = undefined;
 
     try std.testing.expectError(error.BufferTooSmall, list_extract(&event, items[0..]));
+}
+
+test "private list serializer emits escaped bounded json" {
+    const tag_items = [_][]const u8{ "x", "line\nbreak", "\"quote\"" };
+    const tags = [_]nip01_event.EventTag{.{ .items = tag_items[0..] }};
+    var output: [128]u8 = undefined;
+
+    const json = try list_private_serialize_json(output[0..], tags[0..]);
+
+    try std.testing.expectEqualStrings(
+        "[[\"x\",\"line\\nbreak\",\"\\\"quote\\\"\"]]",
+        json,
+    );
+    try std.testing.expect(json[0] == '[');
+    try std.testing.expect(json[json.len - 1] == ']');
+}
+
+test "private list json extract parses supported items and ignores unknown tags" {
+    const json =
+        "[[\"p\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"]," ++
+        "[\"title\",\"ignored\"],[\"word\",\"spam phrase\"]]";
+    var items: [2]ListItem = undefined;
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const parsed = try list_private_extract_json(
+        10000,
+        json,
+        items[0..],
+        arena.allocator(),
+    );
+
+    try std.testing.expectEqual(ListKind.mute_list, parsed.kind);
+    try std.testing.expectEqual(@as(u16, 2), parsed.item_count);
+    try std.testing.expect(items[0] == .pubkey);
+    try std.testing.expect(items[1] == .word);
+    try std.testing.expectEqualStrings(json, parsed.plaintext_json);
+    try std.testing.expectEqualStrings("spam phrase", items[1].word);
+}
+
+test "private list nip44 extract roundtrips mute list content" {
+    const private_key = try parse_hex_32_test(
+        "0000000000000000000000000000000000000000000000000000000000000001",
+    );
+    const pubkey = try parse_hex_32_test(
+        "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+    );
+    const p_tag = [_][]const u8{
+        "p",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    };
+    const word_tag = [_][]const u8{ "word", "spam phrase" };
+    const tags = [_]nip01_event.EventTag{
+        .{ .items = p_tag[0..] },
+        .{ .items = word_tag[0..] },
+    };
+    var plaintext_json: [256]u8 = undefined;
+    const json = try list_private_serialize_json(plaintext_json[0..], tags[0..]);
+
+    var nonce = [_]u8{0} ** limits.nip44_nonce_bytes;
+    nonce[limits.nip44_nonce_bytes - 1] = 1;
+    var payload_output: [limits.nip44_payload_base64_max_bytes]u8 = undefined;
+    var conversation_key = try nip44.nip44_get_conversation_key(&private_key, &pubkey);
+    defer std.crypto.secureZero(u8, conversation_key[0..]);
+    const payload = try nip44.nip44_encrypt_with_nonce_to_base64(
+        payload_output[0..],
+        &conversation_key,
+        json,
+        &nonce,
+    );
+
+    const event = list_event_with_pubkey(10000, pubkey, payload, &.{});
+    var decrypted_plaintext: [limits.nip44_plaintext_max_bytes]u8 = undefined;
+    var items: [2]ListItem = undefined;
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const parsed = try list_private_extract_nip44(
+        decrypted_plaintext[0..],
+        &event,
+        &private_key,
+        items[0..],
+        arena.allocator(),
+    );
+
+    try std.testing.expectEqual(ListKind.mute_list, parsed.kind);
+    try std.testing.expectEqual(@as(u16, 2), parsed.item_count);
+    try std.testing.expect(items[0] == .pubkey);
+    try std.testing.expect(items[1] == .word);
+    try std.testing.expectEqualStrings(json, parsed.plaintext_json);
+    try std.testing.expectEqualStrings("spam phrase", items[1].word);
+}
+
+test "private list nip44 extract treats empty content as empty private set" {
+    const event = list_event(30003, "", &.{});
+    var plaintext: [1]u8 = undefined;
+    var items: [1]ListItem = undefined;
+    const private_key = [_]u8{1} ** 32;
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const parsed = try list_private_extract_nip44(
+        plaintext[0..],
+        &event,
+        &private_key,
+        items[0..],
+        arena.allocator(),
+    );
+
+    try std.testing.expectEqual(ListKind.bookmark_set, parsed.kind);
+    try std.testing.expectEqual(@as(u16, 0), parsed.item_count);
+    try std.testing.expectEqualStrings("", parsed.plaintext_json);
+}
+
+test "private list extract rejects legacy nip04 marker malformed json and bad tags" {
+    const legacy = list_event(10000, "payload?iv=legacy", &.{});
+    var plaintext: [limits.nip44_plaintext_max_bytes]u8 = undefined;
+    var items: [1]ListItem = undefined;
+    const private_key = [_]u8{1} ** 32;
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    try std.testing.expectError(
+        error.UnsupportedPrivateEncoding,
+        list_private_extract_nip44(
+            plaintext[0..],
+            &legacy,
+            &private_key,
+            items[0..],
+            arena.allocator(),
+        ),
+    );
+    try std.testing.expectError(
+        error.InvalidPrivateJson,
+        list_private_extract_json(10000, "{", items[0..], arena.allocator()),
+    );
+    try std.testing.expectError(
+        error.InvalidRelayUrl,
+        list_private_extract_json(
+            10006,
+            "[[\"relay\",\"https://relay.example\"]]",
+            items[0..],
+            arena.allocator(),
+        ),
+    );
 }
