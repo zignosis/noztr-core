@@ -50,9 +50,10 @@ Current project context for the Phase H kickoff baseline.
   - `NIP-42` audit is complete in `src/nip42_auth.zig`: the auth challenge bound is widened from
     `64` to `255`, while path-bound websocket origin matching, duplicate required-tag rejection,
     and unbracketed IPv6 rejection remain accepted trust-boundary behavior
-  - `NIP-27` is complete in `src/nip27_references.zig` with strict `nostr:` URI extraction,
-    stable byte spans, decoded NIP-21 entities, and accepted malformed-fragment fallback that
-    matches rust parser tokenization behavior
+  - `NIP-27` audit is complete in `src/nip27_references.zig`: strict `nostr:` URI extraction keeps
+    stable byte spans and decoded profile/event/address entities, no longer treats `nrelay` as an
+    inline content reference, and keeps malformed-fragment fallback that matches rust and
+    `nostr-tools` tokenization behavior
   - `NIP-51` is complete in `src/nip51_lists.zig` with strict public-list extraction for the
     supported Wave 1 kinds, required `d` metadata handling for set kinds, coordinate-kind
     validation where NIP-51 specifies it, accepted broader bookmark extraction for bounded hashtag
@@ -76,21 +77,28 @@ Current project context for the Phase H kickoff baseline.
 
 - Active lane: rust only (`tools/interop/rust-nostr-parity-all`).
 - Current rust status: `22/22 HARNESS_COVERED`, `DEEP`, `PASS`.
+- Current TS audit status: `20/20 HARNESS_COVERED`, mixed `BASELINE/EDGE/DEEP`, `PASS`
+  (`tools/interop/ts-nostr-parity-all`; non-gating audit evidence lane).
 - Baseline cadence run (2026-03-09): rust parity harness passed
   (`SUMMARY pass=16 fail=0 harness_covered=16 total=16`).
 - Latest cadence run (2026-03-10): rust parity harness passed
   (`SUMMARY pass=22 fail=0 harness_covered=22 total=22`).
-- Latest cadence run (2026-03-10): `zig build test --summary all` passed
-  (`Build Summary: 8/8 steps succeeded; 576/576 tests passed`).
-- Latest cadence run (2026-03-10): `zig build` passed.
+- Latest cadence run (2026-03-11): rust parity harness passed
+  (`SUMMARY pass=22 fail=0 harness_covered=22 total=22`).
+- Latest cadence run (2026-03-11): TS audit harness passed
+  (`SUMMARY pass=20 fail=0 harness_covered=20 total=20`).
+- Latest cadence run (2026-03-11): `zig build test --summary all` passed
+  (`Build Summary: 8/8 steps succeeded; 584/584 tests passed`).
+- Latest cadence run (2026-03-11): `zig build` passed.
 - Active cadence commands:
   - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
   - `zig build test --summary all && zig build`
 
-## Archived Historical Evidence
+## Secondary Audit Evidence
 
-- TypeScript parity lane (`tools/interop/ts-nostr-parity-all`) is archived historical evidence only.
-- TS history remains preserved in:
+- TypeScript parity lane (`tools/interop/ts-nostr-parity-all`) is not an active gate lane, but it
+  remains a re-runnable secondary audit evidence lane.
+- Historical TS parity context remains preserved in:
   - `docs/plans/phase-f-parity-matrix.md`
   - `docs/plans/phase-f-parity-ledger.md`
   - `docs/plans/phase-f-risk-burndown.md`
@@ -120,11 +128,11 @@ Current project context for the Phase H kickoff baseline.
 3. Continue Phase H expansion sequencing from `docs/plans/phase-h-additional-nips-plan.md`.
    Wave 1 is complete: `25`, `10`, `18`, `22`, `27`, `51`.
 4. Run the implemented-NIP audit serially using the canonical review criteria and execution policy
-   in `docs/plans/build-plan.md`, with `rust-nostr` as the active parity lane and archived
-   `nostr-tools` as a secondary non-gating ecosystem signal. Every implemented NIP must be
-   cross-checked against both references during the audit.
-5. Continue from the completed NIP-10, NIP-18, NIP-22, NIP-25, NIP-42, and NIP-51 audits to the next implemented
-   NIP audit item.
+   in `docs/plans/build-plan.md`, with `rust-nostr` as the active parity lane and `nostr-tools` as
+   a secondary non-gating ecosystem signal. Every implemented NIP must be cross-checked against
+   both references during the audit.
+5. Continue from the completed NIP-10, NIP-18, NIP-22, NIP-25, NIP-27, NIP-42, and NIP-51 audits
+   to the next implemented NIP audit item.
 6. Start Wave 2 / `NIP-46` only after the implemented-NIP audit reaches an acceptable stopping
    point or explicitly recorded partial cutoff.
 7. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.

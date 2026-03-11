@@ -765,6 +765,25 @@ Immutable record of accepted planning decisions.
   tolerated for interoperability without weakening deterministic repost semantics.
 - Supersedes: none
 
+## D-043: Narrow NIP-27 inline extraction to event/profile/address references
+
+- Date: 2026-03-11
+- Status: accepted
+- Decision: narrow `nip27_references` so strict inline extraction recognizes only the event,
+  profile, and address entities actually treated as content references in the current NIP-27
+  examples and the pinned Rust/TypeScript reference lanes. `nostr:nrelay...` is no longer emitted
+  as a NIP-27 content reference, while malformed, uppercase, forbidden, and payload-empty fragments
+  continue to fall back to plain text rather than failing the whole scan.
+- Why: extracting `nrelay` created compatibility drift without improving trust-boundary safety, but
+  the existing ignore-as-plain-text fallback already matches the deployed reference behavior for
+  malformed or forbidden fragments.
+- Tradeoff: slightly narrower inline extraction surface versus better ecosystem alignment and a
+  clearer Layer 1 contract for text-reference parsing.
+- Related Tradeoff: T-0-001, T-0-002, T-0-003.
+- Reversal Trigger: future NIP text or strong ecosystem evidence establishes relay pointers as
+  common and interoperable inline content references rather than separate URI/use-case surfaces.
+- Supersedes: none
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

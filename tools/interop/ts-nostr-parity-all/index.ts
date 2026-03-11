@@ -11,13 +11,14 @@ import {
 } from "nostr-tools/pure";
 import * as nostr_tools from "nostr-tools";
 import { getPow } from "nostr-tools/nip13";
-import { decode, noteEncode, npubEncode } from "nostr-tools/nip19";
+import { decode, noteEncode, nsecEncode, npubEncode } from "nostr-tools/nip19";
 import * as nip25 from "nostr-tools/nip25";
 import * as nip30 from "nostr-tools/nip30";
 import { makeAuthEvent } from "nostr-tools/nip42";
 import { decrypt, encrypt } from "nostr-tools/nip44";
 import * as nip10 from "nostr-tools/nip10";
 import { parse as parseNostrUri } from "nostr-tools/nip21";
+import * as nip27 from "nostr-tools/nip27";
 import * as kinds from "nostr-tools/kinds";
 import { Relay, useWebSocketImplementation } from "nostr-tools/relay";
 
@@ -768,6 +769,58 @@ function check_nip25(): void {
     ensure(widened_shortcode.length === 0, "NIP-25 widened shortcode unexpectedly matched");
 }
 
+function check_nip27(): void {
+    const secret_key = to_bytes_32(FIXED_SECRET_KEY_HEX);
+    const target_private = to_bytes_32(
+        "7b911fd37cdf5c81d4c0adb1ab7fa822ed253ab0ad9aa18d77257c88b29b718e",
+    );
+    const pubkey = getPublicKey(secret_key);
+    const npub_uri = npubEncode(pubkey);
+    const note = finalizeEvent(
+        { kind: 1, created_at: 1_708_000_136, tags: [], content: "nip27 target" },
+        target_private,
+    );
+    const note_uri = noteEncode(note.id);
+    const content = `Look at [nostr:${npub_uri}] and nostr:${note_uri}. ` +
+        "Broken nostr:npub1broken Uppercase nostr:npub1DRVpZev3";
+
+    const references = Array.from(nip27.parse(content)).filter(
+        block => block.type === "reference",
+    );
+    ensure(references.length === 2, `NIP-27 reference count mismatch: ${references.length}`);
+    ensure(
+        references[0].type === "reference" && "pubkey" in references[0].pointer,
+        "NIP-27 first reference kind mismatch",
+    );
+    ensure(
+        references[0].type === "reference" &&
+            "pubkey" in references[0].pointer &&
+            references[0].pointer.pubkey === pubkey,
+        "NIP-27 first reference pubkey mismatch",
+    );
+    ensure(
+        references[1].type === "reference" && "id" in references[1].pointer,
+        "NIP-27 second reference kind mismatch",
+    );
+    ensure(
+        references[1].type === "reference" &&
+            "id" in references[1].pointer &&
+            references[1].pointer.id === note.id,
+        "NIP-27 second reference id mismatch",
+    );
+
+    const duplicate_count = Array.from(nip27.parse(`nostr:${npub_uri}, nostr:${npub_uri}`)).filter(
+        block => block.type === "reference",
+    ).length;
+    ensure(duplicate_count === 2, "NIP-27 duplicate references were not preserved");
+
+    const nsec_uri = `nostr:${nsecEncode(secret_key)}`;
+    const forbidden_count = Array.from(nip27.parse(`nostr:nsec1broken ${nsec_uri}`)).filter(
+        block => block.type === "reference",
+    ).length;
+    ensure(forbidden_count === 0, "NIP-27 forbidden fragments produced references");
+}
+
 function check_nip77(): void {
     const local = new nostr_tools.nip77.NegentropyStorageVector();
     const remote = new nostr_tools.nip77.NegentropyStorageVector();
@@ -822,6 +875,7 @@ async function main(): Promise<void> {
     await push_harness_covered(results, "NIP-18", "EDGE", check_nip18);
     await push_harness_covered(results, "NIP-19", "EDGE", check_nip19);
     await push_harness_covered(results, "NIP-25", "EDGE", check_nip25);
+    await push_harness_covered(results, "NIP-27", "EDGE", check_nip27);
     await push_harness_covered(results, "NIP-21", "EDGE", check_nip21);
     await push_harness_covered(results, "NIP-42", "EDGE", check_nip42);
     await push_harness_covered(results, "NIP-44", "DEEP", check_nip44);

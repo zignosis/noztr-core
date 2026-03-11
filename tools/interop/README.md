@@ -103,7 +103,7 @@ bun --cwd tools/interop/ts-nostr-parity-all run run
 - Status: non-gating audit evidence lane only (not part of active pass/fail cadence).
 - Scope: runtime overlap checks for implemented `noztr` NIPs against `nostr-tools`.
 - Current runtime coverage: `HARNESS_COVERED` for
-  `NIP-01/02/09/10/11/13/19/21/40/42/44/45/50/59/65/70/77`.
+  `NIP-01/02/09/10/11/13/18/19/21/25/27/40/42/44/45/50/59/65/70/77`.
 - Additional implemented NIPs are cross-checked during the audit with explicit source review when
   `nostr-tools` does not expose a dedicated runtime helper.
 - NIP-40 implementation-path dependency:

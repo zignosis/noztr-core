@@ -80,11 +80,16 @@ the validated maintenance baseline.
     ecosystem breakage
 - `NIP-27` is complete in the current Wave 1 loop:
   - strict inline `nostr:` reference extraction implemented in `src/nip27_references.zig`
-  - extracted references preserve stable byte spans and decoded NIP-21 entities
+  - extracted references preserve stable byte spans and decoded profile/event/address NIP-21
+    entities
   - malformed, uppercase, forbidden, or payload-empty `nostr:` fragments are ignored as plain text
     rather than failing the whole content scan
+  - audit outcome: narrowed inline extraction by dropping `nrelay` as a content reference after
+    rust and `nostr-tools` review; malformed-fragment fallback remains unchanged because both
+    reference lanes treat those fragments as plain text
   - parity harness covers bracketed references, punctuation boundaries, duplicates, and malformed
-    fragment fallback against rust-nostr parser behavior
+    fragment fallback against rust-nostr parser behavior, and `nostr-tools` runtime coverage now
+    checks the same baseline cases
 - `NIP-51` is complete in the current Wave 1 loop:
   - strict public-list helpers and bounded bookmark/emoji tag builders implemented in
     `src/nip51_lists.zig`
@@ -107,12 +112,14 @@ the validated maintenance baseline.
 - Wave 1 status: complete.
 - Active next execution focus: implemented-NIP audit.
 - Implemented-NIP audit status:
-  - `NIP-10`, `NIP-18`, `NIP-22`, `NIP-25`, `NIP-42`, and `NIP-51` audits are complete
+  - `NIP-10`, `NIP-18`, `NIP-22`, `NIP-25`, `NIP-27`, `NIP-42`, and `NIP-51` audits are complete
   - `NIP-18` now rejects contradictory optional repost target metadata without embedded-event proof;
     existing embedded-event consistency checks remain intact
   - `NIP-25` now accepts the optional NIP-30 emoji-set coordinate on reaction `emoji` tags; strict
     shortcode and URL validation remain intact, and contradictory optional target metadata now
     rejects the parse path
+  - `NIP-27` no longer extracts `nostr:nrelay...` as an inline content reference; malformed,
+    uppercase, forbidden, and payload-empty fragments still fall back to plain text
   - `NIP-42` widened the auth challenge bound from `64` to `255` after reference review; remaining
     path-bound websocket origin strictness is retained
   - `NIP-51` widened bookmark extraction to accept bounded hashtag/URL items and now ignores

@@ -91,11 +91,9 @@ fn detect_prefix_len(text: []const u8) ?usize {
     std.debug.assert(limits.nip21_scheme_prefix_bytes == 6);
 
     if (std.mem.startsWith(u8, text, "nprofile")) return "nprofile".len;
-    if (std.mem.startsWith(u8, text, "nrelay")) return "nrelay".len;
     if (std.mem.startsWith(u8, text, "nevent")) return "nevent".len;
     if (std.mem.startsWith(u8, text, "naddr")) return "naddr".len;
     if (std.mem.startsWith(u8, text, "npub")) return "npub".len;
-    if (std.mem.startsWith(u8, text, "nsec")) return "nsec".len;
     if (std.mem.startsWith(u8, text, "note")) return "note".len;
     return null;
 }
@@ -224,6 +222,32 @@ test "reference_extract ignores malformed uppercase forbidden and broken uris" {
         "{s} {s} {s} {s} {s} {s}+.] {s}",
         .{ broken, uppercase, forbidden, wrong_scheme, no_payload, valid_uri, bare_identifier },
     );
+
+    const count = try reference_extract(content, references[0..], tlv_scratch[0..]);
+
+    try std.testing.expectEqual(@as(u16, 1), count);
+    try std.testing.expectEqualStrings(valid_uri, references[0].uri);
+}
+
+test "reference_extract ignores nrelay content pointers" {
+    var bech32_output: [limits.nip19_bech32_identifier_bytes_max]u8 = undefined;
+    var uri_output: [limits.nip21_uri_bytes_max]u8 = undefined;
+    var tlv_scratch: [limits.nip19_tlv_scratch_bytes_max]u8 = undefined;
+    var references: [1]ContentReference = undefined;
+
+    const npub_identifier = try @import("nip19_bech32.zig").nip19_encode(
+        bech32_output[0..],
+        .{ .npub = [_]u8{0x55} ** 32 },
+    );
+    const valid_uri = try to_nostr_uri(uri_output[0..], npub_identifier);
+    const nrelay_identifier = try @import("nip19_bech32.zig").nip19_encode(
+        bech32_output[0..],
+        .{ .nrelay = .{ .relay = "wss://relay.only" } },
+    );
+    var relay_uri_output: [limits.nip21_uri_bytes_max]u8 = undefined;
+    const relay_uri = try to_nostr_uri(relay_uri_output[0..], nrelay_identifier);
+    var text_buffer: [2 * limits.nip21_uri_bytes_max + 16]u8 = undefined;
+    const content = try std.fmt.bufPrint(text_buffer[0..], "{s} {s}", .{ relay_uri, valid_uri });
 
     const count = try reference_extract(content, references[0..], tlv_scratch[0..]);
 
