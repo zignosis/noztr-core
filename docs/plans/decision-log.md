@@ -929,6 +929,25 @@ Immutable record of accepted planning decisions.
   unknown COUNT metadata keys, or strong ecosystem evidence shows this tolerance causes ambiguity.
 - Supersedes: none
 
+## D-052: Relax NIP-77 NEG-ERR delimiter and allow bounded session reopen
+
+- Date: 2026-03-11
+- Status: accepted
+- Decision: widen `nip77_negentropy` so `NEG-ERR` reasons accept the NIP-required `:` delimiter
+  with optional following spaces, and `negentropy_state_apply` allows a new `NEG-OPEN` to reset a
+  reused state object instead of requiring the state to remain idle forever after the first open.
+- Why: NIP-77 says error reasons use a single-word prefix followed by `:` and then a human-readable
+  message; it does not require `\": \"` specifically. The protocol also explicitly allows a new
+  `NEG-OPEN` on an existing subscription flow by first closing the previous one. The prior `noztr`
+  behavior added unnecessary compatibility friction without improving safety or boundedness.
+- Tradeoff: slightly broader accepted NEG-ERR formatting and reopen sequencing versus better
+  protocol compatibility and simpler reuse of the bounded state object.
+- Related Tradeoff: T-0-001, T-0-002, T-0-003.
+- Reversal Trigger: future NIP guidance requires `\": \"` specifically or forbids bounded state
+  reuse for subsequent `NEG-OPEN` messages, or strong ecosystem evidence shows this tolerance is
+  harmful.
+- Supersedes: none
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

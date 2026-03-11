@@ -1658,6 +1658,11 @@ fn check_nip77() -> Result<(), String> {
     if !matches!(relay_neg_err, RelayMessage::NegErr { .. }) {
         return Err("relay NEG-ERR parse did not return NegErr variant".to_string());
     }
+    let relay_neg_err_no_space = RelayMessage::from_json(r#"["NEG-ERR","sub-b","blocked:retry"]"#)
+        .map_err(|e| format!("relay NEG-ERR no-space parse failed unexpectedly: {e}"))?;
+    if !matches!(relay_neg_err_no_space, RelayMessage::NegErr { .. }) {
+        return Err("relay NEG-ERR no-space parse did not return NegErr variant".to_string());
+    }
 
     let msg_serialized = ClientMessage::NegMsg {
         subscription_id: Cow::Owned(SubscriptionId::new("sub-b")),

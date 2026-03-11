@@ -188,9 +188,6 @@ pub fn negentropy_state_apply(
 
     switch (message.*) {
         .open => |open_message| {
-            if (state.stage != .idle) {
-                return error.InvalidNegOpen;
-            }
             try state_set_subscription(state, open_message.subscription_id);
             state.stage = .open;
         },
@@ -407,15 +404,18 @@ fn reason_has_prefix_message(reason: []const u8) bool {
     std.debug.assert(limits.subscription_id_bytes_max > 0);
     std.debug.assert(reason.len <= limits.relay_message_bytes_max);
 
-    if (reason.len < 4) {
+    if (reason.len < 3) {
         return false;
     }
 
-    const delimiter = std.mem.indexOf(u8, reason, ": ") orelse return false;
+    const delimiter = std.mem.indexOfScalar(u8, reason, ':') orelse return false;
     if (delimiter == 0) {
         return false;
     }
-    const suffix_start = delimiter + 2;
+    var suffix_start = delimiter + 1;
+    while (suffix_start < reason.len and reason[suffix_start] == ' ') {
+        suffix_start += 1;
+    }
     if (suffix_start >= reason.len) {
         return false;
     }
@@ -557,6 +557,11 @@ test "negentropy parse valid strict neg err vector" {
     const err_message = try negentropy_err_parse(err_input, allocator);
     try std.testing.expectEqualStrings("sub-1", err_message.subscription_id);
     try std.testing.expectEqualStrings("blocked: query too big", err_message.reason);
+
+    const err_no_space_input = "[\"NEG-ERR\",\"sub-2\",\"blocked:query too big\"]";
+    const err_no_space_message = try negentropy_err_parse(err_no_space_input, allocator);
+    try std.testing.expectEqualStrings("sub-2", err_no_space_message.subscription_id);
+    try std.testing.expectEqualStrings("blocked:query too big", err_no_space_message.reason);
 }
 
 test "negentropy parse invalid vectors" {
@@ -667,10 +672,9 @@ test "negentropy state vectors include transition and overflow failures" {
         .payload_hex = "6100",
     } };
     try negentropy_state_apply(&idle_state, &open_union);
-    try std.testing.expectError(
-        error.InvalidNegOpen,
-        negentropy_state_apply(&idle_state, &open_union),
-    );
+    try negentropy_state_apply(&idle_state, &open_union);
+    try std.testing.expect(idle_state.stage == .open);
+    try std.testing.expectEqual(@as(u16, 2), idle_state.steps);
 
     var error_state = NegentropyState{};
     try negentropy_state_apply(&error_state, &open_union);

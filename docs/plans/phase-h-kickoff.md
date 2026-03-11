@@ -156,6 +156,10 @@ the validated maintenance baseline.
     and both reference lanes instead of rejecting whole queries for malformed extension syntax
   - `NIP-45` now accepts uppercase HLL hex and ignores unknown COUNT metadata keys, matching the
     protocol's forward-compatible shape better than the old strict relay-response parser
+  - `NIP-77` now accepts `NEG-ERR` reasons with `:` and optional spaces and allows bounded
+    negentropy session reopen on a reused state object, matching the NIP text more closely than the
+    old stricter state/reason rules
+  - Implemented-NIP audit status: complete
   - `NIP-18` now rejects contradictory optional repost target metadata without embedded-event proof;
     existing embedded-event consistency checks remain intact
   - `NIP-25` now accepts the optional NIP-30 emoji-set coordinate on reaction `emoji` tags; strict
@@ -174,7 +178,8 @@ the validated maintenance baseline.
 - Maintain rust-active parity cadence and aggregate Zig quality gates on dependency/toolchain changes.
 - Keep Wave 1 closure evidence current and retain the serial loop doc as the canonical execution
   model.
-- Run the implemented-NIP audit before beginning Wave 2 execution.
+- Keep the implemented-NIP audit report current if future code changes reopen compatibility
+  questions.
 - `no-4iw` is resolved by the NIP-10 audit and no longer blocks interpretation of NIP-10 quality.
 - Keep TypeScript parity references non-gating and use them only as secondary ecosystem audit
   evidence.

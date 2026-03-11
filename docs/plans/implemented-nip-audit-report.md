@@ -54,7 +54,7 @@ completes.
 | 59 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | No Layer 1 change required; current staged wrap->seal->rumor validation remains justified and compatible | none | none | Wrap-kind, signed-seal, unsigned-rumor, sender-continuity, and decrypt-failure boundaries all match the protocol intent; the audit found no evidence-backed relaxation that would improve compatibility without weakening trust checks |
 | 65 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED BASELINE PASS` | Ignore unrelated foreign tags during relay extraction while keeping malformed `r` relay tags strict | none | none | `rust-nostr` extraction tolerates surrounding non-relay tags and yields only valid relay entries; `nostr-tools` remains builder-only signal in this pass |
 | 70 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | No Layer 1 change required; exact one-item `["-"]` protected-tag semantics remain correct and compatible | none | none | The NIP and both reference lanes treat only the exact single-item `["-"]` tag as protected; malformed lookalikes remain safely ignored |
-| 77 | pending | - | - | - | - | - | - |
+| 77 | complete | `HARNESS_COVERED DEEP PASS` | `HARNESS_COVERED EDGE PASS` | NEG-ERR reasons now accept the spec-required `:` delimiter without requiring a following space, and session state now allows bounded reopen on a reused state object | none | none | The prior `\": \"` requirement and idle-only reopen rule were stricter than the NIP text; both changes preserve boundedness while reducing protocol friction |
 
 ## Decision Summary
 
@@ -92,6 +92,8 @@ completes.
   `key:value` extensions best-effort instead of invalidating the whole search helper path.
 - NIP-45: accept uppercase HLL hex and ignore unknown COUNT metadata keys instead of rejecting the
   whole relay response.
+- NIP-77: accept `NEG-ERR` reason strings with `:` and optional space, and allow bounded session
+  reopen on reused negentropy state.
 - NIP-18: reject contradictory repost target metadata when empty-content reposts cannot prove the
   target via embedded JSON, while retaining current embedded-event consistency checks and the kind-6
   relay-hint requirement.
