@@ -37,6 +37,12 @@ pub const Nip46Error = error{
     InvalidTargetPubkey,
     TargetPubkeyMismatch,
     InvalidEncryptedContent,
+    InvalidDiscoveryDocument,
+    InvalidDiscoveryEvent,
+    MissingDiscoveryPubkey,
+    MissingDiscoveryKind,
+    DuplicateDiscoveryKind,
+    InvalidNostrConnectUrl,
     OutOfMemory,
 };
 
@@ -146,6 +152,12 @@ pub const ConnectionUri = union(enum) {
 
 pub const Envelope = struct {
     target_pubkey: [32]u8,
+};
+
+pub const DiscoveryInfo = struct {
+    app_pubkey: [32]u8,
+    relays: []const []const u8 = &.{},
+    nostrconnect_url: ?[]const u8 = null,
 };
 
 pub fn method_parse(text: []const u8) Nip46Error!RemoteSigningMethod {
@@ -466,10 +478,78 @@ pub fn envelope_validate(
     return .{ .target_pubkey = resolved };
 }
 
+/// Parse the NIP-46 discovery fields from a signer's `nostr.json?name=_` document.
+pub fn discovery_parse_well_known(
+    input: []const u8,
+    scratch: std.mem.Allocator,
+) Nip46Error!DiscoveryInfo {
+    std.debug.assert(input.len <= limits.relay_message_bytes_max);
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+
+    if (input.len == 0 or input.len > limits.relay_message_bytes_max) {
+        return error.InvalidDiscoveryDocument;
+    }
+
+    var parse_arena = std.heap.ArenaAllocator.init(scratch);
+    defer parse_arena.deinit();
+
+    const root = std.json.parseFromSliceLeaky(
+        std.json.Value,
+        parse_arena.allocator(),
+        input,
+        .{},
+    ) catch return error.InvalidDiscoveryDocument;
+    if (root != .object) {
+        return error.InvalidDiscoveryDocument;
+    }
+    return parse_well_known_root(root.object, scratch);
+}
+
+/// Extract bounded NIP-46 discovery fields from a kind-31990 remote-signer event.
+pub fn discovery_parse_nip89(
+    event: *const nip01_event.Event,
+    scratch: std.mem.Allocator,
+) Nip46Error!DiscoveryInfo {
+    std.debug.assert(@intFromPtr(event) != 0);
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+
+    if (event.kind != 31_990) {
+        return error.InvalidDiscoveryEvent;
+    }
+
+    var relays_buf: [limits.nip46_relays_max][]const u8 = undefined;
+    var relay_count: u8 = 0;
+    var saw_kind = false;
+    var discovery_url: ?[]const u8 = null;
+    for (event.tags) |tag| {
+        try parse_discovery_tag(
+            tag,
+            &relays_buf,
+            &relay_count,
+            &saw_kind,
+            &discovery_url,
+        );
+    }
+    if (!saw_kind) {
+        return error.MissingDiscoveryKind;
+    }
+    return .{
+        .app_pubkey = event.pubkey,
+        .relays = try duplicate_relay_slice(relays_buf[0..relay_count], scratch),
+        .nostrconnect_url = discovery_url,
+    };
+}
+
 const ParsedUriParts = struct {
     scheme: []const u8,
     authority: []const u8,
     query: ?[]const u8,
+};
+
+const WellKnownPartial = struct {
+    app_pubkey: ?[32]u8 = null,
+    relays: []const []const u8 = &.{},
+    nostrconnect_url: ?[]const u8 = null,
 };
 
 fn parse_message_object(
@@ -548,6 +628,197 @@ fn parse_message_object(
         .error_text = if (saw_error) error_text else null,
     };
     return .{ .response = response };
+}
+
+fn parse_well_known_root(
+    object: std.json.ObjectMap,
+    scratch: std.mem.Allocator,
+) Nip46Error!DiscoveryInfo {
+    std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+
+    var partial = WellKnownPartial{};
+    var iterator = object.iterator();
+    while (iterator.next()) |entry| {
+        const key = entry.key_ptr.*;
+        const value = entry.value_ptr.*;
+        if (std.mem.eql(u8, key, "names")) {
+            partial.app_pubkey = try parse_well_known_names(value);
+            continue;
+        }
+        if (std.mem.eql(u8, key, "nip46")) {
+            try parse_well_known_nip46(&partial, value, scratch);
+        }
+    }
+    const app_pubkey = partial.app_pubkey orelse return error.MissingDiscoveryPubkey;
+    return .{
+        .app_pubkey = app_pubkey,
+        .relays = partial.relays,
+        .nostrconnect_url = partial.nostrconnect_url,
+    };
+}
+
+fn parse_well_known_names(value: std.json.Value) Nip46Error![32]u8 {
+    std.debug.assert(@typeInfo(std.json.Value) == .@"union");
+    std.debug.assert(limits.pubkey_hex_length == 64);
+
+    if (value != .object) {
+        return error.InvalidDiscoveryDocument;
+    }
+    const name_value = value.object.get("_") orelse return error.MissingDiscoveryPubkey;
+    if (name_value != .string) {
+        return error.InvalidDiscoveryDocument;
+    }
+    return parse_lower_hex_32(name_value.string) catch return error.InvalidPubkey;
+}
+
+fn parse_well_known_nip46(
+    partial: *WellKnownPartial,
+    value: std.json.Value,
+    scratch: std.mem.Allocator,
+) Nip46Error!void {
+    std.debug.assert(@intFromPtr(partial) != 0);
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+
+    if (value != .object) {
+        return error.InvalidDiscoveryDocument;
+    }
+    var relay_buf: [limits.nip46_relays_max][]const u8 = undefined;
+    var relay_count: u8 = 0;
+    var discovery_url = partial.nostrconnect_url;
+    var iterator = value.object.iterator();
+    while (iterator.next()) |entry| {
+        const key = entry.key_ptr.*;
+        const field = entry.value_ptr.*;
+        if (std.mem.eql(u8, key, "relays")) {
+            try parse_well_known_relays(field, &relay_buf, &relay_count, scratch);
+            continue;
+        }
+        if (std.mem.eql(u8, key, "nostrconnect_url")) {
+            discovery_url = try parse_well_known_discovery_url(field, scratch);
+        }
+    }
+    partial.relays = try duplicate_relay_slice(relay_buf[0..relay_count], scratch);
+    partial.nostrconnect_url = discovery_url;
+}
+
+fn parse_well_known_relays(
+    value: std.json.Value,
+    relay_buf: *[limits.nip46_relays_max][]const u8,
+    relay_count: *u8,
+    scratch: std.mem.Allocator,
+) Nip46Error!void {
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(relay_count.* <= limits.nip46_relays_max);
+
+    if (value != .array) {
+        return error.InvalidDiscoveryDocument;
+    }
+    var index: usize = 0;
+    while (index < value.array.items.len) : (index += 1) {
+        const item = value.array.items[index];
+        if (item != .string) {
+            return error.InvalidDiscoveryDocument;
+        }
+        const relay = duplicate_valid_utf8(
+            item.string,
+            limits.tag_item_bytes_max,
+            scratch,
+        ) catch return error.InvalidDiscoveryDocument;
+        try append_query_relay(relay, relay_buf, relay_count);
+    }
+}
+
+fn parse_well_known_discovery_url(
+    value: std.json.Value,
+    scratch: std.mem.Allocator,
+) Nip46Error![]const u8 {
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(limits.tag_item_bytes_max > 0);
+
+    if (value != .string) {
+        return error.InvalidDiscoveryDocument;
+    }
+    const text = duplicate_valid_utf8(
+        value.string,
+        limits.tag_item_bytes_max,
+        scratch,
+    ) catch return error.InvalidDiscoveryDocument;
+    _ = parse_url(text) catch return error.InvalidNostrConnectUrl;
+    return text;
+}
+
+fn parse_discovery_tag(
+    tag: nip01_event.EventTag,
+    relays_buf: *[limits.nip46_relays_max][]const u8,
+    relay_count: *u8,
+    saw_kind: *bool,
+    discovery_url: *?[]const u8,
+) Nip46Error!void {
+    std.debug.assert(@intFromPtr(relay_count) != 0);
+    std.debug.assert(@intFromPtr(saw_kind) != 0);
+
+    if (tag.items.len == 0) {
+        return;
+    }
+    if (std.mem.eql(u8, tag.items[0], "k")) {
+        try parse_discovery_kind_tag(tag, saw_kind);
+        return;
+    }
+    if (std.mem.eql(u8, tag.items[0], "relay")) {
+        try parse_discovery_relay_tag(tag, relays_buf, relay_count);
+        return;
+    }
+    if (std.mem.eql(u8, tag.items[0], "nostrconnect_url")) {
+        try parse_discovery_url_tag(tag, discovery_url);
+    }
+}
+
+fn parse_discovery_kind_tag(tag: nip01_event.EventTag, saw_kind: *bool) Nip46Error!void {
+    std.debug.assert(@intFromPtr(saw_kind) != 0);
+    std.debug.assert(tag.items.len <= limits.tag_items_max);
+
+    if (tag.items.len != 2) {
+        return error.InvalidDiscoveryEvent;
+    }
+    if (!std.mem.eql(u8, tag.items[1], "24133")) {
+        return error.InvalidDiscoveryEvent;
+    }
+    if (saw_kind.*) {
+        return error.DuplicateDiscoveryKind;
+    }
+    saw_kind.* = true;
+}
+
+fn parse_discovery_relay_tag(
+    tag: nip01_event.EventTag,
+    relays_buf: *[limits.nip46_relays_max][]const u8,
+    relay_count: *u8,
+) Nip46Error!void {
+    std.debug.assert(@intFromPtr(relay_count) != 0);
+    std.debug.assert(tag.items.len <= limits.tag_items_max);
+
+    if (tag.items.len != 2) {
+        return error.InvalidDiscoveryEvent;
+    }
+    try append_query_relay(tag.items[1], relays_buf, relay_count);
+}
+
+fn parse_discovery_url_tag(
+    tag: nip01_event.EventTag,
+    discovery_url: *?[]const u8,
+) Nip46Error!void {
+    std.debug.assert(@intFromPtr(discovery_url) != 0);
+    std.debug.assert(tag.items.len <= limits.tag_items_max);
+
+    if (tag.items.len != 2) {
+        return error.InvalidDiscoveryEvent;
+    }
+    _ = parse_url(tag.items[1]) catch return error.InvalidNostrConnectUrl;
+    if (discovery_url.* != null) {
+        return error.InvalidDiscoveryEvent;
+    }
+    discovery_url.* = tag.items[1];
 }
 
 fn parse_id_value(value: std.json.Value, scratch: std.mem.Allocator) Nip46Error![]const u8 {
@@ -1966,4 +2237,54 @@ test "message parsing rejects mixed request and response fields" {
 
     const mixed = "{\"id\":\"1\",\"method\":\"ping\",\"params\":[],\"result\":\"pong\"}";
     try std.testing.expectError(error.InvalidMessage, message_parse_json(mixed, arena.allocator()));
+}
+
+test "discovery_parse_well_known extracts app pubkey and nip46 block" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const document =
+        "{\"names\":{\"_\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}," ++
+        "\"nip46\":{\"relays\":[\"wss://relay.one\",\"wss://relay.two\"]," ++
+        "\"nostrconnect_url\":\"https://bunker.example/<nostrconnect>\"}}";
+    const info = try discovery_parse_well_known(document, arena.allocator());
+    try std.testing.expectEqual(@as(usize, 2), info.relays.len);
+    try std.testing.expectEqualStrings("wss://relay.one", info.relays[0]);
+    try std.testing.expectEqualStrings(
+        "https://bunker.example/<nostrconnect>",
+        info.nostrconnect_url.?,
+    );
+}
+
+test "discovery_parse_nip89 extracts bounded remote-signer metadata" {
+    const k_tag = [_][]const u8{"k", "24133"};
+    const relay_tag = [_][]const u8{"relay", "wss://relay.one"};
+    const url_tag = [_][]const u8{
+        "nostrconnect_url",
+        "https://bunker.example/<nostrconnect>",
+    };
+    const tags = [_]nip01_event.EventTag{
+        .{ .items = k_tag[0..] },
+        .{ .items = relay_tag[0..] },
+        .{ .items = url_tag[0..] },
+    };
+    const event = nip01_event.Event{
+        .id = [_]u8{0} ** 32,
+        .pubkey = [_]u8{1} ** 32,
+        .sig = [_]u8{0} ** 64,
+        .kind = 31_990,
+        .created_at = 0,
+        .content = "{}",
+        .tags = tags[0..],
+    };
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const info = try discovery_parse_nip89(&event, arena.allocator());
+    try std.testing.expectEqual(@as(usize, 1), info.relays.len);
+    try std.testing.expectEqualStrings("wss://relay.one", info.relays[0]);
+    try std.testing.expectEqualStrings(
+        "https://bunker.example/<nostrconnect>",
+        info.nostrconnect_url.?,
+    );
 }

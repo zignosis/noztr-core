@@ -161,6 +161,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip46_remote_signing.PubkeyTextRequest) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.ConnectResult) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.ParsedRequest) == type);
+    try std.testing.expect(@TypeOf(nip46_remote_signing.DiscoveryInfo) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.Message) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.ConnectionUri) == type);
     try std.testing.expect(@TypeOf(PowVerifiedIdError) == type);
@@ -279,6 +280,20 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(
         @TypeOf(nip46_remote_signing.uri_serialize) ==
             fn ([]u8, nip46_remote_signing.ConnectionUri) nip46_remote_signing.Nip46Error![]const u8,
+    );
+    try std.testing.expect(
+        @TypeOf(nip46_remote_signing.discovery_parse_well_known) ==
+            fn (
+                []const u8,
+                std.mem.Allocator,
+            ) nip46_remote_signing.Nip46Error!nip46_remote_signing.DiscoveryInfo,
+    );
+    try std.testing.expect(
+        @TypeOf(nip46_remote_signing.discovery_parse_nip89) ==
+            fn (
+                *const nip01_event.Event,
+                std.mem.Allocator,
+            ) nip46_remote_signing.Nip46Error!nip46_remote_signing.DiscoveryInfo,
     );
     try std.testing.expect(
         @TypeOf(nip46_remote_signing.response_result_connect) ==

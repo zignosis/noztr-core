@@ -140,7 +140,7 @@ Current project context for the Phase H kickoff baseline.
 - Latest cadence run (2026-03-11): TS audit harness passed
   (`SUMMARY pass=21 fail=0 harness_covered=21 total=21`).
 - Latest cadence run (2026-03-11): `zig build test --summary all` passed
-  (`Build Summary: 8/8 steps succeeded; 618/618 tests passed`).
+  (`Build Summary: 8/8 steps succeeded; 622/622 tests passed`).
 - Latest cadence run (2026-03-11): `zig build` passed.
 - Active cadence commands:
   - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
@@ -192,6 +192,8 @@ Current project context for the Phase H kickoff baseline.
      pubkey-plus-text methods, and zero-param commands.
    - typed result helpers now cover `connect`, `get_public_key`, `sign_event`, and
      `switch_relays`.
+   - appendix discovery helpers now parse signer `nostr.json?name=_` NIP-46 discovery data and
+     extract bounded NIP-89 kind-`31990` remote-signer metadata.
    Completed evidence:
    - rust overlap parity is now `HARNESS_COVERED`, `BASELINE`, `PASS`
    - TypeScript overlap evidence is now `HARNESS_COVERED`, `BASELINE`, `PASS`
@@ -201,8 +203,8 @@ Current project context for the Phase H kickoff baseline.
    Remaining Wave 2 work:
    - decide whether to add optional typed request builders beyond the current typed-parse and
      result-helper surface
-   - decide whether appendix discovery helpers for `nostrconnect_url` / NIP-89 belong in this
-     NIP-46 module or should stay deferred
+   - decide whether optional `nostrconnect_url` redirect/template rendering belongs in this module
+     or should stay deferred as app-flow logic
    - update tracker state when `bd` localhost access is available again in-session
 7. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.
 

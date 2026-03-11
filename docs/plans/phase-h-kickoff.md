@@ -189,6 +189,8 @@ the validated maintenance baseline.
       pubkey-plus-text methods, and zero-param commands
     - typed result helpers for `connect`, `get_public_key`, `sign_event`, and
       `switch_relays`
+    - appendix discovery helpers for `nostr.json?name=_` NIP-46 discovery data and
+      kind-`31990` NIP-89 remote-signer events
   - parity/evidence status:
     - rust parity overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
     - TypeScript audit overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
@@ -197,7 +199,8 @@ the validated maintenance baseline.
       `nostr-tools` follow the current split-query URI and method surface
   - current deferred scope inside the active Wave 2 item:
     - any optional typed request builders beyond the current typed-parse/result-helper surface
-    - any broader discovery helpers for the appendix `nostrconnect_url` / NIP-89 surfaces
+    - any optional redirect/template rendering around `nostrconnect_url`, which remains app-flow
+      logic rather than protocol-kernel parsing
 
 ## Immediate Work Tracks
 

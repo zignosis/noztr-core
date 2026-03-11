@@ -206,6 +206,8 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
         pubkey-plus-text methods, and zero-param commands
       - typed result helpers now cover `connect`, `get_public_key`, `sign_event`, and
         `switch_relays`
+      - appendix discovery helpers now parse signer `nostr.json?name=_` NIP-46 discovery
+        documents and extract bounded NIP-89 kind-`31990` remote-signer metadata
       - executed overlap evidence is now in place for both active reference lanes:
         - `rust-nostr`: `HARNESS_COVERED`, `BASELINE`, `PASS`
         - `nostr-tools`: `HARNESS_COVERED`, `BASELINE`, `PASS`
@@ -214,7 +216,8 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
         split-query URI and method surface that matches `nostr-tools`
     - still pending inside the active Wave 2 item:
       - any optional typed request builders beyond the current typed-parse/result-helper surface
-      - any broader discovery helpers for the appendix `nostrconnect_url` / NIP-89 surfaces
+      - any optional redirect/template rendering around `nostrconnect_url`, which remains
+        app-flow logic rather than protocol-kernel parsing
 
 ## NIP-06 Phase H Boundary Scope
 
