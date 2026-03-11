@@ -113,8 +113,8 @@ the validated maintenance baseline.
 - Active next execution focus: implemented-NIP audit.
 - Implemented-NIP audit status:
   - `NIP-01`, `NIP-02`, `NIP-09`, `NIP-10`, `NIP-11`, `NIP-13`, `NIP-18`, `NIP-19`, `NIP-21`,
-    `NIP-22`, `NIP-25`, `NIP-27`, `NIP-40`, `NIP-42`, `NIP-44`, `NIP-51`, and `NIP-59` audits are
-    complete
+    `NIP-22`, `NIP-25`, `NIP-27`, `NIP-40`, `NIP-42`, `NIP-44`, `NIP-51`, `NIP-59`, and `NIP-65`
+    audits are complete
   - `NIP-01` now accepts uppercase single-letter `#X` filter keys to match the protocol text and
     reference behavior; unknown filter-field rejection and prefixed rejection-status enforcement are
     retained as accepted Layer 1 trust-boundary behavior
@@ -144,6 +144,10 @@ the validated maintenance baseline.
   - `NIP-59` required no Layer 1 change; the current staged wrap->seal->rumor unwrap boundary,
     sender continuity enforcement, unsigned-rumor requirement, and typed decrypt/signature failure
     mapping remain aligned with the protocol and both reference lanes
+  - `NIP-65` now ignores unrelated foreign tags during relay extraction while keeping malformed
+    supported `r` tags, malformed relay URLs, and invalid markers as typed failures; this matches
+    the accepted posture of staying deterministic and bounded without turning irrelevant metadata
+    into whole-helper incompatibility
   - `NIP-18` now rejects contradictory optional repost target metadata without embedded-event proof;
     existing embedded-event consistency checks remain intact
   - `NIP-25` now accepts the optional NIP-30 emoji-set coordinate on reaction `emoji` tags; strict

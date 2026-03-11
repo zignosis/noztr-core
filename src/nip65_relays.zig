@@ -66,6 +66,10 @@ pub fn relay_list_extract(
     var count: u16 = 0;
     var tag_index: usize = 0;
     while (tag_index < event.tags.len) : (tag_index += 1) {
+        if (!is_relay_candidate(event.tags[tag_index])) {
+            continue;
+        }
+
         const parsed = try parse_relay_tag(event.tags[tag_index]);
         const existing_index = find_existing_relay(out[0..count], parsed.origin);
         if (existing_index) |index| {
@@ -80,6 +84,16 @@ pub fn relay_list_extract(
         count += 1;
     }
     return count;
+}
+
+fn is_relay_candidate(tag: nip01_event.EventTag) bool {
+    std.debug.assert(@sizeOf(nip01_event.EventTag) > 0);
+    std.debug.assert(limits.nip65_relay_tag_items_max == 3);
+
+    if (tag.items.len == 0) {
+        return false;
+    }
+    return std.mem.eql(u8, tag.items[0], "r");
 }
 
 const ParsedRelayTag = struct {
@@ -341,16 +355,24 @@ test "relay url validation matches shared websocket origin parsing" {
     try std.testing.expectError(error.InvalidRelayUrl, relay_url_validate("https://relay.example"));
 }
 
-test "relay list extract invalid vectors reject non-r tag and buffer overflow" {
-    const tag_non_r_items = [_][]const u8{ "p", "abcdef" };
-    const tags_non_r = [_]nip01_event.EventTag{.{ .items = tag_non_r_items[0..] }};
-    const event_non_r = build_event(10002, tags_non_r[0..]);
+test "relay list extract ignores foreign tags and still extracts valid relays" {
+    const tag_foreign_items = [_][]const u8{ "p", "abcdef" };
+    const tag_empty_items = [_][]const u8{};
+    const tag_valid_items = [_][]const u8{ "r", "wss://relay.one", "read" };
+    const tags = [_]nip01_event.EventTag{
+        .{ .items = tag_foreign_items[0..] },
+        .{ .items = tag_empty_items[0..] },
+        .{ .items = tag_valid_items[0..] },
+    };
+    const event = build_event(10002, tags[0..]);
     var out_single: [1]RelayPermission = undefined;
-    try std.testing.expectError(
-        error.InvalidRelayTag,
-        relay_list_extract(&event_non_r, out_single[0..]),
-    );
+    const count = try relay_list_extract(&event, out_single[0..]);
+    try std.testing.expectEqual(@as(u16, 1), count);
+    try std.testing.expectEqualStrings("wss://relay.one", out_single[0].relay_url);
+    try std.testing.expectEqual(RelayMarker.read, out_single[0].marker);
+}
 
+test "relay list extract invalid relay vectors reject buffer overflow and malformed relay tags" {
     const tag_overflow_a = [_][]const u8{ "r", "wss://relay.one" };
     const tag_overflow_b = [_][]const u8{ "r", "wss://relay.two" };
     const tags_overflow = [_]nip01_event.EventTag{
@@ -358,6 +380,7 @@ test "relay list extract invalid vectors reject non-r tag and buffer overflow" {
         .{ .items = tag_overflow_b[0..] },
     };
     const event_overflow = build_event(10002, tags_overflow[0..]);
+    var out_single: [1]RelayPermission = undefined;
     try std.testing.expectError(
         error.BufferTooSmall,
         relay_list_extract(&event_overflow, out_single[0..]),

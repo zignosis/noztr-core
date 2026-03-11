@@ -872,6 +872,26 @@ Immutable record of accepted planning decisions.
   event or strong ecosystem evidence shows first-valid expiration handling is harmful.
 - Supersedes: none
 
+## D-049: Ignore unrelated foreign tags during NIP-65 relay extraction
+
+- Date: 2026-03-11
+- Status: accepted
+- Decision: widen `nip65_relays` so `relay_list_extract` ignores non-`r` tags on `kind:10002`
+  events. Strict validation remains in force for actual `r` relay tags: malformed relay tag arity,
+  malformed relay URLs, and invalid `read`/`write` markers still return typed failures.
+- Why: NIP-65 defines relay metadata through `r` tags, but it does not require unrelated foreign
+  tags to poison the whole extraction path. `rust-nostr` extracts only valid relay entries and
+  tolerates surrounding non-relay tags. The prior `noztr` behavior created unnecessary
+  incompatibility by rejecting the entire helper path for unrelated metadata that can be safely
+  ignored without weakening the trust boundary for supported relay tags.
+- Tradeoff: broader acceptance of mixed-tag relay-list events versus fewer helper-level failures on
+  irrelevant surrounding metadata, while preserving strict validation for supported relay entries.
+- Related Tradeoff: T-0-001, T-0-002, T-0-003.
+- Reversal Trigger: future NIP guidance explicitly requires non-`r` tags on relay-list events to
+  invalidate extraction or strong ecosystem evidence shows foreign-tag tolerance causes ambiguity or
+  unsafe relay selection.
+- Supersedes: none
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

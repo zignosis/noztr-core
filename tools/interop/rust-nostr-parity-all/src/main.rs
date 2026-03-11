@@ -1407,6 +1407,29 @@ fn check_nip65() -> Result<(), String> {
         return Err("relay list extracted malformed relay url".to_string());
     }
 
+    let mixed_tag_event = EventBuilder::new(Kind::RelayList, "")
+        .tags([
+            Tag::parse(vec!["x", "ignored"])
+                .map_err(|e| format!("foreign tag parse: {e}"))?,
+            Tag::parse(vec!["r", relay_a.as_str(), "read"])
+                .map_err(|e| format!("mixed relay tag parse: {e}"))?,
+        ])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("sign mixed relay event: {e}"))?;
+    let mixed_extracted: Vec<(String, Option<RelayMetadata>)> =
+        nip65::extract_relay_list(&mixed_tag_event)
+            .map(|(url, metadata)| (url.as_str().to_string(), *metadata))
+            .collect();
+    if mixed_extracted.len() != 1 {
+        return Err("foreign tags should not poison relay extraction".to_string());
+    }
+    let mixed_matches = mixed_extracted
+        .iter()
+        .any(|(url, metadata)| url == relay_a.as_str() && *metadata == Some(RelayMetadata::Read));
+    if !mixed_matches {
+        return Err("foreign-tag relay extraction mismatch".to_string());
+    }
+
     Ok(())
 }
 
