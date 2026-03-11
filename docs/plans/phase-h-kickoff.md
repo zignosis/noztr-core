@@ -183,6 +183,8 @@ the validated maintenance baseline.
     - current-spec `bunker://` and `nostrconnect://` URI parse/compose
     - strict kind-24133 event-envelope validation with exact single-`p` targeting and
       NIP-44 payload framing validation
+    - explicit `result: null` preservation for valid `switch_relays` responses instead of
+      collapsing `null` into an omitted result field
   - parity/evidence status:
     - rust parity overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
     - TypeScript audit overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`

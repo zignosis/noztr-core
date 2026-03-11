@@ -74,9 +74,15 @@ pub const ResponseResult = union(enum) {
     relay_list: []const []const u8,
 };
 
+pub const ResponsePayload = union(enum) {
+    absent,
+    null_result,
+    value: ResponseResult,
+};
+
 pub const Response = struct {
     id: []const u8,
-    result: ?ResponseResult = null,
+    result: ResponsePayload = .absent,
     error_text: ?[]const u8 = null,
 };
 
@@ -283,11 +289,17 @@ pub fn response_validate(
             return error.InvalidResponse;
         }
     }
-    if (response.result == null and response.error_text == null) {
+    if (response.error_text == null and response.result == .absent) {
         return error.InvalidResponse;
     }
-    if (response.result) |result| {
-        try validate_response_result(result, method, scratch);
+    switch (response.result) {
+        .absent => {},
+        .null_result => {
+            if (method != .switch_relays) {
+                return error.InvalidResponse;
+            }
+        },
+        .value => |result| try validate_response_result(result, method, scratch),
     }
 }
 
@@ -372,7 +384,7 @@ fn parse_message_object(
     var id: ?[]const u8 = null;
     var method: ?RemoteSigningMethod = null;
     var params: ?[]const []const u8 = null;
-    var result: ?ResponseResult = null;
+    var result: ResponsePayload = .absent;
     var error_text: ?[]const u8 = null;
     var saw_result = false;
     var saw_error = false;
@@ -434,7 +446,7 @@ fn parse_message_object(
 
     const response = Response{
         .id = id.?,
-        .result = if (saw_result) result else null,
+        .result = if (saw_result) result else .absent,
         .error_text = if (saw_error) error_text else null,
     };
     return .{ .response = response };
@@ -467,21 +479,21 @@ fn parse_method_value(value: std.json.Value) Nip46Error!RemoteSigningMethod {
 fn parse_result_value(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip46Error!?ResponseResult {
+) Nip46Error!ResponsePayload {
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     if (value == .null) {
-        return null;
+        return .null_result;
     }
     if (value == .string) {
-        return .{
+        return .{ .value = .{
             .text = try duplicate_valid_utf8(
                 value.string,
                 limits.nip46_message_json_bytes_max,
                 scratch,
             ),
-        };
+        } };
     }
     if (value != .array) {
         return error.InvalidResponse;
@@ -497,7 +509,7 @@ fn parse_result_value(
     while (index < relays.len) : (index += 1) {
         _ = parse_relay_url(relays[index]) catch return error.InvalidRelayUrl;
     }
-    return .{ .relay_list = relays };
+    return .{ .value = .{ .relay_list = relays } };
 }
 
 fn parse_string_array_value(
@@ -1042,9 +1054,13 @@ fn write_response_json(writer: anytype, response: Response) Nip46Error!void {
     try validate_message_id(response.id);
     try write_all(writer, "{\"id\":");
     try write_json_string(writer, response.id);
-    if (response.result) |result| {
-        try write_all(writer, ",\"result\":");
-        try write_result_json(writer, result);
+    switch (response.result) {
+        .absent => {},
+        .null_result => try write_all(writer, ",\"result\":null"),
+        .value => |result| {
+            try write_all(writer, ",\"result\":");
+            try write_result_json(writer, result);
+        },
     }
     if (response.error_text) |text| {
         try write_all(writer, ",\"error\":");
@@ -1532,7 +1548,8 @@ test "message parse and serialize roundtrip request and response" {
         "{\"id\":\"42\",\"result\":[\"wss://relay.one\",\"wss://relay.two\"],\"error\":null}";
     const response_message = try message_parse_json(response_json, arena.allocator());
     try std.testing.expect(response_message == .response);
-    try std.testing.expect(response_message.response.result.? == .relay_list);
+    try std.testing.expect(response_message.response.result == .value);
+    try std.testing.expect(response_message.response.result.value == .relay_list);
 
     var response_output: [256]u8 = undefined;
     const response_encoded = try message_serialize_json(response_output[0..], response_message);
@@ -1571,23 +1588,38 @@ test "response validation covers ping and signed-event results" {
 
     const ping_ok = Response{
         .id = "a",
-        .result = .{ .text = "pong" },
+        .result = .{ .value = .{ .text = "pong" } },
     };
     try response_validate(&ping_ok, .ping, arena.allocator());
 
     const sign_ok = Response{
         .id = "b",
-        .result = .{
+        .result = .{ .value = .{
             .text =
                 "{\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
                 "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
                 "\"created_at\":1,\"kind\":1,\"tags\":[],\"content\":\"hi\"}",
-        },
+        } },
     };
     try std.testing.expectError(
         error.InvalidSignedEvent,
         response_validate(&sign_ok, .sign_event, arena.allocator()),
     );
+}
+
+test "switch_relays null result is preserved and valid" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const response_json = "{\"id\":\"42\",\"result\":null}";
+    const message = try message_parse_json(response_json, arena.allocator());
+    try std.testing.expect(message == .response);
+    try std.testing.expect(message.response.result == .null_result);
+    try response_validate(&message.response, .switch_relays, arena.allocator());
+
+    var output: [128]u8 = undefined;
+    const encoded = try message_serialize_json(output[0..], message);
+    try std.testing.expectEqualStrings(response_json, encoded);
 }
 
 test "uri parse and serialize follow current bunker and nostrconnect forms" {
