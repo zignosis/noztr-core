@@ -212,9 +212,15 @@ Current project context for the Phase H kickoff baseline.
    changes and record outcomes in Phase H kickoff and handoff docs.
 3. Phase H planned expansion is complete through `NIP-23`.
    Recommended next step:
-   - either run a second robustness batch on the newly added surfaces (`23`, `46`, `06`, `51`
-     private lists), or
-   - explicitly reprioritize one deferred backlog item (`03`, `17`, `24`, `29`, `39`).
+   - next deferred implementation candidate is `NIP-24` in `no-hu1`
+   - deferred backlog order is now:
+     - `NIP-24` (`no-hu1`)
+     - `NIP-03` (`no-wo7`)
+     - `NIP-17` (`no-0jq`)
+     - `NIP-39` (`no-g5j`)
+     - `NIP-29` (`no-j2g`)
+   - after `NIP-24`, run the next robustness batch on the newly added surfaces (`23`, `46`, `06`,
+     `51` private lists) before opening the following deferred item
 4. Keep the implemented-NIP audit report current if future code changes reopen compatibility or
    strictness questions.
 5. Wave 2 / `NIP-46` is complete.

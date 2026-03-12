@@ -277,6 +277,12 @@ the validated maintenance baseline.
 - Phase H planned expansion is now complete through `NIP-23`; next protocol work requires either:
   - a second robustness batch on completed surfaces, or
   - explicit reprioritization of one deferred backlog item (`03`, `17`, `24`, `29`, `39`)
+- Deferred backlog is now reprioritized:
+  - next implementation candidate: `NIP-24` (`no-hu1`)
+  - ordered follow-ons: `NIP-03` (`no-wo7`), `NIP-17` (`no-0jq`), `NIP-39` (`no-g5j`),
+    `NIP-29` (`no-j2g`)
+  - recommended sequence: implement `NIP-24`, then run the next robustness batch before opening
+    the following deferred item
 - `NIP-44` robustness outcome:
   - no Layer 1 behavior change was required after real-world review
   - the current v2-only surface, staged failure ordering, typed conversation-key boundary, and
