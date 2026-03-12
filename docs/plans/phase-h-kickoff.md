@@ -303,11 +303,11 @@ the validated maintenance baseline.
       reply reference handling
     - `NIP-59` unwrap plus inner kind-`14` parse as a direct helper on top of the existing
       `NIP-44`/`NIP-59` trust boundary
+    - kind-`15` file-message parsing with required file metadata, bounded optional file metadata,
+      and direct `NIP-59` unwrap plus inner kind-`15` parse
     - kind-`10050` relay-list extraction with ordered `relay` tags
     - direct `p` and `relay` tag builders
     - tolerant handling of unrelated unknown tags
-  - accepted bounded deferral:
-    - kind-`15` file-message handling remains deferred in `no-nv9`
   - parity/evidence status:
     - rust parity overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
     - TypeScript audit overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
@@ -382,9 +382,8 @@ the validated maintenance baseline.
 - `NIP-17` robustness outcome:
   - direct-message parsing now accepts standard long-form reply `e` tags with optional public-key
     suffixes instead of rejecting those deployed generic event-tag shapes
-  - kind-14 plain-text content checks, required recipient enforcement, bounded relay-list
-    extraction, and `NIP-59` unwrap reuse remain unchanged
-  - kind-15 file-message handling remains deferred in `no-nv9`
+  - kind-14 plain-text content checks, kind-15 required file-metadata checks, required recipient
+    enforcement, bounded relay-list extraction, and `NIP-59` unwrap reuse remain unchanged
 - `NIP-39` robustness outcome:
   - no Layer 1 behavior change was required after real-world review
   - current claim parsing, proof-URL derivation, expected-proof-text generation, and future-extra

@@ -204,6 +204,9 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip17_private_messages.DmRecipient) == type);
     try std.testing.expect(@TypeOf(nip17_private_messages.DmReplyRef) == type);
     try std.testing.expect(@TypeOf(nip17_private_messages.DmMessageInfo) == type);
+    try std.testing.expect(@TypeOf(nip17_private_messages.FileEncryptionAlgorithm) == type);
+    try std.testing.expect(@TypeOf(nip17_private_messages.FileDimensions) == type);
+    try std.testing.expect(@TypeOf(nip17_private_messages.FileMessageInfo) == type);
     try std.testing.expect(@TypeOf(nip17_private_messages.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nip39_external_identities.IdentityProvider) == type);
     try std.testing.expect(@TypeOf(nip39_external_identities.IdentityClaim) == type);
@@ -258,6 +261,27 @@ test "root exports limits and error namespaces" {
                 []u8,
                 *const nip01_event.Event,
             ) nip03_opentimestamps.OpenTimestampsError!nip03_opentimestamps.OpenTimestampsAttestation,
+    );
+    try std.testing.expect(
+        @TypeOf(nip17_private_messages.nip17_file_message_parse) ==
+            fn (
+                *const nip01_event.Event,
+                []nip17_private_messages.DmRecipient,
+                [][]const u8,
+                [][]const u8,
+            ) nip17_private_messages.Nip17Error!nip17_private_messages.FileMessageInfo,
+    );
+    try std.testing.expect(
+        @TypeOf(nip17_private_messages.nip17_unwrap_file_message) ==
+            fn (
+                *nip01_event.Event,
+                *const [32]u8,
+                *const nip01_event.Event,
+                []nip17_private_messages.DmRecipient,
+                [][]const u8,
+                [][]const u8,
+                std.mem.Allocator,
+            ) nip17_private_messages.Nip17Error!nip17_private_messages.FileMessageInfo,
     );
     try std.testing.expect(
         @TypeOf(nip03_opentimestamps.opentimestamps_build_event_tag) ==

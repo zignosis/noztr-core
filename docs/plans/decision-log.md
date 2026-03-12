@@ -1144,6 +1144,32 @@ Immutable record of accepted planning decisions.
   current scope and can be added without violating the bounded kernel posture.
 - Supersedes: none
 
+## D-063: Extend Phase H NIP-17 to a bounded kind-15 file-message boundary
+
+- Date: 2026-03-12
+- Status: accepted
+- Decision: close `no-nv9` by extending `src/nip17_private_messages.zig` with a bounded kind-`15`
+  file-message helper surface that includes:
+  - required recipient `p` tag handling shared with kind-`14`
+  - optional reply `e` and `subject` handling shared with kind-`14`
+  - required file metadata tags `file-type`, `encryption-algorithm`, `decryption-key`,
+    `decryption-nonce`, and `x`
+  - bounded optional `ox`, `size`, `dim`, `blurhash`, repeated `thumb`, and repeated `fallback`
+  - direct `NIP-59` unwrap plus inner kind-`15` parse helper
+  Do not add file-transfer orchestration, send/publish workflow helpers, or alternate metadata
+  alias grammars in the kernel.
+- Why: this captures the deterministic event-boundary value of kind-`15` while keeping the module
+  aligned with the existing bounded `kind-14`/`NIP-59` posture. The reference lanes do not expose a
+  stronger dedicated kind-`15` helper contract, so the right kernel move is a narrow parse/unwrap
+  boundary instead of a workflow API.
+- Tradeoff: immediate typed file-message handling and unwrap symmetry versus leaving richer file
+  send/build orchestration and compatibility aliases for higher layers or future follow-ups.
+- Related Tradeoff: T-H-ANIP-001, T-H-ANIP-003, T-0-001, T-0-003.
+- Reversal Trigger: ecosystem evidence shows the current strict file-metadata grammar is too narrow
+  for real deployed interoperability or a stronger bounded builder surface becomes necessary for
+  current scope.
+- Supersedes: D-060
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

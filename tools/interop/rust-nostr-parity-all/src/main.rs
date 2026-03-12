@@ -940,9 +940,10 @@ fn check_nip24() -> Result<(), String> {
     Ok(())
 }
 
-fn check_nip17() -> Result<(), String> {
+async fn check_nip17() -> Result<(), String> {
     let keys = parse_keys()?;
-    let receiver = parse_alt_keys()?.public_key();
+    let receiver_keys = parse_alt_keys()?;
+    let receiver = receiver_keys.public_key();
     let reply_tag = Tag::parse(vec![
         "e",
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -987,6 +988,51 @@ fn check_nip17() -> Result<(), String> {
         .collect();
     if extracted != vec![relay_one.as_str().to_string(), relay_two.as_str().to_string()] {
         return Err("nip17 relay extraction mismatch".to_string());
+    }
+
+    let file_rumor = EventBuilder::new(Kind::Custom(15), "https://cdn.example/file.enc")
+        .tags([
+            Tag::public_key(receiver),
+            Tag::parse(vec!["file-type", "image/jpeg"])
+                .map_err(|e| format!("nip17 file-type parse: {e}"))?,
+            Tag::parse(vec!["encryption-algorithm", "aes-gcm"])
+                .map_err(|e| format!("nip17 encryption parse: {e}"))?,
+            Tag::parse(vec!["decryption-key", "secret-key"])
+                .map_err(|e| format!("nip17 decryption-key parse: {e}"))?,
+            Tag::parse(vec!["decryption-nonce", "secret-nonce"])
+                .map_err(|e| format!("nip17 decryption-nonce parse: {e}"))?,
+            Tag::parse(vec![
+                "x",
+                "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            ])
+            .map_err(|e| format!("nip17 x parse: {e}"))?,
+        ])
+        .build(keys.public_key());
+    let encrypted_hash_tag = Tag::parse(vec![
+        "x",
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    ])
+    .map_err(|e| format!("nip17 x reparse: {e}"))?;
+    let file_wrap = EventBuilder::gift_wrap(&keys, &receiver, file_rumor, [])
+        .await
+        .map_err(|e| format!("gift wrap kind-15 rumor: {e}"))?;
+    let unwrapped = nip59::extract_rumor(&receiver_keys, &file_wrap)
+        .await
+        .map_err(|e| format!("unwrap kind-15 rumor: {e}"))?;
+    if unwrapped.rumor.kind != Kind::Custom(15) {
+        return Err("nip17 file rumor kind mismatch".to_string());
+    }
+    if unwrapped.rumor.content != "https://cdn.example/file.enc" {
+        return Err("nip17 file rumor content mismatch".to_string());
+    }
+    if !unwrapped.rumor.tags.iter().any(|tag| {
+        let items = tag.as_slice();
+        items.len() >= 2 && items[0] == "p" && items[1] == receiver.to_string()
+    }) {
+        return Err("nip17 file rumor missing recipient".to_string());
+    }
+    if !unwrapped.rumor.tags.iter().any(|tag| tag == &encrypted_hash_tag) {
+        return Err("nip17 file rumor missing encrypted hash".to_string());
     }
 
     Ok(())
@@ -2079,7 +2125,7 @@ async fn main() {
     push_harness_covered(&mut results, "NIP-22", Depth::Deep, check_nip22());
     push_harness_covered(&mut results, "NIP-23", Depth::Baseline, check_nip23());
     push_harness_covered(&mut results, "NIP-24", Depth::Baseline, check_nip24());
-    push_harness_covered(&mut results, "NIP-17", Depth::Baseline, check_nip17());
+    push_harness_covered(&mut results, "NIP-17", Depth::Baseline, check_nip17().await);
     push_harness_covered(&mut results, "NIP-39", Depth::Baseline, check_nip39());
     push_harness_covered(&mut results, "NIP-27", Depth::Deep, check_nip27());
     push_harness_covered(&mut results, "NIP-25", Depth::Deep, check_nip25());

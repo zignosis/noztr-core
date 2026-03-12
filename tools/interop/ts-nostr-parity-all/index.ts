@@ -884,6 +884,47 @@ function check_nip17(): void {
     ensure(relay_tags.length === 2, "NIP-17 relay-list count mismatch");
     ensure(relay_tags[0][1] === "wss://relay.one", "NIP-17 first relay mismatch");
     ensure(relay_tags[1][1] === "wss://relay.two", "NIP-17 second relay mismatch");
+
+    const file_wrap = nostr_tools.nip59.wrapEvent(
+        {
+            kind: kinds.FileMessage,
+            created_at: 1_708_000_060,
+            tags: [
+                ["p", recipient_public_key, "wss://relay.example"],
+                ["file-type", "image/jpeg"],
+                ["encryption-algorithm", "aes-gcm"],
+                ["decryption-key", "secret-key"],
+                ["decryption-nonce", "secret-nonce"],
+                [
+                    "x",
+                    "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                ],
+            ],
+            content: "https://cdn.example/file.enc",
+        },
+        sender_secret,
+        recipient_public_key,
+    );
+    ensure(file_wrap.kind === kinds.GiftWrap, "NIP-17 file-wrap kind mismatch");
+    const file_rumor = nostr_tools.nip59.unwrapEvent(file_wrap, recipient_secret);
+    ensure(file_rumor.kind === kinds.FileMessage, "NIP-17 file rumor kind mismatch");
+    ensure(
+        file_rumor.content === "https://cdn.example/file.enc",
+        "NIP-17 file rumor content mismatch",
+    );
+    ensure(
+        file_rumor.tags.some((tag) => tag[0] === "file-type" && tag[1] === "image/jpeg"),
+        "NIP-17 file rumor missing file-type",
+    );
+    ensure(
+        file_rumor.tags.some(
+            (tag) =>
+                tag[0] === "x" &&
+                tag[1] ===
+                    "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        ),
+        "NIP-17 file rumor missing encrypted hash",
+    );
 }
 
 async function check_nip39(): Promise<void> {

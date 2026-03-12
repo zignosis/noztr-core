@@ -154,12 +154,13 @@ Current project context for the Phase H kickoff baseline.
   - accepted bounded deferral: full OpenTimestamps / Bitcoin attestation verification remains out
     of current kernel scope
   - deferred backlog `NIP-17` is now complete in `src/nip17_private_messages.zig` with bounded
-    kind-`14` message parsing, direct `NIP-59` unwrap-to-rumor reuse, kind-`10050` relay-list
-    extraction, and direct `p`/`relay` tag builders
+    kind-`14` message parsing, kind-`15` file-message parsing, direct `NIP-59`
+    unwrap-to-rumor reuse for both message kinds, kind-`10050` relay-list extraction, and direct
+    `p`/`relay` tag builders
   - deferred backlog `NIP-17` robustness review is complete:
     - standard long-form reply `e` tags with optional public-key suffixes are now accepted
-    - kind-14 content, recipient, and relay-list boundaries remain unchanged
-  - accepted bounded deferral: kind-`15` file-message handling remains deferred in `no-nv9`
+    - kind-14 content, kind-15 required file metadata, recipient, and relay-list boundaries remain
+      unchanged
   - deferred backlog `NIP-39` is now complete in `src/nip39_external_identities.zig` with bounded
     kind-`10011` claim extraction, canonical `i`-tag building, provider-specific proof-URL
     derivation, and expected proof-text generation
