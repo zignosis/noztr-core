@@ -148,10 +148,17 @@ fn parse_event_tag(
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
-    if (tag.items.len != 2 and tag.items.len != 3) return error.InvalidEventTag;
+    if (tag.items.len < 2 or tag.items.len > 5) return error.InvalidEventTag;
     parsed.target_event_id = parse_lower_hex_32(tag.items[1]) catch return error.InvalidEventId;
-    if (tag.items.len == 3) {
-        parsed.relay_url = parse_url(tag.items[2]) catch return error.InvalidRelayUrl;
+    if (tag.items.len >= 3) {
+        parsed.relay_url = parse_optional_url(tag.items[2]) catch return error.InvalidRelayUrl;
+    }
+    if (tag.items.len == 4) {
+        try validate_event_suffix_item(tag.items[3]);
+    }
+    if (tag.items.len == 5) {
+        if (!is_event_marker(tag.items[3])) return error.InvalidEventTag;
+        _ = parse_lower_hex_32(tag.items[4]) catch return error.InvalidEventTag;
     }
 }
 
@@ -214,6 +221,32 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
     if (parsed.scheme.len == 0) return error.InvalidUrl;
     if (parsed.host == null) return error.InvalidUrl;
     return text;
+}
+
+fn parse_optional_url(text: []const u8) error{InvalidUrl}!?[]const u8 {
+    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
+
+    if (text.len == 0) return null;
+    return try parse_url(text);
+}
+
+fn validate_event_suffix_item(text: []const u8) OpenTimestampsError!void {
+    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
+
+    if (is_event_marker(text)) return;
+    _ = parse_lower_hex_32(text) catch return error.InvalidEventTag;
+}
+
+fn is_event_marker(text: []const u8) bool {
+    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
+
+    if (std.mem.eql(u8, text, "reply")) return true;
+    if (std.mem.eql(u8, text, "root")) return true;
+    if (std.mem.eql(u8, text, "mention")) return true;
+    return false;
 }
 
 fn write_kind_decimal(output: []u8, value: u32) []const u8 {
@@ -313,6 +346,29 @@ test "opentimestamps validate target reference matches id and kind" {
         error.TargetMismatch,
         opentimestamps_validate_target_reference(&parsed, &target),
     );
+}
+
+test "opentimestamps extract accepts long-form standard e tag variants" {
+    const tags = [_]nip01_event.EventTag{
+        .{ .items = &.{
+            "e",
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "",
+            "reply",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        } },
+        .{ .items = &.{ "k", "1" } },
+    };
+    var proof: [8]u8 = undefined;
+
+    const parsed = try opentimestamps_extract(
+        proof[0..],
+        &test_event(opentimestamps_kind, "AQ==", tags[0..]),
+    );
+
+    try std.testing.expect(parsed.relay_url == null);
+    try std.testing.expectEqual(@as(u32, 1), parsed.target_kind);
+    try std.testing.expectEqual(@as(u32, 1), parsed.proof_len);
 }
 
 test "opentimestamps builders emit canonical e and k tags" {
