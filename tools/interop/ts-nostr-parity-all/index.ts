@@ -20,6 +20,7 @@ import * as nip46 from "nostr-tools/nip46";
 import * as nip10 from "nostr-tools/nip10";
 import * as nip06 from "nostr-tools/nip06";
 import * as nip17 from "nostr-tools/nip17";
+import * as nip29 from "nostr-tools/nip29";
 import * as nip39 from "nostr-tools/nip39";
 import { parse as parseNostrUri } from "nostr-tools/nip21";
 import * as nip27 from "nostr-tools/nip27";
@@ -917,6 +918,74 @@ async function check_nip39(): Promise<void> {
     ensure(!github_bad, "NIP-39 github validation accepted wrong proof text");
 }
 
+function check_nip29(): void {
+    const secret_key = to_bytes_32(FIXED_SECRET_KEY_HEX);
+    const group = {
+        relay: "wss://groups.example",
+        metadata: {
+            id: "pizza-lovers",
+            pubkey: getPublicKey(secret_key),
+            name: "Pizza Lovers",
+            picture: "https://pizza.example/pizza.png",
+            about: "a group for people who love pizza",
+            isPublic: true,
+            isOpen: true,
+        },
+        reference: { id: "pizza-lovers", host: "groups.example" },
+    };
+    const metadata_template = nip29.generateGroupMetadataEventTemplate(group);
+    const metadata_event = finalizeEvent(metadata_template, secret_key);
+    ensure(nip29.validateGroupMetadataEvent(metadata_event), "NIP-29 metadata validation failed");
+    const metadata = nip29.parseGroupMetadataEvent(metadata_event);
+    ensure(metadata.id === "pizza-lovers", "NIP-29 metadata id mismatch");
+    ensure(metadata.name === "Pizza Lovers", "NIP-29 metadata name mismatch");
+    ensure(metadata.isPublic === true, "NIP-29 metadata public mismatch");
+    ensure(metadata.isOpen === true, "NIP-29 metadata open mismatch");
+
+    const admins_template = nip29.generateGroupAdminsEventTemplate(group, [
+        {
+            pubkey:
+                "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            label: "ceo",
+            permissions: [
+                nip29.GroupAdminPermission.PutUser,
+                nip29.GroupAdminPermission.DeleteEvent,
+            ],
+        },
+    ]);
+    const admins_event = finalizeEvent(admins_template, secret_key);
+    ensure(nip29.validateGroupAdminsEvent(admins_event), "NIP-29 admins validation failed");
+    const admins = nip29.parseGroupAdminsEvent(admins_event);
+    ensure(admins.length === 1, "NIP-29 admins count mismatch");
+    ensure(admins[0].label === "ceo", "NIP-29 admin label mismatch");
+    ensure(
+        admins[0].permissions.includes(nip29.GroupAdminPermission.PutUser),
+        "NIP-29 admin permission mismatch",
+    );
+
+    const members_template = nip29.generateGroupMembersEventTemplate(group, [
+        {
+            pubkey:
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            label: "vip",
+        },
+    ]);
+    const members_event = finalizeEvent(members_template, secret_key);
+    ensure(nip29.validateGroupMembersEvent(members_event), "NIP-29 members validation failed");
+    const members = nip29.parseGroupMembersEvent(members_event);
+    ensure(members.length === 1, "NIP-29 members count mismatch");
+    ensure(members[0].label === "vip", "NIP-29 member label mismatch");
+
+    ensure(
+        nip29.encodeGroupReference(group.reference) === "groups.example'pizza-lovers",
+        "NIP-29 group reference encoding mismatch",
+    );
+    ensure(
+        nip29.parseGroupCode("groups.example'pizza-lovers")?.id === "pizza-lovers",
+        "NIP-29 group reference parsing mismatch",
+    );
+}
+
 async function check_nip46(): Promise<void> {
     const pubkey =
         "b889ff5b1513b641e2a139f661a661364979c5beee91842f8f0ef42ab558e9d4";
@@ -1320,6 +1389,7 @@ async function main(): Promise<void> {
     await push_harness_covered(results, "NIP-23", "BASELINE", check_nip23);
     await push_harness_covered(results, "NIP-24", "BASELINE", check_nip24);
     await push_harness_covered(results, "NIP-17", "BASELINE", check_nip17);
+    await push_harness_covered(results, "NIP-29", "BASELINE", check_nip29);
     await push_harness_covered(results, "NIP-39", "BASELINE", check_nip39);
     await push_harness_covered(results, "NIP-42", "EDGE", check_nip42);
     await push_harness_covered(results, "NIP-44", "DEEP", check_nip44);

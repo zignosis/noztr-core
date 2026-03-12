@@ -1121,6 +1121,29 @@ Immutable record of accepted planning decisions.
   non-kernel adapter model is insufficient.
 - Supersedes: none
 
+## D-062: Keep Phase H NIP-29 bounded to relay-generated group event helpers
+
+- Date: 2026-03-12
+- Status: accepted
+- Decision: complete `no-j2g` by implementing `src/nip29_relay_groups.zig` only for the
+  relay-generated group events:
+  - kind-`39000` metadata extraction/building
+  - kind-`39001` admin extraction/building
+  - kind-`39002` member extraction/building
+  - compatibility parsing for deployed `nostr-tools` metadata/member shapes where it is bounded and
+    unambiguous
+  Do not add group loading, relay fetch/subscription logic, moderation-event orchestration, or
+  evolving group-state machinery to the kernel.
+- Why: this captures the deterministic event-boundary value of NIP-29 without turning `noztr` into
+  a relay client or group-state engine. It also preserves compatibility with the main deployed TS
+  helper lane where that compatibility does not compromise the raw event contract.
+- Tradeoff: immediate useful event helpers for the relay-generated group state versus leaving
+  broader group orchestration and moderation surfaces for later evaluation.
+- Related Tradeoff: T-H-ANIP-001, T-H-ANIP-003, T-0-001, T-0-003.
+- Reversal Trigger: future evidence shows that group reference/moderation helpers are required for
+  current scope and can be added without violating the bounded kernel posture.
+- Supersedes: none
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

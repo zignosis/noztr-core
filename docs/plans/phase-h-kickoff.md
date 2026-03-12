@@ -328,6 +328,23 @@ the validated maintenance baseline.
     - TypeScript audit overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
   - review outcome:
     - no accepted behavior change was required after the implementation pass
+- Deferred backlog / `NIP-29` is complete in `no-j2g`
+  - bounded `src/nip29_relay_groups.zig` surface is implemented
+  - current implemented scope:
+    - kind-`39000` metadata extraction/building
+    - kind-`39001` admin extraction/building with ordered raw role labels
+    - kind-`39002` member extraction/building with bounded optional compatibility labels
+    - compatibility parsing for deployed `nostr-tools` `public` / `open` metadata aliases
+    - tolerant handling of unrelated unknown tags
+  - accepted bounded deferral:
+    - group references, user/moderation event surfaces, and relay orchestration remain deferred in
+      `no-ebj`
+  - parity/evidence status:
+    - rust parity overlap remains source-review-only because `rust-nostr` has no dedicated NIP-29
+      helper surface
+    - TypeScript audit overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
+  - review outcome:
+    - no accepted behavior change was required after the implementation pass
 
 ## Immediate Work Tracks
 
@@ -338,13 +355,10 @@ the validated maintenance baseline.
 - Current robustness progress:
   - completed: `NIP-46`, `NIP-06`, `NIP-51` private lists, `NIP-44`, `NIP-59`
   - recommended next surfaces: `NIP-24`, `NIP-23`, `NIP-46`, `NIP-06`, `NIP-51` private lists
-- Phase H planned expansion is now complete through deferred backlog item `NIP-39`; current
-  protocol work remains the final deferred backlog item (`29`) before the next
-  robustness batch.
-- Deferred backlog is now reprioritized:
-  - next implementation candidate: `NIP-29` (`no-j2g`)
-  - recommended sequence: implement the remaining deferred backlog item, then run the next
-    robustness batch
+- Phase H planned expansion is now complete through deferred backlog item `NIP-29`.
+- Deferred backlog is now complete.
+- Recommended next sequence: start the next robustness batch instead of expanding protocol surface
+  further immediately.
 - `NIP-44` robustness outcome:
   - no Layer 1 behavior change was required after real-world review
   - the current v2-only surface, staged failure ordering, typed conversation-key boundary, and

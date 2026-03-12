@@ -87,6 +87,9 @@ pub const nip17_private_messages = @import("nip17_private_messages.zig");
 /// Phase H deferred-backlog concrete export for the NIP-39 external-identity module.
 pub const nip39_external_identities = @import("nip39_external_identities.zig");
 
+/// Phase H deferred-backlog concrete export for the NIP-29 relay-group module.
+pub const nip29_relay_groups = @import("nip29_relay_groups.zig");
+
 /// Phase I5 concrete export for the NIP-44 encrypted direct-message module.
 pub const nip44 = @import("nip44.zig");
 
@@ -163,6 +166,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip17_private_messages.Nip17Error) == type);
     try std.testing.expect(@TypeOf(nip17_private_messages.Nip17RelayListError) == type);
     try std.testing.expect(@TypeOf(nip39_external_identities.Nip39Error) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.Nip29Error) == type);
     try std.testing.expect(@TypeOf(nip44.Nip44Error) == type);
     try std.testing.expect(@TypeOf(nip59_wrap.WrapError) == type);
     try std.testing.expectEqual(i6_extensions_enabled, @hasDecl(nip45_count, "CountError"));
@@ -204,6 +208,13 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip39_external_identities.IdentityProvider) == type);
     try std.testing.expect(@TypeOf(nip39_external_identities.IdentityClaim) == type);
     try std.testing.expect(@TypeOf(nip39_external_identities.BuiltTag) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupMetadataFlag) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupMetadata) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupAdmin) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupMember) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupAdminsInfo) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupMembersInfo) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.BuiltTag) == type);
     try std.testing.expect(
         @TypeOf(nip06_mnemonic.mnemonic_validate) ==
             fn ([]const u8) nip06_mnemonic.Nip06Error!void,
@@ -300,6 +311,25 @@ test "root exports limits and error namespaces" {
                 []u8,
                 *const nip39_external_identities.IdentityClaim,
             ) nip39_external_identities.Nip39Error![]const u8,
+    );
+    try std.testing.expect(
+        @TypeOf(nip29_relay_groups.group_metadata_extract) ==
+            fn (*const nip01_event.Event) nip29_relay_groups.Nip29Error!nip29_relay_groups.GroupMetadata,
+    );
+    try std.testing.expect(
+        @TypeOf(nip29_relay_groups.group_admins_extract) ==
+            fn (
+                *const nip01_event.Event,
+                []nip29_relay_groups.GroupAdmin,
+                [][]const u8,
+            ) nip29_relay_groups.Nip29Error!nip29_relay_groups.GroupAdminsInfo,
+    );
+    try std.testing.expect(
+        @TypeOf(nip29_relay_groups.group_members_extract) ==
+            fn (
+                *const nip01_event.Event,
+                []nip29_relay_groups.GroupMember,
+            ) nip29_relay_groups.Nip29Error!nip29_relay_groups.GroupMembersInfo,
     );
     try std.testing.expect(
         @TypeOf(nip24_extra_metadata.common_tags_extract) ==

@@ -46,7 +46,7 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
 | 24 | defer | Extra metadata/tag conventions are lower priority and can follow higher-interoperability items. |
 | 25 | wave-1-complete | Native kind-7 reaction parsing/helpers are now implemented with strict last-target semantics, typed malformed-tag failures, and strict custom-emoji validation; kind-17 external reactions remain deferred with NIP-73. |
 | 27 | wave-1-complete | Strict inline `nostr:` reference extraction is now implemented with stable spans, decoded NIP-21 entities, and malformed-fragment fallback. |
-| 29 | defer | Relay-based groups introduce state/policy complexity that exceeds current maintenance-phase expansion scope. |
+| 29 | expansion-complete | Bounded relay-group helpers are now implemented for relay-generated kinds `39000`, `39001`, and `39002`, including deterministic metadata/admin/member extraction and builders; broader group references, moderation/user events, and orchestration remain deferred in `no-ebj`. |
 | 39 | expansion-complete | Bounded external-identity helpers are now implemented for kind-10011 claim extraction, canonical `i`-tag building, provider-specific proof-URL derivation, and expected proof-text generation; live provider fetch verification remains deferred in `no-t9x`. |
 | 46 | expansion-candidate | Nostr Connect is strategically important and can be modeled via explicit message/verification boundaries. |
 | 51 | wave-1-complete | Strict public-list extraction for the common rust-backed NIP-51 kinds is implemented with explicit set metadata handling, coordinate-kind validation, bounded broader bookmark/emoji emission helpers, and bounded NIP-44 private-list helpers; deprecated NIP-04 private-list compatibility is deferred in `no-urr`. |
@@ -59,17 +59,15 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
 - Wave 2 (higher-complexity expansion): `46`.
 - Wave 3 (security-sensitive expansion after checkpoint): `06`.
 - Post-Wave expansion completion: `23`.
-- Post-wave deferred backlog completion: `24`, `03`, `17`, `39`.
-- Deferred backlog (no implementation start in this plan): `29`.
+- Post-wave deferred backlog completion: `24`, `03`, `17`, `39`, `29`.
+- Deferred backlog (no implementation start in this plan): none.
 - Rejected hold: `07`.
 
 ## Deferred Backlog Priority Order
 
-Reprioritized after deferred-backlog completion of `NIP-39`:
+Reprioritized after deferred-backlog completion of `NIP-29`:
 
-1. `29` (`no-j2g`)
-   Reason: highest state/policy complexity and the weakest fit for the current protocol-kernel
-   scope.
+- No deferred backlog items remain.
 
 ## Per-Wave Exit Gates
 
