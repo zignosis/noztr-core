@@ -72,6 +72,9 @@ pub const nip46_remote_signing = @import("nip46_remote_signing.zig");
 /// Phase H concrete export for the NIP-06 mnemonic derivation module.
 pub const nip06_mnemonic = @import("nip06_mnemonic.zig");
 
+/// Phase H concrete export for the NIP-23 long-form metadata module.
+pub const nip23_long_form = @import("nip23_long_form.zig");
+
 /// Phase I5 concrete export for the NIP-44 encrypted direct-message module.
 pub const nip44 = @import("nip44.zig");
 
@@ -142,6 +145,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip51_lists.PrivateListError) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.Nip46Error) == type);
     try std.testing.expect(@TypeOf(nip06_mnemonic.Nip06Error) == type);
+    try std.testing.expect(@TypeOf(nip23_long_form.LongFormError) == type);
     try std.testing.expect(@TypeOf(nip44.Nip44Error) == type);
     try std.testing.expect(@TypeOf(nip59_wrap.WrapError) == type);
     try std.testing.expectEqual(i6_extensions_enabled, @hasDecl(nip45_count, "CountError"));
@@ -169,6 +173,8 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip46_remote_signing.ConnectResult) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.ParsedRequest) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.DiscoveryInfo) == type);
+    try std.testing.expect(@TypeOf(nip23_long_form.LongFormMetadata) == type);
+    try std.testing.expect(@TypeOf(nip23_long_form.BuiltTag) == type);
     try std.testing.expect(
         @TypeOf(nip06_mnemonic.mnemonic_validate) ==
             fn ([]const u8) nip06_mnemonic.Nip06Error!void,
@@ -184,6 +190,20 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(
         @TypeOf(nip06_mnemonic.derive_nostr_secret_key) ==
             fn ([]u8, []const u8, ?[]const u8, u32) nip06_mnemonic.Nip06Error![]const u8,
+    );
+    try std.testing.expect(
+        @TypeOf(nip23_long_form.long_form_extract) ==
+            fn (
+                *const nip01_event.Event,
+                [][]const u8,
+            ) nip23_long_form.LongFormError!nip23_long_form.LongFormMetadata,
+    );
+    try std.testing.expect(
+        @TypeOf(nip23_long_form.long_form_build_identifier_tag) ==
+            fn (
+                *nip23_long_form.BuiltTag,
+                []const u8,
+            ) nip23_long_form.LongFormError!nip01_event.EventTag,
     );
     try std.testing.expect(@TypeOf(nip46_remote_signing.Message) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.ConnectionUri) == type);

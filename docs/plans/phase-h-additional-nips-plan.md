@@ -42,7 +42,7 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
 | 17 | defer | Private DM conventions add orchestration and policy complexity beyond current NIP-44/NIP-59 kernel baseline. |
 | 18 | wave-1-complete | Strict repost parsing/helpers are now implemented with deterministic embedded-event consistency checks across `e`, `p`, `k`, and `a` data. |
 | 22 | wave-1-complete | Strict comment root/parent linkage helpers are now implemented with mandatory `K/k`, author linkage, and NIP-73-consistent external validation. |
-| 23 | expansion-candidate | Long-form metadata is implementable with strict field and tag validation bounds. |
+| 23 | expansion-complete | Bounded long-form metadata helpers are implemented with required `d`, optional title/image/summary/published_at extraction, ordered hashtag extraction, and builder coverage for both `30023` and `30024`. |
 | 24 | defer | Extra metadata/tag conventions are lower priority and can follow higher-interoperability items. |
 | 25 | wave-1-complete | Native kind-7 reaction parsing/helpers are now implemented with strict last-target semantics, typed malformed-tag failures, and strict custom-emoji validation; kind-17 external reactions remain deferred with NIP-73. |
 | 27 | wave-1-complete | Strict inline `nostr:` reference extraction is now implemented with stable spans, decoded NIP-21 entities, and malformed-fragment fallback. |
@@ -58,6 +58,7 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
 - Wave 1 (high-value low-ambiguity): `25`, `10`, `18`, `22`, `27`, `51`.
 - Wave 2 (higher-complexity expansion): `46`.
 - Wave 3 (security-sensitive expansion after checkpoint): `06`.
+- Post-Wave expansion completion: `23`.
 - Deferred backlog (no implementation start in this plan): `03`, `17`, `24`, `29`, `39`.
 - Rejected hold: `07`.
 
@@ -181,7 +182,32 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
   - Wave 1 is complete.
   - Wave 2 / `46` is complete.
   - Wave 3 / `06` is complete.
+  - Post-wave expansion / `23` is complete.
   - Post-wave NIP-51 private-list follow-up `no-e7b` is complete.
+
+## Post-Wave Expansion Status Snapshot
+
+- Complete:
+  - `23`
+    - implemented scope: bounded long-form metadata helpers in `src/nip23_long_form.zig`
+    - current implemented semantics:
+      - supports both `30023` articles and `30024` drafts
+      - requires exactly one non-empty `d` identifier tag
+      - extracts optional single `title`, `image`, `summary`, and `published_at` tags with typed
+        malformed-tag failures
+      - accepts `image` as either URL-only or URL-plus-dimensions
+      - preserves ordered `t` hashtags into caller-provided output buffers
+      - ignores unrelated unknown tags instead of poisoning the whole helper path
+      - validates long-form content as bounded UTF-8
+      - direct metadata tag builders cover `d`, `title`, `image`, `summary`, `published_at`, and
+        `t`
+    - parity/evidence status:
+      - `rust-nostr`: `HARNESS_COVERED`, `BASELINE`, `PASS`
+      - `nostr-tools`: `HARNESS_COVERED`, `BASELINE`, `PASS`
+    - review outcome:
+      - no accepted behavior change was required after the first implementation pass
+      - current extraction keeps required editability strict while staying tolerant of unrelated
+        future metadata
 
 ## Wave 2 Status Snapshot
 

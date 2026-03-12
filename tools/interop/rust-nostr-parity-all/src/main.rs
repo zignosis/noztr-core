@@ -257,6 +257,10 @@ fn event_has_emoji(event: &Event, shortcode: &str, expected_url: &Url) -> bool {
     })
 }
 
+fn event_has_exact_tag(event: &Event, expected: Tag) -> bool {
+    event.tags.iter().any(|tag| tag == &expected)
+}
+
 fn push_harness_covered(
     results: &mut Vec<NipResult>,
     nip: &'static str,
@@ -787,6 +791,65 @@ fn check_nip22() -> Result<(), String> {
             }
         }
         _ => return Err("parent-only comment target kind mismatch".to_string()),
+    }
+
+    Ok(())
+}
+
+fn check_nip23() -> Result<(), String> {
+    let keys = parse_keys()?;
+    let published_at = Timestamp::from(1_296_962_229);
+    let title = Tag::from_standardized_without_cell(TagStandard::Title(String::from("Lorem Ipsum")));
+    let published =
+        Tag::from_standardized_without_cell(TagStandard::PublishedAt(published_at));
+    let hashtag = Tag::hashtag("placeholder");
+    let image = Tag::parse(vec!["image", "https://example.com/image.png", "800x600"])
+        .map_err(|e| format!("nip23 image tag parse: {e}"))?;
+    let summary = Tag::parse(vec!["summary", "Article summary"])
+        .map_err(|e| format!("nip23 summary tag parse: {e}"))?;
+    let event = EventBuilder::long_form_text_note("My first text note from rust-nostr!")
+        .tags([
+            Tag::identifier("lorem-ipsum"),
+            title.clone(),
+            image.clone(),
+            summary.clone(),
+            published.clone(),
+            hashtag.clone(),
+        ])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("sign nip23 article: {e}"))?;
+
+    if event.kind != Kind::LongFormTextNote {
+        return Err("nip23 article kind mismatch".to_string());
+    }
+    if !event_has_identifier(&event, "lorem-ipsum") {
+        return Err("nip23 article missing identifier".to_string());
+    }
+    if !event_has_exact_tag(&event, title) {
+        return Err("nip23 article missing title".to_string());
+    }
+    if !event_has_exact_tag(&event, image) {
+        return Err("nip23 article missing image".to_string());
+    }
+    if !event_has_exact_tag(&event, summary) {
+        return Err("nip23 article missing summary".to_string());
+    }
+    if !event_has_exact_tag(&event, published) {
+        return Err("nip23 article missing published_at".to_string());
+    }
+    if !event_has_hashtag(&event, "placeholder") {
+        return Err("nip23 article missing hashtag".to_string());
+    }
+
+    let draft = EventBuilder::new(Kind::Custom(30024), "Draft body")
+        .tags([Tag::identifier("draft-id")])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("sign nip23 draft: {e}"))?;
+    if draft.kind.as_u16() != 30024 {
+        return Err("nip23 draft kind mismatch".to_string());
+    }
+    if !event_has_identifier(&draft, "draft-id") {
+        return Err("nip23 draft missing identifier".to_string());
     }
 
     Ok(())
@@ -1847,6 +1910,7 @@ async fn main() {
     push_harness_covered(&mut results, "NIP-19", Depth::Deep, check_nip19());
     push_harness_covered(&mut results, "NIP-21", Depth::Deep, check_nip21());
     push_harness_covered(&mut results, "NIP-22", Depth::Deep, check_nip22());
+    push_harness_covered(&mut results, "NIP-23", Depth::Baseline, check_nip23());
     push_harness_covered(&mut results, "NIP-27", Depth::Deep, check_nip27());
     push_harness_covered(&mut results, "NIP-25", Depth::Deep, check_nip25());
     push_harness_covered(&mut results, "NIP-51", Depth::Deep, check_nip51());

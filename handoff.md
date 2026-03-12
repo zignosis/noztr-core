@@ -135,7 +135,12 @@ Current project context for the Phase H kickoff baseline.
     private-list JSON serialization, bounded private-item extraction from decrypted JSON, and
     direct NIP-44 private-list decrypt+extract
   - deprecated NIP-04 private-list compatibility is now deferred separately in `no-urr`
-  - Wave 1, the implemented-NIP audit, Wave 2 / `NIP-46`, and Wave 3 / `NIP-06` are complete
+  - post-wave expansion `NIP-23` is now complete in `src/nip23_long_form.zig` with bounded
+    long-form metadata extraction/builders for `30023` and `30024`, required single `d`,
+    optional `title`/`image`/`summary`/`published_at`, ordered hashtag extraction, and ignored
+    unrelated unknown tags
+  - Wave 1, the implemented-NIP audit, Wave 2 / `NIP-46`, Wave 3 / `NIP-06`, and post-wave
+    expansion `NIP-23` are complete
 
 ## Phase G Closure Snapshot (non-remote)
 
@@ -149,8 +154,8 @@ Current project context for the Phase H kickoff baseline.
 ## Active Parity Gate
 
 - Active lane: rust only (`tools/interop/rust-nostr-parity-all`).
-- Current rust status: `24/24 HARNESS_COVERED`, mixed `BASELINE/EDGE/DEEP`, `PASS`.
-- Current TS audit status: `23/23 HARNESS_COVERED`, mixed `BASELINE/EDGE/DEEP`, `PASS`
+- Current rust status: `25/25 HARNESS_COVERED`, mixed `BASELINE/EDGE/DEEP`, `PASS`.
+- Current TS audit status: `24/24 HARNESS_COVERED`, mixed `BASELINE/EDGE/DEEP`, `PASS`
   (`tools/interop/ts-nostr-parity-all`; non-gating audit evidence lane).
 - Baseline cadence run (2026-03-09): rust parity harness passed
   (`SUMMARY pass=16 fail=0 harness_covered=16 total=16`).
@@ -164,11 +169,11 @@ Current project context for the Phase H kickoff baseline.
   (`Build Summary: 9/9 steps succeeded; 640/640 tests passed`).
 - Latest cadence run (2026-03-11): `zig build` passed.
 - Latest cadence run (2026-03-12): rust parity harness passed
-  (`SUMMARY pass=24 fail=0 harness_covered=24 total=24`).
+  (`SUMMARY pass=25 fail=0 harness_covered=25 total=25`).
 - Latest cadence run (2026-03-12): TS audit harness passed
-  (`SUMMARY pass=23 fail=0 harness_covered=23 total=23`).
+  (`SUMMARY pass=24 fail=0 harness_covered=24 total=24`).
 - Latest cadence run (2026-03-12): `zig build test --summary all` passed
-  (`Build Summary: 9/9 steps succeeded; 658/658 tests passed`).
+  (`Build Summary: 9/9 steps succeeded; 668/668 tests passed`).
 - Latest cadence run (2026-03-12): `zig build` passed.
 - Active cadence commands:
   - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
@@ -205,11 +210,11 @@ Current project context for the Phase H kickoff baseline.
 1. Keep TypeScript references archive-only in docs and prevent active-cadence wording regressions.
 2. Continue maintenance cadence reruns (rust parity + aggregate Zig gates) on dependency or toolchain
    changes and record outcomes in Phase H kickoff and handoff docs.
-3. Run the implemented-surface robustness / real-world validation pass before any new NIP
-   expansion.
-   Completed surfaces: `46`, `06`, `51` private lists, `44`, `59`.
-   Recommended next step: evaluate whether to start a second robustness batch or resume new
-   protocol expansion.
+3. Phase H planned expansion is complete through `NIP-23`.
+   Recommended next step:
+   - either run a second robustness batch on the newly added surfaces (`23`, `46`, `06`, `51`
+     private lists), or
+   - explicitly reprioritize one deferred backlog item (`03`, `17`, `24`, `29`, `39`).
 4. Keep the implemented-NIP audit report current if future code changes reopen compatibility or
    strictness questions.
 5. Wave 2 / `NIP-46` is complete.

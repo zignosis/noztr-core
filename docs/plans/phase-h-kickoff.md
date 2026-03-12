@@ -120,8 +120,8 @@ the validated maintenance baseline.
     - the current NIP-44-first private JSON-array wire and explicit legacy NIP-04 rejection remain
       the accepted kernel posture
 - Wave 1 status: complete.
-- Active next execution focus: implemented-surface robustness / real-world validation before any
-  further protocol expansion.
+- Active next execution focus: Phase H planned expansion is complete; next work should be either a
+  second robustness batch or an explicit reprioritization of deferred backlog items.
 - Implemented-NIP audit status:
   - `NIP-01`, `NIP-02`, `NIP-09`, `NIP-10`, `NIP-11`, `NIP-13`, `NIP-18`, `NIP-19`, `NIP-21`,
     `NIP-22`, `NIP-25`, `NIP-27`, `NIP-40`, `NIP-42`, `NIP-44`, `NIP-51`, `NIP-59`, and `NIP-65`
@@ -250,23 +250,33 @@ the validated maintenance baseline.
     - TypeScript audit overlap is now `HARNESS_COVERED`, `EDGE`, `PASS`
     - accepted ASCII-only normalization boundary remains unchanged pending any future `no-2gp`
       Unicode work
+- Post-wave expansion / `NIP-23` is complete in `no-y6o`
+  - bounded `src/nip23_long_form.zig` surface is implemented
+  - current implemented scope:
+    - kind classification for `30023` articles and `30024` drafts
+    - strict extract helper with required single `d` identifier
+    - optional single `title`, `image`, `summary`, and `published_at` metadata extraction
+    - ordered `t` hashtag extraction into caller-provided buffers
+    - direct metadata tag builders for `d`, `title`, `image`, `summary`, `published_at`, and `t`
+    - tolerant handling of unrelated unknown tags
+  - parity/evidence status:
+    - rust parity overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
+    - TypeScript audit overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
+  - review outcome:
+    - no accepted behavior change was required after the first implementation pass
 
 ## Immediate Work Tracks
 
 - Maintain rust-active parity cadence and aggregate Zig quality gates on dependency/toolchain
   changes.
 - Use the implemented-surface robustness / real-world validation execution in
-  `docs/plans/build-plan.md` as the next execution model before any new NIP expansion.
-- Start that robustness pass with the most integration-sensitive completed surfaces:
-  - `NIP-46`
-  - `NIP-06`
-  - `NIP-51` private lists
-  - `NIP-44`
-  - `NIP-59`
+  `docs/plans/build-plan.md` as the next execution model when we want more hardening work.
 - Current robustness progress:
   - completed: `NIP-46`, `NIP-06`, `NIP-51` private lists, `NIP-44`, `NIP-59`
-  - recommended next surfaces: evaluate whether to start a second robustness batch or resume new
-    protocol expansion
+  - recommended next surfaces: `NIP-23`, `NIP-46`, `NIP-06`, `NIP-51` private lists
+- Phase H planned expansion is now complete through `NIP-23`; next protocol work requires either:
+  - a second robustness batch on completed surfaces, or
+  - explicit reprioritization of one deferred backlog item (`03`, `17`, `24`, `29`, `39`)
 - `NIP-44` robustness outcome:
   - no Layer 1 behavior change was required after real-world review
   - the current v2-only surface, staged failure ordering, typed conversation-key boundary, and

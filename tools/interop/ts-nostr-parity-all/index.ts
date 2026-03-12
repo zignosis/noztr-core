@@ -704,6 +704,47 @@ function check_nip51(): void {
     );
 }
 
+function check_nip23(): void {
+    const secret_key = to_bytes_32(FIXED_SECRET_KEY_HEX);
+    const article = finalizeEvent(
+        {
+            kind: kinds.LongFormArticle,
+            created_at: 1_708_000_056,
+            tags: [
+                ["d", "lorem-ipsum"],
+                ["title", "Lorem Ipsum"],
+                ["image", "https://example.com/image.png", "800x600"],
+                ["summary", "Article summary"],
+                ["published_at", "1296962229"],
+                ["t", "placeholder"],
+            ],
+            content: "NIP-23 article",
+        },
+        secret_key,
+    );
+    ensure(article.kind === kinds.LongFormArticle, "NIP-23 article kind mismatch");
+    ensure(verifyEvent(article), "NIP-23 article signature verification failed");
+    ensure(article.tags.some((tag) => tag[0] === "d" && tag[1] === "lorem-ipsum"), "NIP-23 article missing identifier");
+    ensure(article.tags.some((tag) => tag[0] === "title" && tag[1] === "Lorem Ipsum"), "NIP-23 article missing title");
+    ensure(article.tags.some((tag) => tag[0] === "image" && tag[2] === "800x600"), "NIP-23 article missing image dimensions");
+    ensure(article.tags.some((tag) => tag[0] === "summary" && tag[1] === "Article summary"), "NIP-23 article missing summary");
+    ensure(article.tags.some((tag) => tag[0] === "published_at" && tag[1] === "1296962229"), "NIP-23 article missing published_at");
+    ensure(article.tags.some((tag) => tag[0] === "t" && tag[1] === "placeholder"), "NIP-23 article missing hashtag");
+
+    const draft = finalizeEvent(
+        {
+            kind: kinds.DraftLong,
+            created_at: 1_708_000_057,
+            tags: [["d", "draft-id"]],
+            content: "NIP-23 draft",
+        },
+        secret_key,
+    );
+    ensure(draft.kind === kinds.DraftLong, "NIP-23 draft kind mismatch");
+    ensure(verifyEvent(draft), "NIP-23 draft signature verification failed");
+    ensure(draft.tags.some((tag) => tag[0] === "d" && tag[1] === "draft-id"), "NIP-23 draft missing identifier");
+}
+
 async function check_nip46(): Promise<void> {
     const pubkey =
         "b889ff5b1513b641e2a139f661a661364979c5beee91842f8f0ef42ab558e9d4";
@@ -1103,6 +1144,7 @@ async function main(): Promise<void> {
     await push_harness_covered(results, "NIP-25", "EDGE", check_nip25);
     await push_harness_covered(results, "NIP-27", "EDGE", check_nip27);
     await push_harness_covered(results, "NIP-21", "EDGE", check_nip21);
+    await push_harness_covered(results, "NIP-23", "BASELINE", check_nip23);
     await push_harness_covered(results, "NIP-42", "EDGE", check_nip42);
     await push_harness_covered(results, "NIP-44", "DEEP", check_nip44);
     await push_harness_covered(results, "NIP-51", "BASELINE", check_nip51);
