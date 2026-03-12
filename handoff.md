@@ -303,6 +303,8 @@ Current project context for the Phase H kickoff baseline.
      hardening work before any new protocol expansion
 4. Keep the implemented-NIP audit report current if future code changes reopen compatibility or
    strictness questions.
+   - use `docs/plans/noztr-sdk-ownership-matrix.md` when the question is whether a helper belongs
+     in `noztr` or the future SDK.
 5. Wave 2 / `NIP-46` is complete.
    Implemented baseline:
    - `src/nip46_remote_signing.zig` now covers method parsing, permission parsing/formatting,

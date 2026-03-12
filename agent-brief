@@ -63,6 +63,7 @@ plan_docs=(
     "AGENTS.md"
     "docs/plans/decision-log.md"
     "docs/plans/build-plan.md"
+    "docs/plans/noztr-sdk-ownership-matrix.md"
     "docs/plans/phase-g-kickoff.md"
     "docs/plans/phase-h-kickoff.md"
     "docs/plans/phase-h-additional-nips-plan.md"
@@ -144,6 +145,7 @@ printf "## Load On Demand\n\n"
 printf -- '- `docs/guides/TIGER_STYLE.md` and `docs/guides/NOZTR_STYLE.md` for Zig implementation or API work\n'
 printf -- '- `docs/guides/zig-patterns.md` and `docs/guides/zig-anti-patterns.md` for Zig implementation or review\n'
 printf -- '- Active Phase H docs: `docs/plans/phase-h-kickoff.md`, `docs/plans/phase-h-additional-nips-plan.md`, `docs/plans/phase-h-wave1-loop.md`\n'
+printf -- '- `docs/plans/noztr-sdk-ownership-matrix.md` for kernel-vs-SDK ownership questions\n'
 printf -- '- Relevant NIP-specific docs, tests, and source files for the current task\n\n'
 
 printf "## Next Missing Artifacts\n\n"

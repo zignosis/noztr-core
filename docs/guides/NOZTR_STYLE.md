@@ -102,10 +102,12 @@ It complements TigerStyle and v1 planning artifacts with project-specific defaul
 - Keep protocol-kernel modules focused on parsing, validation, serialization, verification, and
   bounded helper behavior.
 - Do not mix application-flow policy into Layer 1 helpers.
-- Validation of protocol fields belongs in the kernel; redirect rendering, placeholder expansion,
-  UI handoff, and connection-orchestration policy do not.
-- Current example: NIP-46 `nostrconnect_url` parsing belongs in the kernel, but template rendering
-  or redirect expansion remains outside it (`D-053`).
+- Validation of protocol fields belongs in the kernel; UI handoff, relay/session orchestration, and
+  redirect policy do not.
+- Deterministic protocol glue may belong in the kernel when it stays pure and bounded.
+- Current example: NIP-46 `nostrconnect_url` parsing and exact `<nostrconnect>` template
+  substitution belong in the kernel, but launching, redirects, and session orchestration do not
+  (`D-068`).
 
 ## Ecosystem Positioning (High Level)
 

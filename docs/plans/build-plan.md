@@ -328,6 +328,9 @@ Robustness pass quality rules:
   replacement for the audit standards.
 - Prefer hardening the highest-value, most integration-sensitive surfaces first before resuming new
   protocol expansion.
+- When a scope question is really a kernel-vs-SDK ownership question, consult
+  `docs/plans/noztr-sdk-ownership-matrix.md` before widening `noztr` or deferring deterministic
+  protocol glue out of it.
 
 ## Phase F hard-gate closure status (epic `no-dr3`)
 

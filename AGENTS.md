@@ -11,6 +11,8 @@ exceptions recorded in the decision log.
 - Read `docs/guides/TIGER_STYLE.md`, `docs/guides/NOZTR_STYLE.md`,
   `docs/guides/zig-patterns.md`, and `docs/guides/zig-anti-patterns.md` only when the task touches
   Zig implementation, public API shape, or code review.
+- Read `docs/plans/noztr-sdk-ownership-matrix.md` when the task touches kernel-vs-SDK scope,
+  deterministic protocol glue, or higher-level workflow ownership.
 - Read planning prompt artifacts only when the task is phase-planning work.
 - Work in phase order. Do not skip phase gates.
 

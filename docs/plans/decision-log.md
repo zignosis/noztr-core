@@ -1471,3 +1471,21 @@ Immutable record of accepted planning decisions.
 - Reversal Trigger: a fixed-capacity reducer proves too coupled to relay policy or too complex to
   preserve KISS and boundedness.
 - Supersedes: D-066
+
+## D-073: Keep a canonical `noztr` vs SDK ownership matrix for kernel-boundary decisions
+
+- Date: 2026-03-12
+- Status: accepted
+- Decision: adopt `docs/plans/noztr-sdk-ownership-matrix.md` as the canonical operational guide for
+  deciding whether new functionality belongs in the `noztr` protocol kernel or the future SDK. Use
+  it during NIP implementation, review, and decision-hygiene passes together with the decision log.
+- Why: the project now has enough implemented surface that scope drift can happen in both
+  directions: pushing orchestration into `noztr` or keeping deterministic protocol glue out of it.
+  A small explicit ownership map helps keep future reviews and SDK work consistent without
+  reopening the same boundary argument every time.
+- Tradeoff: one more targeted planning artifact versus less repeated scope ambiguity and less
+  accidental doc drift across NIP reviews.
+- Related Tradeoff: T-H-ANIP-011.
+- Reversal Trigger: the matrix becomes redundant with a future SDK repo's own canonical boundary
+  docs or proves too stale to maintain.
+- Supersedes: none
