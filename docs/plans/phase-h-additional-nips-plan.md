@@ -59,26 +59,24 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
 - Wave 2 (higher-complexity expansion): `46`.
 - Wave 3 (security-sensitive expansion after checkpoint): `06`.
 - Post-Wave expansion completion: `23`.
-- Deferred backlog (no implementation start in this plan): `03`, `17`, `24`, `29`, `39`.
+- Post-wave deferred backlog completion: `24`.
+- Deferred backlog (no implementation start in this plan): `03`, `17`, `29`, `39`.
 - Rejected hold: `07`.
 
 ## Deferred Backlog Priority Order
 
-Reprioritized after post-wave completion of `NIP-23`:
+Reprioritized after post-wave completion of `NIP-24`:
 
-1. `24` (`no-hu1`)
-   Reason: lowest-ambiguity remaining metadata/tagging surface and the best fit for the current
-   bounded helper posture after `NIP-23`.
-2. `03` (`no-wo7`)
+1. `03` (`no-wo7`)
    Reason: still useful and fairly self-contained, but needs a tighter verification-policy boundary
    than `24`.
-3. `17` (`no-0jq`)
+2. `17` (`no-0jq`)
    Reason: now more feasible because `NIP-44` and `NIP-59` are in place, but it still carries more
    orchestration and trust-surface ambiguity than `24` or `03`.
-4. `39` (`no-g5j`)
+3. `39` (`no-g5j`)
    Reason: explicit trust-policy surface makes it lower priority until the less policy-heavy items
    are done.
-5. `29` (`no-j2g`)
+4. `29` (`no-j2g`)
    Reason: highest state/policy complexity and the weakest fit for the current protocol-kernel
    scope.
 

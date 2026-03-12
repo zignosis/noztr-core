@@ -745,6 +745,50 @@ function check_nip23(): void {
     ensure(draft.tags.some((tag) => tag[0] === "d" && tag[1] === "draft-id"), "NIP-23 draft missing identifier");
 }
 
+function check_nip24(): void {
+    const secret_key = to_bytes_32(FIXED_SECRET_KEY_HEX);
+    const metadata_content = JSON.stringify({
+        display_name: "Display",
+        website: "https://example.com",
+        banner: "https://example.com/banner.png",
+        bot: true,
+        birthday: { year: 1984, month: 1, day: 24 },
+    });
+    const parsed = JSON.parse(metadata_content) as {
+        display_name?: string;
+        website?: string;
+        banner?: string;
+        bot?: boolean;
+        birthday?: { year?: number; month?: number; day?: number };
+    };
+    ensure(parsed.display_name === "Display", "NIP-24 metadata display_name mismatch");
+    ensure(parsed.website === "https://example.com", "NIP-24 metadata website mismatch");
+    ensure(parsed.banner === "https://example.com/banner.png", "NIP-24 metadata banner mismatch");
+    ensure(parsed.bot === true, "NIP-24 metadata bot mismatch");
+    ensure(parsed.birthday?.year === 1984, "NIP-24 metadata birthday year mismatch");
+    ensure(parsed.birthday?.month === 1, "NIP-24 metadata birthday month mismatch");
+    ensure(parsed.birthday?.day === 24, "NIP-24 metadata birthday day mismatch");
+
+    const event = finalizeEvent(
+        {
+            kind: 0,
+            created_at: 1_708_000_058,
+            tags: [
+                ["r", "https://example.com/profile"],
+                ["title", "Display title"],
+                ["t", "nostr"],
+            ],
+            content: metadata_content,
+        },
+        secret_key,
+    );
+    ensure(event.kind === 0, "NIP-24 event kind mismatch");
+    ensure(verifyEvent(event), "NIP-24 event signature verification failed");
+    ensure(event.tags.some((tag) => tag[0] === "r" && tag[1] === "https://example.com/profile"), "NIP-24 event missing reference");
+    ensure(event.tags.some((tag) => tag[0] === "title" && tag[1] === "Display title"), "NIP-24 event missing title");
+    ensure(event.tags.some((tag) => tag[0] === "t" && tag[1] === "nostr"), "NIP-24 event missing hashtag");
+}
+
 async function check_nip46(): Promise<void> {
     const pubkey =
         "b889ff5b1513b641e2a139f661a661364979c5beee91842f8f0ef42ab558e9d4";
@@ -1145,6 +1189,7 @@ async function main(): Promise<void> {
     await push_harness_covered(results, "NIP-27", "EDGE", check_nip27);
     await push_harness_covered(results, "NIP-21", "EDGE", check_nip21);
     await push_harness_covered(results, "NIP-23", "BASELINE", check_nip23);
+    await push_harness_covered(results, "NIP-24", "BASELINE", check_nip24);
     await push_harness_covered(results, "NIP-42", "EDGE", check_nip42);
     await push_harness_covered(results, "NIP-44", "DEEP", check_nip44);
     await push_harness_covered(results, "NIP-51", "BASELINE", check_nip51);

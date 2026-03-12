@@ -264,6 +264,22 @@ the validated maintenance baseline.
     - TypeScript audit overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
   - review outcome:
     - no accepted behavior change was required after the first implementation pass
+- Deferred backlog / `NIP-24` is complete in `no-hu1`
+  - bounded `src/nip24_extra_metadata.zig` surface is implemented
+  - current implemented scope:
+    - kind-`0` metadata extras parse/serialize for `display_name`, `website`, `banner`, `bot`, and
+      `birthday`
+    - compatibility fallback for deprecated `displayName` when canonical `display_name` is absent
+    - ordered generic tag extraction for `r`, `title`, and `t`
+    - direct generic tag builders for `r`, `title`, and lowercase canonical `t`
+    - tolerant handling of unrelated unknown fields and tags
+  - accepted bounded deferral:
+    - generic `i` tags remain deferred to `no-fah` because their value grammar belongs to NIP-73
+  - parity/evidence status:
+    - rust parity overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
+    - TypeScript audit overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
+  - review outcome:
+    - no accepted behavior change was required after the implementation pass
 
 ## Immediate Work Tracks
 
@@ -273,16 +289,14 @@ the validated maintenance baseline.
   `docs/plans/build-plan.md` as the next execution model when we want more hardening work.
 - Current robustness progress:
   - completed: `NIP-46`, `NIP-06`, `NIP-51` private lists, `NIP-44`, `NIP-59`
-  - recommended next surfaces: `NIP-23`, `NIP-46`, `NIP-06`, `NIP-51` private lists
-- Phase H planned expansion is now complete through `NIP-23`; next protocol work requires either:
+  - recommended next surfaces: `NIP-24`, `NIP-23`, `NIP-46`, `NIP-06`, `NIP-51` private lists
+- Phase H planned expansion is now complete through `NIP-24`; next protocol work requires either:
   - a second robustness batch on completed surfaces, or
-  - explicit reprioritization of one deferred backlog item (`03`, `17`, `24`, `29`, `39`)
+  - explicit reprioritization of one deferred backlog item (`03`, `17`, `29`, `39`)
 - Deferred backlog is now reprioritized:
-  - next implementation candidate: `NIP-24` (`no-hu1`)
-  - ordered follow-ons: `NIP-03` (`no-wo7`), `NIP-17` (`no-0jq`), `NIP-39` (`no-g5j`),
-    `NIP-29` (`no-j2g`)
-  - recommended sequence: implement `NIP-24`, then run the next robustness batch before opening
-    the following deferred item
+  - next implementation candidate: `NIP-03` (`no-wo7`)
+  - ordered follow-ons: `NIP-17` (`no-0jq`), `NIP-39` (`no-g5j`), `NIP-29` (`no-j2g`)
+  - recommended sequence: run the next robustness batch first, then open `NIP-03`
 - `NIP-44` robustness outcome:
   - no Layer 1 behavior change was required after real-world review
   - the current v2-only surface, staged failure ordering, typed conversation-key boundary, and

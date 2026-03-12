@@ -1045,6 +1045,26 @@ Immutable record of accepted planning decisions.
   compatibility path no longer provides practical value.
 - Supersedes: none
 
+## D-058: Keep Phase H NIP-24 bounded to metadata extras plus generic `r` / `title` / `t`
+
+- Date: 2026-03-12
+- Status: accepted
+- Decision: complete `no-hu1` by implementing `src/nip24_extra_metadata.zig` as a bounded helper
+  surface for kind-`0` metadata extras (`display_name`, `website`, `banner`, `bot`, `birthday`)
+  plus the generic `r`, `title`, and `t` tag meanings. Defer `i` tag extraction/building to a
+  follow-up NIP-73 helper issue (`no-fah`) instead of inventing an ad hoc parser inside the NIP-24
+  module.
+- Why: the metadata extras and generic tags provide the low-ambiguity, high-utility part of NIP-24
+  that fits the current kernel posture. The `i` tag grammar belongs to NIP-73, so partially
+  re-creating it inside NIP-24 would widen scope and duplicate protocol ownership in the wrong
+  module.
+- Tradeoff: immediate coverage for the common kind-`0` and generic tag helpers versus leaving one
+  NIP-24 tag family deferred until the NIP-73 boundary exists.
+- Related Tradeoff: T-H-ANIP-001, T-H-ANIP-003, T-0-001, T-0-003.
+- Reversal Trigger: NIP-73 helpers are accepted into current scope or ecosystem evidence shows the
+  `i` tag must be handled sooner with a bounded shared parser.
+- Supersedes: none
+
 ## Phase Closure Evidence
 
 ### P0-E-001: Phase 0 closure record

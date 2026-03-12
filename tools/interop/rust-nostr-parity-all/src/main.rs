@@ -29,6 +29,7 @@ use nostr::{
 };
 use rand::{CryptoRng, RngCore};
 use serde::Deserialize;
+use serde_json::json;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[allow(dead_code)]
@@ -850,6 +851,57 @@ fn check_nip23() -> Result<(), String> {
     }
     if !event_has_identifier(&draft, "draft-id") {
         return Err("nip23 draft missing identifier".to_string());
+    }
+
+    Ok(())
+}
+
+fn check_nip24() -> Result<(), String> {
+    let keys = parse_keys()?;
+    let website = Url::parse("https://example.com").map_err(|e| format!("nip24 website: {e}"))?;
+    let banner =
+        Url::parse("https://example.com/banner.png").map_err(|e| format!("nip24 banner: {e}"))?;
+    let metadata = nostr::Metadata::new()
+        .display_name("Display")
+        .website(website.clone())
+        .banner(banner.clone())
+        .custom_field("bot", true)
+        .custom_field("birthday", json!({ "year": 1984, "month": 1, "day": 24 }));
+    let metadata_json = metadata.as_json();
+    let parsed = nostr::Metadata::from_json(&metadata_json)
+        .map_err(|e| format!("nip24 metadata parse: {e}"))?;
+    if parsed.display_name.as_deref() != Some("Display") {
+        return Err("nip24 metadata display_name mismatch".to_string());
+    }
+    if parsed.website.as_deref() != Some(website.as_str()) {
+        return Err("nip24 metadata website mismatch".to_string());
+    }
+    if parsed.banner.as_deref() != Some(banner.as_str()) {
+        return Err("nip24 metadata banner mismatch".to_string());
+    }
+    if parsed.custom.get("bot") != Some(&json!(true)) {
+        return Err("nip24 metadata bot mismatch".to_string());
+    }
+    if parsed.custom.get("birthday") != Some(&json!({ "year": 1984, "month": 1, "day": 24 })) {
+        return Err("nip24 metadata birthday mismatch".to_string());
+    }
+
+    let title = Tag::from_standardized_without_cell(TagStandard::Title(String::from("Display title")));
+    let reference =
+        Tag::parse(vec!["r", "https://example.com/profile"]).map_err(|e| format!("nip24 r tag: {e}"))?;
+    let hashtag = Tag::hashtag("nostr");
+    let event = EventBuilder::new(Kind::Metadata, metadata_json)
+        .tags([title.clone(), reference.clone(), hashtag.clone()])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("sign nip24 event: {e}"))?;
+    if !event_has_exact_tag(&event, title) {
+        return Err("nip24 event missing title".to_string());
+    }
+    if !event_has_exact_tag(&event, reference) {
+        return Err("nip24 event missing reference".to_string());
+    }
+    if !event_has_exact_tag(&event, hashtag) {
+        return Err("nip24 event missing hashtag".to_string());
     }
 
     Ok(())
@@ -1911,6 +1963,7 @@ async fn main() {
     push_harness_covered(&mut results, "NIP-21", Depth::Deep, check_nip21());
     push_harness_covered(&mut results, "NIP-22", Depth::Deep, check_nip22());
     push_harness_covered(&mut results, "NIP-23", Depth::Baseline, check_nip23());
+    push_harness_covered(&mut results, "NIP-24", Depth::Baseline, check_nip24());
     push_harness_covered(&mut results, "NIP-27", Depth::Deep, check_nip27());
     push_harness_covered(&mut results, "NIP-25", Depth::Deep, check_nip25());
     push_harness_covered(&mut results, "NIP-51", Depth::Deep, check_nip51());
