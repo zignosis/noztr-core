@@ -207,8 +207,8 @@ Current project context for the Phase H kickoff baseline.
    changes and record outcomes in Phase H kickoff and handoff docs.
 3. Run the implemented-surface robustness / real-world validation pass before any new NIP
    expansion.
-   Completed surfaces: `46`, `06`, `51` private lists.
-   Recommended next surfaces: `44`, `59`.
+   Completed surfaces: `46`, `06`, `51` private lists, `44`.
+   Recommended next surfaces: `59`.
 4. Keep the implemented-NIP audit report current if future code changes reopen compatibility or
    strictness questions.
 5. Wave 2 / `NIP-46` is complete.
@@ -276,7 +276,15 @@ Current project context for the Phase H kickoff baseline.
      helper.
    Explicit follow-up:
    - `no-urr` tracks any future deprecated NIP-04 compatibility adapter for private lists.
-8. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.
+8. `NIP-44` robustness pass is complete.
+   Robustness pass outcome:
+   - no Layer 1 behavior change was required after real-world review.
+   - the current v2-only surface, staged failure ordering, typed conversation-key boundary, and
+     caller-buffer-first encrypt/decrypt helpers remain the accepted kernel posture.
+   - existing Rust and TypeScript parity fixtures plus generic deployed
+     `getConversationKey` / `encrypt` / `decrypt` surface review were sufficient to keep the API
+     unchanged.
+9. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.
 
 ## Repo Boundary Note
 

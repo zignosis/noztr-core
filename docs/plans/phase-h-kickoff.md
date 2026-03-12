@@ -264,8 +264,14 @@ the validated maintenance baseline.
   - `NIP-44`
   - `NIP-59`
 - Current robustness progress:
-  - completed: `NIP-46`, `NIP-06`, `NIP-51` private lists
-  - recommended next surfaces: `NIP-44`, `NIP-59`
+  - completed: `NIP-46`, `NIP-06`, `NIP-51` private lists, `NIP-44`
+  - recommended next surfaces: `NIP-59`
+- `NIP-44` robustness outcome:
+  - no Layer 1 behavior change was required after real-world review
+  - the current v2-only surface, staged failure ordering, typed conversation-key boundary, and
+    caller-buffer-first encrypt/decrypt helpers remain the accepted kernel posture
+  - current Rust and TypeScript parity fixtures plus generic deployed `getConversationKey` /
+    `encrypt` / `decrypt` surface review were sufficient to keep the existing API unchanged
 - Keep the implemented-NIP audit report current if future code changes reopen compatibility
   questions.
 - `no-4iw` is resolved by the NIP-10 audit and no longer blocks interpretation of NIP-10 quality.
