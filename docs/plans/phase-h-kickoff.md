@@ -223,8 +223,8 @@ the validated maintenance baseline.
   - accepted out-of-scope:
     - relay/session orchestration, redirects, and end-user connection flow remain app-flow logic
       outside the protocol-kernel helper surface
-    - deterministic `nostrconnect_url` placeholder substitution is now considered kernel-safe and
-      may be added later without reopening NIP-46 scope (`D-068`)
+    - deterministic `nostrconnect_url` placeholder substitution is now implemented as a bounded
+      helper in the protocol kernel (`D-068`)
 - Wave 3 / `NIP-06` is implemented and closed in `no-7lv`
   - `src/nip06_mnemonic.zig` now implements the frozen narrow boundary:
     - English mnemonic validation

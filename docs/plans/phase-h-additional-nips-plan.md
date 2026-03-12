@@ -254,8 +254,9 @@ Reprioritized after deferred-backlog completion of `NIP-29`:
         `metadata=` client-URI shape and omits `switch_relays`, while `noztr` follows the current
         split-query URI and method surface that matches `nostr-tools`
     - accepted out-of-scope:
-      - `nostrconnect_url` placeholder expansion or redirect/template rendering remains app-flow
-        logic and is intentionally outside the protocol-kernel helper surface (`D-053`)
+      - exact `<nostrconnect>` placeholder substitution is now implemented as bounded deterministic
+        protocol glue, while redirect handling and broader connection orchestration remain outside
+        the protocol-kernel helper surface (`D-068`)
 
 ## Wave 3 Status Snapshot
 

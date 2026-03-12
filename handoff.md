@@ -334,8 +334,8 @@ Current project context for the Phase H kickoff baseline.
    Accepted out-of-scope:
    - relay/session orchestration, redirects, and end-user connection flow remain outside the
      protocol-kernel helper surface
-   - deterministic `nostrconnect_url` placeholder substitution is now accepted future kernel work
-     (`D-068`)
+   - deterministic `nostrconnect_url` placeholder substitution is now implemented as a bounded
+     kernel helper (`D-068`)
 6. Wave 3 / `NIP-06` is implemented, green, and closed.
    Current status:
    - `src/nip06_mnemonic.zig` implements the frozen narrow libwally boundary with strict

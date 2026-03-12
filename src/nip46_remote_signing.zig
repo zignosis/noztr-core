@@ -179,6 +179,8 @@ pub const DiscoveryInfo = struct {
     nostrconnect_url: ?[]const u8 = null,
 };
 
+const nostrconnect_url_placeholder = "<nostrconnect>";
+
 pub fn method_parse(text: []const u8) Nip46Error!RemoteSigningMethod {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(@sizeOf(RemoteSigningMethod) > 0);
@@ -651,6 +653,35 @@ pub fn discovery_parse_nip89(
     };
 }
 
+/// Render a discovery `nostrconnect_url` template using one exact placeholder substitution.
+pub fn discovery_render_nostrconnect_url(
+    output: []u8,
+    template_url: []const u8,
+    connection_uri: []const u8,
+    scratch: std.mem.Allocator,
+) Nip46Error![]const u8 {
+    std.debug.assert(output.len <= std.math.maxInt(usize));
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+
+    _ = parse_url(template_url) catch return error.InvalidNostrConnectUrl;
+    try validate_nostrconnect_client_uri(connection_uri, scratch);
+
+    const placeholder_start = try find_single_nostrconnect_placeholder(template_url);
+    const rendered_len = template_url.len - nostrconnect_url_placeholder.len + connection_uri.len;
+    if (rendered_len > limits.nip46_uri_bytes_max) return error.InvalidNostrConnectUrl;
+    if (rendered_len > output.len) return error.BufferTooSmall;
+
+    @memcpy(output[0..placeholder_start], template_url[0..placeholder_start]);
+    const uri_end = placeholder_start + connection_uri.len;
+    @memcpy(output[placeholder_start..uri_end], connection_uri);
+    const suffix = template_url[placeholder_start + nostrconnect_url_placeholder.len ..];
+    @memcpy(output[uri_end .. uri_end + suffix.len], suffix);
+
+    const rendered = output[0..rendered_len];
+    _ = parse_url(rendered) catch return error.InvalidNostrConnectUrl;
+    return rendered;
+}
+
 const ParsedUriParts = struct {
     scheme: []const u8,
     authority: []const u8,
@@ -760,6 +791,33 @@ fn parse_well_known_root(
         .relays = partial.relays,
         .nostrconnect_url = partial.nostrconnect_url,
     };
+}
+
+fn validate_nostrconnect_client_uri(
+    connection_uri: []const u8,
+    scratch: std.mem.Allocator,
+) Nip46Error!void {
+    std.debug.assert(connection_uri.len <= limits.nip46_uri_bytes_max);
+    std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+
+    const parsed = try uri_parse(connection_uri, scratch);
+    if (parsed != .client) {
+        return error.InvalidScheme;
+    }
+}
+
+fn find_single_nostrconnect_placeholder(template_url: []const u8) Nip46Error!usize {
+    std.debug.assert(template_url.len <= limits.nip46_uri_bytes_max);
+    std.debug.assert(nostrconnect_url_placeholder.len > 0);
+
+    const placeholder_start = std.mem.indexOf(u8, template_url, nostrconnect_url_placeholder) orelse {
+        return error.InvalidNostrConnectUrl;
+    };
+    const next_index = placeholder_start + nostrconnect_url_placeholder.len;
+    if (std.mem.indexOfPos(u8, template_url, next_index, nostrconnect_url_placeholder) != null) {
+        return error.InvalidNostrConnectUrl;
+    }
+    return placeholder_start;
 }
 
 fn parse_well_known_names(value: std.json.Value) Nip46Error![32]u8 {
@@ -1059,7 +1117,7 @@ fn duplicate_valid_utf8(
     text: []const u8,
     max_len: u32,
     scratch: std.mem.Allocator,
-) error{InvalidParam, OutOfMemory}![]const u8 {
+) error{ InvalidParam, OutOfMemory }![]const u8 {
     std.debug.assert(text.len <= std.math.maxInt(u32));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -2375,8 +2433,7 @@ test "response validation covers ping and signed-event results" {
     const sign_ok = Response{
         .id = "b",
         .result = .{ .value = .{
-            .text =
-                "{\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
+            .text = "{\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
                 "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
                 "\"created_at\":1,\"kind\":1,\"tags\":[],\"content\":\"hi\"}",
         } },
@@ -2428,8 +2485,7 @@ test "typed response helpers expose current NIP-46 result shapes" {
     const sign_response = Response{
         .id = "sign-1",
         .result = .{ .value = .{
-            .text =
-                "{\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
+            .text = "{\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
                 "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
                 "\"created_at\":1,\"kind\":1,\"tags\":[],\"content\":\"ok\"," ++
                 "\"sig\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ++
@@ -2633,8 +2689,8 @@ test "discovery_parse_well_known accepts legacy pubkey-keyed relay maps" {
 }
 
 test "discovery_parse_nip89 extracts bounded remote-signer metadata" {
-    const k_tag = [_][]const u8{"k", "24133"};
-    const relay_tag = [_][]const u8{"relay", "wss://relay.one"};
+    const k_tag = [_][]const u8{ "k", "24133" };
+    const relay_tag = [_][]const u8{ "relay", "wss://relay.one" };
     const url_tag = [_][]const u8{
         "nostrconnect_url",
         "https://bunker.example/<nostrconnect>",
@@ -2662,5 +2718,75 @@ test "discovery_parse_nip89 extracts bounded remote-signer metadata" {
     try std.testing.expectEqualStrings(
         "https://bunker.example/<nostrconnect>",
         info.nostrconnect_url.?,
+    );
+}
+
+test "discovery_render_nostrconnect_url performs exact placeholder substitution" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const template = "https://bunker.example/connect/<nostrconnect>";
+    const connection_uri =
+        "nostrconnect://0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ++
+        "?relay=wss%3A%2F%2Frelay.one&secret=s3cr3t";
+    var output: [limits.nip46_uri_bytes_max]u8 = undefined;
+    const rendered = try discovery_render_nostrconnect_url(
+        output[0..],
+        template,
+        connection_uri,
+        arena.allocator(),
+    );
+    try std.testing.expectEqualStrings(
+        "https://bunker.example/connect/" ++ connection_uri,
+        rendered,
+    );
+}
+
+test "discovery_render_nostrconnect_url rejects missing or duplicate placeholders" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const connection_uri =
+        "nostrconnect://0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ++
+        "?relay=wss%3A%2F%2Frelay.one&secret=s3cr3t";
+    var output: [limits.nip46_uri_bytes_max]u8 = undefined;
+
+    try std.testing.expectError(
+        error.InvalidNostrConnectUrl,
+        discovery_render_nostrconnect_url(
+            output[0..],
+            "https://bunker.example/connect",
+            connection_uri,
+            arena.allocator(),
+        ),
+    );
+    try std.testing.expectError(
+        error.InvalidNostrConnectUrl,
+        discovery_render_nostrconnect_url(
+            output[0..],
+            "https://bunker.example/<nostrconnect>/<nostrconnect>",
+            connection_uri,
+            arena.allocator(),
+        ),
+    );
+}
+
+test "discovery_render_nostrconnect_url rejects non-client connection uris" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const connection_uri =
+        "bunker://0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ++
+        "?relay=wss%3A%2F%2Frelay.one&secret=abc";
+    var output: [limits.nip46_uri_bytes_max]u8 = undefined;
+
+    try std.testing.expectError(
+        error.InvalidScheme,
+        discovery_render_nostrconnect_url(
+            output[0..],
+            "https://bunker.example/<nostrconnect>",
+            connection_uri,
+            arena.allocator(),
+        ),
     );
 }
