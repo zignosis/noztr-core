@@ -190,7 +190,7 @@ fn parse_reply_tag(tag: nip01_event.EventTag, info: *DmMessageInfo) Nip17Error!v
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
     if (info.reply_to != null) return error.DuplicateReplyTag;
-    if (tag.items.len < 2 or tag.items.len > 4) return error.InvalidReplyTag;
+    if (tag.items.len < 2 or tag.items.len > 5) return error.InvalidReplyTag;
 
     var reply = DmReplyRef{
         .event_id = parse_lower_hex_32(tag.items[1]) catch return error.InvalidReplyTag,
@@ -203,8 +203,12 @@ fn parse_reply_tag(tag: nip01_event.EventTag, info: *DmMessageInfo) Nip17Error!v
         }
         reply.relay_hint = parse_optional_url(tag.items[2]) catch return error.InvalidReplyTag;
     }
-    if (tag.items.len == 4 and !std.mem.eql(u8, tag.items[3], "reply")) {
-        return error.InvalidReplyTag;
+    if (tag.items.len == 4) {
+        try validate_reply_suffix(tag.items[3]);
+    }
+    if (tag.items.len == 5) {
+        if (!std.mem.eql(u8, tag.items[3], "reply")) return error.InvalidReplyTag;
+        _ = parse_lower_hex_32(tag.items[4]) catch return error.InvalidReplyTag;
     }
     info.reply_to = reply;
 }
@@ -268,6 +272,14 @@ fn validate_lower_hex(text: []const u8) error{InvalidHex}!void {
     }
 }
 
+fn validate_reply_suffix(text: []const u8) Nip17Error!void {
+    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
+
+    if (std.mem.eql(u8, text, "reply")) return;
+    _ = parse_lower_hex_32(text) catch return error.InvalidReplyTag;
+}
+
 fn test_event(
     kind: u32,
     content: []const u8,
@@ -312,6 +324,29 @@ test "nip17 message parse extracts recipients subject and reply" {
     try std.testing.expectEqualStrings("hello", parsed.content);
     try std.testing.expect(parsed.reply_to != null);
     try std.testing.expectEqualStrings("wss://relay.example", parsed.recipients[0].relay_hint.?);
+}
+
+test "nip17 message parse accepts long-form standard reply e tags" {
+    const tags = [_]nip01_event.EventTag{
+        .{ .items = &.{
+            "p",
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        } },
+        .{ .items = &.{
+            "e",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "",
+            "reply",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        } },
+    };
+    var recipients: [1]DmRecipient = undefined;
+
+    const parsed = try nip17_message_parse(&test_event(dm_kind, "hello", tags[0..]), recipients[0..]);
+
+    try std.testing.expectEqual(@as(usize, 1), parsed.recipients.len);
+    try std.testing.expect(parsed.reply_to != null);
+    try std.testing.expect(parsed.reply_to.?.relay_hint == null);
 }
 
 test "nip17 message parse rejects malformed message tags" {
