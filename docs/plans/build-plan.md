@@ -343,7 +343,7 @@ Robustness pass quality rules:
   Closure rationale based on latest incremental candidates is recorded in
   `docs/plans/phase-f-risk-burndown.md`.
 - `no-1jh` Gate 5 (governance/docs closure with open P0/P1 check): complete.
-  `bd query "status=open AND (priority=0 OR priority=1)" --json --limit 0`
+  `br query "status=open AND (priority=0 OR priority=1)" --json --limit 0`
   pre-check: `count=0`, ids: none; post-check: `count=0`, ids: none.
 - Policy note: rust lane remains active and TS lane remains archived historical evidence only.
 

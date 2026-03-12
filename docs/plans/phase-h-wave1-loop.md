@@ -174,7 +174,7 @@ Each Wave 1 NIP must complete the full loop below before the next NIP begins.
    - claim the next ready Wave 1 issue and continue.
 
 10. Tracker-outage recovery step
-   - if `bd` or Dolt is unavailable during claim/update/close work:
+   - if `br` is unavailable during claim/update/close work:
      - restore the local tracker service first
      - rerun the blocked tracker command after health is restored
      - do not silently skip tracker updates or closure
