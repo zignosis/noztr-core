@@ -18,6 +18,7 @@ import { makeAuthEvent } from "nostr-tools/nip42";
 import { decrypt, encrypt } from "nostr-tools/nip44";
 import * as nip46 from "nostr-tools/nip46";
 import * as nip10 from "nostr-tools/nip10";
+import * as nip06 from "nostr-tools/nip06";
 import { parse as parseNostrUri } from "nostr-tools/nip21";
 import * as nip27 from "nostr-tools/nip27";
 import * as kinds from "nostr-tools/kinds";
@@ -1004,6 +1005,61 @@ function check_nip77(): void {
     ensure(sealed_insert_rejected, "NIP-77 storage accepted insert after seal");
 }
 
+function check_nip06(): void {
+    const mnemonic =
+        "equal dragon fabric refuse stable cherry smoke allow alley easy never medal " +
+        "attend together lumber movie what sad siege weather matrix buffalo state shoot";
+    const account_zero = Buffer.from(
+        nip06.privateKeyFromSeedWords(mnemonic, "", 0),
+    ).toString("hex");
+    ensure(
+        account_zero === "06992419a8fe821dd8de03d4c300614e8feefb5ea936b76f89976dcace8aebee",
+        "NIP-06 account 0 secret key mismatch",
+    );
+
+    const account_one = Buffer.from(
+        nip06.privateKeyFromSeedWords(mnemonic, "", 1),
+    ).toString("hex");
+    ensure(
+        account_one === "5735ecd7389ba3dcc0c4464d6c9328867821560c3923acff14aeeb4b6cd5c775",
+        "NIP-06 account 1 secret key mismatch",
+    );
+
+    const null_passphrase = Buffer.from(
+        nip06.privateKeyFromSeedWords(
+            "abandon abandon abandon abandon abandon abandon abandon abandon " +
+                "abandon abandon abandon about",
+            undefined,
+            0,
+        ),
+    ).toString("hex");
+    const empty_passphrase = Buffer.from(
+        nip06.privateKeyFromSeedWords(
+            "abandon abandon abandon abandon abandon abandon abandon abandon " +
+                "abandon abandon abandon about",
+            "",
+            0,
+        ),
+    ).toString("hex");
+    ensure(
+        null_passphrase === empty_passphrase,
+        "NIP-06 null and empty passphrase derivations diverged",
+    );
+
+    ensure(
+        nip06.validateWords(
+            "leader monkey parrot ring guide accident before fence cannon height naive bean",
+        ),
+        "NIP-06 validateWords rejected canonical mnemonic",
+    );
+    ensure(
+        !nip06.validateWords(
+            "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
+        ),
+        "NIP-06 validateWords accepted invalid mnemonic length",
+    );
+}
+
 async function main(): Promise<void> {
     const results: NipResult[] = [];
 
@@ -1023,6 +1079,7 @@ async function main(): Promise<void> {
     await push_harness_covered(results, "NIP-46", "BASELINE", check_nip46);
     await push_harness_covered(results, "NIP-59", "EDGE", check_nip59);
     await push_harness_covered(results, "NIP-65", "BASELINE", check_nip65);
+    await push_harness_covered(results, "NIP-06", "EDGE", check_nip06);
     await push_harness_covered(results, "NIP-77", "EDGE", check_nip77);
     await push_harness_covered(results, "NIP-40", "EDGE", check_nip40);
     await push_harness_covered(results, "NIP-45", "EDGE", check_nip45);

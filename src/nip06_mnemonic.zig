@@ -386,6 +386,24 @@ test "derive nostr secret key covers account one deterministically" {
     try std.testing.expect(!std.mem.eql(u8, first_key, account_zero));
 }
 
+test "null and empty passphrase derive the same seed and secret key" {
+    const mnemonic =
+        "abandon abandon abandon abandon abandon abandon abandon abandon " ++
+        "abandon abandon abandon about";
+    var seed_null: [limits.nip06_seed_bytes]u8 = undefined;
+    var seed_empty: [limits.nip06_seed_bytes]u8 = undefined;
+    var secret_null: [limits.nip06_secret_key_bytes]u8 = undefined;
+    var secret_empty: [limits.nip06_secret_key_bytes]u8 = undefined;
+
+    const null_seed = try mnemonic_to_seed(seed_null[0..], mnemonic, null);
+    const empty_seed = try mnemonic_to_seed(seed_empty[0..], mnemonic, "");
+    const null_secret = try derive_nostr_secret_key(secret_null[0..], mnemonic, null, 0);
+    const empty_secret = try derive_nostr_secret_key(secret_empty[0..], mnemonic, "", 0);
+
+    try std.testing.expectEqualSlices(u8, null_seed, empty_seed);
+    try std.testing.expectEqualSlices(u8, null_secret, empty_secret);
+}
+
 test "mnemonic boundary rejects malformed and invalid inputs" {
     const bad_utf8 = [_]u8{ 0xc3, 0x28 };
     const non_ascii_mnemonic = "legal winner thank year wave sausage worth useful legal winner thank yéllow";

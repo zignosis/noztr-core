@@ -149,8 +149,8 @@ Current project context for the Phase H kickoff baseline.
 ## Active Parity Gate
 
 - Active lane: rust only (`tools/interop/rust-nostr-parity-all`).
-- Current rust status: `23/23 HARNESS_COVERED`, mixed `BASELINE/DEEP`, `PASS`.
-- Current TS audit status: `21/21 HARNESS_COVERED`, mixed `BASELINE/EDGE/DEEP`, `PASS`
+- Current rust status: `24/24 HARNESS_COVERED`, mixed `BASELINE/EDGE/DEEP`, `PASS`.
+- Current TS audit status: `22/22 HARNESS_COVERED`, mixed `BASELINE/EDGE/DEEP`, `PASS`
   (`tools/interop/ts-nostr-parity-all`; non-gating audit evidence lane).
 - Baseline cadence run (2026-03-09): rust parity harness passed
   (`SUMMARY pass=16 fail=0 harness_covered=16 total=16`).
@@ -163,6 +163,13 @@ Current project context for the Phase H kickoff baseline.
 - Latest cadence run (2026-03-11): `zig build test --summary all` passed
   (`Build Summary: 9/9 steps succeeded; 640/640 tests passed`).
 - Latest cadence run (2026-03-11): `zig build` passed.
+- Latest cadence run (2026-03-12): rust parity harness passed
+  (`SUMMARY pass=24 fail=0 harness_covered=24 total=24`).
+- Latest cadence run (2026-03-12): TS audit harness passed
+  (`SUMMARY pass=22 fail=0 harness_covered=22 total=22`).
+- Latest cadence run (2026-03-12): `zig build test --summary all` passed
+  (`Build Summary: 9/9 steps succeeded; 656/656 tests passed`).
+- Latest cadence run (2026-03-12): `zig build` passed.
 - Active cadence commands:
   - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
   - `zig build test --summary all && zig build`
@@ -200,8 +207,8 @@ Current project context for the Phase H kickoff baseline.
    changes and record outcomes in Phase H kickoff and handoff docs.
 3. Run the implemented-surface robustness / real-world validation pass before any new NIP
    expansion.
-   Completed first surface: `46`.
-   Recommended next surfaces: `06`, `51` private lists, `44`, `59`.
+   Completed surfaces: `46`, `06`.
+   Recommended next surfaces: `51` private lists, `44`, `59`.
 4. Keep the implemented-NIP audit report current if future code changes reopen compatibility or
    strictness questions.
 5. Wave 2 / `NIP-46` is complete.
@@ -237,9 +244,14 @@ Current project context for the Phase H kickoff baseline.
    Current status:
    - `src/nip06_mnemonic.zig` implements the frozen narrow libwally boundary with strict
      zeroization and typed errors.
-   - `zig build test --summary all` and `zig build` are green after the NIP-06 corpus landed.
+   - `zig build test --summary all` and `zig build` remain green after the NIP-06 robustness pass.
    - the fixed review finding from implementation was parent/output key aliasing during child
      derivation; separate key slots are now used.
+   Robustness pass outcome:
+   - no Layer 1 behavior change was required after real-world review.
+   - local coverage now pins null-passphrase and empty-passphrase equivalence explicitly.
+   - rust parity overlap is now `HARNESS_COVERED`, `EDGE`, `PASS`.
+   - TypeScript audit overlap is now `HARNESS_COVERED`, `EDGE`, `PASS`.
    Accepted temporary normalization boundary:
    - current Phase H behavior accepts ASCII-only mnemonic/passphrase input after UTF-8 validation
      and rejects non-ASCII input with typed `InvalidNormalization`.

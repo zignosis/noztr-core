@@ -8,6 +8,7 @@ use base64::Engine;
 use nostr::filter::MatchEventOptions;
 use nostr::nips::nip01::Coordinate;
 use nostr::nips::nip02::Contact;
+use nostr::nips::nip06::FromMnemonic;
 use nostr::nips::nip09::EventDeletionRequest;
 use nostr::nips::nip10::Marker as Nip10Marker;
 use nostr::nips::nip11::RelayInformationDocument;
@@ -1763,6 +1764,51 @@ fn check_nip77() -> Result<(), String> {
     Ok(())
 }
 
+fn check_nip06() -> Result<(), String> {
+    let mnemonic = "equal dragon fabric refuse stable cherry smoke allow alley easy never medal \
+attend together lumber movie what sad siege weather matrix buffalo state shoot";
+    let account_zero = Keys::from_mnemonic(mnemonic, None)
+        .map_err(|e| format!("NIP-06 account 0 derivation failed: {e}"))?;
+    if account_zero.secret_key().display_secret().to_string()
+        != "06992419a8fe821dd8de03d4c300614e8feefb5ea936b76f89976dcace8aebee"
+    {
+        return Err("NIP-06 account 0 secret key mismatch".to_string());
+    }
+
+    let account_one = Keys::from_mnemonic_with_account(mnemonic, None, Some(1))
+        .map_err(|e| format!("NIP-06 account 1 derivation failed: {e}"))?;
+    if account_one.secret_key().display_secret().to_string()
+        != "5735ecd7389ba3dcc0c4464d6c9328867821560c3923acff14aeeb4b6cd5c775"
+    {
+        return Err("NIP-06 account 1 secret key mismatch".to_string());
+    }
+
+    let null_passphrase = Keys::from_mnemonic(
+        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+        None,
+    )
+    .map_err(|e| format!("NIP-06 null passphrase derivation failed: {e}"))?;
+    let empty_passphrase = Keys::from_mnemonic(
+        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+        Some(""),
+    )
+    .map_err(|e| format!("NIP-06 empty passphrase derivation failed: {e}"))?;
+    if null_passphrase.secret_key() != empty_passphrase.secret_key() {
+        return Err("NIP-06 null and empty passphrase derivations diverged".to_string());
+    }
+
+    if Keys::from_mnemonic(
+        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
+        None,
+    )
+    .is_ok()
+    {
+        return Err("NIP-06 invalid mnemonic length was accepted".to_string());
+    }
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() {
     let mut results: Vec<NipResult> = Vec::new();
@@ -1785,6 +1831,7 @@ async fn main() {
     push_harness_covered(&mut results, "NIP-46", Depth::Baseline, check_nip46());
     push_harness_covered(&mut results, "NIP-59", Depth::Deep, check_nip59().await);
     push_harness_covered(&mut results, "NIP-65", Depth::Deep, check_nip65());
+    push_harness_covered(&mut results, "NIP-06", Depth::Edge, check_nip06());
 
     push_harness_covered(&mut results, "NIP-40", Depth::Deep, check_nip40());
     push_harness_covered(&mut results, "NIP-45", Depth::Deep, check_nip45());

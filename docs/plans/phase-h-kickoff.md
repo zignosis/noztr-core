@@ -233,6 +233,13 @@ the validated maintenance baseline.
       and rejects non-ASCII input with typed `InvalidNormalization`
     - `no-09f` review is complete: full BIP39-compatible NFKD normalization remains future
       feature `no-2gp`, not immediate kernel scope
+  - robustness pass outcome:
+    - no Layer 1 behavior change was required after real-world review
+    - local semantics now pin null-passphrase and empty-passphrase equivalence explicitly
+    - rust parity overlap is now `HARNESS_COVERED`, `EDGE`, `PASS`
+    - TypeScript audit overlap is now `HARNESS_COVERED`, `EDGE`, `PASS`
+    - accepted ASCII-only normalization boundary remains unchanged pending any future `no-2gp`
+      Unicode work
 
 ## Immediate Work Tracks
 
@@ -246,6 +253,9 @@ the validated maintenance baseline.
   - `NIP-51` private lists
   - `NIP-44`
   - `NIP-59`
+- Current robustness progress:
+  - completed: `NIP-46`, `NIP-06`
+  - recommended next surfaces: `NIP-51` private lists, `NIP-44`, `NIP-59`
 - Keep the implemented-NIP audit report current if future code changes reopen compatibility
   questions.
 - `no-4iw` is resolved by the NIP-10 audit and no longer blocks interpretation of NIP-10 quality.
