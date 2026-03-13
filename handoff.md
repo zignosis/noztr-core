@@ -319,6 +319,10 @@ Current project context for the Phase H kickoff baseline.
    Recommended next step:
    - use operator-directed robustness or SDK-boundary / `nzdk` preparation work before any new
      protocol expansion
+   - accepted next-NIP boundary map now lives in
+     `docs/plans/noztr-sdk-ownership-matrix.md` for `05`, `07`, `26`, `32`, `36`, `37`, `56`,
+     `57`, `58`, `60`, `61`, `84`, `86`, and `B7`
+   - current recommended kernel-first sequence is `32`, `36`, `56`, `05`, `26`, `37`, `58`, `84`
 4. Keep the implemented-NIP audit report current if future code changes reopen compatibility or
    strictness questions.
    - use `docs/plans/noztr-sdk-ownership-matrix.md` when the question is whether a helper belongs

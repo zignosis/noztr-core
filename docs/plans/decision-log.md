@@ -1548,3 +1548,21 @@ Immutable record of accepted planning decisions.
 - Reversal Trigger: `nzdk` grows stable provider adapters or NIP-46 connection-handoff helpers that
   make these kernel helpers redundant or better-scoped in the SDK.
 - Supersedes: none
+
+## D-077: Map the next requested NIP set across `noztr` and `nzdk` before implementation
+
+- Date: 2026-03-13
+- Status: accepted
+- Decision: use the ownership matrix as the canonical pre-implementation split for the next
+  requested NIP set:
+  - kernel-first in `noztr`: `32`, `36`, `56`, `05`, `26`, `37`, `58`, `84`
+  - split between `noztr` and `nzdk`: `57`, `86`
+  - SDK-first in `nzdk`: `07`, `60`, `61`, `B7`
+- Why: this keeps protocol-facing bounded helpers in the kernel while avoiding browser, wallet,
+  payment, and service-integration workflow from leaking into `noztr` just before SDK work starts.
+- Tradeoff: slower “implement everything in one repo” momentum versus a cleaner long-term kernel /
+  SDK split and fewer future reversals.
+- Related Tradeoff: T-H-ANIP-011.
+- Reversal Trigger: protocol evidence or product scope changes show that one of the SDK-first items
+  needs a smaller bounded kernel slice earlier than planned.
+- Supersedes: none
