@@ -78,6 +78,7 @@ pub const GroupMetadata = struct {
 
 pub const GroupAdmin = struct {
     pubkey: [32]u8,
+    label: ?[]const u8 = null,
     roles: []const []const u8,
 };
 
@@ -535,22 +536,29 @@ pub fn group_build_user_tag(
     return output.as_event_tag();
 }
 
-/// Builds a canonical NIP-29 admin `p` tag with raw role labels.
+/// Builds a canonical NIP-29 admin `p` tag with optional compatibility label.
 pub fn group_build_admin_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
+    label: ?[]const u8,
     roles: []const []const u8,
 ) Nip29Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(roles.len + 2 <= limits.tag_items_max);
+    std.debug.assert(roles.len + 3 <= limits.tag_items_max);
 
     _ = parse_lower_hex_32(pubkey_hex) catch return error.InvalidAdminTag;
     if (roles.len == 0) return error.InvalidAdminTag;
     output.items[0] = "p";
     output.items[1] = pubkey_hex;
     output.item_count = 2;
+    if (label) |value| {
+        if (value.len == 0) return error.InvalidAdminTag;
+        output.items[2] = parse_member_label(value) catch return error.InvalidAdminTag;
+        output.item_count = 3;
+    }
+    const roles_offset: u8 = if (label == null) 2 else 3;
     for (roles, 0..) |role, index| {
-        output.items[index + 2] = parse_role(role) catch return error.InvalidAdminTag;
+        output.items[index + roles_offset] = parse_role(role) catch return error.InvalidAdminTag;
         output.item_count += 1;
     }
     return output.as_event_tag();
@@ -721,7 +729,8 @@ fn parse_admin_tag(
     if (tag.items.len < 2) return error.InvalidAdminTag;
     if (admin_count.* == out_admins.len) return error.BufferTooSmall;
     const roles_start = role_count.*;
-    const role_items = admin_role_items(tag);
+    const label = admin_label_item(tag) catch return error.InvalidAdminTag;
+    const role_items = admin_permission_items(tag);
     for (role_items) |role| {
         if (role_count.* == out_roles.len) return error.BufferTooSmall;
         out_roles[role_count.*] = parse_role(role) catch return error.InvalidAdminTag;
@@ -729,18 +738,28 @@ fn parse_admin_tag(
     }
     out_admins[admin_count.*] = .{
         .pubkey = parse_lower_hex_32(tag.items[1]) catch return error.InvalidAdminTag,
+        .label = label,
         .roles = out_roles[roles_start..role_count.*],
     };
     admin_count.* += 1;
 }
 
-fn admin_role_items(tag: nip01_event.EventTag) []const []const u8 {
+fn admin_label_item(tag: nip01_event.EventTag) error{InvalidLabel}!?[]const u8 {
+    std.debug.assert(tag.items.len >= 2);
+    std.debug.assert(tag.items.len <= limits.tag_items_max);
+
+    if (tag.items.len < 4) return null;
+    if (tag.items[2].len == 0) return null;
+    return try parse_member_label(tag.items[2]);
+}
+
+fn admin_permission_items(tag: nip01_event.EventTag) []const []const u8 {
     std.debug.assert(tag.items.len >= 2);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
     if (tag.items.len < 3) return tag.items[2..];
-    if (tag.items[2].len == 0) return tag.items[3..];
-    return tag.items[2..];
+    if (tag.items.len == 3) return tag.items[2..];
+    return tag.items[3..];
 }
 
 fn apply_member_tag(
@@ -1063,7 +1082,7 @@ fn apply_admin_snapshot_user(state: *GroupState, tag: nip01_event.EventTag) Nip2
     if (tag.items.len < 2) return error.InvalidAdminTag;
     const pubkey = parse_lower_hex_32(tag.items[1]) catch return error.InvalidAdminTag;
     const user_index = try ensure_user_slot(state, &pubkey);
-    try set_user_roles(state, user_index, admin_role_items(tag), error.InvalidAdminTag);
+    try set_user_roles(state, user_index, admin_permission_items(tag), error.InvalidAdminTag);
 }
 
 fn reduce_members_event(
@@ -1524,13 +1543,14 @@ test "group metadata extract rejects duplicate and conflicting flags" {
     );
 }
 
-test "group admins extract preserves ordered raw roles" {
+test "group admins extract preserves compatibility label and ordered permissions" {
     const tags = [_]nip01_event.EventTag{
         .{ .items = &.{ "d", "pizza-lovers" } },
         .{ .items = &.{
             "p",
             "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
             "ceo",
+            "put-user",
             "gardener",
         } },
         .{ .items = &.{ "name", "ignored" } },
@@ -1546,8 +1566,9 @@ test "group admins extract preserves ordered raw roles" {
 
     try std.testing.expectEqualStrings("pizza-lovers", info.group_id);
     try std.testing.expectEqual(@as(usize, 1), info.admins.len);
+    try std.testing.expectEqualStrings("ceo", info.admins[0].label.?);
     try std.testing.expectEqual(@as(usize, 2), info.admins[0].roles.len);
-    try std.testing.expectEqualStrings("ceo", info.admins[0].roles[0]);
+    try std.testing.expectEqualStrings("put-user", info.admins[0].roles[0]);
     try std.testing.expectEqualStrings("gardener", info.admins[0].roles[1]);
 }
 
@@ -1572,6 +1593,7 @@ test "group admins extract ignores empty compatibility label before permissions"
     );
 
     try std.testing.expectEqual(@as(usize, 1), info.admins.len);
+    try std.testing.expect(info.admins[0].label == null);
     try std.testing.expectEqual(@as(usize, 2), info.admins[0].roles.len);
     try std.testing.expectEqualStrings("put-user", info.admins[0].roles[0]);
     try std.testing.expectEqualStrings("delete-event", info.admins[0].roles[1]);
@@ -1610,7 +1632,8 @@ test "group builders emit canonical metadata admin and member tags" {
     const admin = try group_build_admin_tag(
         &admin_tag,
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-        &.{ "ceo", "gardener" },
+        "ceo",
+        &.{ "put-user", "gardener" },
     );
     const member = try group_build_member_tag(
         &member_tag,
@@ -1622,7 +1645,8 @@ test "group builders emit canonical metadata admin and member tags" {
     try std.testing.expectEqualStrings("pizza-lovers", identifier.items[1]);
     try std.testing.expectEqualStrings("p", admin.items[0]);
     try std.testing.expectEqualStrings("ceo", admin.items[2]);
-    try std.testing.expectEqualStrings("gardener", admin.items[3]);
+    try std.testing.expectEqualStrings("put-user", admin.items[3]);
+    try std.testing.expectEqualStrings("gardener", admin.items[4]);
     try std.testing.expectEqualStrings("vip", member.items[2]);
 }
 
@@ -1635,6 +1659,7 @@ test "group builders reject empty optional role and label output" {
         group_build_admin_tag(
             &admin_tag,
             "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "",
             &.{},
         ),
     );
@@ -1644,6 +1669,15 @@ test "group builders reject empty optional role and label output" {
             &member_tag,
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "",
+        ),
+    );
+    try std.testing.expectError(
+        error.InvalidAdminTag,
+        group_build_admin_tag(
+            &admin_tag,
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "",
+            &.{ "put-user" },
         ),
     );
 }
@@ -1889,4 +1923,29 @@ test "group state reducer replaces snapshots and rejects mixed groups" {
         error.GroupStateMismatch,
         group_state_apply_event(&state, &test_event(group_metadata_kind, other_metadata[0..])),
     );
+}
+
+test "group state reducer ignores admin compatibility label for roles" {
+    const admin_tags = [_]nip01_event.EventTag{
+        .{ .items = &.{ "d", "pizza-lovers" } },
+        .{ .items = &.{
+            "p",
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "ceo",
+            "put-user",
+            "delete-event",
+        } },
+    };
+    var users: [1]GroupStateUser = undefined;
+    var roles: [0]GroupRole = .{};
+    var user_roles: [group_state_user_roles_max][]const u8 = undefined;
+    var state = GroupState.init(users[0..], roles[0..], user_roles[0..]);
+
+    state.reset();
+    try group_state_apply_event(&state, &test_event(group_admins_kind, admin_tags[0..]));
+
+    try std.testing.expectEqual(@as(usize, 1), state.users.len);
+    try std.testing.expectEqual(@as(usize, 2), state.users[0].roles.len);
+    try std.testing.expectEqualStrings("put-user", state.users[0].roles[0]);
+    try std.testing.expectEqualStrings("delete-event", state.users[0].roles[1]);
 }

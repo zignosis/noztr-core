@@ -418,9 +418,11 @@ the validated maintenance baseline.
   - live provider fetch verification remains out of current kernel scope
 - `NIP-29` robustness outcome:
   - inbound extraction now accepts deployed three-slot `h` tags with optional relay hints and
-    ignores the empty admin compatibility label slot emitted by `nostr-tools`
-  - outbound builders still reject empty admin role lists and empty optional member labels so the
-    kernel no longer emits invalid compatibility tags
+    optional admin compatibility labels emitted by deployed TS tooling
+  - the pure reducer ignores those labels for role state so compatibility metadata no longer
+    pollutes actual permission handling
+  - outbound builders still reject empty admin role lists and empty optional member labels, but may
+    now emit the broader labeled admin shape when a caller explicitly supplies a label
   - bounded relay-generated metadata/admin/member/role extraction, pure state reduction, raw group
     references, user-event extraction, and raw `previous` tags remain the accepted kernel posture
 - Keep the implemented-NIP audit report current if future code changes reopen compatibility

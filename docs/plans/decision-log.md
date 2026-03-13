@@ -1360,17 +1360,18 @@ Immutable record of accepted planning decisions.
 - Decision: widen the NIP-29 kernel just enough to accept two deployed compatibility shapes during
   extraction:
   - user and moderation `h` tags may carry an optional third-slot relay hint when it is URL-shaped
-  - group-admin `p` tags may carry an empty third-slot compatibility label before permissions, and
-    that empty slot is ignored instead of poisoning the parse path
-  Keep canonical builders unchanged: emitted `h` tags remain two-item tags, emitted admin `p` tags
-  remain raw pubkey-plus-roles tags with no label slot. Do not add broader admin-label modeling in
-  the kernel at this stage.
+  - group-admin `p` tags may carry an optional third-slot compatibility label before permissions,
+    and that slot is treated as label metadata rather than as a role
+  Keep canonical `h` builders unchanged: emitted `h` tags remain two-item tags unless a caller
+  explicitly wants the broader deployed relay-hint form. Allow bounded admin-tag builders to emit
+  the optional compatibility label when a caller supplies one. Do not turn the reducer or the core
+  group-state model into a label-aware policy surface.
 - Why: deployed ecosystem helpers, especially `nostr-tools` and applesauce, use these shapes, and
   the old parser was stricter than necessary in ways that created avoidable compatibility friction
   without improving safety or determinism.
 - Tradeoff: slightly broader accepted inbound shape versus a small increase in parser surface; this
-  remains bounded because the third `h` slot must still be URL-shaped and only the empty admin
-  compatibility label is ignored.
+  remains bounded because the third `h` slot must still be URL-shaped, admin labels stay optional,
+  and reducer state still tracks only pubkeys plus roles.
 - Related Tradeoff: T-H-ANIP-011.
 - Reversal Trigger: the deployed ecosystem converges on a narrower canonical group-tag/admin-tag
   shape or these compatibility slots begin causing ambiguous or unsafe behavior in practice.
