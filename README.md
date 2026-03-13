@@ -22,10 +22,10 @@ backend exceptions.
   - `NIP-26`, `NIP-29`, `NIP-32`, `NIP-36`, `NIP-37`, `NIP-39`, `NIP-40`, `NIP-42`, `NIP-44`,
     `NIP-46`
   - `NIP-51` (bounded public/private list helpers)
-  - `NIP-56`, `NIP-59`, `NIP-65`, `NIP-70`, `NIP-73`
+  - `NIP-56`, `NIP-58`, `NIP-59`, `NIP-65`, `NIP-70`, `NIP-73`
   - Optional I6 extension exports (build-flag gated): `NIP-45`, `NIP-50`, `NIP-77`
 - Current prep focus: continue the kernel-first sequence before SDK work; next serial item is
-  `NIP-58` (`docs/plans/phase-h-kickoff.md`).
+  `NIP-84` (`docs/plans/phase-h-kickoff.md`).
 
 ## Build and test
 

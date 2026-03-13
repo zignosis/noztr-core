@@ -201,11 +201,11 @@ Current project context for the Phase H kickoff baseline.
 ## Active Parity Gate
 
 - Active lane: rust only (`tools/interop/rust-nostr-parity-all`).
-- Current rust status: `34 HARNESS_COVERED`, `2 LIB_UNSUPPORTED`, mixed `BASELINE/EDGE/DEEP`,
+- Current rust status: `35 HARNESS_COVERED`, `2 LIB_UNSUPPORTED`, mixed `BASELINE/EDGE/DEEP`,
   `PASS`; `NIP-26` and `NIP-37` remain source-review-only because the active Rust lane exposes no
   dedicated helper surfaces for them, and `NIP-29` extraction parity remains source-review-only
   because `rust-nostr` has no dedicated helper surface or reducer there.
-- Current TS audit status: `33/33 HARNESS_COVERED`, `2 LIB_UNSUPPORTED`, mixed `BASELINE/EDGE/DEEP`,
+- Current TS audit status: `33 HARNESS_COVERED`, `3 LIB_UNSUPPORTED`, mixed `BASELINE/EDGE/DEEP`,
   `PASS` (`tools/interop/ts-nostr-parity-all`; non-gating audit evidence lane).
 - Baseline cadence run (2026-03-09): rust parity harness passed
   (`SUMMARY pass=16 fail=0 harness_covered=16 total=16`).
@@ -282,11 +282,11 @@ Current project context for the Phase H kickoff baseline.
   (`Build Summary: 9/9 steps succeeded; 758/758 tests passed`).
 - Latest cadence run (2026-03-13): `zig build` passed.
 - Latest cadence run (2026-03-13): rust parity harness passed
-  (`SUMMARY pass=34 fail=0 harness_covered=34 lib_unsupported=2 total=36`).
+  (`SUMMARY pass=35 fail=0 harness_covered=35 lib_unsupported=2 total=37`).
 - Latest cadence run (2026-03-13): TS audit harness passed
-  (`SUMMARY pass=33 fail=0 harness_covered=33 lib_unsupported=2 total=35`).
+  (`SUMMARY pass=33 fail=0 harness_covered=33 lib_unsupported=3 total=36`).
 - Latest cadence run (2026-03-13): `zig build test --summary all` passed
-  (`Build Summary: 9/9 steps succeeded; 824/824 tests passed`).
+  (`Build Summary: 9/9 steps succeeded; 836/836 tests passed`).
 - Latest cadence run (2026-03-13): `zig build` passed.
 - Active cadence commands:
   - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
@@ -328,6 +328,7 @@ Current project context for the Phase H kickoff baseline.
    - `NIP-05` is complete in `src/nip05_identity.zig`
    - `NIP-26` is complete in `src/nip26_delegation.zig`
    - `NIP-37` is complete in `src/nip37_drafts.zig`
+   - `NIP-58` is complete in `src/nip58_badges.zig`
    - `NIP-32` is complete in `src/nip32_labeling.zig`
    - `NIP-36` is complete in `src/nip36_content_warning.zig`
    - `NIP-56` is complete in `src/nip56_reporting.zig`
@@ -335,7 +336,7 @@ Current project context for the Phase H kickoff baseline.
      `docs/plans/noztr-sdk-ownership-matrix.md` for `05`, `07`, `26`, `32`, `36`, `37`, `56`,
      `57`, `58`, `60`, `61`, `84`, `86`, and `B7`
    - current serial kernel-first sequence is `32`, `36`, `56`, `05`, `26`, `37`, `58`, `84`
-   - next serial item is `NIP-58`
+   - next serial item is `NIP-84`
 4. Keep the implemented-NIP audit report current if future code changes reopen compatibility or
    strictness questions.
    - use `docs/plans/noztr-sdk-ownership-matrix.md` when the question is whether a helper belongs

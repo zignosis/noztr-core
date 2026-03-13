@@ -1089,6 +1089,105 @@ fn check_nip56() -> Result<(), String> {
     Ok(())
 }
 
+fn check_nip58() -> Result<(), String> {
+    let badge_keys =
+        Keys::parse("4b911fd37cdf5c81d4c0adb1ab7fa822ed253ab0ad9aa18d77257c88b29b718e")
+            .map_err(|e| format!("nip58 badge key parse: {e}"))?;
+    let profile_keys =
+        Keys::parse("3b911fd37cdf5c81d4c0adb1ab7fa822ed253ab0ad9aa18d77257c88b29b718e")
+            .map_err(|e| format!("nip58 profile key parse: {e}"))?;
+    let image_url =
+        Url::parse("https://example.com/badge.png").map_err(|e| format!("nip58 image url: {e}"))?;
+    let thumb_url =
+        Url::parse("https://example.com/thumb.png").map_err(|e| format!("nip58 thumb url: {e}"))?;
+
+    let definition = EventBuilder::define_badge(
+        "bravery",
+        Some("Bravery"),
+        Some("Awarded for robust interoperability"),
+        Some(image_url),
+        None,
+        vec![(thumb_url, None)],
+    )
+    .sign_with_keys(&badge_keys)
+    .map_err(|e| format!("nip58 define badge: {e}"))?;
+    if definition.kind != Kind::BadgeDefinition {
+        return Err("nip58 definition kind mismatch".to_string());
+    }
+    if definition.tags.identifier() != Some("bravery") {
+        return Err("nip58 definition identifier mismatch".to_string());
+    }
+    if !definition
+        .tags
+        .iter()
+        .any(|tag| matches!(tag.as_standardized(), Some(TagStandard::Name(name)) if name == "Bravery"))
+    {
+        return Err("nip58 definition missing name tag".to_string());
+    }
+    if !definition.tags.iter().any(
+        |tag| matches!(tag.as_standardized(), Some(TagStandard::Thumb(url, _)) if url.as_str() == "https://example.com/thumb.png"),
+    ) {
+        return Err("nip58 definition missing thumb tag".to_string());
+    }
+
+    let award = EventBuilder::award_badge(&definition, [profile_keys.public_key()])
+        .map_err(|e| format!("nip58 award badge: {e}"))?
+        .sign_with_keys(&badge_keys)
+        .map_err(|e| format!("nip58 sign award badge: {e}"))?;
+    if award.kind != Kind::BadgeAward {
+        return Err("nip58 award kind mismatch".to_string());
+    }
+    if !award.tags.iter().any(|tag| {
+        matches!(
+            tag.as_standardized(),
+            Some(TagStandard::Coordinate { coordinate, .. })
+                if coordinate.kind == Kind::BadgeDefinition && coordinate.identifier == "bravery"
+        )
+    }) {
+        return Err("nip58 award missing badge coordinate".to_string());
+    }
+    if !award.tags.iter().any(|tag| {
+        matches!(
+            tag.as_standardized(),
+            Some(TagStandard::PublicKey { public_key, .. })
+                if public_key == &profile_keys.public_key()
+        )
+    }) {
+        return Err("nip58 award missing awarded pubkey".to_string());
+    }
+
+    let profile_badges =
+        EventBuilder::profile_badges(vec![definition], vec![award.clone()], &profile_keys.public_key())
+            .map_err(|e| format!("nip58 profile badges: {e}"))?
+            .sign_with_keys(&profile_keys)
+            .map_err(|e| format!("nip58 sign profile badges: {e}"))?;
+    if profile_badges.kind != Kind::ProfileBadges {
+        return Err("nip58 profile badges kind mismatch".to_string());
+    }
+    if profile_badges.tags.identifier() != Some("profile_badges") {
+        return Err("nip58 profile badges identifier mismatch".to_string());
+    }
+    if !profile_badges.tags.iter().any(|tag| {
+        matches!(
+            tag.as_standardized(),
+            Some(TagStandard::Coordinate { coordinate, .. })
+                if coordinate.kind == Kind::BadgeDefinition && coordinate.identifier == "bravery"
+        )
+    }) {
+        return Err("nip58 profile badges missing coordinate tag".to_string());
+    }
+    if !profile_badges.tags.iter().any(|tag| {
+        matches!(
+            tag.as_standardized(),
+            Some(TagStandard::Event { event_id, .. }) if event_id == &award.id
+        )
+    }) {
+        return Err("nip58 profile badges missing award event tag".to_string());
+    }
+
+    Ok(())
+}
+
 fn check_nip05() -> Result<(), String> {
     let pubkey_hex = "68d81165918100b7da43fc28f7d1fc12554466e1115886b9e7bb326f65ec4272";
     let pubkey =
@@ -2364,6 +2463,7 @@ async fn main() {
     push_harness_covered(&mut results, "NIP-36", Depth::Baseline, check_nip36());
     push_harness_covered(&mut results, "NIP-56", Depth::Baseline, check_nip56());
     push_harness_covered(&mut results, "NIP-05", Depth::Baseline, check_nip05());
+    push_harness_covered(&mut results, "NIP-58", Depth::Baseline, check_nip58());
     results.push(NipResult {
         nip: "NIP-26",
         taxonomy: Taxonomy::LibUnsupported,

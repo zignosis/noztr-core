@@ -111,6 +111,9 @@ pub const nip26_delegation = @import("nip26_delegation.zig");
 /// Post-Phase-H concrete export for the NIP-37 drafts module.
 pub const nip37_drafts = @import("nip37_drafts.zig");
 
+/// Post-Phase-H concrete export for the NIP-58 badges module.
+pub const nip58_badges = @import("nip58_badges.zig");
+
 /// Phase I5 concrete export for the NIP-44 encrypted direct-message module.
 pub const nip44 = @import("nip44.zig");
 
@@ -265,6 +268,15 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip37_drafts.DraftWrapPlaintextInfo) == type);
     try std.testing.expect(@TypeOf(nip37_drafts.PrivateRelayListInfo) == type);
     try std.testing.expect(@TypeOf(nip37_drafts.BuiltTag) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.ImageInfo) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.BadgeDefinitionReference) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.BadgeDefinitionInfo) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.BadgeAwardRecipient) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.BadgeAwardInfo) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.BadgeAwardEventReference) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.ProfileBadgePair) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.ProfileBadgesInfo) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupMetadata) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupAdmin) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupReference) == type);
@@ -738,6 +750,71 @@ test "root exports limits and error namespaces" {
                 [][]const u8,
                 std.mem.Allocator,
             ) nip37_drafts.Nip37Error!nip37_drafts.PrivateRelayListInfo,
+    );
+    try std.testing.expect(
+        @TypeOf(nip58_badges.badge_definition_extract) ==
+            fn (
+                *const nip01_event.Event,
+                []nip58_badges.ImageInfo,
+            ) nip58_badges.Nip58Error!nip58_badges.BadgeDefinitionInfo,
+    );
+    try std.testing.expect(
+        @TypeOf(nip58_badges.badge_award_extract) ==
+            fn (
+                *const nip01_event.Event,
+                []nip58_badges.BadgeAwardRecipient,
+            ) nip58_badges.Nip58Error!nip58_badges.BadgeAwardInfo,
+    );
+    try std.testing.expect(
+        @TypeOf(nip58_badges.profile_badges_extract) ==
+            fn (
+                *const nip01_event.Event,
+                []nip58_badges.ProfileBadgePair,
+            ) nip58_badges.Nip58Error!nip58_badges.ProfileBadgesInfo,
+    );
+    try std.testing.expect(
+        @TypeOf(nip58_badges.badge_award_validate_definition) ==
+            fn (
+                *const nip58_badges.BadgeAwardInfo,
+                *const nip58_badges.BadgeDefinitionInfo,
+            ) nip58_badges.Nip58Error!void,
+    );
+    try std.testing.expect(
+        @TypeOf(nip58_badges.profile_badge_pair_validate) ==
+            fn (
+                *const nip58_badges.ProfileBadgePair,
+                *const nip58_badges.BadgeAwardInfo,
+                []const nip58_badges.BadgeAwardRecipient,
+                *const nip58_badges.BadgeDefinitionInfo,
+                *const [32]u8,
+            ) nip58_badges.Nip58Error!void,
+    );
+    try std.testing.expect(
+        @TypeOf(nip58_badges.badge_build_identifier_tag) ==
+            fn (*nip58_badges.BuiltTag, []const u8) nip58_badges.Nip58Error!nip01_event.EventTag,
+    );
+    try std.testing.expect(
+        @TypeOf(nip58_badges.badge_build_image_tag) ==
+            fn (
+                *nip58_badges.BuiltTag,
+                []const u8,
+                ?[]const u8,
+            ) nip58_badges.Nip58Error!nip01_event.EventTag,
+    );
+    try std.testing.expect(
+        @TypeOf(nip58_badges.badge_build_definition_tag) ==
+            fn (
+                *nip58_badges.BuiltTag,
+                *const nip58_badges.BadgeDefinitionReference,
+            ) nip58_badges.Nip58Error!nip01_event.EventTag,
+    );
+    try std.testing.expect(
+        @TypeOf(nip58_badges.profile_badges_build_award_tag) ==
+            fn (
+                *nip58_badges.BuiltTag,
+                []const u8,
+                ?[]const u8,
+            ) nip58_badges.Nip58Error!nip01_event.EventTag,
     );
     try std.testing.expect(
         @TypeOf(nip46_remote_signing.message_serialize_json) ==

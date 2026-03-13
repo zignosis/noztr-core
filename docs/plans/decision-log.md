@@ -1623,3 +1623,22 @@ Immutable record of accepted planning decisions.
   `d`/`k`/relay-tag rules are materially too narrow, or the module proves to require stateful draft
   workflow to stay useful.
 - Supersedes: none
+
+## D-081: Implement bounded NIP-58 badge helpers in the kernel
+
+- Date: 2026-03-13
+- Status: accepted
+- Decision: implement `src/nip58_badges.zig` as the bounded kernel surface for kind-`30009` badge
+  definition parsing/building, kind-`8` badge award parsing/building, kind-`30008` profile-badge
+  pair extraction, and pure cross-event consistency validation. Keep badge presentation, profile
+  ordering policy, sync, and UX workflow in the future SDK.
+- Why: NIP-58 badge definitions, awards, and profile-badge references are deterministic protocol
+  glue that multiple clients will need to parse or compose consistently. The kernel can provide the
+  tag-level contract and pair validation without becoming a badge UX layer.
+- Tradeoff: a slightly broader content-helper surface in the kernel versus cleaner SDK layering and
+  less repeated badge-tag parsing later.
+- Related Tradeoff: T-H-ANIP-011.
+- Reversal Trigger: real-world badge events show that the accepted exact `d` / `a` / `e` /
+  recipient handling is materially too narrow, or the helper proves to require presentation or sync
+  policy to remain useful.
+- Supersedes: none

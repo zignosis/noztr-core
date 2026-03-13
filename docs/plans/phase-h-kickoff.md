@@ -121,8 +121,8 @@ the validated maintenance baseline.
       the accepted kernel posture
 - Wave 1 status: complete.
 - Active next execution focus: the kernel-first expansion sequence is active.
-- `NIP-32`, `NIP-36`, `NIP-56`, `NIP-05`, `NIP-26`, and `NIP-37` are complete; `NIP-58` is the
-  next serial implementation item.
+- `NIP-32`, `NIP-36`, `NIP-56`, `NIP-05`, `NIP-26`, `NIP-37`, and `NIP-58` are complete;
+  `NIP-84` is the next serial implementation item.
 - Implemented-NIP audit status:
   - `NIP-01`, `NIP-02`, `NIP-09`, `NIP-10`, `NIP-11`, `NIP-13`, `NIP-18`, `NIP-19`, `NIP-21`,
     `NIP-22`, `NIP-25`, `NIP-27`, `NIP-40`, `NIP-42`, `NIP-44`, `NIP-51`, `NIP-59`, and `NIP-65`

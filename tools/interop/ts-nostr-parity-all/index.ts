@@ -1581,6 +1581,13 @@ async function main(): Promise<void> {
     await push_harness_covered(results, "NIP-56", "BASELINE", check_nip56);
     await push_harness_covered(results, "NIP-05", "BASELINE", check_nip05);
     results.push({
+        nip: "NIP-58",
+        taxonomy: "LIB_UNSUPPORTED",
+        depth: "BASELINE",
+        result: "PASS",
+        detail: "no dedicated nostr-tools NIP-58 helper",
+    });
+    results.push({
         nip: "NIP-26",
         taxonomy: "LIB_UNSUPPORTED",
         depth: "BASELINE",
