@@ -1723,3 +1723,56 @@ Immutable record of accepted planning decisions.
 - Reversal Trigger: strong ecosystem evidence shows uppercase hashtag tags are materially common
   and rejecting them causes more interoperability harm than contract clarity provides.
 - Supersedes: none
+
+## D-086: Implement bounded NIP-57 zap helpers in the kernel
+
+- Date: 2026-03-13
+- Status: accepted
+- Decision: implement `src/nip57_zaps.zig` as the bounded kernel surface for kind-`9734`
+  zap-request extraction/building/validation and kind-`9735` zap-receipt
+  extraction/building/validation.
+  - accepted kernel floor:
+    - request helpers enforce exact single-`p`, exact single `relays`, optional `amount`,
+      optional `lnurl`, optional `e`, optional `a`, optional `k`, and optional `P`
+    - request validation verifies the embedded event signature/id and enforces optional query amount
+      plus optional receipt-signer continuity
+    - receipt validation verifies the receipt event signature/id, parses the embedded request JSON,
+      validates the embedded request, and enforces propagated target continuity across `p` / `P` /
+      `e` / `a` / `k`
+    - the `description` builder now requires a valid signed zap request rather than any arbitrary
+      JSON event
+  - deferred to SDK:
+    - LNURL fetch, callback orchestration, invoice parsing, payment flow, wallet orchestration, and
+      UI/payment policy
+- Why: zap request and receipt contracts are deterministic protocol glue that both clients and
+  relays need to parse and validate consistently, while LNURL and payment workflow are clearly
+  higher-level orchestration.
+- Tradeoff: a broader event-validation helper surface in the kernel versus cleaner SDK layering and
+  less repeated zap-contract logic later.
+- Related Tradeoff: T-H-ANIP-011.
+- Reversal Trigger: deployed zap traffic shows the accepted exact bounded tag contract is
+  materially too narrow, or invoice-level validation proves inseparable from the kernel slice.
+- Supersedes: none
+
+## D-087: Implement bounded NIP-86 relay-management RPC helpers in the kernel
+
+- Date: 2026-03-13
+- Status: accepted
+- Decision: implement `src/nip86_relay_management.zig` as the bounded kernel surface for
+  NIP-86 JSON-RPC-like request/response parse/build/validate helpers and typed method handling.
+  - accepted kernel floor:
+    - request parsing/serialization for all current draft methods
+    - typed response parsing/serialization for method-appropriate result payloads
+    - bounded validation for pubkeys, event ids, kinds, URLs, IPs, and optional reasons
+  - deferred to SDK or relay application:
+    - NIP-98 authorization event handling
+    - HTTP transport, admin session handling, retries, operator workflow, and relay policy
+- Why: the RPC payload contract is deterministic protocol glue and useful to multiple callers,
+  while auth, transport, and operator workflow are orchestration concerns.
+- Tradeoff: a slightly broader administrative protocol surface in the kernel versus cleaner SDK and
+  relay-application layering.
+- Related Tradeoff: T-H-ANIP-011.
+- Reversal Trigger: the draft method surface changes materially enough that the current typed kernel
+  contract causes repeated churn, or real relay implementations show the accepted payload floor is
+  too narrow.
+- Supersedes: none

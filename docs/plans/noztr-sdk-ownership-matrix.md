@@ -68,11 +68,15 @@ Put behavior in the SDK when it involves any of:
 | `50` search | bounded search parse / extension extraction | query-building UX, search flow, result handling | search-query builder and relay search orchestration | kernel scope is correct |
 | `51` lists | bounded public/private list parse/build helpers | list-management UX, sync/store, merge conflict policy, higher-level list semantics | list manager with sync / storage / merge policy | current split is correct |
 | `56` reporting | bounded report extraction/building, typed report enums, and direct server-tag handling | reporting UX, moderation submission flow, relay-specific policy | reporting flow over kernel targets and report types | kernel scope is correct |
+| `57` zaps | bounded zap request / receipt parse, build, and validation helpers | LNURL fetch, callback handling, invoice/payment flow, wallet orchestration | zap/LNURL payment pipeline over kernel request and receipt helpers | deterministic zap contracts belong in `noztr`; LNURL/payment flow belongs in SDK |
+| `58` badges | bounded badge definition / award / profile-badge parse, build, and consistency helpers | badge sync, ordering policy, profile presentation, badge UX | badge-sync and profile-presentation layer over kernel badge helpers | kernel scope is correct |
 | `59` gift wrap | wrap / seal / rumor boundaries and checked unwrap helpers | mailbox workflow, delivery orchestration, session handling | mailbox pipeline over kernel wrap / unwrap helpers | current split is correct |
 | `65` relay metadata | bounded relay-list extraction and builders | relay preference store, routing policy, failover heuristics | relay-preference manager and router hints | kernel scope is correct |
 | `70` protected events | exact protected-tag semantics and checked helpers | publish policy and protected-event UX | protected-event publish helper with policy toggles | kernel scope is correct |
 | `73` external ids | bounded external-id parse/build/validate/match helpers | provider presets, richer external-id workflows, UX affordances | shared provider preset / resolver layer for external IDs | implemented and reused by `NIP-24` and `NIP-22` |
 | `77` negentropy | bounded NEG-OPEN / MSG / CLOSE / ERR parsing and session helpers | full sync engine, transport scheduling, retry/session policy | negentropy sync driver over kernel message/state helpers | kernel scope is correct |
+| `84` highlights | bounded highlight source / attribution / comment / context parse-build helpers | reader UX, render policy, article integration, publish flow | highlight-reader and compose layer over kernel source helpers | kernel scope is correct |
+| `86` relay management | bounded relay-management request / response parse-build helpers | NIP-98 auth, HTTP transport, admin sessions, operator workflow | relay-operator client over kernel RPC helpers | deterministic RPC payloads belong in `noztr`; admin flow belongs in SDK |
 
 ## Review Questions
 

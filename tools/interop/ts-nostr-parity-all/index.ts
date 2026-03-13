@@ -23,6 +23,7 @@ import * as nip06 from "nostr-tools/nip06";
 import * as nip17 from "nostr-tools/nip17";
 import * as nip29 from "nostr-tools/nip29";
 import * as nip39 from "nostr-tools/nip39";
+import * as nip57 from "nostr-tools/nip57";
 import { parse as parseNostrUri } from "nostr-tools/nip21";
 import * as nip27 from "nostr-tools/nip27";
 import * as kinds from "nostr-tools/kinds";
@@ -983,6 +984,43 @@ function check_nip56(): void {
     );
 }
 
+function check_nip57(): void {
+    const secret_key = to_bytes_32(FIXED_SECRET_KEY_HEX);
+    const recipient_pubkey =
+        "32e1827635450ebb3c5a7d12c1f8e7b2b514439ac10a67eef3d9fd9c5c68e245";
+    const request_template = nip57.makeZapRequest({
+        pubkey: recipient_pubkey,
+        amount: 21_000,
+        comment: "Zap!",
+        relays: ["wss://relay.example"],
+    });
+    ensure(request_template.kind === kinds.ZapRequest, "NIP-57 request kind mismatch");
+    ensure(
+        request_template.tags.some((tag) => tag[0] === "relays" && tag[1] === "wss://relay.example"),
+        "NIP-57 request missing relays tag",
+    );
+
+    const signed_request = finalizeEvent(request_template, secret_key);
+    const request_json = JSON.stringify(signed_request);
+    ensure(nip57.validateZapRequest(request_json) === null, "NIP-57 request validation failed");
+
+    const receipt_template = nip57.makeZapReceipt({
+        zapRequest: request_json,
+        preimage: "5d006d2cf1e73c7148e7519a4c68adc81642ce0e25a432b2434c99f97344c15f",
+        bolt11: "lnbc10u1p3unwfusp5example",
+        paidAt: new Date(1_700_000_000_000),
+    });
+    ensure(receipt_template.kind === kinds.Zap, "NIP-57 receipt kind mismatch");
+    ensure(
+        receipt_template.tags.some((tag) => tag[0] === "description" && tag[1] === request_json),
+        "NIP-57 receipt missing description tag",
+    );
+    ensure(
+        receipt_template.tags.some((tag) => tag[0] === "bolt11"),
+        "NIP-57 receipt missing bolt11 tag",
+    );
+}
+
 async function check_nip05(): Promise<void> {
     const pubkey = "68d81165918100b7da43fc28f7d1fc12554466e1115886b9e7bb326f65ec4272";
     let seen_url = "";
@@ -1658,6 +1696,7 @@ async function main(): Promise<void> {
     await push_harness_covered(results, "NIP-32", "BASELINE", check_nip32);
     await push_harness_covered(results, "NIP-36", "BASELINE", check_nip36);
     await push_harness_covered(results, "NIP-56", "BASELINE", check_nip56);
+    await push_harness_covered(results, "NIP-57", "BASELINE", check_nip57);
     await push_harness_covered(results, "NIP-05", "BASELINE", check_nip05);
     results.push({
         nip: "NIP-58",
@@ -1686,6 +1725,13 @@ async function main(): Promise<void> {
         depth: "BASELINE",
         result: "PASS",
         detail: "no dedicated nostr-tools NIP-84 helper",
+    });
+    results.push({
+        nip: "NIP-86",
+        taxonomy: "LIB_UNSUPPORTED",
+        depth: "BASELINE",
+        result: "PASS",
+        detail: "no dedicated nostr-tools NIP-86 helper",
     });
     await push_harness_covered(results, "NIP-17", "BASELINE", check_nip17);
     await push_harness_covered(results, "NIP-29", "BASELINE", check_nip29);

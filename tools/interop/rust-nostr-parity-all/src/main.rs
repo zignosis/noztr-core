@@ -23,6 +23,7 @@ use nostr::nips::nip44::v2::{decrypt_to_bytes, encrypt_to_bytes_with_rng, Conver
 use nostr::nips::nip46::{NostrConnectMessage, NostrConnectMethod, NostrConnectURI};
 use nostr::nips::nip51::{ArticlesCuration, Bookmarks, Emojis, Interests, MuteList};
 use nostr::nips::nip56::Report;
+use nostr::nips::nip57::ZapRequestData;
 use nostr::nips::nip59::{self, UnwrappedGift};
 use nostr::nips::nip65::{self, RelayMetadata};
 use nostr::nips::nip73::ExternalContentId;
@@ -1185,6 +1186,60 @@ fn check_nip58() -> Result<(), String> {
         return Err("nip58 profile badges missing award event tag".to_string());
     }
 
+    Ok(())
+}
+
+fn check_nip57() -> Result<(), String> {
+    let keys = parse_keys()?;
+    let receipt_keys = parse_alt_keys()?;
+    let recipient =
+        PublicKey::from_str("32e1827635450ebb3c5a7d12c1f8e7b2b514439ac10a67eef3d9fd9c5c68e245")
+            .map_err(|e| format!("nip57 recipient parse: {e}"))?;
+    let relay =
+        RelayUrl::parse("wss://relay.example").map_err(|e| format!("nip57 relay parse: {e}"))?;
+
+    let request = EventBuilder::public_zap_request(
+        ZapRequestData::new(recipient, [relay.clone()])
+            .message("Zap!")
+            .amount(21_000),
+    )
+    .sign_with_keys(&keys)
+    .map_err(|e| format!("nip57 request sign: {e}"))?;
+    if request.kind != Kind::ZapRequest {
+        return Err("nip57 request kind mismatch".to_string());
+    }
+    if !request.tags.iter().any(|tag| {
+        matches!(
+            tag.as_standardized(),
+            Some(TagStandard::Relays(relays)) if relays.len() == 1 && relays[0] == relay
+        )
+    }) {
+        return Err("nip57 request missing relays tag".to_string());
+    }
+
+    let receipt = EventBuilder::zap_receipt(
+        "lnbc10u1example",
+        Some("5d006d2cf1e73c7148e7519a4c68adc81642ce0e25a432b2434c99f97344c15f"),
+        &request,
+    )
+    .sign_with_keys(&receipt_keys)
+    .map_err(|e| format!("nip57 receipt sign: {e}"))?;
+    if receipt.kind != Kind::ZapReceipt {
+        return Err("nip57 receipt kind mismatch".to_string());
+    }
+    if !receipt.tags.iter().any(|tag| {
+        matches!(tag.as_standardized(), Some(TagStandard::Bolt11(text)) if text == "lnbc10u1example")
+    }) {
+        return Err("nip57 receipt missing bolt11 tag".to_string());
+    }
+    if !receipt.tags.iter().any(|tag| {
+        matches!(
+            tag.as_standardized(),
+            Some(TagStandard::Description(text)) if text == &request.as_json()
+        )
+    }) {
+        return Err("nip57 receipt missing description tag".to_string());
+    }
     Ok(())
 }
 
@@ -2462,6 +2517,7 @@ async fn main() {
     push_harness_covered(&mut results, "NIP-32", Depth::Baseline, check_nip32());
     push_harness_covered(&mut results, "NIP-36", Depth::Baseline, check_nip36());
     push_harness_covered(&mut results, "NIP-56", Depth::Baseline, check_nip56());
+    push_harness_covered(&mut results, "NIP-57", Depth::Baseline, check_nip57());
     push_harness_covered(&mut results, "NIP-05", Depth::Baseline, check_nip05());
     push_harness_covered(&mut results, "NIP-58", Depth::Baseline, check_nip58());
     results.push(NipResult {
@@ -2491,6 +2547,13 @@ async fn main() {
         depth: Depth::Baseline,
         result: CheckResult::Pass,
         detail: Some("no dedicated rust-nostr NIP-29 helper or reducer".to_string()),
+    });
+    results.push(NipResult {
+        nip: "NIP-86",
+        taxonomy: Taxonomy::LibUnsupported,
+        depth: Depth::Baseline,
+        result: CheckResult::Pass,
+        detail: Some("no dedicated rust-nostr NIP-86 helper".to_string()),
     });
     push_harness_covered(&mut results, "NIP-17", Depth::Baseline, check_nip17().await);
     push_harness_covered(&mut results, "NIP-39", Depth::Baseline, check_nip39());

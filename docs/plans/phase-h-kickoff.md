@@ -123,9 +123,9 @@ the validated maintenance baseline.
 - Active next execution focus: the kernel-first expansion sequence is active.
 - `NIP-32`, `NIP-36`, `NIP-56`, `NIP-05`, `NIP-26`, `NIP-37`, `NIP-58`, and `NIP-84` are
   complete.
-- Active next execution focus: run a focused robustness batch over the completed kernel-first
-  additions before deciding whether the split-later `NIP-57` / `NIP-86` work belongs ahead of
-  `nzdk`.
+- Active next execution focus: `NIP-57` and `NIP-86` split-later kernel slices are now complete.
+- Recommended next execution focus: stop kernel expansion here and begin `nzdk` planning when
+  directed; do not reopen kernel-only work unless new evidence or follow-up scope appears.
 - Implemented-NIP audit status:
   - `NIP-01`, `NIP-02`, `NIP-09`, `NIP-10`, `NIP-11`, `NIP-13`, `NIP-18`, `NIP-19`, `NIP-21`,
     `NIP-22`, `NIP-25`, `NIP-27`, `NIP-40`, `NIP-42`, `NIP-44`, `NIP-51`, `NIP-59`, and `NIP-65`
@@ -186,8 +186,26 @@ the validated maintenance baseline.
     path-bound websocket origin strictness is retained
   - `NIP-51` widened bookmark extraction to accept bounded hashtag/URL items and now ignores
     unrelated unknown tags
-  - `NIP-51` now supports bounded private-list JSON serialization and NIP-44 private-item
-    extraction while rejecting deprecated legacy `?iv=` payloads pending `no-urr`
+- `NIP-51` now supports bounded private-list JSON serialization and NIP-44 private-item
+  extraction while rejecting deprecated legacy `?iv=` payloads pending `no-urr`
+- `NIP-57` is complete in `src/nip57_zaps.zig`
+  - bounded zap request extract/build/validate helpers are implemented for kind `9734`
+  - bounded zap receipt extract/build/validate helpers are implemented for kind `9735`
+  - request validation enforces signed-event integrity plus bounded `p` / `relays` / `amount` /
+    `lnurl` / `e` / `a` / `k` / `P` handling
+  - receipt validation now verifies the receipt event signature/id, validates the embedded request,
+    and enforces propagated target continuity
+  - the `description` builder now requires a valid signed zap request rather than any arbitrary
+    JSON event
+  - accepted boundary: LNURL fetch, callback handling, invoice/payment flow, and wallet
+    orchestration remain SDK-side
+- `NIP-86` is complete in `src/nip86_relay_management.zig`
+  - bounded request/response parse/build/validate helpers are implemented for the current draft
+    relay-management method set
+  - typed request handling covers pubkeys, event ids, kinds, URLs, IPs, and optional reasons
+  - typed response handling covers method-name lists, pubkey/event/kind/IP lists, and ack replies
+  - accepted boundary: NIP-98 authorization, HTTP transport, admin sessions, and operator workflow
+    remain SDK-side or relay-application-side
 - Wave 2 / `NIP-46` is complete in `no-czg`
   - bounded `src/nip46_remote_signing.zig` surface is implemented
   - current implemented scope:

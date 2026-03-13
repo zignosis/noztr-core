@@ -70,6 +70,7 @@ frozen defaults or the current deterministic-and-compatible Layer 1 kernel postu
 - Post-Wave expansion completion: `23`.
 - Post-wave deferred backlog completion: `24`, `03`, `17`, `39`, `29`.
 - Active kernel-first sequence: `32`, `36`, `56`, `05`, `26`, `37`, `58`, `84`.
+- Split-later completion: `57`, `86`.
 - Deferred backlog (no implementation start in this plan): none.
 - Rejected hold: `07`.
 

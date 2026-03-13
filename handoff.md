@@ -207,14 +207,14 @@ Current project context for the Phase H kickoff baseline.
 ## Active Parity Gate
 
 - Active lane: rust only (`tools/interop/rust-nostr-parity-all`).
-- Current rust status: `35 HARNESS_COVERED`, `4 LIB_UNSUPPORTED`, mixed `BASELINE/EDGE/DEEP`,
-  `PASS`; all `39` implemented NIPs are now explicitly accounted for in the Rust lane, with
-  `NIP-26`, `NIP-29`, `NIP-37`, and `NIP-84` recorded as `LIB_UNSUPPORTED` because the active
-  Rust lane exposes no dedicated helper surfaces for them.
-- Current TS audit status: `35 HARNESS_COVERED`, `4 LIB_UNSUPPORTED`, mixed `BASELINE/EDGE/DEEP`,
-  `PASS` (`tools/interop/ts-nostr-parity-all`; non-gating audit evidence lane); all `39`
+- Current rust status: `36 HARNESS_COVERED`, `5 LIB_UNSUPPORTED`, mixed `BASELINE/EDGE/DEEP`,
+  `PASS`; all `41` implemented NIPs are now explicitly accounted for in the Rust lane, with
+  `NIP-26`, `NIP-29`, `NIP-37`, `NIP-84`, and `NIP-86` recorded as `LIB_UNSUPPORTED` because the
+  active Rust lane exposes no dedicated helper surfaces for them.
+- Current TS audit status: `36 HARNESS_COVERED`, `5 LIB_UNSUPPORTED`, mixed `BASELINE/EDGE/DEEP`,
+  `PASS` (`tools/interop/ts-nostr-parity-all`; non-gating audit evidence lane); all `41`
   implemented NIPs are now explicitly accounted for in the TS lane, with `NIP-26`, `NIP-37`,
-  `NIP-58`, and `NIP-84` recorded as `LIB_UNSUPPORTED`.
+  `NIP-58`, `NIP-84`, and `NIP-86` recorded as `LIB_UNSUPPORTED`.
 - Baseline cadence run (2026-03-09): rust parity harness passed
   (`SUMMARY pass=16 fail=0 harness_covered=16 total=16`).
 - Latest cadence run (2026-03-10): rust parity harness passed
@@ -367,8 +367,8 @@ Current project context for the Phase H kickoff baseline.
      `57`, `58`, `60`, `61`, `84`, `86`, and `B7`
    - current serial kernel-first sequence `32`, `36`, `56`, `05`, `26`, `37`, `58`, `84` is
      complete
-   - next recommended focus is a focused robustness batch over the completed kernel-first additions
-     before starting split-later `57` / `86` work or `nzdk`
+   - split-later kernel work `57` / `86` is now complete
+   - next recommended focus is `nzdk`, not more kernel expansion
    - latest targeted review result:
      - `NIP-05` now accepts uppercase local-parts and canonicalizes them to lowercase for
        lookup/output while keeping the exact supported character set unchanged

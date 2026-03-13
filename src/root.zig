@@ -117,6 +117,12 @@ pub const nip58_badges = @import("nip58_badges.zig");
 /// Post-Phase-H concrete export for the NIP-84 highlights module.
 pub const nip84_highlights = @import("nip84_highlights.zig");
 
+/// Post-Phase-H split concrete export for the NIP-57 zaps module.
+pub const nip57_zaps = @import("nip57_zaps.zig");
+
+/// Post-Phase-H split concrete export for the NIP-86 relay-management module.
+pub const nip86_relay_management = @import("nip86_relay_management.zig");
+
 /// Phase I5 concrete export for the NIP-44 encrypted direct-message module.
 pub const nip44 = @import("nip44.zig");
 
@@ -200,6 +206,8 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip56_reporting.Nip56Error) == type);
     try std.testing.expect(@TypeOf(nip05_identity.Nip05Error) == type);
     try std.testing.expect(@TypeOf(nip26_delegation.Nip26Error) == type);
+    try std.testing.expect(@TypeOf(nip57_zaps.Nip57Error) == type);
+    try std.testing.expect(@TypeOf(nip86_relay_management.Nip86Error) == type);
     try std.testing.expect(@TypeOf(nip44.Nip44Error) == type);
     try std.testing.expect(@TypeOf(nip59_wrap.WrapError) == type);
     try std.testing.expectEqual(i6_extensions_enabled, @hasDecl(nip45_count, "CountError"));
@@ -267,6 +275,16 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip26_delegation.DelegationCondition) == type);
     try std.testing.expect(@TypeOf(nip26_delegation.DelegationConditions) == type);
     try std.testing.expect(@TypeOf(nip26_delegation.BuiltTag) == type);
+    try std.testing.expect(@TypeOf(nip57_zaps.Nip57Error) == type);
+    try std.testing.expect(@TypeOf(nip57_zaps.ZapRequest) == type);
+    try std.testing.expect(@TypeOf(nip57_zaps.ZapReceipt) == type);
+    try std.testing.expect(@TypeOf(nip57_zaps.BuiltTag) == type);
+    try std.testing.expect(@TypeOf(nip86_relay_management.Nip86Error) == type);
+    try std.testing.expect(@TypeOf(nip86_relay_management.PubkeyReason) == type);
+    try std.testing.expect(@TypeOf(nip86_relay_management.EventIdReason) == type);
+    try std.testing.expect(@TypeOf(nip86_relay_management.IpReason) == type);
+    try std.testing.expect(@TypeOf(nip86_relay_management.Request) == type);
+    try std.testing.expect(@TypeOf(nip86_relay_management.Response) == type);
     try std.testing.expect(@TypeOf(nip37_drafts.DraftWrapInfo) == type);
     try std.testing.expect(@TypeOf(nip37_drafts.DraftWrapPlaintextInfo) == type);
     try std.testing.expect(@TypeOf(nip37_drafts.PrivateRelayListInfo) == type);
@@ -857,6 +875,48 @@ test "root exports limits and error namespaces" {
                 *nip84_highlights.BuiltTag,
                 []const u8,
             ) nip84_highlights.Nip84Error!nip01_event.EventTag,
+    );
+    try std.testing.expect(
+        @TypeOf(nip57_zaps.zap_request_extract) ==
+            fn (
+                *const nip01_event.Event,
+                [][]const u8,
+            ) nip57_zaps.Nip57Error!nip57_zaps.ZapRequest,
+    );
+    try std.testing.expect(
+        @TypeOf(nip57_zaps.zap_receipt_extract) ==
+            fn (
+                *const nip01_event.Event,
+                [][]const u8,
+                std.mem.Allocator,
+            ) nip57_zaps.Nip57Error!nip57_zaps.ZapReceipt,
+    );
+    try std.testing.expect(
+        @TypeOf(nip57_zaps.request_build_relays_tag) ==
+            fn (
+                *nip57_zaps.BuiltTag,
+                []const []const u8,
+            ) nip57_zaps.Nip57Error!nip01_event.EventTag,
+    );
+    try std.testing.expect(
+        @TypeOf(nip86_relay_management.request_parse_json) ==
+            fn (
+                []const u8,
+                std.mem.Allocator,
+            ) nip86_relay_management.Nip86Error!nip86_relay_management.Request,
+    );
+    try std.testing.expect(
+        @TypeOf(nip86_relay_management.response_parse_json) ==
+            fn (
+                []const u8,
+                nip86_relay_management.RelayManagementMethod,
+                [][]const u8,
+                []nip86_relay_management.PubkeyReason,
+                []nip86_relay_management.EventIdReason,
+                []u32,
+                []nip86_relay_management.IpReason,
+                std.mem.Allocator,
+            ) nip86_relay_management.Nip86Error!nip86_relay_management.Response,
     );
     try std.testing.expect(
         @TypeOf(nip46_remote_signing.message_serialize_json) ==
