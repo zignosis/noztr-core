@@ -865,6 +865,37 @@ function check_nip32(): void {
     ensure(verifyEvent(self_label), "NIP-32 self-label signature verification failed");
 }
 
+function check_nip36(): void {
+    const secret_key = to_bytes_32(FIXED_SECRET_KEY_HEX);
+    const event = finalizeEvent(
+        {
+            kind: kinds.ShortTextNote,
+            created_at: 1_708_000_060,
+            tags: [
+                ["content-warning", ""],
+                ["L", "content-warning"],
+                ["l", "nudity", "content-warning", "en"],
+            ],
+            content: "NIP-36 warning",
+        },
+        secret_key,
+    );
+    ensure(event.kind === kinds.ShortTextNote, "NIP-36 event kind mismatch");
+    ensure(verifyEvent(event), "NIP-36 signature verification failed");
+    ensure(
+        event.tags.some((tag) => tag[0] === "content-warning" && tag[1] === ""),
+        "NIP-36 content-warning tag mismatch",
+    );
+    ensure(
+        event.tags.some((tag) => tag[0] === "L" && tag[1] === "content-warning"),
+        "NIP-36 namespace tag mismatch",
+    );
+    ensure(
+        event.tags.some((tag) => tag[0] === "l" && tag[1] === "nudity" && tag[2] === "content-warning"),
+        "NIP-36 label tag mismatch",
+    );
+}
+
 function check_nip17(): void {
     const sender_secret = to_bytes_32(FIXED_SECRET_KEY_HEX);
     const recipient_secret = to_bytes_32(
@@ -1478,6 +1509,7 @@ async function main(): Promise<void> {
     await push_harness_covered(results, "NIP-23", "BASELINE", check_nip23);
     await push_harness_covered(results, "NIP-24", "BASELINE", check_nip24);
     await push_harness_covered(results, "NIP-32", "BASELINE", check_nip32);
+    await push_harness_covered(results, "NIP-36", "BASELINE", check_nip36);
     await push_harness_covered(results, "NIP-17", "BASELINE", check_nip17);
     await push_harness_covered(results, "NIP-29", "BASELINE", check_nip29);
     await push_harness_covered(results, "NIP-39", "BASELINE", check_nip39);

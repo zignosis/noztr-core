@@ -1002,6 +1002,44 @@ fn check_nip32() -> Result<(), String> {
     Ok(())
 }
 
+fn check_nip36() -> Result<(), String> {
+    let keys = parse_keys()?;
+    let event = EventBuilder::text_note("NIP-36 warning")
+        .tags([
+            Tag::parse(vec!["content-warning", ""])
+                .map_err(|e| format!("NIP-36 warning parse: {e}"))?,
+            Tag::parse(vec!["L", "content-warning"])
+                .map_err(|e| format!("NIP-36 namespace parse: {e}"))?,
+            Tag::parse(vec!["l", "nudity", "content-warning", "en"])
+                .map_err(|e| format!("NIP-36 label parse: {e}"))?,
+        ])
+        .sign_with_keys(&keys)
+        .map_err(|e| format!("NIP-36 event build failed: {e}"))?;
+    if event.kind != Kind::TextNote {
+        return Err("NIP-36 event kind mismatch".to_string());
+    }
+    event.verify()
+        .map_err(|e| format!("NIP-36 signature verification failed: {e}"))?;
+    if !event.tags.iter().any(|tag| {
+        matches!(
+            tag.as_standardized(),
+            Some(TagStandard::ContentWarning { reason }) if reason.is_none()
+        )
+    }) {
+        return Err("NIP-36 content-warning tag mismatch".to_string());
+    }
+    if !event.tags.iter().any(|tag| {
+        matches!(
+            tag.as_standardized(),
+            Some(TagStandard::LabelNamespace(namespace)) if namespace == "content-warning"
+        )
+    }) {
+        return Err("NIP-36 content-warning namespace tag mismatch".to_string());
+    }
+
+    Ok(())
+}
+
 async fn check_nip17() -> Result<(), String> {
     let keys = parse_keys()?;
     let receiver_keys = parse_alt_keys()?;
@@ -2225,6 +2263,7 @@ async fn main() {
     push_harness_covered(&mut results, "NIP-23", Depth::Baseline, check_nip23());
     push_harness_covered(&mut results, "NIP-24", Depth::Baseline, check_nip24());
     push_harness_covered(&mut results, "NIP-32", Depth::Baseline, check_nip32());
+    push_harness_covered(&mut results, "NIP-36", Depth::Baseline, check_nip36());
     push_harness_covered(&mut results, "NIP-17", Depth::Baseline, check_nip17().await);
     push_harness_covered(&mut results, "NIP-39", Depth::Baseline, check_nip39());
     push_harness_covered(&mut results, "NIP-27", Depth::Deep, check_nip27());
