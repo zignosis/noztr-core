@@ -1506,3 +1506,22 @@ Immutable record of accepted planning decisions.
 - Related Tradeoff: T-H-ANIP-011.
 - Reversal Trigger: the bounded helper proves insufficient and forces per-NIP grammars anyway.
 - Supersedes: none
+
+## D-075: Implement bounded local NIP-03 proof verification floor
+
+- Date: 2026-03-13
+- Status: accepted
+- Decision: implement the bounded local NIP-03 proof-verification floor in the kernel. The
+  accepted floor validates the detached OpenTimestamps header magic, major version `1`, root
+  `sha256` digest op, exact target event-id digest match, iterative timestamp-tree structure with
+  known op tags, and at least one Bitcoin attestation. Pending attestations are tolerated when the
+  proof still carries a valid Bitcoin attestation. Networked Bitcoin/esplora verification and live
+  block-header fetching remain outside the kernel.
+- Why: this closes the largest functional gap in the NIP-03 helper without pulling relay/network
+  policy or blockchain I/O into `noztr`.
+- Tradeoff: more local parser complexity versus a meaningfully more functional and still bounded
+  attestation helper surface.
+- Related Tradeoff: T-H-ANIP-010.
+- Reversal Trigger: the accepted local floor proves too brittle, too large for KISS, or ecosystem
+  evidence requires materially broader local proof semantics.
+- Supersedes: none

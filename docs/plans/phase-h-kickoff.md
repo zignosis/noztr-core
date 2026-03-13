@@ -297,11 +297,18 @@ the validated maintenance baseline.
     - strict kind-`1040` attestation extraction with exact single `e` and `k` target tags
     - caller-buffer base64 proof decoding with typed failures on malformed or oversized content
     - target-reference validation against a supplied event id and kind
+    - bounded local proof verification floor:
+      - detached OpenTimestamps header magic
+      - major version `1`
+      - root `sha256` digest op
+      - exact target event-id digest match
+      - iterative timestamp-tree parsing for known op tags
+      - at least one Bitcoin attestation
+      - tolerated pending attestations when Bitcoin attestation proof is still present
     - direct builders for canonical `e` and `k` tags
     - tolerant handling of unrelated unknown tags
   - accepted bounded deferral:
     - networked Bitcoin/OpenTimestamps verification remains outside the current kernel scope
-    - bounded local proof verification is now accepted future kernel work (`D-070`)
   - parity/evidence status:
     - rust parity overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
     - TypeScript audit overlap is now `HARNESS_COVERED`, `BASELINE`, `PASS`
@@ -396,9 +403,9 @@ the validated maintenance baseline.
 - `NIP-03` robustness outcome:
   - standard long-form `e` tags are now accepted when they carry the deployed empty-relay /
     marker / pubkey suffix shape used by generic event-tag tooling
-  - exact target-kind requirement, bounded base64 proof decoding, and caller-buffer proof output
-    remain unchanged
-  - deeper OpenTimestamps / Bitcoin attestation verification remains out of current kernel scope
+  - exact target-kind requirement, bounded base64 proof decoding, caller-buffer proof output, and
+    the bounded local proof-verification floor remain the accepted kernel posture
+  - networked OpenTimestamps / Bitcoin attestation verification remains out of current kernel scope
 - `NIP-17` robustness outcome:
   - direct-message parsing now accepts standard long-form reply `e` tags with optional public-key
     suffixes instead of rejecting those deployed generic event-tag shapes

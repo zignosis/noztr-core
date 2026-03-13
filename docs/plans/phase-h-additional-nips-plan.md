@@ -446,8 +446,6 @@ Reprioritized after deferred-backlog completion of `NIP-29`:
   can be added without introducing orchestration semantics into Layer 1.
 - `OQ-H-ANIP-004` (NIP-39, high): what trust model and verification policy are acceptable for
   external identity claims under current Layer 1 defaults.
-- `OQ-H-ANIP-005` (NIP-03, medium): what bounded proof-shape and verification-depth floor is required
-  for deterministic OpenTimestamps validation.
 
 ## Principles Compliance
 

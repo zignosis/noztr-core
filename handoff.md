@@ -148,14 +148,14 @@ Current project context for the Phase H kickoff baseline.
     `NIP-22` external-kind consistency
   - deferred backlog `NIP-03` is now complete in `src/nip03_opentimestamps.zig` with strict
     kind-`1040` extraction, exact `e`/`k` target tags, caller-buffer base64 proof decoding, target
-    reference validation, and direct `e`/`k` tag builders
+    reference validation, bounded local proof verification floor, and direct `e`/`k` tag builders
   - deferred backlog `NIP-03` robustness review is complete:
     - standard long-form `e` tags with empty-relay / marker / pubkey suffixes are now accepted
-    - bounded proof decoding and exact target-reference validation remain unchanged
+    - bounded proof decoding, exact target-reference validation, and the bounded local proof floor
+      remain unchanged
   - accepted bounded deferral:
     - networked OpenTimestamps / Bitcoin attestation verification remains out of current kernel
       scope
-    - bounded local proof verification is now accepted future kernel work (`D-070`)
   - deferred backlog `NIP-17` is now complete in `src/nip17_private_messages.zig` with bounded
     kind-`14` message parsing, kind-`15` file-message parsing, direct `NIP-59`
     unwrap-to-rumor reuse for both message kinds, kind-`10050` relay-list extraction, and direct
@@ -276,7 +276,7 @@ Current project context for the Phase H kickoff baseline.
 - Latest cadence run (2026-03-13): TS audit harness passed
   (`SUMMARY pass=29 fail=0 harness_covered=29 total=29`).
 - Latest cadence run (2026-03-13): `zig build test --summary all` passed
-  (`Build Summary: 9/9 steps succeeded; 754/754 tests passed`).
+  (`Build Summary: 9/9 steps succeeded; 758/758 tests passed`).
 - Latest cadence run (2026-03-13): `zig build` passed.
 - Active cadence commands:
   - `cargo run --manifest-path tools/interop/rust-nostr-parity-all/Cargo.toml`
@@ -315,7 +315,7 @@ Current project context for the Phase H kickoff baseline.
    changes and record outcomes in Phase H kickoff and handoff docs.
 3. Phase H planned expansion plus the bounded NIP-73 ownership follow-up are complete.
    Recommended next step:
-   - implement the bounded NIP-03 local proof-verification floor before any new protocol expansion
+   - use operator-directed robustness or SDK-boundary work before any new protocol expansion
 4. Keep the implemented-NIP audit report current if future code changes reopen compatibility or
    strictness questions.
    - use `docs/plans/noztr-sdk-ownership-matrix.md` when the question is whether a helper belongs

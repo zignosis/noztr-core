@@ -279,6 +279,13 @@ test "root exports limits and error namespaces" {
             ) nip03_opentimestamps.OpenTimestampsError!nip03_opentimestamps.OpenTimestampsAttestation,
     );
     try std.testing.expect(
+        @TypeOf(nip03_opentimestamps.opentimestamps_validate_local_proof) ==
+            fn (
+                *const nip03_opentimestamps.OpenTimestampsAttestation,
+                []const u8,
+            ) nip03_opentimestamps.OpenTimestampsError!void,
+    );
+    try std.testing.expect(
         @TypeOf(nip17_private_messages.nip17_file_message_parse) ==
             fn (
                 *const nip01_event.Event,

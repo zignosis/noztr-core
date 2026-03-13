@@ -17,6 +17,11 @@ pub const OpenTimestampsError = error{
     InvalidTargetKind,
     EmptyProof,
     InvalidBase64,
+    InvalidProofHeader,
+    UnsupportedProofVersion,
+    InvalidProofOperation,
+    InvalidProofStructure,
+    MissingBitcoinAttestation,
     BufferTooSmall,
     TargetMismatch,
 };
@@ -41,6 +46,30 @@ pub const BuiltTag = struct {
         return .{ .items = self.items[0..self.item_count] };
     }
 };
+
+const ots_header_magic = [_]u8{
+    0x00, 0x4f, 0x70, 0x65, 0x6e, 0x54, 0x69, 0x6d, 0x65,
+    0x73, 0x74, 0x61, 0x6d, 0x70, 0x73, 0x00, 0x00, 0x50,
+    0x72, 0x6f, 0x6f, 0x66, 0x00, 0xbf, 0x89, 0xe2, 0xe8,
+    0x84, 0xe8, 0x92, 0x94,
+};
+const ots_major_version: u32 = 1;
+const ots_op_sha256: u8 = 0x08;
+const ots_op_append: u8 = 0xf0;
+const ots_op_prepend: u8 = 0xf1;
+const ots_op_reverse: u8 = 0xf2;
+const ots_op_hexlify: u8 = 0xf3;
+const ots_op_sha1: u8 = 0x02;
+const ots_op_ripemd160: u8 = 0x03;
+const ots_op_keccak256: u8 = 0x67;
+const ots_tag_separator: u8 = 0xff;
+const ots_tag_attestation: u8 = 0x00;
+const ots_attestation_tag_len: u8 = 8;
+const ots_attestation_payload_max: u16 = 8192;
+const ots_pending_uri_max: u16 = 1000;
+const ots_proof_stack_max: u8 = 64;
+const ots_pending_tag = [_]u8{ 0x83, 0xdf, 0xe3, 0x0d, 0x2e, 0xf9, 0x0c, 0x8e };
+const ots_bitcoin_tag = [_]u8{ 0x05, 0x88, 0x96, 0x0d, 0x73, 0xd7, 0x19, 0x01 };
 
 /// Extract and decode a bounded NIP-03 OpenTimestamps attestation event.
 pub fn opentimestamps_extract(
@@ -77,6 +106,33 @@ pub fn opentimestamps_validate_target_reference(
     if (attestation.target_kind != target_event.kind) {
         return error.TargetMismatch;
     }
+}
+
+/// Validate the bounded local OpenTimestamps proof floor for one attestation.
+pub fn opentimestamps_validate_local_proof(
+    attestation: *const OpenTimestampsAttestation,
+    proof: []const u8,
+) OpenTimestampsError!void {
+    std.debug.assert(@intFromPtr(attestation) != 0);
+    std.debug.assert(proof.len <= limits.content_bytes_max);
+
+    if (proof.len == 0) return error.EmptyProof;
+
+    var cursor = ProofCursor{ .bytes = proof };
+    try proof_expect_magic(&cursor, ots_header_magic[0..]);
+    if (try proof_read_varuint(&cursor) != ots_major_version) {
+        return error.UnsupportedProofVersion;
+    }
+    if (try proof_read_byte(&cursor) != ots_op_sha256) {
+        return error.InvalidProofOperation;
+    }
+    if (!std.mem.eql(u8, try proof_read_bytes(&cursor, 32), &attestation.target_event_id)) {
+        return error.TargetMismatch;
+    }
+    var scan = ProofScanState{};
+    try proof_parse_timestamp(&cursor, &scan);
+    if (!scan.saw_bitcoin) return error.MissingBitcoinAttestation;
+    if (cursor.index != cursor.bytes.len) return error.InvalidProofStructure;
 }
 
 /// Build the required `e` tag for a NIP-03 attestation target.
@@ -188,6 +244,139 @@ fn decode_proof(output: []u8, proof_base64: []const u8) OpenTimestampsError!u32 
         return error.InvalidBase64;
     };
     return std.math.cast(u32, decoded_len) orelse return error.BufferTooSmall;
+}
+
+const ProofCursor = struct {
+    bytes: []const u8,
+    index: usize = 0,
+};
+
+const ProofScanState = struct {
+    saw_bitcoin: bool = false,
+};
+
+fn proof_expect_magic(cursor: *ProofCursor, magic: []const u8) OpenTimestampsError!void {
+    std.debug.assert(@intFromPtr(cursor) != 0);
+    std.debug.assert(magic.len <= limits.content_bytes_max);
+
+    if (!std.mem.eql(u8, try proof_read_bytes(cursor, magic.len), magic)) {
+        return error.InvalidProofHeader;
+    }
+}
+
+fn proof_read_byte(cursor: *ProofCursor) OpenTimestampsError!u8 {
+    std.debug.assert(@intFromPtr(cursor) != 0);
+    std.debug.assert(cursor.bytes.len <= limits.content_bytes_max);
+
+    if (cursor.index >= cursor.bytes.len) return error.InvalidProofStructure;
+    const value = cursor.bytes[cursor.index];
+    cursor.index += 1;
+    return value;
+}
+
+fn proof_read_bytes(cursor: *ProofCursor, len: usize) OpenTimestampsError![]const u8 {
+    std.debug.assert(@intFromPtr(cursor) != 0);
+    std.debug.assert(len <= limits.content_bytes_max);
+
+    if (len > cursor.bytes.len - cursor.index) return error.InvalidProofStructure;
+    const bytes = cursor.bytes[cursor.index .. cursor.index + len];
+    cursor.index += len;
+    return bytes;
+}
+
+fn proof_read_varuint(cursor: *ProofCursor) OpenTimestampsError!u32 {
+    std.debug.assert(@intFromPtr(cursor) != 0);
+    std.debug.assert(cursor.bytes.len <= limits.content_bytes_max);
+
+    var shift: u5 = 0;
+    var value: u32 = 0;
+    while (true) {
+        const byte = try proof_read_byte(cursor);
+        value |= @as(u32, byte & 0x7f) << shift;
+        if ((byte & 0x80) == 0) return value;
+        if (shift >= 28) return error.InvalidProofStructure;
+        shift += 7;
+    }
+}
+
+fn proof_read_varbytes(
+    cursor: *ProofCursor,
+    max_len: u16,
+    min_len: u16,
+) OpenTimestampsError![]const u8 {
+    std.debug.assert(@intFromPtr(cursor) != 0);
+    std.debug.assert(min_len <= max_len);
+
+    const len = try proof_read_varuint(cursor);
+    if (len < min_len or len > max_len) return error.InvalidProofStructure;
+    return proof_read_bytes(cursor, len);
+}
+
+fn proof_parse_timestamp(
+    cursor: *ProofCursor,
+    scan: *ProofScanState,
+) OpenTimestampsError!void {
+    std.debug.assert(@intFromPtr(cursor) != 0);
+    std.debug.assert(@intFromPtr(scan) != 0);
+
+    var depth: u8 = 1;
+    while (depth != 0) {
+        const tag = try proof_read_byte(cursor);
+        if (tag == ots_tag_separator) {
+            try proof_parse_timestamp_item(cursor, scan, try proof_read_byte(cursor), &depth);
+            continue;
+        }
+        depth -= 1;
+        try proof_parse_timestamp_item(cursor, scan, tag, &depth);
+    }
+}
+
+fn proof_parse_timestamp_item(
+    cursor: *ProofCursor,
+    scan: *ProofScanState,
+    tag: u8,
+    depth: *u8,
+) OpenTimestampsError!void {
+    std.debug.assert(@intFromPtr(cursor) != 0);
+    std.debug.assert(@intFromPtr(depth) != 0);
+
+    if (tag == ots_tag_attestation) return proof_parse_attestation(cursor, scan);
+    try proof_parse_operation(cursor, tag);
+    if (depth.* == ots_proof_stack_max) return error.InvalidProofStructure;
+    depth.* += 1;
+}
+
+fn proof_parse_operation(cursor: *ProofCursor, tag: u8) OpenTimestampsError!void {
+    std.debug.assert(@intFromPtr(cursor) != 0);
+    std.debug.assert(cursor.bytes.len <= limits.content_bytes_max);
+
+    switch (tag) {
+        ots_op_append, ots_op_prepend => {
+            _ = try proof_read_varbytes(cursor, 4096, 1);
+        },
+        ots_op_reverse, ots_op_hexlify, ots_op_sha1, ots_op_ripemd160, ots_op_sha256,
+        ots_op_keccak256 => {},
+        else => return error.InvalidProofOperation,
+    }
+}
+
+fn proof_parse_attestation(
+    cursor: *ProofCursor,
+    scan: *ProofScanState,
+) OpenTimestampsError!void {
+    std.debug.assert(@intFromPtr(cursor) != 0);
+    std.debug.assert(@intFromPtr(scan) != 0);
+
+    const tag = try proof_read_bytes(cursor, ots_attestation_tag_len);
+    const payload = try proof_read_varbytes(cursor, ots_attestation_payload_max, 0);
+    var payload_cursor = ProofCursor{ .bytes = payload };
+    if (std.mem.eql(u8, tag, ots_pending_tag[0..])) {
+        _ = try proof_read_varbytes(&payload_cursor, ots_pending_uri_max, 0);
+    } else if (std.mem.eql(u8, tag, ots_bitcoin_tag[0..])) {
+        _ = try proof_read_varuint(&payload_cursor);
+        scan.saw_bitcoin = true;
+    }
+    if (payload_cursor.index != payload.len) return error.InvalidProofStructure;
 }
 
 fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
@@ -309,7 +498,10 @@ test "opentimestamps extract rejects malformed required fields" {
 
     try std.testing.expectError(
         error.MissingEventTag,
-        opentimestamps_extract(proof[0..], &test_event(opentimestamps_kind, "AQ==", missing_e[0..])),
+        opentimestamps_extract(
+            proof[0..],
+            &test_event(opentimestamps_kind, "AQ==", missing_e[0..]),
+        ),
     );
     try std.testing.expectError(
         error.InvalidTargetKind,
@@ -317,7 +509,10 @@ test "opentimestamps extract rejects malformed required fields" {
     );
     try std.testing.expectError(
         error.InvalidBase64,
-        opentimestamps_extract(proof[0..], &test_event(opentimestamps_kind, "%%%", valid_tags[0..])),
+        opentimestamps_extract(
+            proof[0..],
+            &test_event(opentimestamps_kind, "%%%", valid_tags[0..]),
+        ),
     );
 }
 
@@ -386,4 +581,141 @@ test "opentimestamps builders emit canonical e and k tags" {
     try std.testing.expectEqualStrings("wss://relay.example", built_event.items[2]);
     try std.testing.expectEqualStrings("k", built_kind.items[0]);
     try std.testing.expectEqualStrings("1040", built_kind.items[1]);
+}
+
+fn test_local_proof(
+    digest: [32]u8,
+    attestation_tag: [8]u8,
+    payload: []const u8,
+) [96]u8 {
+    var output: [96]u8 = [_]u8{0} ** 96;
+    var index: usize = 0;
+
+    @memcpy(output[index .. index + ots_header_magic.len], ots_header_magic[0..]);
+    index += ots_header_magic.len;
+    output[index] = 0x01;
+    output[index + 1] = ots_op_sha256;
+    index += 2;
+    @memcpy(output[index .. index + digest.len], digest[0..]);
+    index += digest.len;
+    output[index] = ots_tag_attestation;
+    index += 1;
+    @memcpy(output[index .. index + attestation_tag.len], attestation_tag[0..]);
+    index += attestation_tag.len;
+    output[index] = @intCast(payload.len);
+    index += 1;
+    @memcpy(output[index .. index + payload.len], payload);
+    return output;
+}
+
+fn test_local_proof_len(payload_len: usize) usize {
+    std.debug.assert(payload_len <= 21);
+    std.debug.assert(ots_header_magic.len == 31);
+
+    return ots_header_magic.len + 1 + 1 + 32 + 1 + 8 + 1 + payload_len;
+}
+
+fn test_local_proof_with_two_attestations(
+    digest: [32]u8,
+    first_tag: [8]u8,
+    first_payload: []const u8,
+    second_tag: [8]u8,
+    second_payload: []const u8,
+) [128]u8 {
+    var output: [128]u8 = [_]u8{0} ** 128;
+    var index: usize = 0;
+
+    @memcpy(output[index .. index + ots_header_magic.len], ots_header_magic[0..]);
+    index += ots_header_magic.len;
+    output[index] = 0x01;
+    output[index + 1] = ots_op_sha256;
+    index += 2;
+    @memcpy(output[index .. index + digest.len], digest[0..]);
+    index += digest.len;
+    output[index] = ots_tag_separator;
+    output[index + 1] = ots_tag_attestation;
+    index += 2;
+    @memcpy(output[index .. index + first_tag.len], first_tag[0..]);
+    index += first_tag.len;
+    output[index] = @intCast(first_payload.len);
+    index += 1;
+    @memcpy(output[index .. index + first_payload.len], first_payload);
+    index += first_payload.len;
+    output[index] = ots_tag_attestation;
+    index += 1;
+    @memcpy(output[index .. index + second_tag.len], second_tag[0..]);
+    index += second_tag.len;
+    output[index] = @intCast(second_payload.len);
+    index += 1;
+    @memcpy(output[index .. index + second_payload.len], second_payload);
+    return output;
+}
+
+fn test_local_proof_len_two(first_payload_len: usize, second_payload_len: usize) usize {
+    std.debug.assert(first_payload_len <= 21);
+    std.debug.assert(second_payload_len <= 21);
+
+    return ots_header_magic.len + 1 + 1 + 32 + 2 + 8 + 1 + first_payload_len + 1 + 8 + 1 +
+        second_payload_len;
+}
+
+test "opentimestamps local proof validation accepts bitcoin and matching digest" {
+    const digest = try parse_lower_hex_32(
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    );
+    const attestation = OpenTimestampsAttestation{
+        .target_event_id = digest,
+        .target_kind = 1,
+        .proof_base64 = "",
+        .proof_len = 0,
+    };
+    const proof = test_local_proof(digest, ots_bitcoin_tag, &.{0x2a});
+    const wrong = try parse_lower_hex_32(
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    );
+    const mismatched = OpenTimestampsAttestation{
+        .target_event_id = wrong,
+        .target_kind = 1,
+        .proof_base64 = "",
+        .proof_len = 0,
+    };
+
+    try opentimestamps_validate_local_proof(&attestation, proof[0..test_local_proof_len(1)]);
+    try std.testing.expectError(
+        error.TargetMismatch,
+        opentimestamps_validate_local_proof(&mismatched, proof[0..test_local_proof_len(1)]),
+    );
+}
+
+test "opentimestamps local proof validation tolerates pending and requires bitcoin" {
+    const digest = try parse_lower_hex_32(
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    );
+    const attestation = OpenTimestampsAttestation{
+        .target_event_id = digest,
+        .target_kind = 1,
+        .proof_base64 = "",
+        .proof_len = 0,
+    };
+    const pending = test_local_proof_with_two_attestations(
+        digest,
+        ots_pending_tag,
+        &.{ 0x03, 'a', 'b', 'c' },
+        ots_bitcoin_tag,
+        &.{0x2a},
+    );
+    const unknown = test_local_proof(
+        digest,
+        .{ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 },
+        &.{},
+    );
+
+    try opentimestamps_validate_local_proof(
+        &attestation,
+        pending[0..test_local_proof_len_two(4, 1)],
+    );
+    try std.testing.expectError(
+        error.MissingBitcoinAttestation,
+        opentimestamps_validate_local_proof(&attestation, unknown[0..test_local_proof_len(0)]),
+    );
 }
