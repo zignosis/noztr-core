@@ -272,12 +272,34 @@ fn parse_attribution(
     std.debug.assert(out_attributions.len <= limits.tags_max);
 
     if (tag.items.len < 2) return error.InvalidAuthorTag;
+    if (tag.items.len > 4) return error.InvalidAuthorTag;
     if (info.attribution_count >= out_attributions.len) return error.BufferTooSmall;
 
+    var relay_hint: ?[]const u8 = null;
+    var role: ?[]const u8 = null;
+    if (tag.items.len >= 3) {
+        const third = tag.items[2];
+        if (third.len != 0) {
+            relay_hint = parse_url(third) catch {
+                if (tag.items.len != 3) return error.InvalidAuthorTag;
+                role = parse_nonempty_utf8(third) catch return error.InvalidAuthorTag;
+                out_attributions[info.attribution_count] = .{
+                    .pubkey = parse_lower_hex_32(tag.items[1]) catch return error.InvalidAuthorTag,
+                    .relay_hint = null,
+                    .role = role,
+                };
+                info.attribution_count += 1;
+                return;
+            };
+        }
+    }
+    if (tag.items.len >= 4) {
+        role = try parse_optional_text_item(tag, 3, error.InvalidAuthorTag);
+    }
     out_attributions[info.attribution_count] = .{
         .pubkey = parse_lower_hex_32(tag.items[1]) catch return error.InvalidAuthorTag,
-        .relay_hint = try parse_optional_url_item(tag, 2, error.InvalidAuthorTag),
-        .role = try parse_optional_text_item(tag, 3, error.InvalidAuthorTag),
+        .relay_hint = relay_hint,
+        .role = role,
     };
     info.attribution_count += 1;
 }
@@ -463,6 +485,24 @@ test "highlight extract parses url source and mention urls" {
     try std.testing.expectEqualStrings("https://example.com/source", parsed.source.?.url.url);
     try std.testing.expectEqual(@as(u16, 2), parsed.url_reference_count);
     try std.testing.expectEqualStrings("mention", urls[1].marker.?);
+}
+
+test "highlight extract accepts three-item author role tags" {
+    const tags = [_]nip01_event.EventTag{
+        .{ .items = &.{
+            "p",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "editor",
+        } },
+    };
+    var attributions: [1]HighlightAttribution = undefined;
+    var urls: [1]UrlReference = undefined;
+
+    const parsed = try highlight_extract(&test_event(highlight_kind, "quoted", &tags), &attributions, &urls);
+
+    try std.testing.expectEqual(@as(u16, 1), parsed.attribution_count);
+    try std.testing.expect(attributions[0].relay_hint == null);
+    try std.testing.expectEqualStrings("editor", attributions[0].role.?);
 }
 
 test "highlight extract rejects duplicate source tags" {

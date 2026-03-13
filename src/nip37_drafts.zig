@@ -382,9 +382,26 @@ fn validate_draft_json(
         .{},
     ) catch |err| return map_json_parse_error(err, error.InvalidDraftJson);
     if (root != .object) return error.InvalidDraftJson;
+    try validate_draft_event_shape(root.object);
     if (expected_kind) |kind| {
         try validate_draft_kind_match(root.object, kind);
     }
+}
+
+fn validate_draft_event_shape(object: std.json.ObjectMap) Nip37Error!void {
+    std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
+    std.debug.assert(limits.kind_max > 0);
+
+    const kind_value = object.get("kind") orelse return error.InvalidDraftJson;
+    if (kind_value != .integer) return error.InvalidDraftJson;
+    if (kind_value.integer < 0) return error.InvalidDraftJson;
+    if (kind_value.integer > limits.kind_max) return error.InvalidDraftJson;
+
+    const tags_value = object.get("tags") orelse return error.InvalidDraftJson;
+    if (tags_value != .array) return error.InvalidDraftJson;
+
+    const content_value = object.get("content") orelse return error.InvalidDraftJson;
+    if (content_value != .string) return error.InvalidDraftJson;
 }
 
 fn validate_draft_kind_match(object: std.json.ObjectMap, expected_kind: u32) Nip37Error!void {
@@ -704,6 +721,24 @@ test "draft wrap decrypt rejects mismatched decrypted draft kind" {
     try std.testing.expectError(
         error.InvalidDraftJson,
         draft_wrap_decrypt_json(plaintext[0..], &event, &private_key, allocator),
+    );
+}
+
+test "draft wrap encrypt rejects non-event-shaped json objects" {
+    const allocator = std.testing.allocator;
+    const private_key = [_]u8{1} ** 32;
+    const public_key = [_]u8{2} ** 32;
+    var ciphertext: [limits.nip44_payload_base64_max_bytes]u8 = undefined;
+
+    try std.testing.expectError(
+        error.InvalidDraftJson,
+        draft_wrap_encrypt_json(
+            ciphertext[0..],
+            &private_key,
+            &public_key,
+            "{\"kind\":1,\"note\":\"missing tags and content\"}",
+            allocator,
+        ),
     );
 }
 

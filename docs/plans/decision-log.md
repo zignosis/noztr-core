@@ -1662,3 +1662,27 @@ Immutable record of accepted planning decisions.
   attribution rules are materially too narrow, or the helper proves to require reader workflow to
   remain useful.
 - Supersedes: none
+
+## D-083: Tighten recent kernel-first helpers after the first post-implementation audit pass
+
+- Date: 2026-03-13
+- Status: accepted
+- Decision: keep `NIP-37`, `NIP-58`, and `NIP-84` in-kernel, but refine their contracts after the
+  first focused audit:
+  - `NIP-37` now enforces a stronger minimum draft-event shape (`kind`, `tags`, `content`) before
+    encrypting or accepting decrypted draft JSON
+  - `NIP-58` now treats profile-badge `a`/`e` pairs as truly consecutive and ignores unmatched
+    definitions when unrelated tags intervene
+  - `NIP-84` now accepts the deployed three-item `p` shape where the third slot is a role rather
+    than a relay URL, aligning the parser with the module’s own builder and the NIP’s “role as last
+    value” wording
+- Why: the first audit found one real builder/parser mismatch, one real spec mismatch, and one
+  under-enforced validation floor. Tightening those now improves correctness and interoperability
+  without widening the kernel into SDK territory.
+- Tradeoff: slightly broader acceptance for valid highlight attribution tags and slightly stricter
+  validation for draft JSON/profile-badge ordering.
+- Related Tradeoff: T-H-ANIP-011.
+- Reversal Trigger: real traffic shows that the accepted three-item highlight `p` role form is
+  still insufficient, or the tightened draft/profile-badge validation floor creates unjustified
+  ecosystem incompatibility.
+- Supersedes: none

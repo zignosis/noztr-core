@@ -390,8 +390,8 @@ the validated maintenance baseline.
 - Phase H planned expansion plus the bounded NIP-73 ownership follow-up are complete.
 - Deferred backlog is complete, and the next execution lane is the accepted kernel-first sequence.
 - Kernel-first expansion progress:
-  - completed: `NIP-32`, `NIP-36`, `NIP-56`, `NIP-05`, `NIP-26`, `NIP-37`
-  - next serial item: `NIP-58`
+  - completed: `NIP-32`, `NIP-36`, `NIP-56`, `NIP-05`, `NIP-26`, `NIP-37`, `NIP-58`, `NIP-84`
+  - next focus: targeted robustness and compatibility review over the completed kernel-first set
 - `NIP-44` robustness outcome:
   - no Layer 1 behavior change was required after real-world review
   - the current v2-only surface, staged failure ordering, typed conversation-key boundary, and

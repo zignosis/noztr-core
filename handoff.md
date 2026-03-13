@@ -349,6 +349,11 @@ Current project context for the Phase H kickoff baseline.
      borderline helpers remain accepted in-kernel for now:
      - `src/nip39_external_identities.zig` proof URL / expected-text helpers
      - `src/nip46_remote_signing.zig` exact `nostrconnect_url` template substitution
+   - latest focused audit fixes landed:
+     - `NIP-37` now enforces a minimum draft-event shape (`kind`, `tags`, `content`) before
+       encrypt/decrypt acceptance
+     - `NIP-58` profile-badge `a`/`e` pairs must now be truly consecutive
+     - `NIP-84` now accepts the valid three-item author-role `p` shape
 5. Wave 2 / `NIP-46` is complete.
    Implemented baseline:
    - `src/nip46_remote_signing.zig` now covers method parsing, permission parsing/formatting,

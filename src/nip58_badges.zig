@@ -488,6 +488,7 @@ fn apply_profile_tag(
 
     if (tag.items.len == 0) return;
     if (std.mem.eql(u8, tag.items[0], "d")) {
+        pending_definition.* = null;
         return parse_profile_identifier_tag(tag, has_identifier);
     }
     if (std.mem.eql(u8, tag.items[0], "a")) {
@@ -506,7 +507,9 @@ fn apply_profile_tag(
         };
         pending_definition.* = null;
         count.* += 1;
+        return;
     }
+    pending_definition.* = null;
 }
 
 fn parse_profile_identifier_tag(tag: nip01_event.EventTag, has_identifier: *bool) Nip58Error!void {
@@ -794,6 +797,21 @@ test "profile badges extract parses consecutive pairs and ignores unmatched tags
     try std.testing.expectEqual(@as(u16, 1), parsed.pair_count);
     try std.testing.expectEqualStrings("bravery", pairs[0].badge_definition.identifier);
     try std.testing.expectEqual(@as(u8, 0xaa), pairs[0].award_event.event_id[0]);
+}
+
+test "profile badges extract ignores non-consecutive definition and award tags" {
+    var tags = [_]nip01_event.EventTag{
+        .{ .items = &.{ "d", "profile_badges" } },
+        .{ .items = &.{ "a", "30009:0101010101010101010101010101010101010101010101010101010101010101:bravery" } },
+        .{ .items = &.{ "p", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" } },
+        .{ .items = &.{ "e", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" } },
+    };
+    const event = event_for_tags(profile_badges_kind, [_]u8{2} ** 32, [_]u8{3} ** 32, tags[0..]);
+    var pairs: [1]ProfileBadgePair = undefined;
+
+    const parsed = try profile_badges_extract(&event, pairs[0..]);
+    try std.testing.expectEqual(@as(u16, 0), parsed.pair_count);
+    try std.testing.expect(pairs.len == 1);
 }
 
 test "profile badge pair validate checks definition award and recipient" {
