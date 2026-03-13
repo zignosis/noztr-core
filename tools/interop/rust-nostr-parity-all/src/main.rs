@@ -2476,7 +2476,14 @@ async fn main() {
         taxonomy: Taxonomy::LibUnsupported,
         depth: Depth::Baseline,
         result: CheckResult::Pass,
-        detail: Some("no dedicated rust-nostr NIP-37 helper".to_string()),
+            detail: Some("no dedicated rust-nostr NIP-37 helper".to_string()),
+    });
+    results.push(NipResult {
+        nip: "NIP-84",
+        taxonomy: Taxonomy::LibUnsupported,
+        depth: Depth::Baseline,
+        result: CheckResult::Pass,
+        detail: Some("no dedicated rust-nostr NIP-84 helper".to_string()),
     });
     push_harness_covered(&mut results, "NIP-17", Depth::Baseline, check_nip17().await);
     push_harness_covered(&mut results, "NIP-39", Depth::Baseline, check_nip39());

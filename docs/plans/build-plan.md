@@ -228,6 +228,7 @@ Cross-cutting review lenses for every implemented NIP:
 | 65 | Preserve relay URL validation, marker typing, and bounded extraction; review normalization and accepted marker breadth so we reject malformed relays rather than merely non-preferred formatting. |
 | 70 | Preserve deny-by-default protected-event semantics and exact tag meaning; review whether any tag-shape exactness exceeds what NIP-70 needs for deterministic behavior. |
 | 73 | Preserve bounded external-id parse/build/match behavior and shared ownership of generic `i` grammar; review kind/value strictness so we reject malformed external IDs without fragmenting the grammar across per-NIP helper reimplementations. |
+| 84 | Preserve deterministic highlight-source extraction, bounded `p` attribution/url-reference parsing, and optional `context`/`comment` handling without drifting into reader UX; review long-form source-tag and role/marker tolerance so the kernel stays interoperable without becoming article/highlight workflow logic. |
 | 77 | Preserve bounded negentropy state transitions and strict session parsing; review message-shape rejection only where broader but still well-defined peer behavior exists. |
 
 Review execution rule:

@@ -114,6 +114,9 @@ pub const nip37_drafts = @import("nip37_drafts.zig");
 /// Post-Phase-H concrete export for the NIP-58 badges module.
 pub const nip58_badges = @import("nip58_badges.zig");
 
+/// Post-Phase-H concrete export for the NIP-84 highlights module.
+pub const nip84_highlights = @import("nip84_highlights.zig");
+
 /// Phase I5 concrete export for the NIP-44 encrypted direct-message module.
 pub const nip44 = @import("nip44.zig");
 
@@ -277,6 +280,13 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip58_badges.ProfileBadgePair) == type);
     try std.testing.expect(@TypeOf(nip58_badges.ProfileBadgesInfo) == type);
     try std.testing.expect(@TypeOf(nip58_badges.BuiltTag) == type);
+    try std.testing.expect(@TypeOf(nip84_highlights.EventSource) == type);
+    try std.testing.expect(@TypeOf(nip84_highlights.AddressSource) == type);
+    try std.testing.expect(@TypeOf(nip84_highlights.UrlReference) == type);
+    try std.testing.expect(@TypeOf(nip84_highlights.HighlightSource) == type);
+    try std.testing.expect(@TypeOf(nip84_highlights.HighlightAttribution) == type);
+    try std.testing.expect(@TypeOf(nip84_highlights.HighlightInfo) == type);
+    try std.testing.expect(@TypeOf(nip84_highlights.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupMetadata) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupAdmin) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupReference) == type);
@@ -815,6 +825,38 @@ test "root exports limits and error namespaces" {
                 []const u8,
                 ?[]const u8,
             ) nip58_badges.Nip58Error!nip01_event.EventTag,
+    );
+    try std.testing.expect(
+        @TypeOf(nip84_highlights.highlight_extract) ==
+            fn (
+                *const nip01_event.Event,
+                []nip84_highlights.HighlightAttribution,
+                []nip84_highlights.UrlReference,
+            ) nip84_highlights.Nip84Error!nip84_highlights.HighlightInfo,
+    );
+    try std.testing.expect(
+        @TypeOf(nip84_highlights.highlight_build_event_source_tag) ==
+            fn (
+                *nip84_highlights.BuiltTag,
+                []const u8,
+                ?[]const u8,
+            ) nip84_highlights.Nip84Error!nip01_event.EventTag,
+    );
+    try std.testing.expect(
+        @TypeOf(nip84_highlights.highlight_build_author_tag) ==
+            fn (
+                *nip84_highlights.BuiltTag,
+                []const u8,
+                ?[]const u8,
+                ?[]const u8,
+            ) nip84_highlights.Nip84Error!nip01_event.EventTag,
+    );
+    try std.testing.expect(
+        @TypeOf(nip84_highlights.highlight_build_comment_tag) ==
+            fn (
+                *nip84_highlights.BuiltTag,
+                []const u8,
+            ) nip84_highlights.Nip84Error!nip01_event.EventTag,
     );
     try std.testing.expect(
         @TypeOf(nip46_remote_signing.message_serialize_json) ==

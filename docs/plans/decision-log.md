@@ -1642,3 +1642,23 @@ Immutable record of accepted planning decisions.
   recipient handling is materially too narrow, or the helper proves to require presentation or sync
   policy to remain useful.
 - Supersedes: none
+
+## D-082: Implement bounded NIP-84 highlight helpers in the kernel
+
+- Date: 2026-03-13
+- Status: accepted
+- Decision: implement `src/nip84_highlights.zig` as the bounded kernel surface for kind-`9802`
+  highlight source extraction/building (`e`, `a`, `r`), bounded `p` attribution parsing/building,
+  bounded URL-reference parsing/building, and optional `context` / `comment` parsing/building.
+  Keep highlight rendering, article-reader UX, quote composition flow, and presentation policy in
+  the future SDK.
+- Why: NIP-84 is deterministic tag-level protocol glue and is useful to both relays and clients
+  without requiring reader workflow or rendering policy to live in the kernel. A spec-first helper
+  is appropriate here because neither active reference lane exposes a dedicated NIP-84 helper.
+- Tradeoff: a slightly broader content-helper surface in the kernel versus cleaner SDK layering and
+  less repeated source/attribution parsing later.
+- Related Tradeoff: T-H-ANIP-011.
+- Reversal Trigger: real-world highlight traffic shows that the accepted exact source or
+  attribution rules are materially too narrow, or the helper proves to require reader workflow to
+  remain useful.
+- Supersedes: none
