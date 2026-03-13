@@ -1526,3 +1526,25 @@ Immutable record of accepted planning decisions.
 - Reversal Trigger: the accepted local floor proves too brittle, too large for KISS, or ecosystem
   evidence requires materially broader local proof semantics.
 - Supersedes: none
+
+## D-076: Keep two borderline deterministic helpers in the kernel pending SDK work
+
+- Date: 2026-03-13
+- Status: accepted
+- Decision: after a dedicated kernel-boundary review, keep these currently implemented helpers in
+  `noztr` for now:
+  - `src/nip39_external_identities.zig`
+    - `identity_claim_build_proof_url(...)`
+    - `identity_claim_build_expected_text(...)`
+  - `src/nip46_remote_signing.zig`
+    - `discovery_render_nostrconnect_url(...)`
+- Why: they are still pure, deterministic, bounded, and reusable across multiple callers, so they
+  do not yet justify churn just before SDK work starts. At the same time, they are the clearest
+  current examples of helper glue that is close to SDK/provider concerns, so they should stay
+  explicitly marked as borderline rather than silently canonicalized as permanent kernel scope.
+- Tradeoff: preserve current ergonomics and avoid premature movement versus accepting a small amount
+  of provider- or handoff-adjacent glue in the kernel for now.
+- Related Tradeoff: T-H-ANIP-011.
+- Reversal Trigger: `nzdk` grows stable provider adapters or NIP-46 connection-handoff helpers that
+  make these kernel helpers redundant or better-scoped in the SDK.
+- Supersedes: none

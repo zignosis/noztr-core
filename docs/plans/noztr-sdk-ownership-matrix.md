@@ -89,3 +89,16 @@ If the answer to `5` is yes, the behavior probably belongs in the SDK.
   provider-specific presets.
 - Keep SDK starter work honest: if a proposed helper stays pure, deterministic, bounded, and widely
   reusable, reconsider whether it should live in `noztr` instead.
+
+## Borderline Accepted Kernel Helpers
+
+- `NIP-39`
+  - `identity_claim_build_proof_url(...)`
+  - `identity_claim_build_expected_text(...)`
+  - Current call: keep them in `noztr` for now as deterministic helper glue, but revisit when the
+    SDK grows provider adapters because they are the clearest currently implemented
+    provider-shaped helpers.
+- `NIP-46`
+  - `discovery_render_nostrconnect_url(...)`
+  - Current call: keep it in `noztr` as exact protocol-facing placeholder substitution, not client
+    orchestration; revisit only if SDK-side redirect/launch handling makes the helper redundant.

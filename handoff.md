@@ -323,6 +323,10 @@ Current project context for the Phase H kickoff baseline.
    strictness questions.
    - use `docs/plans/noztr-sdk-ownership-matrix.md` when the question is whether a helper belongs
      in `noztr` or the future SDK.
+   - latest kernel-boundary review found no material scope pollution; only two low-severity
+     borderline helpers remain accepted in-kernel for now:
+     - `src/nip39_external_identities.zig` proof URL / expected-text helpers
+     - `src/nip46_remote_signing.zig` exact `nostrconnect_url` template substitution
 5. Wave 2 / `NIP-46` is complete.
    Implemented baseline:
    - `src/nip46_remote_signing.zig` now covers method parsing, permission parsing/formatting,
