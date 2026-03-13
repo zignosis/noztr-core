@@ -318,6 +318,7 @@ Current project context for the Phase H kickoff baseline.
 3. Kernel-first expansion is active.
    Current state:
    - `NIP-05` is complete in `src/nip05_identity.zig`
+   - `NIP-26` is complete in `src/nip26_delegation.zig`
    - `NIP-32` is complete in `src/nip32_labeling.zig`
    - `NIP-36` is complete in `src/nip36_content_warning.zig`
    - `NIP-56` is complete in `src/nip56_reporting.zig`
@@ -325,7 +326,7 @@ Current project context for the Phase H kickoff baseline.
      `docs/plans/noztr-sdk-ownership-matrix.md` for `05`, `07`, `26`, `32`, `36`, `37`, `56`,
      `57`, `58`, `60`, `61`, `84`, `86`, and `B7`
    - current serial kernel-first sequence is `32`, `36`, `56`, `05`, `26`, `37`, `58`, `84`
-   - next serial item is `NIP-26`
+   - next serial item is `NIP-37`
 4. Keep the implemented-NIP audit report current if future code changes reopen compatibility or
    strictness questions.
    - use `docs/plans/noztr-sdk-ownership-matrix.md` when the question is whether a helper belongs

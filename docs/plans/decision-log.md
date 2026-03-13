@@ -1583,3 +1583,23 @@ Immutable record of accepted planning decisions.
 - Reversal Trigger: the helper proves to require network/policy assumptions that cannot stay pure
   and bounded.
 - Supersedes: none
+
+## D-079: Implement bounded NIP-26 delegation helpers as a spec-first kernel module
+
+- Date: 2026-03-13
+- Status: accepted
+- Decision: implement `src/nip26_delegation.zig` as the bounded kernel surface for exact
+  `delegation` tag parse/build, fixed-capacity condition parse/format, exact delegation message
+  construction, deterministic Schnorr sign/verify, and pure event-condition validation. Keep relay
+  author-query expansion, delegation issuance UX, and key-custody workflow in the future SDK.
+- Why: the NIP-26 protocol surface is small, deterministic, and directly reusable across relay and
+  client code even though the active Rust and TypeScript reference lanes do not expose a dedicated
+  helper surface. The right comparison posture here is spec-first plus source review, not waiting
+  for higher-level library convenience APIs.
+- Tradeoff: a slightly more crypto-adjacent kernel module versus a cleaner relay/client base and
+  less need for ad hoc delegation parsing in the future SDK.
+- Related Tradeoff: T-H-ANIP-011.
+- Reversal Trigger: real ecosystem evidence shows that the accepted exact tag or lower-hex rules are
+  materially too narrow for interoperability, or the module proves to require orchestration logic to
+  remain useful.
+- Supersedes: none

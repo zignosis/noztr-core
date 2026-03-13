@@ -19,12 +19,12 @@ backend exceptions.
   - `NIP-01` (event, filter, message)
   - `NIP-02`, `NIP-03`, `NIP-05`, `NIP-06`, `NIP-09`, `NIP-10`, `NIP-11`, `NIP-13`
   - `NIP-17`, `NIP-18`, `NIP-19`, `NIP-21`, `NIP-22`, `NIP-23`, `NIP-24`, `NIP-25`, `NIP-27`
-  - `NIP-29`, `NIP-32`, `NIP-36`, `NIP-39`, `NIP-40`, `NIP-42`, `NIP-44`, `NIP-46`
+  - `NIP-26`, `NIP-29`, `NIP-32`, `NIP-36`, `NIP-39`, `NIP-40`, `NIP-42`, `NIP-44`, `NIP-46`
   - `NIP-51` (bounded public/private list helpers)
   - `NIP-56`, `NIP-59`, `NIP-65`, `NIP-70`, `NIP-73`
   - Optional I6 extension exports (build-flag gated): `NIP-45`, `NIP-50`, `NIP-77`
 - Current prep focus: continue the kernel-first sequence before SDK work; next serial item is
-  `NIP-26` (`docs/plans/phase-h-kickoff.md`).
+  `NIP-37` (`docs/plans/phase-h-kickoff.md`).
 
 ## Build and test
 

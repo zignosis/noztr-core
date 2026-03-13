@@ -2364,6 +2364,13 @@ async fn main() {
     push_harness_covered(&mut results, "NIP-36", Depth::Baseline, check_nip36());
     push_harness_covered(&mut results, "NIP-56", Depth::Baseline, check_nip56());
     push_harness_covered(&mut results, "NIP-05", Depth::Baseline, check_nip05());
+    results.push(NipResult {
+        nip: "NIP-26",
+        taxonomy: Taxonomy::LibUnsupported,
+        depth: Depth::Baseline,
+        result: CheckResult::Pass,
+        detail: Some("no dedicated rust-nostr NIP-26 helper".to_string()),
+    });
     push_harness_covered(&mut results, "NIP-17", Depth::Baseline, check_nip17().await);
     push_harness_covered(&mut results, "NIP-39", Depth::Baseline, check_nip39());
     push_harness_covered(&mut results, "NIP-27", Depth::Deep, check_nip27());

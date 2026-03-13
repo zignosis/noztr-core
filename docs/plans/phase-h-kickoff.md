@@ -121,7 +121,7 @@ the validated maintenance baseline.
       the accepted kernel posture
 - Wave 1 status: complete.
 - Active next execution focus: the kernel-first expansion sequence is active.
-- `NIP-32`, `NIP-36`, `NIP-56`, and `NIP-05` are complete; `NIP-26` is the next serial
+- `NIP-32`, `NIP-36`, `NIP-56`, `NIP-05`, and `NIP-26` are complete; `NIP-37` is the next serial
   implementation item.
 - Implemented-NIP audit status:
   - `NIP-01`, `NIP-02`, `NIP-09`, `NIP-10`, `NIP-11`, `NIP-13`, `NIP-18`, `NIP-19`, `NIP-21`,
@@ -387,8 +387,8 @@ the validated maintenance baseline.
 - Phase H planned expansion plus the bounded NIP-73 ownership follow-up are complete.
 - Deferred backlog is complete, and the next execution lane is the accepted kernel-first sequence.
 - Kernel-first expansion progress:
-  - completed: `NIP-32`, `NIP-36`, `NIP-56`, `NIP-05`
-  - next serial item: `NIP-26`
+  - completed: `NIP-32`, `NIP-36`, `NIP-56`, `NIP-05`, `NIP-26`
+  - next serial item: `NIP-37`
 - `NIP-44` robustness outcome:
   - no Layer 1 behavior change was required after real-world review
   - the current v2-only surface, staged failure ordering, typed conversation-key boundary, and
