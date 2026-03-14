@@ -9,4 +9,6 @@
 .claude/
 .logs/
 __pycache__/
+.zig-cache/
+zig-out/
 tools/interop/*/node_modules/
