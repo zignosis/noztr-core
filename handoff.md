@@ -456,6 +456,8 @@ Current project context for the Phase H kickoff baseline.
    - `no-09f` review is complete.
    - `no-2gp` tracks any future full BIP39-compatible NFKD normalization support for non-ASCII
      parity.
+   - `no-mzd` tracks any future bounded BIP-85 child-entropy / child-mnemonic derivation helpers
+     adjacent to the current NIP-06 boundary.
 7. Post-Wave NIP-51 private-list follow-up `no-e7b` is complete.
    Current status:
    - `src/nip51_lists.zig` now serializes private tag arrays into bounded JSON plaintext.
