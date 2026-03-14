@@ -368,7 +368,12 @@ Current project context for the Phase H kickoff baseline.
    - current serial kernel-first sequence `32`, `36`, `56`, `05`, `26`, `37`, `58`, `84` is
      complete
    - split-later kernel work `57` / `86` is now complete
-   - next recommended focus is `nzdk`, not more kernel expansion
+   - next recommended `noztr` focus is the post-kernel follow-up loop:
+     - SDK-consumer integration / hardening pass
+     - `no-mzd` BIP-85 deterministic child-entropy helpers
+     - `no-2gp` full NIP-06 Unicode NFKD only if justified by real SDK/interoperability pressure
+     - `no-urr` remains explicit defer-gate work unless real interoperability evidence demands it
+   - next recommended cross-repo focus is `nzdk`, not more broad kernel expansion
    - latest targeted review result:
      - `NIP-05` now accepts uppercase local-parts and canonicalizes them to lowercase for
        lookup/output while keeping the exact supported character set unchanged

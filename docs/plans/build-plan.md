@@ -341,6 +341,33 @@ Robustness pass quality rules:
   `docs/plans/noztr-sdk-ownership-matrix.md` before widening `noztr` or deferring deterministic
   protocol glue out of it.
 
+### Post-Kernel Follow-Up Execution
+
+Use this after the accepted kernel expansion is complete and `noztr` shifts into SDK-supporting
+maintenance rather than new broad NIP expansion.
+
+Run this loop serially and in order:
+1. SDK-consumer integration / hardening pass
+   - make `noztr` easy to consume from the SDK as a local dependency
+   - add or refine consumer-facing examples, dependency notes, smoke tests, and any small API
+     hardening needed for downstream use
+2. BIP-85 deterministic child-entropy follow-up (`no-mzd`)
+   - only after the SDK-consumer pass is complete
+   - keep the surface bounded to deterministic derivation helpers, typed errors, fixed limits, and
+     strict zeroization
+3. Full NIP-06 Unicode NFKD normalization (`no-2gp`)
+   - only after the BIP-85 decision point is settled
+   - proceed only if actual SDK wallet work or interoperability evidence justifies the complexity
+4. NIP-51 deprecated NIP-04 compatibility adapter (`no-urr`)
+   - do not auto-implement
+   - explicitly re-evaluate only if real interoperability evidence demands it
+
+Loop rules:
+- Reuse the existing implementation/review discipline: scope freeze, implementation, two review
+  cycles, fresh gates, docs, tracker update, scoped git commit.
+- Treat step 4 as a defer gate by default, not as guaranteed work.
+- Do not add more kernel NIPs ahead of this loop unless a new accepted decision reorders the plan.
+
 ## Phase F hard-gate closure status (epic `no-dr3`)
 
 - `no-21a` Gate 1 (scope freeze first): complete.
