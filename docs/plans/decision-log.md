@@ -1802,3 +1802,42 @@ Immutable record of accepted planning decisions.
 - Reversal Trigger: real SDK usage shows the accepted English-only hex/BIP39 floor is still too
   narrow, or the surface starts pulling workflow/state concerns into the kernel.
 - Supersedes: none
+
+## D-089: Keep full NIP-06 Unicode NFKD normalization out of current scope after the post-kernel review
+
+- Date: 2026-03-14
+- Status: accepted
+- Decision: close the post-kernel loop review of `no-2gp` without implementing full NFKD
+  normalization.
+  - accepted current posture:
+    - the ASCII-only `NIP-06` boundary remains in place
+    - `BIP-85` support does not change that Unicode-normalization decision
+    - full NFKD only reopens on real SDK wallet pressure or demonstrated interoperability demand
+- Why: the practical parity gain is still limited to non-ASCII mnemonic/passphrase handling, and
+  the cost remains the same as before: a substantial Unicode normalization subsystem or a new
+  non-crypto dependency exception.
+- Tradeoff: keep a known Unicode limitation versus avoiding a large complexity jump without actual
+  downstream pressure.
+- Related Tradeoff: T-H-ANIP-011.
+- Reversal Trigger: `nzdk` wallet work or real producer data shows the current ASCII-only posture
+  is materially blocking intended use.
+- Supersedes: none
+
+## D-090: Keep deprecated NIP-04 private-list compatibility out of current scope after the post-kernel review
+
+- Date: 2026-03-14
+- Status: accepted
+- Decision: close the post-kernel loop review of `no-urr` without implementing a deprecated
+  NIP-04 private-list compatibility adapter.
+  - accepted current posture:
+    - `NIP-51` private lists remain `NIP-44`-first in the kernel
+    - deprecated `?iv=` discovery remains out of scope until real interoperability evidence
+      justifies carrying it
+- Why: there is still no evidence-backed demand from current SDK/bootstrap work that would justify
+  widening the kernel to support deprecated private-list encryption.
+- Tradeoff: narrower historical compatibility versus keeping the kernel aligned to the current
+  accepted private-list boundary.
+- Related Tradeoff: T-H-ANIP-011.
+- Reversal Trigger: real interoperability evidence shows materially relevant private-list traffic
+  still depends on deprecated NIP-04 ciphertext discovery.
+- Supersedes: none

@@ -380,9 +380,14 @@ Current project context for the Phase H kickoff baseline.
        - accepted kernel scope is limited to deterministic derivation helpers only; wallet/account
          UX remains in `nzdk`
        - the main Zig gates and downstream consumer smoke remain green with the new module
-     - `no-2gp` full NIP-06 Unicode NFKD is the next explicit review gate
-     - `no-2gp` full NIP-06 Unicode NFKD only if justified by real SDK/interoperability pressure
-     - `no-urr` remains explicit defer-gate work unless real interoperability evidence demands it
+     - `no-2gp` full NIP-06 Unicode NFKD has been re-evaluated in this loop:
+       - it remains out of current kernel scope because no real SDK wallet Unicode pressure or
+         interoperability evidence has appeared beyond the already-recorded non-ASCII caveat
+     - `no-urr` deprecated NIP-04 private-list compatibility has also been re-evaluated:
+       - it remains out of current scope because there is still no evidence-backed need to carry
+         deprecated NIP-04 private-list support in the kernel
+   - the post-kernel follow-up loop is complete; next `noztr` work should be evidence-driven
+     maintenance or SDK-driven blocker fixes, not broad new kernel expansion
    - next recommended cross-repo focus is `nzdk`, not more broad kernel expansion
    - latest targeted review result:
      - `NIP-05` now accepts uppercase local-parts and canonicalizes them to lowercase for
