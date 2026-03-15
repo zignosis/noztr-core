@@ -1978,3 +1978,36 @@ Immutable record of accepted planning decisions.
 - Reversal Trigger: stronger ecosystem evidence shows deployed canonical helpers intentionally rely
   on broader supported-tag shapes or broader MIME acceptance without introducing ambiguity.
 - Supersedes: none
+
+## D-096: Accept bounded NIP-92 `imeta` helpers with strict supported-field semantics
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: implement `src/nip92_media_attachments.zig` as the accepted `noztr` slice for `NIP-92`.
+  - accepted behavior:
+    - the helper operates on one `imeta` tag at a time
+    - `imeta` must contain a `url` pair and at least one other supported metadata pair
+    - each field item is parsed as one `key value...` pair split on the first space
+    - supported field semantics reuse the accepted `NIP-94` value rules where representable
+    - supported singleton fields are duplicate-strict
+    - repeated `fallback` URLs are accepted through caller-owned bounded buffers
+    - unknown fields are ignored inbound, but the canonical builder accepts only supported fields
+    - `thumb` and `image` accept only URL values because the `imeta` key/value grammar has no
+      separate slot for the optional NIP-94 thumbnail/preview hash
+    - URL-to-content matching now requires a bounded exact URL occurrence rather than prefix-only
+      substring matches inside larger URLs
+  - accepted evidence posture:
+    - rust parity is `LIB_UNSUPPORTED`; the local rust reference exposes no dedicated NIP-92 helper
+    - the TypeScript lane is also `LIB_UNSUPPORTED` for `nostr-tools`
+    - applesauce was reviewed as the relevant secondary ecosystem reference for `imeta` grammar and
+      NIP-94 field reuse
+- Why: `NIP-92` is a good protocol-kernel fit for bounded inline-media metadata helpers, but the
+  accepted kernel slice should stay deterministic and explicit. Strict supported-field handling,
+  duplicate rejection, and exact URL-in-content matching provide a stronger trust boundary than a
+  generic last-value-wins field map while still preserving the deployed `imeta` key/value grammar.
+- Tradeoff: slightly stricter duplicate and malformed-field behavior versus a clearer kernel
+  contract for downstream media/attachment workflow in `nzdk`.
+- Related Tradeoff: T-0-001, T-0-002.
+- Reversal Trigger: stronger ecosystem evidence shows broader duplicate/field handling improves
+  interoperability materially without weakening the supported-field trust boundary.
+- Supersedes: none

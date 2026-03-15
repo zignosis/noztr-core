@@ -27,6 +27,9 @@ Downstream consumption examples for SDK and application authors.
   - `wallet_recipe.zig`
   - `nip06_example.zig`
   - `bip85_example.zig`
+- media metadata and inline attachments:
+  - `nip92_example.zig`
+  - `nip94_example.zig`
 - private draft and relay-list storage:
   - `nip37_example.zig`
 - private list handling:
@@ -79,6 +82,7 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip73_example.zig`
 - `nip84_example.zig`
 - `nip86_example.zig`
+- `nip92_example.zig`
 - `nip94_example.zig`
 - optional I6 reference examples:
   - `nip45_example.zig`

@@ -77,6 +77,7 @@ Put behavior in the SDK when it involves any of:
 | `77` negentropy | bounded NEG-OPEN / MSG / CLOSE / ERR parsing and session helpers | full sync engine, transport scheduling, retry/session policy | negentropy sync driver over kernel message/state helpers | kernel scope is correct |
 | `84` highlights | bounded highlight source / attribution / comment / context parse-build helpers | reader UX, render policy, article integration, publish flow | highlight-reader and compose layer over kernel source helpers | kernel scope is correct |
 | `86` relay management | bounded relay-management request / response parse-build helpers | NIP-98 auth, HTTP transport, admin sessions, operator workflow | relay-operator client over kernel RPC helpers | deterministic RPC payloads belong in `noztr`; admin flow belongs in SDK |
+| `92` media attachments | bounded per-`imeta` parse/build/validate helpers plus exact URL-in-content matching for accepted inline-media metadata | media fetch, upload flow, preview/render policy, attachment UX | media-attachment pipeline over kernel `imeta` extraction/building and URL matching | kernel scope is correct |
 | `94` file metadata | bounded kind-`1063` file-metadata parse/build/validate helpers for required hashes/MIME/URLs plus optional metadata and fallback URLs | file upload/download flow, hosting service integration, preview fetch, media UX | media/file workflow over kernel file-metadata extraction and builders | kernel scope is correct |
 
 ## Review Questions

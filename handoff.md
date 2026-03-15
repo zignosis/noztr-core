@@ -230,14 +230,15 @@ Current project context for the Phase H kickoff baseline.
 ## Active Parity Gate
 
 - Active lane: rust only (`tools/interop/rust-nostr-parity-all`).
-- Current rust status: `37 HARNESS_COVERED`, `5 LIB_UNSUPPORTED`, mixed `BASELINE/EDGE/DEEP`,
-  `PASS`; all `42` implemented NIPs are now explicitly accounted for in the Rust lane, with
-  `NIP-26`, `NIP-29`, `NIP-37`, `NIP-84`, and `NIP-86` recorded as `LIB_UNSUPPORTED` because the
+- Current rust status: `37 HARNESS_COVERED`, `6 LIB_UNSUPPORTED`, mixed `BASELINE/EDGE/DEEP`,
+  `PASS`; all `43` implemented NIPs are now explicitly accounted for in the Rust lane, with
+  `NIP-26`, `NIP-29`, `NIP-37`, `NIP-84`, `NIP-86`, and `NIP-92` recorded as `LIB_UNSUPPORTED`
+  because the
   active Rust lane exposes no dedicated helper surfaces for them.
-- Current TS audit status: `36 HARNESS_COVERED`, `6 LIB_UNSUPPORTED`, mixed `BASELINE/EDGE/DEEP`,
-  `PASS` (`tools/interop/ts-nostr-parity-all`; non-gating audit evidence lane); all `42`
+- Current TS audit status: `36 HARNESS_COVERED`, `7 LIB_UNSUPPORTED`, mixed `BASELINE/EDGE/DEEP`,
+  `PASS` (`tools/interop/ts-nostr-parity-all`; non-gating audit evidence lane); all `43`
   implemented NIPs are now explicitly accounted for in the TS lane, with `NIP-26`, `NIP-37`,
-  `NIP-58`, `NIP-84`, `NIP-86`, and `NIP-94` recorded as `LIB_UNSUPPORTED`.
+  `NIP-58`, `NIP-84`, `NIP-86`, `NIP-92`, and `NIP-94` recorded as `LIB_UNSUPPORTED`.
 - Baseline cadence run (2026-03-09): rust parity harness passed
   (`SUMMARY pass=16 fail=0 harness_covered=16 total=16`).
 - Latest cadence run (2026-03-10): rust parity harness passed
@@ -547,9 +548,15 @@ Current project context for the Phase H kickoff baseline.
       - supported singleton tags require exact item counts; `thumb`/`image` accept only the
         canonical 2-item or 3-item shapes
       - repeated `fallback` URLs are supported through caller-owned bounded buffers
+    - `NIP-92` is now complete:
+      - accepted kernel slice is bounded per-`imeta` parse/build/validate only
+      - `url` plus at least one supported metadata field is required
+      - supported field values reuse the accepted `NIP-94` semantics where representable
+      - unknown fields are ignored inbound; canonical builders stay supported-field-only
+      - URL-to-content matching rejects prefix-only matches inside larger URLs
     - `NIP-47`, `NIP-98`, and `NIP-B7` are split and must stop at the deterministic kernel slice.
-    - `NIP-92` is the next kernel-first item because `imeta` reuses `NIP-94` fields.
-    - `NIP-49`, `NIP-64`, `NIP-88`, `NIP-92`, `NIP-99`, `NIP-B0`, and `NIP-C0` are the
+    - `NIP-99` is the next kernel-first item in the requested-NIP lane.
+    - `NIP-49`, `NIP-64`, `NIP-88`, `NIP-99`, `NIP-B0`, and `NIP-C0` are the
       kernel-first implementation set.
 
 ## Repo Boundary Note

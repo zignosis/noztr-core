@@ -23,7 +23,7 @@ backend exceptions.
     `NIP-46`
   - `NIP-51` (bounded public/private list helpers)
   - `NIP-56`, `NIP-57`, `NIP-58`, `NIP-59`, `NIP-65`, `NIP-70`, `NIP-73`, `NIP-84`, `NIP-86`,
-    `NIP-94`
+    `NIP-92`, `NIP-94`
   - Optional I6 extension exports (build-flag gated): `NIP-45`, `NIP-50`, `NIP-77`
   - Non-NIP bounded wallet helpers: Nostr-relevant `BIP-85` subset for lowercase-hex entropy text
     and English BIP39 child mnemonic/entropy
