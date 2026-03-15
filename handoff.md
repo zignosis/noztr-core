@@ -1,3 +1,20 @@
+---
+title: Handoff
+doc_type: state
+status: active
+owner: noztr
+phase: phase-h
+read_when:
+  - starting_session
+  - resuming_incomplete_work
+  - checking_next_step
+depends_on:
+  - docs/README.md
+  - docs/plans/build-plan.md
+  - docs/plans/decision-index.md
+canonical: true
+---
+
 # Handoff
 
 Current execution state for `noztr`.
@@ -7,7 +24,7 @@ Current execution state for `noztr`.
 - `AGENTS.md`
 - `docs/README.md`
 - `docs/plans/build-plan.md`
-- `docs/plans/decision-log.md`
+- `docs/plans/decision-index.md`
 - `docs/plans/post-kernel-requested-nips-loop.md` when continuing the requested-NIP lane
 
 ## Current Status
@@ -32,8 +49,10 @@ Current execution state for `noztr`.
   - repo-specific process refinement rules for keeping control docs lean
 - `docs/plans/build-plan.md`
   - active execution baseline
+- `docs/plans/decision-index.md`
+  - startup route into accepted policy areas
 - `docs/plans/decision-log.md`
-  - accepted defaults and policy decisions
+  - on-demand canonical reference for accepted defaults and policy decisions
 - `docs/plans/post-kernel-requested-nips-loop.md`
   - requested-NIP loop order and per-NIP execution rule
 - `docs/plans/docs-surface-audit.md`

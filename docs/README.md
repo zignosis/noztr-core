@@ -1,12 +1,13 @@
 ---
 title: Docs Index
-doc_type: state
+doc_type: index
 status: active
 owner: noztr
 read_when:
   - routing_repo_docs
   - starting_unfamiliar_work
   - refining_process
+canonical: true
 ---
 
 # Docs Index
@@ -22,10 +23,10 @@ These docs control active work and should stay lean.
   - agent operating rules, closure discipline, and repo workflow constraints
 - `handoff.md`
   - current state only: next work, critical rules, and current repo status
+- `docs/plans/decision-index.md`
+  - startup route into accepted policy and decision areas
 - `docs/plans/build-plan.md`
   - active execution baseline
-- `docs/plans/decision-log.md`
-  - accepted defaults, boundary decisions, and process changes
 - `docs/plans/post-kernel-requested-nips-loop.md`
   - requested-NIP lane order and loop rules
 - `docs/guides/PROCESS_CONTROL.md`
@@ -38,16 +39,21 @@ These docs control active work and should stay lean.
 - Startup:
   - `AGENTS.md`
   - `handoff.md`
+  - `docs/README.md`
   - files explicitly named by `./agent-brief`
 - Protocol implementation or review:
   - relevant NIP text in `docs/nips/`
-  - `docs/plans/decision-log.md`
+  - `docs/plans/decision-index.md`
   - `docs/plans/build-plan.md`
+  - `docs/plans/decision-log.md` only when a cited decision ID or policy change requires the
+    canonical payload
   - Zig guides on demand
 - Process or docs refinement:
   - `docs/guides/PROCESS_CONTROL.md`
   - `docs/plans/docs-surface-audit.md`
-  - `docs/plans/decision-log.md`
+  - `docs/plans/decision-index.md`
+  - `docs/plans/decision-log.md` only when a cited decision ID or policy change requires the
+    canonical payload
 - Ownership and kernel-vs-SDK questions:
   - `docs/plans/noztr-sdk-ownership-matrix.md`
 
@@ -55,6 +61,7 @@ These docs control active work and should stay lean.
 
 These are active references, not startup defaults.
 
+- `docs/plans/decision-log.md`
 - `docs/plans/noztr-sdk-ownership-matrix.md`
 - `docs/plans/nostr-principles.md`
 - `docs/plans/implemented-nip-audit-report.md`

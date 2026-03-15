@@ -1,6 +1,26 @@
+---
+title: Build Plan
+doc_type: plan
+status: active
+owner: noztr
+phase: phase-h
+read_when:
+  - starting_session
+  - tracing_active_execution_baseline
+  - updating_current_plan
+depends_on:
+  - docs/plans/nostr-principles.md
+  - docs/plans/decision-index.md
+canonical: true
+---
+
 # noztr Build Plan (Phase E Final)
 
 Date: 2026-03-09
+
+Policy-routing note: use `docs/plans/decision-index.md` for startup routing and load
+`docs/plans/decision-log.md` only when a cited decision or policy change requires the canonical
+payload.
 
 This artifact is finalized for implementation execution and is aligned to:
 
@@ -131,6 +151,8 @@ Implementation status snapshot (post-I7 closure):
   - Next requested-NIP execution focus is split-surface `NIP-B7`.
 - Docs/control-surface refinement is active:
   - `docs/README.md` routes active vs reference vs archive docs
+  - `docs/plans/decision-index.md` routes startup reads into accepted policy areas
+  - `docs/plans/decision-log.md` is on-demand reference rather than default startup material
   - `handoff.md` is state-only and should not carry historical narrative
   - open doc-bloat findings are tracked in `docs/plans/docs-surface-audit.md`
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the

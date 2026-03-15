@@ -1,3 +1,18 @@
+---
+title: Post-Kernel Requested NIP Loop
+doc_type: packet
+status: active
+owner: noztr
+phase: phase-h
+read_when:
+  - continuing_requested_nip_loop
+  - checking_requested_nip_order_and_gates
+depends_on:
+  - docs/plans/build-plan.md
+  - docs/plans/decision-index.md
+canonical: true
+---
+
 # Post-Kernel Requested NIP Loop
 
 Date: 2026-03-15

@@ -1,6 +1,21 @@
+---
+title: Decision Log
+doc_type: reference
+status: active
+owner: noztr
+read_when:
+  - tracing_specific_decision_id
+  - changing_policy_defaults
+  - auditing_exact_contract_history
+canonical: true
+---
+
 # Decision Log
 
 Immutable record of accepted planning decisions.
+
+Startup-routing note: use `docs/plans/decision-index.md` to decide whether the full canonical
+payload is needed for the current task.
 
 ## Change Control
 
@@ -2569,4 +2584,36 @@ Immutable record of accepted planning decisions.
 - Reversal Trigger: the leaner control surface causes repeated routing confusion or loses material
   execution context that cannot be recovered from the decision log, build plan, archive, or git
   history.
+- Supersedes: none
+
+## D-109: Adopt unified docs frontmatter schema and decision-index routing
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: standardize the active `noztr` docs surface on a shared frontmatter schema and route
+  startup policy reads through a compact decision index.
+  - accepted behavior:
+    - `docs/guides/PROCESS_CONTROL.md` defines the shared docs frontmatter schema
+      (`title`, `doc_type`, `status`, `owner`, `read_when`, `depends_on`, `supersedes`,
+      `posture`, `phase`, `canonical`, `archive_of`)
+    - docs should use the shared schema across projects, but only populate fields that are relevant
+      for the current doc
+    - `docs/plans/decision-index.md` is added as the startup route into accepted policy areas
+    - `docs/plans/decision-log.md` remains canonical, but is moved out of the default startup path
+      and treated as on-demand reference
+    - `agent-brief`, `docs/README.md`, `handoff.md`, and active control docs should route readers
+      through the decision index before loading the full decision log
+  - accepted non-goals:
+    - immediate frontmatter rollout across every archival or vendored markdown file
+    - replacing the decision log with summaries that lose canonical accepted-default payloads
+- Why: the repo needs consistent metadata across projects, but the larger gain is to stop paying
+  reference-doc cost in every startup path. A shared sparse frontmatter schema improves routing
+  consistency, and a decision index keeps accepted-default provenance without making the full log
+  part of active memory by default.
+- Tradeoff: more explicit metadata and one additional routing artifact versus lower startup cost and
+  more uniform docs handling across repos.
+- Related Tradeoff: T-0-004.
+- Reversal Trigger: the shared schema becomes noisy without improving routing, or the decision index
+  introduces enough drift/confusion that direct startup reads of the full decision log become
+  cheaper than maintaining the split.
 - Supersedes: none

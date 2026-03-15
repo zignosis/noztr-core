@@ -66,6 +66,18 @@ Measured on 2026-03-15 before the current refinement pass:
 - Fix:
   add `docs/guides/PROCESS_CONTROL.md` and point the active surface at it.
 
+### DOC-METADATA-001
+
+- Status: fixed in this pass
+- Problem:
+  active control docs had mixed or missing frontmatter, so routing metadata was not standardized.
+- Why it hurt:
+  docs were harder to classify mechanically across repos and easier to route by custom habit than
+  by explicit metadata.
+- Fix:
+  define one shared frontmatter schema in `docs/guides/PROCESS_CONTROL.md` and apply it to the
+  active control surface docs.
+
 ### DOC-LOOP-001
 
 - Status: open
@@ -107,7 +119,21 @@ Measured on 2026-03-15 before the current refinement pass:
   unlike `handoff.md`, the decision log is a legitimate reference surface and is allowed to be
   long if it remains the canonical home for accepted defaults.
 - Recommendation:
-  preserve it as reference, but avoid using it as a packet or handoff substitute.
+  preserve it as reference, but keep it off the default startup path and avoid using it as a
+  packet or handoff substitute.
+
+### DOC-DECISION-002
+
+- Status: fixed in this pass
+- Problem:
+  the full `docs/plans/decision-log.md` remained in the startup route even though it is
+  reference-sized.
+- Why it hurt:
+  active-memory reads were paying reference-cost on every session before any task had established
+  that a full canonical decision payload was actually needed.
+- Fix:
+  add `docs/plans/decision-index.md` as the startup route into policy areas and move
+  `docs/plans/decision-log.md` to on-demand reference status.
 
 ## Adoption Notes
 
@@ -116,7 +142,9 @@ This pass takes the minimal adoption path:
 1. define doc roles
 2. add one docs index
 3. add one repo-specific process-control guide
-4. keep a stable-ID audit for docs/process findings
-5. shorten handoff to current state
+4. define one shared frontmatter schema for active docs
+5. add one decision index so the full decision log becomes on-demand reference
+6. keep a stable-ID audit for docs/process findings
+7. shorten handoff to current state
 
 That is enough to reduce startup load immediately without a risky full doc reorg.
