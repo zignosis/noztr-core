@@ -2460,3 +2460,77 @@ Immutable record of accepted planning decisions.
   surface that materially improves interoperability without pulling HTTP workflow or session policy
   into the kernel.
 - Supersedes: none
+
+## D-107: Accept bounded NIP-47 Wallet Connect kernel helpers
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: implement `src/nip47_wallet_connect.zig` as the accepted `noztr` slice for `NIP-47`.
+  - accepted behavior:
+    - strict event-envelope helpers cover:
+      - kind `13194` info events
+      - kind `23194` request events
+      - kind `23195` response events
+      - legacy notification kind `23196`
+      - NIP-44 notification kind `23197`
+    - connection URIs require lowercase 32-byte hex wallet pubkeys and secrets, one-or-more
+      websocket relay URLs, and optional `lud16`
+    - info-event content keeps ordered raw capability tokens, accepts optional singleton
+      `encryption` and `notifications` tags, and defaults missing `encryption` to `nip04`
+    - request events require exactly one `p` tag, accept optional singleton `expiration` and
+      `encryption` tags, and default missing `encryption` to `nip04`
+    - response events require exactly one `p` tag, exactly one `e` tag, accept optional singleton
+      `encryption`, and default missing `encryption` to `nip04`
+    - notification events require exactly one `p` tag; kind `23196` defaults to `nip04` and kind
+      `23197` defaults to `nip44_v2`, with optional singleton `encryption` override support
+    - decrypted JSON request helpers expose typed unions only for the spec command-section methods:
+      - `pay_invoice`
+      - `pay_keysend`
+      - `make_invoice`
+      - `lookup_invoice`
+      - `list_transactions`
+      - `get_balance`
+      - `get_info`
+      - `make_hold_invoice`
+      - `cancel_hold_invoice`
+      - `settle_hold_invoice`
+    - unsupported request/result methods are rejected on the public boundary
+    - decrypted JSON responses require `result_type`, `error`, and `result`, with strict
+      null-versus-object exclusivity
+    - `get_info` preserves ordered raw validated method and notification tokens for forward
+      compatibility rather than collapsing them into a closed enum
+    - generic transaction metadata accepts only JSON objects with serialized size
+      `<= 4096` bytes
+    - canonical downstream examples now include:
+      - `examples/nip47_example.zig`
+      - `examples/wallet_connect_adversarial_example.zig`
+  - accepted non-goals:
+    - relay lifecycle and transport/session orchestration
+    - wallet service orchestration and payment execution workflow
+    - runtime NIP-04/NIP-44 encryption/decryption handling
+    - wallet API bridging and notification handling policy
+  - accepted evidence posture:
+    - the vendored `docs/nips/47.md` text was rechecked during the freeze pass
+    - `rust-nostr` and `libnostr-z` were used as parity references for URI shape, method/result
+      coverage, and notification structure
+    - the applesauce reference lane was unavailable in the local checkout, so this close used the
+      spec plus available rust/zig reference lanes
+    - Review A found one real public error-contract issue and it is fixed:
+      - serializer-side invalid text now stays on `InvalidParams`, `InvalidResult`, and
+        `InvalidNotification` instead of collapsing to generic `InvalidContent`
+    - Review B found no further boundary or overengineering issue after example/export/index
+      parity updates
+    - green gates passed on the post-review candidate:
+      - `zig build test --summary all`
+      - `zig build`
+- Why: `NIP-47` is a good split kernel fit when scoped to deterministic NWC URI handling,
+  bounded envelope extraction, typed decrypted JSON contracts, and exact public error surfaces.
+  That gives downstream wallet and SDK code a reusable trust-boundary floor without pulling relay,
+  payment, or encryption workflow into `noztr`.
+- Tradeoff: a narrow split-surface kernel helper versus a more ergonomic but workflow-entangled
+  API that would hide transport, encryption, or wallet-service policy inside the library.
+- Related Tradeoff: T-0-001, T-0-002.
+- Reversal Trigger: stronger protocol or ecosystem evidence shows a bounded additional helper
+  surface that materially improves interoperability without widening `noztr` into wallet
+  orchestration, relay workflow, or runtime encryption handling.
+- Supersedes: none

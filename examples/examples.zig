@@ -35,6 +35,7 @@ comptime {
     _ = @import("private_lists_adversarial_example.zig");
     _ = @import("nip44_example.zig");
     _ = @import("nip46_example.zig");
+    _ = @import("nip47_example.zig");
     _ = @import("nip49_example.zig");
     _ = @import("nip98_example.zig");
     _ = @import("remote_signing_adversarial_example.zig");
@@ -60,6 +61,7 @@ comptime {
     _ = @import("chess_pgn_adversarial_example.zig");
     _ = @import("polls_adversarial_example.zig");
     _ = @import("private_key_encryption_adversarial_example.zig");
+    _ = @import("wallet_connect_adversarial_example.zig");
     _ = @import("http_auth_adversarial_example.zig");
     _ = @import("nip65_example.zig");
     _ = @import("nip70_example.zig");

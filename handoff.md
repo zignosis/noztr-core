@@ -679,13 +679,47 @@ Current project context for the Phase H kickoff baseline.
       - Review B fix:
         - header formatting now rejects arbitrary non-base64 token bytes
       - `zig build test --summary all` and `zig build` are green on the post-review candidate
+    - `NIP-47` is now complete:
+      - accepted split kernel slice is bounded NWC URI, info/request/response/notification event
+        extraction, typed decrypted JSON request/response/notification contracts, and canonical
+        JSON serialization helpers
+      - connection URIs require lowercase 32-byte hex wallet pubkeys and secrets, one-or-more
+        websocket relay URLs, and optional `lud16`
+      - info events keep ordered raw capability tokens, default missing `encryption` to `nip04`,
+        and accept optional ordered notification tokens
+      - request events require exactly one `p` tag and optional singleton `expiration` and
+        `encryption`; response events require exactly one `p`, exactly one `e`, and optional
+        singleton `encryption`
+      - notification events support legacy kind `23196` with default `nip04` and kind `23197`
+        with default `nip44_v2`; explicit singleton `encryption` overrides remain accepted
+      - decrypted JSON requests support the spec command-section method set through typed unions:
+        `pay_invoice`, `pay_keysend`, `make_invoice`, `lookup_invoice`, `list_transactions`,
+        `get_balance`, `get_info`, `make_hold_invoice`, `cancel_hold_invoice`, and
+        `settle_hold_invoice`
+      - decrypted JSON responses require `result_type`, `error`, and `result`, with strict
+        null-versus-object exclusivity, and `get_info` preserves raw validated method and
+        notification tokens for forward compatibility
+      - generic transaction metadata accepts only JSON objects with serialized size
+        `<= 4096` bytes
+      - SDK-side only remains:
+        - relay lifecycle and transport/session orchestration
+        - wallet service orchestration and payment execution workflow
+        - actual NIP-04/NIP-44 encryption/decryption runtime handling
+        - notification handling policy and wallet API bridging
+      - canonical examples now include:
+        - `examples/nip47_example.zig`
+        - `examples/wallet_connect_adversarial_example.zig`
+      - Review A fix:
+        - serializer-side invalid text now stays on `InvalidParams`, `InvalidResult`, and
+          `InvalidNotification` instead of collapsing to generic `InvalidContent`
+      - Review B found no additional boundary issue after example/export/index parity updates
+      - `zig build test --summary all` and `zig build` are green on the post-review candidate
     - gate-backfill note:
       - `src/nip88_polls.zig` had one stale candidate-count test expectation in the full harness;
         the accepted reducer contract already treated malformed same-poll responses as zero-vote
         candidates, so the test expectation was updated without changing the accepted runtime
         behavior
     - requested-NIP loop next execution order is:
-      - `NIP-47`
       - split surface `NIP-B7`
 
 ## Repo Boundary Note

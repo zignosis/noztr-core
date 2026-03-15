@@ -93,6 +93,9 @@ pub const nip51_lists = @import("nip51_lists.zig");
 /// Phase H concrete export for the NIP-46 remote-signing module.
 pub const nip46_remote_signing = @import("nip46_remote_signing.zig");
 
+/// Post-kernel requested-loop split concrete export for the NIP-47 wallet-connect module.
+pub const nip47_wallet_connect = @import("nip47_wallet_connect.zig");
+
 /// Post-kernel requested-loop concrete export for the NIP-49 private-key encryption module.
 pub const nip49_private_key_encryption = @import("nip49_private_key_encryption.zig");
 
@@ -233,6 +236,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip51_lists.ListError) == type);
     try std.testing.expect(@TypeOf(nip51_lists.PrivateListError) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.Nip46Error) == type);
+    try std.testing.expect(@TypeOf(nip47_wallet_connect.NwcError) == type);
     try std.testing.expect(@TypeOf(nip49_private_key_encryption.Nip49Error) == type);
     try std.testing.expect(@TypeOf(nip06_mnemonic.Nip06Error) == type);
     try std.testing.expect(@TypeOf(bip85_derivation.Bip85Error) == type);
@@ -279,6 +283,10 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip46_remote_signing.ConnectResult) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.ParsedRequest) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.DiscoveryInfo) == type);
+    try std.testing.expect(@TypeOf(nip47_wallet_connect.ConnectionUri) == type);
+    try std.testing.expect(@TypeOf(nip47_wallet_connect.Request) == type);
+    try std.testing.expect(@TypeOf(nip47_wallet_connect.Response) == type);
+    try std.testing.expect(@TypeOf(nip47_wallet_connect.Notification) == type);
     try std.testing.expect(@TypeOf(nip23_long_form.LongFormMetadata) == type);
     try std.testing.expect(@TypeOf(nip23_long_form.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nipc0_code_snippets.LicenseInfo) == type);

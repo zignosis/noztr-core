@@ -126,9 +126,9 @@ Implementation status snapshot (post-I7 closure):
 - Active planning state has moved to Phase H kickoff for additional NIP expansion in
   `docs/plans/phase-h-kickoff.md` and `docs/plans/phase-h-additional-nips-plan.md`.
 - Requested-NIP loop progress:
-  - `NIP-94`, `NIP-92`, `NIP-99`, `NIP-B0`, `NIP-C0`, `NIP-64`, `NIP-88`, `NIP-49`, and
-    `NIP-98` are complete.
-  - Next requested-NIP execution focus is `NIP-47`.
+  - `NIP-94`, `NIP-92`, `NIP-99`, `NIP-B0`, `NIP-C0`, `NIP-64`, `NIP-88`, `NIP-49`, `NIP-98`,
+    and `NIP-47` are complete.
+  - Next requested-NIP execution focus is split-surface `NIP-B7`.
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the
   approved pinned crypto backend policy and a narrow boundary module.
 - Phase H Wave 1 execution has started:

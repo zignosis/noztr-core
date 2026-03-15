@@ -42,9 +42,13 @@ fixtures so SDK and app authors can see what `noztr` rejects and why.
 - deterministic wallet flows:
   - `wallet_recipe.zig`
   - `nip06_example.zig`
+  - `nip47_example.zig`
   - `nip49_example.zig`
   - `bip85_example.zig`
   - `nostr_keys_example.zig`
+- wallet-connect kernel helpers:
+  - `nip47_example.zig`
+  - `wallet_connect_adversarial_example.zig`
 - media metadata and inline attachments:
   - `nip92_example.zig`
   - `nip94_example.zig`
@@ -111,6 +115,7 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip42_example.zig`
 - `nip44_example.zig`
 - `nip46_example.zig`
+- `nip47_example.zig`
 - `nip49_example.zig`
 - `nip98_example.zig`
 - `nip51_example.zig`
@@ -186,6 +191,8 @@ These are the first files to open when you need the failure contract for a bound
   - latest malformed same-poll responses suppress older votes and invalid response tags stay typed
 - `private_key_encryption_adversarial_example.zig`
   - wrong passwords stay on `InvalidCiphertext` and invalid scrypt parameters stay typed
+- `wallet_connect_adversarial_example.zig`
+  - malformed NWC request bodies and mismatched notification shapes stay on typed failures
 - `http_auth_adversarial_example.zig`
   - malformed `Authorization` values and noncanonical payload hashes stay on typed failures
 - `nip29_adversarial_example.zig`
