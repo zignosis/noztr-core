@@ -191,6 +191,12 @@ Cross-cutting review lenses for every implemented NIP:
 - LLM and human usability: public names, typed errors, and call sequences should be easy to
   discover and reason about without hidden context.
 
+Tracker and landing discipline:
+- Treat all `br` mutations and all git-writing steps as serial-only operations.
+- Never parallelize `br update/close/create`, `br sync --flush-only`, or any `git commit`.
+- Canonical order when tracker state changes:
+  `br update/close/create` -> `br sync --flush-only` -> `git add .beads/` -> `git commit`
+
 | NIP | Review Criteria From `D-036` |
 | --- | --- |
 | 01 | Preserve hard rejection for cryptographic invalidity and malformed critical fields; review filter-field rejection, lowercase-only critical hex, and relay `OK` status rules to confirm each narrowing is protocol-necessary or materially safer rather than merely tidier. |

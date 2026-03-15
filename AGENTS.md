@@ -187,9 +187,13 @@ br close br-42 --reason "Completed" --json
 - ✅ Always use `--json` flag for programmatic use
 - ✅ Link discovered work with `discovered-from` dependencies
 - ✅ Check `br ready` before asking "what should I work on?"
+- ✅ Treat all `br` mutations and all git-writing steps as serial-only operations
+- ✅ Run this sequence in order when tracker state changes: `br update/close/create` ->
+  `br sync --flush-only` -> `git add .beads/` -> `git commit`
 - ❌ Do NOT create markdown TODO lists
 - ❌ Do NOT use external issue trackers
 - ❌ Do NOT duplicate tracking systems
+- ❌ Do NOT run `br` mutations, `br sync`, or git commits in parallel
 
 For more details, see README.md and docs/QUICKSTART.md.
 
