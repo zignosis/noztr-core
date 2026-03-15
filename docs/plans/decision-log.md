@@ -2399,3 +2399,64 @@ Immutable record of accepted planning decisions.
   surface that materially improves interoperability without widening `noztr` into password UX,
   storage policy, or a broad Unicode API.
 - Supersedes: none
+
+## D-106: Accept bounded NIP-98 HTTP-auth event and header helpers
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: implement `src/nip98_http_auth.zig` as the accepted `noztr` slice for `NIP-98`.
+  - accepted behavior:
+    - only kind-`27235` events are accepted by the strict extractor and validator paths
+    - strict extraction requires exactly one `u` tag and exactly one `method` tag; `payload` is
+      optional and accepted at most once
+    - `u` tags must use exact two-item shape `["u", <absolute-url>]`
+    - `method` tags must use exact two-item shape `["method", <http-token>]`
+    - `payload` tags must use exact two-item shape `["payload", <64-char-lowercase-sha256-hex>]`
+    - unrelated tags are ignored inbound
+    - event `content` is not required to be empty on the strict parser path because the NIP says
+      it `SHOULD` be empty, not `MUST`; canonical downstream examples still emit empty content
+    - request validation uses exact byte equality for URL and method matching, and exact lowercase
+      hex equality for payload matching when a payload hash is expected
+    - timestamp freshness remains caller policy through explicit `now`, `max_past_seconds`, and
+      `max_future_seconds` inputs; the module does not fetch wall-clock time internally
+    - canonical builders cover strict `u`, `method`, and `payload` tags plus lowercase SHA-256
+      request-body hashing
+    - strict header helpers cover:
+      - exact `Authorization: Nostr <base64-json-event>` formatting
+      - base64 decode from one strict `Nostr ` header value
+      - one safe wrapper that decodes, parses, verifies, and exact-matches a header in one call
+  - accepted non-goals:
+    - HTTP middleware and request execution
+    - client/server transport workflow
+    - challenge/session management
+    - redirect, retry, cache, or auth-policy orchestration
+  - accepted evidence posture:
+    - the vendored `docs/nips/98.md` text was rechecked during the freeze pass
+    - `rust-nostr` provides dedicated `NIP-98` auth helpers and a combined verify-header path, but
+      it hard-codes a narrower method enum and an embedded timestamp policy window
+    - vendored `nostr-tools` provides token helpers, but its method comparison is case-insensitive
+      and its payload hashing helper is object-JSON-oriented rather than raw-body-byte oriented
+    - `libnostr-z` provides similar helper coverage, but it also embeds time policy and
+      case-insensitive method handling
+    - Review A found one real public error-contract issue and it is fixed:
+      - direct base64 decode no longer reports empty or oversized decoded event payloads as
+        header-shape failures
+    - Review B found one real builder-boundary issue and it is fixed:
+      - header formatting no longer accepts arbitrary non-base64 token bytes
+    - adversarial downstream examples now include:
+      - `examples/nip98_example.zig`
+      - `examples/http_auth_adversarial_example.zig`
+    - green gates passed on the post-review candidate:
+      - `zig build test --summary all`
+      - `zig build`
+- Why: `NIP-98` is a good kernel fit when scoped to deterministic auth-event extraction, exact
+  request matching, pure payload hashing, strict header encoding/decoding, and one obvious safe
+  verify wrapper. That gives downstream HTTP clients and servers a reusable trust-boundary floor
+  without pulling transport middleware or session policy into `noztr`.
+- Tradeoff: a strict exact-match kernel slice versus broader convenience behavior such as
+  case-insensitive methods, embedded wall-clock policy, or middleware ergonomics.
+- Related Tradeoff: T-0-001, T-0-002.
+- Reversal Trigger: stronger protocol or ecosystem evidence shows a bounded additional helper
+  surface that materially improves interoperability without pulling HTTP workflow or session policy
+  into the kernel.
+- Supersedes: none

@@ -657,14 +657,36 @@ Current project context for the Phase H kickoff baseline.
         - `examples/nip49_example.zig`
         - `examples/private_key_encryption_adversarial_example.zig`
       - `zig build test --summary all` and `zig build` are green on the post-review candidate
+    - `NIP-98` is now complete:
+      - accepted kernel slice is bounded auth-event extraction, exact request-match validation,
+        strict header encode/decode, and one safe decode-parse-verify wrapper for kind `27235`
+      - strict extraction requires exactly one `u` tag and exactly one `method` tag; `payload` is
+        optional and accepted at most once
+      - `u` tags must be exact two-item absolute URLs, `method` tags must be exact two-item HTTP
+        tokens, and `payload` tags must be exact two-item lowercase SHA-256 hex values
+      - request validation is exact by bytes for URL and method; payload matching is exact when a
+        payload hash is expected
+      - timestamp freshness remains caller policy through explicit `now`, `max_past_seconds`, and
+        `max_future_seconds` inputs
+      - event `content` remains accepted even when non-empty because the NIP only says it SHOULD be
+        empty; canonical examples still emit empty content
+      - canonical examples now include:
+        - `examples/nip98_example.zig`
+        - `examples/http_auth_adversarial_example.zig`
+      - Review A fix:
+        - direct base64 decode now reports empty or oversized decoded event payloads with
+          event-size errors instead of header-shape errors
+      - Review B fix:
+        - header formatting now rejects arbitrary non-base64 token bytes
+      - `zig build test --summary all` and `zig build` are green on the post-review candidate
     - gate-backfill note:
       - `src/nip88_polls.zig` had one stale candidate-count test expectation in the full harness;
         the accepted reducer contract already treated malformed same-poll responses as zero-vote
         candidates, so the test expectation was updated without changing the accepted runtime
         behavior
     - requested-NIP loop next execution order is:
-      - `NIP-98`
-      - split surfaces `NIP-47` and `NIP-B7`
+      - `NIP-47`
+      - split surface `NIP-B7`
 
 ## Repo Boundary Note
 

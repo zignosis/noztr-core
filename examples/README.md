@@ -60,6 +60,9 @@ fixtures so SDK and app authors can see what `noztr` rejects and why.
   - `relay_admin_recipe.zig`
   - `nip86_example.zig`
   - `relay_admin_adversarial_example.zig`
+- HTTP auth helpers:
+  - `nip98_example.zig`
+  - `http_auth_adversarial_example.zig`
 - listings and metadata commerce helpers:
   - `nip99_example.zig`
   - `listings_adversarial_example.zig`
@@ -109,6 +112,7 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip44_example.zig`
 - `nip46_example.zig`
 - `nip49_example.zig`
+- `nip98_example.zig`
 - `nip51_example.zig`
 - `nip56_example.zig`
 - `nip57_example.zig`
@@ -182,6 +186,8 @@ These are the first files to open when you need the failure contract for a bound
   - latest malformed same-poll responses suppress older votes and invalid response tags stay typed
 - `private_key_encryption_adversarial_example.zig`
   - wrong passwords stay on `InvalidCiphertext` and invalid scrypt parameters stay typed
+- `http_auth_adversarial_example.zig`
+  - malformed `Authorization` values and noncanonical payload hashes stay on typed failures
 - `nip29_adversarial_example.zig`
   - mixed-group moderation replay rejected by the pure reducer
 
