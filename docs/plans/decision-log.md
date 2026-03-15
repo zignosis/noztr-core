@@ -1784,7 +1784,8 @@ Immutable record of accepted planning decisions.
 - Decision: implement `src/bip85_derivation.zig` as a bounded Nostr-relevant kernel helper module
   adjacent to `NIP-06`.
   - accepted kernel floor:
-    - deterministic BIP-85 hex entropy derivation from the existing BIP39 seed boundary
+    - deterministic BIP-85 lowercase-hex entropy-text derivation from the existing BIP39 seed
+      boundary
     - deterministic English BIP39 child entropy derivation
     - deterministic English BIP39 child mnemonic derivation
     - direct seed-based helpers plus convenience wrappers from mnemonic + optional passphrase
@@ -1806,7 +1807,7 @@ Immutable record of accepted planning decisions.
 ## D-089: Keep full NIP-06 Unicode NFKD normalization out of current scope after the post-kernel review
 
 - Date: 2026-03-14
-- Status: accepted
+- Status: superseded by `D-091`
 - Decision: close the post-kernel loop review of `no-2gp` without implementing full NFKD
   normalization.
   - accepted current posture:

@@ -19,6 +19,7 @@ Current project context for the Phase H kickoff baseline.
     - the most SDK-facing kernel modules now point back to the relevant example files in their
       public doc comments
   - Nostr-relevant `BIP-85` subset remains implemented and accepted
+    - the `hex` helper contract now returns lowercase hex text rather than raw entropy bytes
   - deprecated `NIP-04` private-list compatibility remains deferred
   - crypto-boundary evaluation is recorded in `docs/plans/crypto-boundary-evaluation.md`
   - open follow-up research item: `no-980` for a possible standalone Zig secp/bitcoin primitive
@@ -184,6 +185,14 @@ Current project context for the Phase H kickoff baseline.
   - deferred backlog `NIP-39` robustness review is complete with no Layer 1 behavior change
   - accepted kernel posture: live provider fetch verification remains out of current kernel scope
     (`D-071`)
+  - post-expansion full-kernel audit checkpoint:
+    - `BIP-85` hex helpers now return lowercase hex text, matching their public contract
+    - `NIP-37` private relay-list helpers now require websocket relay URLs rather than generic
+      HTTP-style URLs
+    - `NIP-73` malformed blockchain value inputs now stay on the `InvalidValue` error path instead
+      of leaking `InvalidKind`
+    - current examples were reviewed against that audited surface, and `BIP-85`, `NIP-37`, and
+      `NIP-73` examples were tightened accordingly
   - continuing implemented-NIP audit result for `NIP-03`, `NIP-17`, `NIP-39`, and `NIP-46`:
     - `NIP-03`, `NIP-17`, and `NIP-46` were reviewed with no further Layer 1 behavior change
       required after the recent expansion and robustness passes
