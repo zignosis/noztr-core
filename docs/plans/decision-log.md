@@ -1924,3 +1924,25 @@ Immutable record of accepted planning decisions.
 - Reversal Trigger: a future accepted planning change replaces the serial two-review model with a
   more effective execution lane without lowering review quality or boundary discipline.
 - Supersedes: none
+
+## D-094: Accept broader NIP-40 expiration tags by using the timestamp slot and ignoring extras
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: widen `src/nip40_expire.zig` so `expiration` tags use the timestamp in slot two even
+  when extra trailing items are present.
+  - accepted behavior:
+    - the second item remains the only parsed timestamp source
+    - empty or malformed timestamps still behave as absent expiration metadata
+    - extra trailing items after the timestamp are ignored
+    - first valid expiration still wins deterministically
+- Why: the NIP only requires the timestamp, and broader ecosystem helpers such as `nostr-tools` and
+  applesauce already read the timestamp while ignoring extra trailing fields. Rejecting or ignoring
+  the whole tag when a valid timestamp is present was unnecessary compatibility loss for advisory
+  metadata.
+- Tradeoff: slightly broader acceptance of malformed optional tag shapes versus better compatibility
+  with real helper behavior while keeping the trust boundary deterministic and typed.
+- Related Tradeoff: T-0-001, T-0-002.
+- Reversal Trigger: stronger protocol or ecosystem evidence shows extra trailing expiration fields
+  should invalidate the tag rather than be ignored.
+- Supersedes: none

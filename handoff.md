@@ -536,7 +536,10 @@ Current project context for the Phase H kickoff baseline.
 10. Keep `no-3uj` visible as deferred-by-operator until remote setup returns to active execution focus.
 11. The current next-NIP planning lane is `docs/plans/post-kernel-requested-nips-loop.md`.
     Current call:
-    - `NIP-40` is already implemented and should only be re-reviewed in that loop.
+    - `NIP-40` review checkpoint is now complete:
+      - extra trailing items after a valid `expiration` timestamp are ignored rather than causing
+        the helper to miss the timestamp entirely
+      - first valid expiration still wins deterministically
     - `NIP-47`, `NIP-98`, and `NIP-B7` are split and must stop at the deterministic kernel slice.
     - `NIP-49`, `NIP-64`, `NIP-88`, `NIP-92`, `NIP-94`, `NIP-99`, `NIP-B0`, and `NIP-C0` are the
       kernel-first implementation set.

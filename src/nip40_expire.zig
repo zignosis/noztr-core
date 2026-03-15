@@ -50,7 +50,7 @@ fn parse_expiration_tag_value(tag: nip01_event.EventTag) ExpirationError!?u64 {
     if (!std.mem.eql(u8, tag.items[0], "expiration")) {
         return null;
     }
-    if (tag.items.len != 2) {
+    if (tag.items.len < 2) {
         return null;
     }
     if (tag.items[1].len == 0) {
@@ -121,7 +121,7 @@ test "expiration vectors valid include boundary and deterministic no-expiration"
     );
 }
 
-test "expiration vectors invalid include malformed shape and malformed timestamp" {
+test "expiration vectors invalid include malformed timestamp and empty value" {
     const arity_one = [_][]const u8{"expiration"};
     const arity_three = [_][]const u8{ "expiration", "5", "extra" };
     const empty_value = [_][]const u8{ "expiration", "" };
@@ -145,8 +145,9 @@ test "expiration vectors invalid include malformed shape and malformed timestamp
     try std.testing.expect(
         (try event_expiration_unix_seconds(&event_for_tags(tags_arity_one[0..]))) == null,
     );
-    try std.testing.expect(
-        (try event_expiration_unix_seconds(&event_for_tags(tags_arity_three[0..]))) == null,
+    try std.testing.expectEqual(
+        @as(?u64, 5),
+        try event_expiration_unix_seconds(&event_for_tags(tags_arity_three[0..])),
     );
     try std.testing.expect(
         (try event_expiration_unix_seconds(&event_for_tags(tags_empty_value[0..]))) == null,
@@ -166,11 +167,11 @@ test "expiration vectors invalid include malformed shape and malformed timestamp
     );
 }
 
-test "expiration malformed tags are ignored deterministically" {
+test "expiration tag extra slots are ignored after the timestamp" {
     const bad_shape = [_][]const u8{ "expiration", "3", "extra" };
     const bad_tags = [_]nip01_event.EventTag{.{ .items = bad_shape[0..] }};
 
-    try std.testing.expect(!(try event_is_expired_at(&event_for_tags(bad_tags[0..]), 4)));
+    try std.testing.expect(try event_is_expired_at(&event_for_tags(bad_tags[0..]), 4));
 }
 
 test "expiration malformed timestamps are ignored deterministically" {
