@@ -78,8 +78,17 @@ Run tests after every code change.
 - Review the public error contract explicitly:
   - public error variants must describe the real cause
   - do not return capacity errors for invalid input or invalid-input errors for capacity failures
+  - freeze an explicit invalid-vs-capacity matrix before coding every new builder or validator
+  - no user-controlled invalid input may rely on debug assertions for rejection in the public path
 - When reference libraries are `LIB_UNSUPPORTED` or only weak evidence exists, require one extra
   spec-first challenge pass before closure.
+  - that extra pass must include a pre-code reject corpus, not only additional happy-path evidence
+  - reject corpus minimum:
+    - arbitrary-but-delimited nonsense
+    - malformed section or tag separators
+    - overlong fields
+    - contradictory optional metadata where applicable
+    - debug-vs-release equivalent failure checks for public invalid-input paths
 - Keep canonical audit and status artifacts current as part of closure, not as later cleanup.
 - If the review process gets stricter mid-stream, run a short retroactive backfill pass on all
   recently closed or newly expanded NIPs before claiming the stronger standard is in force.
@@ -125,6 +134,9 @@ critical rules:
   - per-field negative corpus
   - builder/parser symmetry where applicable
   - at least one adversarial or hostile-input case for boundary-heavy surfaces
+  - at least one nonsense-but-delimited invalid case when the surface tokenizes free text or
+    sectioned content
+  - section/tag separator discipline when the grammar has adjacent structured regions
 
 ## What NOT To Do
 

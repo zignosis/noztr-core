@@ -85,6 +85,13 @@ Run this loop for each NIP, serially, without overlap:
      - multiplicity / ordering rules
      - normalization / canonicalization rules
      - ignored / unsupported shapes
+   - freeze an explicit invalid-vs-capacity matrix for each new public builder/validator boundary
+   - if reference lanes are `LIB_UNSUPPORTED` or weak, freeze a reject corpus before coding:
+     - arbitrary-but-delimited nonsense
+     - malformed section/tag separators
+     - overlong fields
+     - contradictory optional metadata where applicable
+     - debug-vs-release equivalent invalid-input failures
    - record any ambiguity before implementation starts
 
 2. Implement the frozen kernel slice
@@ -114,6 +121,7 @@ Run this loop for each NIP, serially, without overlap:
    - challenge public error semantics
    - run per-field negative corpus
    - run hostile or contradictory transcripts / fixtures where relevant
+   - for tokenized or sectioned grammars, challenge nonsense tokens and separator discipline
    - if references are `LIB_UNSUPPORTED`, do one extra spec-first challenge pass
 
 8. Close the NIP with green gates

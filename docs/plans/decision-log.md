@@ -2248,3 +2248,39 @@ Immutable record of accepted planning decisions.
   richer PGN helper surface that materially improves interoperability without pulling chess-engine
   workflow into the kernel.
 - Supersedes: none
+
+## D-103: Tighten requested-NIP closure with reject-corpus and assertion-leak checks
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: strengthen the active requested-NIP execution loop and closure discipline using the
+  implementation misses found during `NIP-C0` and `NIP-64`.
+  - accepted process additions:
+    - freeze an explicit invalid-vs-capacity matrix before coding every new public builder or
+      validator boundary
+    - reject any public invalid-input path that depends on debug assertions instead of typed
+      runtime failures
+    - when reference lanes are `LIB_UNSUPPORTED` or weak, require a pre-code reject corpus, not
+      only additional happy-path evidence
+    - minimum reject corpus classes are:
+      - arbitrary-but-delimited nonsense
+      - malformed section/tag separators
+      - overlong fields
+      - contradictory optional metadata where applicable
+      - debug-vs-release equivalent invalid-input behavior
+    - for tokenized or sectioned grammars, the adversarial audit must explicitly challenge
+      nonsense tokens and separator discipline, not only balancing or delimiter checks
+  - accepted artifact updates:
+    - `AGENTS.md`
+    - `docs/plans/build-plan.md`
+    - `docs/plans/post-kernel-requested-nips-loop.md`
+- Why: the recent misses were not happy-path design failures; they were negative-space trust-boundary
+  misses. The common pattern was a validator or builder that looked structurally plausible on the
+  first pass but had not frozen enough rejection behavior up front, especially when reference
+  implementations were weak or absent.
+- Tradeoff: more pre-code and review overhead versus fewer post-implementation trust-boundary fixes
+  and less dependence on Review A to discover avoidable negative-space mistakes.
+- Related Tradeoff: T-0-001, T-0-004.
+- Reversal Trigger: future execution evidence shows the stronger reject-corpus and assertion-leak
+  requirements add churn without materially reducing post-implementation review findings.
+- Supersedes: none

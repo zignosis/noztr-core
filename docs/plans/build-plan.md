@@ -276,8 +276,18 @@ Required per-NIP contract discipline:
   - error variants must describe the real remediation path
   - invalid input must not surface as capacity exhaustion
   - capacity exhaustion must not surface as invalid input
+  - freeze an explicit invalid-vs-capacity matrix before implementation for every new builder or
+    validator boundary
+  - no public invalid-input path may depend on debug assertions for rejection
 - When a NIP is `LIB_UNSUPPORTED` or only weakly covered in reference lanes, require one extra
   spec-first challenge pass before closure.
+  - that extra pass must include a reject corpus, not only more valid vectors
+  - minimum reject corpus classes:
+    - arbitrary-but-delimited nonsense
+    - malformed section/tag separators
+    - overlong fields
+    - contradictory optional metadata where applicable
+    - debug-vs-release equivalent invalid-input behavior
 - If the review process or closure standard becomes stricter mid-stream, run a retroactive backfill
   pass over all recently closed or newly expanded NIPs touched before the new rule landed.
   - minimum backfill output:
@@ -293,6 +303,9 @@ Required adversarial coverage:
 - "Hostile transcript" means malformed, contradictory, replay-like, oversized-within-bounds,
   near-canonical, or ordering-sensitive inputs designed to attack the trust boundary rather than
   merely fail ordinary parsing.
+- For tokenized or sectioned text grammars, the hostile corpus must also include:
+  - nonsense tokens that still satisfy delimiter/balancing rules
+  - malformed separators between adjacent structured regions
 - Boundary-heavy modules such as auth, encryption, relay-management, wrapping, remote-signing,
   list privacy, and RPC/message surfaces must explicitly include hostile transcript coverage.
 - Boundary-heavy SDK-facing modules must also expose at least one consumer-facing hostile or
