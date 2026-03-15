@@ -2830,3 +2830,43 @@ payload is needed for the current task.
 - Reversal Trigger: the additional playbook guidance turns into noise, duplicates the canonical
   process owner, or stops reflecting real process failures and improvements.
 - Supersedes: none
+
+## D-115: Treat process updates as coherent control-surface edits
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: process updates are not additive by default; they must be applied as coherent edits to
+  the existing docs control surface.
+  - accepted behavior:
+    - when process changes materially, the repo should review together:
+      - `docs/guides/PROCESS_CONTROL.md`
+      - `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`
+      - `docs/README.md`
+      - `handoff.md`
+      - `docs/plans/docs-surface-audit.md`
+    - superseded wording should be removed or rewritten instead of left beside the new rule
+    - `PROCESS_CONTROL.md` remains the canonical local rule owner
+    - `PROCESS_REFINEMENT_PLAYBOOK.md` remains a reference doc for rationale and transfer, not a
+      second rule owner
+    - `docs/plans/docs-surface-audit.md` should keep live findings only; resolved-history material
+      moves to archive when it still matters for provenance
+    - `docs/archive/plans/docs-surface-audit-history.md` now holds resolved audit history
+  - accepted non-goals:
+    - merging `PROCESS_CONTROL.md` and `PROCESS_REFINEMENT_PLAYBOOK.md` into one doc
+    - moving large reference material back into the startup path
+    - preserving every resolved refinement note in the active audit surface
+  - accepted evidence posture:
+    - the trigger for this change was local additive drift in the process/reference tier, not a
+      startup-path regression
+    - the sibling `nzdk` playbook refinement validated the same principle explicitly:
+      process changes should revise the current control surface, not merely append new doctrine
+- Why: the repo’s startup path remained lean, but the process/reference layer had started to drift
+  toward additive overlap between the canonical process owner, the external playbook, and the
+  active audit. Treating process changes as coherent control-surface edits keeps the docs system
+  understandable without collapsing distinct doc roles.
+- Tradeoff: slightly more deliberate docs-maintenance work on each material process change versus
+  lower long-term drift and less repeated rule language.
+- Related Tradeoff: T-0-004.
+- Reversal Trigger: the coherent-edit requirement adds cost without reducing duplication or drift,
+  or the split between control and playbook docs stops buying clarity.
+- Supersedes: none

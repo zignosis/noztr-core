@@ -12,18 +12,21 @@ canonical: true
 
 # Process Control
 
-Repo-specific refinement rules for keeping `noztr` rigorous without turning every doc into a full
-history dump.
+Canonical repo rules for keeping `noztr` rigorous without letting the active docs surface turn into
+an append-only history.
+
+For rationale, transferable lessons, and cross-repo sharing guidance, use
+`docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`.
 
 ## Core Rule
 
 Do not try to make every active doc complete.
 
 Instead:
-- keep one canonical doc for each rule set
+- keep one canonical owner per rule set
 - keep most other docs delta-oriented
 - keep handoff state-only
-- move history to decision records, reference docs, archive, or git history
+- move history to decisions, archive, or git history
 
 ## Doc Roles
 
@@ -38,7 +41,7 @@ Instead:
 - `packet`
   - lane- or slice-specific execution context
 - `audit`
-  - posture-specific findings with stable IDs
+  - posture-specific live findings with stable IDs
 - `log`
   - ongoing issue or feedback tracking that is useful but not startup-critical
 - `reference`
@@ -61,7 +64,7 @@ Instead:
 - `docs/plans/decision-log.md`
   - canonical accepted defaults and policy changes
 
-If another doc starts repeating those responsibilities, slim it or reclassify it.
+If another doc starts repeating those responsibilities, slim it, merge it, or reclassify it.
 
 ## Shared Frontmatter Standard
 
@@ -93,17 +96,17 @@ Population rule:
 
 ## Decision Routing Rule
 
-- `docs/plans/decision-index.md` is the startup route into accepted policy.
-- `docs/plans/decision-log.md` remains canonical, but it is reference-sized and should be read on
-  demand rather than by default.
-- Load the full decision entry only when:
+- `docs/plans/decision-index.md` is the startup route into accepted policy
+- `docs/plans/decision-log.md` remains canonical, but it is reference-sized and should be loaded
+  on demand
+- load the full decision entry only when:
   - a task changes defaults or process policy
   - a plan, packet, audit, or handoff cites a specific decision ID
   - a review or audit needs the exact canonical payload
 
-## Repo-Specific Audit Postures
+## Audit Posture Rule
 
-`noztr` should keep audits posture-specific rather than using one vague “quality” pass.
+Keep audits posture-specific rather than using one vague “quality” pass.
 
 Current useful postures:
 - trust-boundary posture
@@ -111,23 +114,20 @@ Current useful postures:
 - kernel-boundary posture
   - does the surface stay inside deterministic protocol-kernel ownership?
 - docs/discoverability posture
-  - can an agent or maintainer find the current control surface without reading repo history?
+  - can an agent or maintainer find the current control surface without rereading repo history?
 
 Choose or revise postures from real repo failure modes:
 - what kind of mistake hurts this repo most?
 - what kind of mistake is easy to miss in normal code review?
 - what kind of pressure should shape API or workflow decisions beyond raw correctness?
 
-## Stable Finding IDs
+## Stable Finding ID Rule
 
 Process and doc audits should use stable IDs.
 
 Suggested pattern:
 - `DOC-<area>-<number>`
 - `PROC-<area>-<number>`
-
-The exact naming scheme matters less than keeping findings addressable and reusable across handoff,
-packets, and follow-up work.
 
 ## Handoff Rule
 
@@ -157,6 +157,21 @@ They should mostly contain:
 
 If a packet starts restating the full process, the control docs are not centralized enough.
 
+## Process-Change Rule
+
+Do not treat a material process update as additive by default.
+
+When process changes materially:
+1. identify the canonical docs it changes
+2. review them together as one control surface
+3. remove or rewrite superseded wording
+4. add only the minimum new wording still required
+5. verify startup docs, state docs, reference docs, templates, and audits now agree
+
+The goal is to avoid two quiet failure modes:
+- contradictory control guidance
+- append-only history living inside active docs
+
 ## Refinement Rule
 
 When refining an existing slice or the process itself:
@@ -166,9 +181,6 @@ When refining an existing slice or the process itself:
 4. run the canonical staged execution order that applies to the slice
 5. rerun the relevant checks and audit frames
 6. update the audit doc explicitly
-
-The point is to use ordered micro-loops to reduce synchronization errors, not to turn examples,
-audits, or docs into optional later cleanup.
 
 When the refinement comes from a real escaped bug class:
 - add one concrete prompt or checklist item that would have caught it
@@ -180,7 +192,7 @@ When the refinement comes from a real escaped bug class:
 
 For new or materially expanded trust-boundary surfaces, the freeze note should cover:
 - scope
-  - supported kinds, required/optional fields, multiplicity, normalization, and non-goals
+  - supported kinds, required and optional fields, multiplicity, normalization, and non-goals
 - boundary
   - intended scan regions, accepted equivalent valid forms, canonical emitted forms
 - invalid-vs-capacity matrix
@@ -189,12 +201,12 @@ For new or materially expanded trust-boundary surfaces, the freeze note should c
   - the minimum hostile set required for the slice
 
 The freeze note can live in a packet, handoff, or decision entry, but it should be explicit enough
-that Review A is validating a known contract rather than discovering one from code alone.
+that Review A validates a known contract rather than discovering one from code alone.
 
 ## Review Prompt Rule
 
-When a slice has public parser/builder trust boundaries, Review A and Review B should use explicit
-prompts instead of generic “correctness” language.
+When a slice has public parser or builder trust boundaries, Review A and Review B should use
+explicit prompts instead of generic “correctness” language.
 
 Minimum Review A prompts:
 - can any user-controlled invalid input still panic or trip a debug assertion?
@@ -206,38 +218,34 @@ Minimum Review A prompts:
 Minimum Review B prompts:
 - did canonicalization become over-strict input validation?
 - did the surface stay inside deterministic kernel ownership?
-- did we add workflow or policy behavior that belongs in the SDK?
+- did workflow or policy behavior leak in from the SDK layer?
 - do the examples show both intended use and intended rejection?
 
-## Synchronization Discipline
+## Synchronization Rule
 
 When a packet or refinement slice is created, declare the closeout touchpoints early enough that
 they do not get missed at the end.
 
-Use a short declaration, in frontmatter or body text, for whether the slice changes:
+Use a short declaration for whether the slice changes:
 - teaching surface
   - examples, README/discovery surface, or public usage guidance
 - audit state
   - findings, posture status, accepted-risk state, or review conclusions
-- startup/discovery docs
+- startup or discovery docs
   - handoff, docs index, active packet routing, or other startup-path docs
 
-The declaration should stay short and act as a closeout checklist, not as a new workflow phase or
-long planning artifact.
+The declaration should stay short and act as a closeout checklist, not as a new workflow phase.
 
 ## Closeout Consistency Rule
 
 Closing a slice or process-refinement pass means restoring the docs surface to steady state, not
 just landing the main content change.
 
-Required closeout consistency steps:
+Required closeout steps:
 1. update the targeted audit findings immediately
 2. update examples or discovery catalogs if the public teaching surface changed
 3. remove temporary packet or startup emphasis if the slice is no longer active
 4. make handoff point at the new next work instead of the slice that just closed
-
-The goal is to prevent technically correct work from leaving stale routing or bloated startup docs
-behind.
 
 ## Archive Rule
 
@@ -248,6 +256,7 @@ Good candidates for archive or de-emphasis:
 - superseded handoff-style narratives
 - bootstrap planning packets whose decisions are already accepted
 - temporary closeout packets once their deltas are absorbed into the steady-state control docs
+- resolved audit-history material that no longer needs to live in the active audit file
 
 ## Transfer Rule
 
@@ -256,15 +265,3 @@ If a process lesson is mature enough to teach another repo or agent:
 - capture the reusable lesson in `PROCESS_REFINEMENT_PLAYBOOK.md`
 - update `docs/README.md` and `AGENTS.md` so the playbook is discoverable on demand
 - keep the playbook as reference, not as a second canonical process owner
-
-## Minimal Standard
-
-Any future process tightening should preserve these properties:
-- one shared frontmatter schema with sparse population
-- one canonical rule owner per rule set
-- one short current handoff
-- one docs index
-- one decision index
-- posture-specific audits instead of generic quality prose
-- explicit closeout-consistency rules that restore steady-state routing after a slice closes
-- no active doc should have to carry history just to remain understandable

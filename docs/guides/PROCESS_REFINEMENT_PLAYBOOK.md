@@ -15,101 +15,107 @@ canonical: true
 
 # Process Refinement Playbook
 
-Reusable lessons from tightening the `noztr` implementation/review loop.
+Shareable lessons from tightening the `noztr` implementation and review loop.
 
-This document is meant to be shareable with other agents and sibling repos. It is not a second
-copy of `AGENTS.md` or `PROCESS_CONTROL.md`. It captures the specific refinements that proved
-useful after real implementation failures, especially in weak-evidence or split-surface NIPs.
+Canonical local rules live in `docs/guides/PROCESS_CONTROL.md`. This document is for rationale,
+transfer, and “why this helped” context that other agents or sibling repos can reuse without
+copying `noztr` wholesale.
 
 ## Core Principle
 
 Do not refine the process with vague “be more careful” language.
 
 Instead:
-- identify the exact bug class that escaped
-- add one small rule or review question that targets that class directly
-- keep the new rule near the canonical process owner
-- reclose recently landed slices if the gate changed materially
+- identify the escaped bug class
+- add one small prompt or rule that would likely have caught it
+- update the canonical control surface coherently
+- reclose recent work if the gate changed materially
+
+## Additional Principle
+
+Do not treat a process change as additive by default.
+
+When the process changes materially:
+- identify the canonical docs it changes
+- review them together as one control surface
+- remove or rewrite superseded wording
+- add only the minimum new wording still required
+- verify startup docs, state docs, templates, and audits now agree
+
+Otherwise the repo accumulates two quiet forms of drift:
+- contradictory control guidance
+- append-only history inside active docs
 
 ## What `noztr` Learned
 
-### 1. Negative-space mistakes are more common than happy-path mistakes
+### 1. Negative-space mistakes matter more than happy-path omissions
 
-The recent misses were usually not “we forgot the obvious valid case”.
+The recurring failures were usually not forgotten valid cases.
 They were:
-- a parser accepting nonsense that fit the delimiters
-- a scan escaping the intended region
-- a builder returning the wrong public error class
-- a debug assertion still reachable from invalid caller input
+- parsers accepting nonsense that fit delimiters
+- scans escaping the intended region
+- builders returning the wrong public error class
+- debug assertions still reachable from invalid caller input
 
-Process implication:
-- freeze the reject corpus early
+What helped:
+- freeze reject corpora early
 - make public error contracts explicit
 - review where scans are allowed to look
 
-### 2. Weak evidence means more pre-code freezing, not more post-code debate
+### 2. Weak evidence demands more pre-code freezing
 
-When direct reference libraries are weak or absent, implementation intuition is too noisy.
+When strong reference implementations are missing, intuition gets noisy.
 
-What worked better:
-- freeze the exact `noztr` slice first
+What helped:
+- freeze the exact kernel slice first
 - freeze the reject corpus before coding
-- assume Review A should validate a contract, not discover the contract
+- make Review A validate a contract instead of discover one
 
-### 3. Invalid-vs-capacity is a first-class boundary, not cleanup detail
+### 3. Invalid-vs-capacity is a real trust-boundary seam
 
-Several failures were really contract bugs:
+Several bugs were really contract bugs:
 - invalid input leaking as `BufferTooSmall`
 - oversized invalid input reaching assertions instead of typed failures
 
-What worked better:
+What helped:
 - write an invalid-vs-capacity matrix before coding
-- test both invalid input and too-small output explicitly
+- test invalid input and too-small output separately
 - ask whether debug and release reject the same public invalid-input shapes
 
 ### 4. Canonicalization can hide over-strictness
 
 Canonical builders are useful, but they can quietly over-reject equivalent valid input.
 
-What worked better:
-- separate “accepted valid input” from “canonical emitted output”
-- test inputs that differ only by harmless representation details
-- ask whether the kernel is rejecting a valid equivalent just to force the caller to pre-normalize
+What helped:
+- separate accepted valid input from canonical emitted output
+- test harmless representation variants
+- ask whether the kernel is forcing unnecessary caller pre-normalization
 
 ### 5. Region-bounded scans deserve explicit review
 
 A parser or extractor that scans “the whole string” is often too broad.
 
-What worked better:
+What helped:
 - freeze the intended scan region in the contract
-- add one explicit review question for scan escape
+- add one explicit scan-escape review question
 - add one hostile test where a lookalike token appears outside the intended region
 
 ### 6. Examples are part of the contract
 
-Hostile examples were useful because they taught downstream callers what the kernel rejects without
-requiring them to reverse-engineer module tests.
+Hostile examples taught downstream callers what the kernel rejects without requiring them to
+reverse-engineer module tests.
 
-What worked better:
+What helped:
 - one direct example
 - one hostile example
-- README/discovery surface updated in the same closeout pass
+- README or discovery-surface updates in the same closeout pass
 
-### 7. Closeout must restore steady-state routing
-
-A process change is not complete if the startup path still acts like the temporary packet is active.
-
-What worked better:
-- mark finished packets as reference when the lane closes
-- shrink handoff back to steady-state next-work form
-- update routing docs during closeout, not later
-
-### 8. Ordered micro-loops reduce synchronization errors
+### 7. Ordered micro-loops reduce synchronization errors
 
 Trying to update code, tests, examples, audits, and docs all at once increases context switching
-and makes closeout drift more likely.
+and closeout drift.
 
-What worked better:
+What helped:
 - use one canonical staged execution order in the implementation gate
 - keep other docs pointed at that order instead of restating it in full
 - let packets record only slice-specific stage obligations
@@ -117,7 +123,7 @@ What worked better:
 Why this helps:
 - code answers whether the intended shape is implementable
 - tests answer whether it is correct and adversarially covered
-- examples answer whether it is actually teachable and usable
+- examples answer whether it is teachable and usable
 - audit reruns answer whether it closed the intended posture gaps
 - docs closeout makes the repo truthful again
 
@@ -125,79 +131,38 @@ Important caveat:
 - this should not become a waterfall that lets examples, audits, or docs slip into “later cleanup”
 - the ordered micro-loop works only if later stages remain mandatory for done
 
-## Micro-Freeze Template
+### 8. Closeout must restore steady-state routing
 
-Use this before coding a new trust-boundary surface.
+A process change is not complete if the startup path still acts like the temporary packet is active.
 
-### Scope Freeze
+What helped:
+- mark finished packets as reference when the lane closes
+- shrink handoff back to steady-state next-work form
+- update routing docs during closeout, not later
 
-- supported kinds
-- required tags / fields
-- optional tags / fields
-- multiplicity / ordering rules
-- normalization / canonicalization rules
-- ignored / unsupported shapes
-- explicit non-goals
-- SDK-side remainder, if split
+## Useful Review Prompts
 
-### Boundary Freeze
+These are not canonical rules here; they are the prompts that proved useful enough to move into the
+local control doc.
 
-- intended scan regions
-- accepted equivalent valid forms
-- canonical emitted forms
-- invalid-vs-capacity matrix for each public builder or validator
-
-### Reject Corpus Freeze
-
-Minimum set:
-- arbitrary-but-delimited nonsense
-- malformed section or tag separators
-- overlong fields
-- contradictory optional metadata where applicable
-- debug-vs-release equivalent invalid-input checks
-- lookalike tokens outside the intended scan region
-
-## Review A Prompts
-
-Review A should challenge correctness, trust boundary, and spec fit.
-
-Ask these exact questions:
+Review A prompts that paid off:
 - can any user-controlled invalid input still panic or hit a debug assertion?
 - can any invalid input still return a capacity error?
 - can any capacity failure still return an invalid-input error?
 - does any scan escape the intended syntactic region?
 - does the parser accept nonsense just because delimiters balance?
-- does the builder/parser symmetry hold on canonical shapes?
-- do near-canonical malformed shapes fail predictably?
 
-## Review B Prompts
-
-Review B should challenge ownership, KISS, and usability.
-
-Ask these exact questions:
-- did this surface stay inside deterministic protocol-kernel ownership?
-- did we add workflow or policy behavior that belongs in the SDK?
-- did canonicalization accidentally become over-strict input validation?
-- is the public API smaller and clearer than the same behavior embedded in downstream code?
+Review B prompts that paid off:
+- did canonicalization become over-strict input validation?
+- did the surface stay inside deterministic protocol-kernel ownership?
+- did workflow or policy behavior leak in from the SDK layer?
 - do the examples show both intended use and intended rejection?
-
-## When To Tighten The Gate
-
-Add a new process rule when:
-- the same bug class appears more than once
-- the bug class is hard to spot from generic review language
-- a small explicit prompt would likely have caught it
-
-Do not add a new process rule when:
-- the issue is a one-off typo or wiring mistake
-- the new rule would duplicate an existing canonical rule
-- the rule is so broad that it becomes ceremonial
 
 ## How To Define Repo-Specific Audit Postures
 
-Pick postures based on real failure modes, not on elegance.
+Pick postures from real failure modes, not elegance.
 
-Questions to ask:
+Ask:
 1. What kind of mistake hurts this repo most?
 2. What kind of mistake is easy to miss in normal code review?
 3. What kind of pressure should shape API or workflow decisions beyond raw correctness?
@@ -221,15 +186,6 @@ Examples:
 Good audits are not generic quality checklists.
 They are posture-specific lenses.
 
-## How To Share This With Other Repos
-
-When another repo wants to learn from `noztr`:
-1. copy the pattern, not the exact doc topology
-2. keep one canonical control doc and one playbook/reference doc
-3. reuse the review prompts that match the repo’s real failure modes
-4. rename audit postures and finding IDs to fit the target repo
-5. avoid copying `noztr`-specific packet or phase names unless the workflow is actually shared
-
 ## Anti-Patterns
 
 Avoid:
@@ -239,16 +195,16 @@ Avoid:
 - audits with no stable finding IDs
 - shrinking packets so much that important slice-specific assumptions disappear
 - creating multiple audit docs that do not clearly differ in question or posture
+- treating every process change as additive instead of revising the existing control surface
 
-## Minimum Transferable Lessons
+## How To Share This With Other Repos
 
-If another agent only copies a few things from `noztr`, it should copy these:
-- invalid-vs-capacity matrices for public builders/validators
-- explicit assertion-leak checks
-- explicit scan-region checks
-- reject corpora for weak-evidence specs
-- hostile consumer-facing examples
-- steady-state docs restoration as part of done
+When another repo wants to learn from `noztr`:
+1. copy the pattern, not the exact doc topology
+2. keep one canonical control doc and one playbook or reference doc
+3. reuse the prompts that match the repo’s real failure modes
+4. rename audit postures and finding IDs to fit the target repo
+5. avoid copying `noztr` packet or phase names unless the workflow is actually shared
 
 ## Minimal Adoption Path For Another Repo
 

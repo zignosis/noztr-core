@@ -79,6 +79,8 @@ Current execution state for `noztr`.
   - implemented-surface review procedure is in `docs/plans/implemented-nip-review-guide.md`
   - historical build-plan narrative is in `docs/archive/plans/build-plan-history.md`
   - reusable process lessons are now captured in `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`
+  - process updates now revise the control surface coherently instead of accumulating additively
+  - resolved docs-audit history is in `docs/archive/plans/docs-surface-audit-history.md`
 - Latest requested-NIP closure:
   - `NIP-B7` / `no-z9g` is closed locally
   - the full requested-NIP loop is now complete
