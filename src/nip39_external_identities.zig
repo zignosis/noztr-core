@@ -237,9 +237,13 @@ fn build_platform_identity(output: []u8, claim: *const IdentityClaim) Nip39Error
     std.debug.assert(output.len <= limits.tag_item_bytes_max);
     std.debug.assert(@intFromPtr(claim) != 0);
 
+    const provider_text = claim.provider.as_text();
+    if (provider_text.len + 1 + claim.identity.len > output.len) {
+        return error.InvalidIdentity;
+    }
     var stream = std.io.fixedBufferStream(output);
     const writer = stream.writer();
-    writer.print("{s}:{s}", .{ claim.provider.as_text(), claim.identity }) catch {
+    writer.print("{s}:{s}", .{ provider_text, claim.identity }) catch {
         return error.BufferTooSmall;
     };
     return stream.getWritten();
@@ -455,8 +459,10 @@ test "identity claim builders reject overlong identity and proof on typed paths"
     var built_tag: BuiltTag = .{};
     var long_identity: [limits.tag_item_bytes_max + 1]u8 = undefined;
     var long_proof: [limits.tag_item_bytes_max + 1]u8 = undefined;
+    var edge_identity: [limits.tag_item_bytes_max]u8 = undefined;
     @memset(long_identity[0..], 'a');
     @memset(long_proof[0..], '1');
+    @memset(edge_identity[0..], 'a');
 
     const invalid_identity = IdentityClaim{
         .provider = .github,
@@ -468,6 +474,11 @@ test "identity claim builders reject overlong identity and proof on typed paths"
         .identity = "semisol",
         .proof = long_proof[0..],
     };
+    const overflow_identity = IdentityClaim{
+        .provider = .github,
+        .identity = edge_identity[0..],
+        .proof = "9721ce4ee4fceb91c9711ca2a6c9a5ab",
+    };
 
     try std.testing.expectError(
         error.InvalidIdentity,
@@ -476,5 +487,9 @@ test "identity claim builders reject overlong identity and proof on typed paths"
     try std.testing.expectError(
         error.InvalidProof,
         identity_claim_build_tag(&built_tag, &invalid_proof),
+    );
+    try std.testing.expectError(
+        error.InvalidIdentity,
+        identity_claim_build_tag(&built_tag, &overflow_identity),
     );
 }
