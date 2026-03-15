@@ -13,6 +13,8 @@ Current project context for the Phase H kickoff baseline.
     - this is an intentional improvement over the currently covered `rust-nostr` helper path for
       non-ASCII passphrase equivalence
   - SDK-facing downstream examples now live in the single top-level `examples/` package
+    - direct per-NIP reference examples now cover all implemented kernel exports
+    - scenario recipes remain for the highest-value `nzdk` handoff flows
   - Nostr-relevant `BIP-85` subset remains implemented and accepted
   - deprecated `NIP-04` private-list compatibility remains deferred
   - crypto-boundary evaluation is recorded in `docs/plans/crypto-boundary-evaluation.md`

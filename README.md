@@ -65,7 +65,8 @@ This repo now carries one downstream examples package and wires it into
 
 - [`examples`](/workspace/projects/noztr/examples)
   - `consumer_smoke.zig` for the minimal dependency/import path
-  - direct scenario-oriented recipe files for `NIP-05`, `NIP-06`, `BIP-85`, `NIP-39`, `NIP-46`,
+  - direct per-NIP reference examples across all implemented kernel NIPs
+  - scenario-oriented recipe files for `NIP-05`, `NIP-06`, `BIP-85`, `NIP-39`, `NIP-46`,
     `NIP-51`, and `NIP-86`
   - intended as the main downstream example surface for `nzdk` and other SDK consumers
 
