@@ -2793,3 +2793,40 @@ payload is needed for the current task.
   the playbook drifts into a second canonical process owner instead of remaining a shareable
   reference.
 - Supersedes: none
+
+## D-114: Add ordered micro-loop and audit-posture refinement guidance
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: extend the `noztr` process-refinement guidance with ordered micro-loop discipline,
+  clearer audit-posture design prompts, and explicit anti-patterns for cross-repo sharing.
+  - accepted behavior:
+    - `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md` now captures:
+      - ordered micro-loops as the preferred way to reduce synchronization errors
+      - guidance for choosing audit postures from real failure modes rather than aesthetic symmetry
+      - explicit process anti-patterns
+      - a minimal adoption path for other repos
+    - `docs/guides/PROCESS_CONTROL.md` now states that refinement work should use the canonical
+      staged execution order that applies to the slice, then rerun the relevant audit frames
+    - `PROCESS_CONTROL.md` now also prompts posture selection from the repo’s actual failure modes
+      and keeps the playbook explicitly reference-only
+  - accepted non-goals:
+    - creating a new workflow phase
+    - making the playbook part of default startup reads
+    - forcing `noztr` to mirror sibling-repo doc topology exactly
+  - accepted evidence posture:
+    - the useful delta came from the latest `nzdk` playbook refinement, specifically:
+      - ordered micro-loops to reduce sync drift
+      - repo-specific audit-posture design guidance
+      - explicit anti-patterns and minimal-adoption framing
+    - `noztr` adopted only the parts that improve its current process without expanding the active
+      startup path
+- Why: the first `noztr` playbook captured local lessons well, but it still benefited from a
+  clearer explanation of why staged execution reduces drift and how another repo should choose its
+  audit lenses without cargo-culting `noztr` wholesale.
+- Tradeoff: slightly more reference guidance in the playbook versus better transferability and less
+  process ambiguity when another repo wants to learn from `noztr`.
+- Related Tradeoff: T-0-004.
+- Reversal Trigger: the additional playbook guidance turns into noise, duplicates the canonical
+  process owner, or stops reflecting real process failures and improvements.
+- Supersedes: none

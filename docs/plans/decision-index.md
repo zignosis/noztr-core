@@ -57,6 +57,7 @@ Use this file to decide whether the full canonical decision payload is needed.
 - `D-015` record Tiger cleanliness and strictness-profile evaluation inputs
 - `D-103` tighten requested-NIP closure with reject-corpus and assertion-leak checks
 - `D-113` codify explicit review prompts and a shareable process-refinement playbook
+- `D-114` add ordered micro-loop and audit-posture refinement guidance
 
 ## Docs And Active-Memory Routing
 

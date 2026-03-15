@@ -113,6 +113,11 @@ Current useful postures:
 - docs/discoverability posture
   - can an agent or maintainer find the current control surface without reading repo history?
 
+Choose or revise postures from real repo failure modes:
+- what kind of mistake hurts this repo most?
+- what kind of mistake is easy to miss in normal code review?
+- what kind of pressure should shape API or workflow decisions beyond raw correctness?
+
 ## Stable Finding IDs
 
 Process and doc audits should use stable IDs.
@@ -158,8 +163,12 @@ When refining an existing slice or the process itself:
 1. identify the targeted finding IDs
 2. state which posture is being tightened
 3. implement the change
-4. rerun the relevant checks
-5. update the audit doc explicitly
+4. run the canonical staged execution order that applies to the slice
+5. rerun the relevant checks and audit frames
+6. update the audit doc explicitly
+
+The point is to use ordered micro-loops to reduce synchronization errors, not to turn examples,
+audits, or docs into optional later cleanup.
 
 When the refinement comes from a real escaped bug class:
 - add one concrete prompt or checklist item that would have caught it
@@ -246,6 +255,7 @@ If a process lesson is mature enough to teach another repo or agent:
 - keep the canonical local rule in `PROCESS_CONTROL.md`
 - capture the reusable lesson in `PROCESS_REFINEMENT_PLAYBOOK.md`
 - update `docs/README.md` and `AGENTS.md` so the playbook is discoverable on demand
+- keep the playbook as reference, not as a second canonical process owner
 
 ## Minimal Standard
 

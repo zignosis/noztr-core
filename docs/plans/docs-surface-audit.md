@@ -172,6 +172,21 @@ Measured on 2026-03-15 before the current refinement pass:
   add `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`, then route `AGENTS.md`, `handoff.md`, and
   `docs/README.md` to it when the task is process refinement or cross-repo process sharing.
 
+### DOC-PLAYBOOK-002
+
+- Status: fixed in this pass
+- Problem:
+  the first `noztr` playbook captured the local lessons, but it did not yet include the stronger
+  guidance on ordered micro-loops, audit-posture design from real failure modes, or explicit
+  process anti-patterns that had proven useful in sibling-repo refinement work.
+- Why it hurt:
+  the playbook was shareable, but not yet as good at teaching why the process should stay staged
+  and how another repo should choose its own audits without cargo-culting `noztr`.
+- Fix:
+  extend `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md` with ordered micro-loop guidance,
+  repo-specific audit-posture design prompts, anti-patterns, and a minimal adoption path; then
+  reflect the staged-loop and posture-selection parts in `docs/guides/PROCESS_CONTROL.md`.
+
 ## Adoption Notes
 
 This pass takes the minimal adoption path:
@@ -190,5 +205,7 @@ This pass takes the minimal adoption path:
     slice finishes
 11. keep one reusable process-refinement playbook so cross-repo learning does not depend on replaying
     recent session history
+12. keep the playbook updated with genuinely useful transferable patterns instead of freezing it at
+    the first local version
 
 That is enough to reduce startup load immediately without a risky full doc reorg.
