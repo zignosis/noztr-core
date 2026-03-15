@@ -74,12 +74,18 @@ Current execution state for `noztr`.
 
 ## Current Repo State
 
+- Latest docs/control-surface refinement:
+  - commit:
+    - `2b7b4cf` `Refine docs frontmatter and decision routing`
 - Latest requested-NIP closure:
   - `NIP-47` / `no-qbb` closed
   - commits:
     - `7446203` `Add NIP-47 wallet-connect helpers`
     - `4f17ae4` `sync beads`
-- Working tree should be clean except for the allowed untracked interop target directory.
+- Working tree currently has one unrelated local modification:
+  - `build.zig.zon`
+- Only expected untracked local artifact:
+  - `tools/interop/rust-nostr-parity-all/target/`
 
 ## Next Work
 
