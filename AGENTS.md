@@ -8,6 +8,7 @@ exceptions recorded in the decision log.
 - Run `./agent-brief` first.
 - Read `AGENTS.md` and `handoff.md` every session.
 - Then read only the current execution files called out by `./agent-brief`.
+- Use `docs/README.md` to route any further doc reads instead of scanning `docs/` blindly.
 - Read `docs/guides/TIGER_STYLE.md`, `docs/guides/NOZTR_STYLE.md`,
   `docs/guides/zig-patterns.md`, and `docs/guides/zig-anti-patterns.md` only when the task touches
   Zig implementation, public API shape, or code review.
@@ -56,6 +57,8 @@ Run tests after every code change.
   - Ensure `docs/plans/build-plan.md` reflects accepted decisions.
   - Ensure `docs/plans/decision-log.md` records accepted default changes.
   - Ensure `./agent-brief` output reflects the current active execution path.
+- Keep `handoff.md` state-oriented; move historical narrative to decision records, reference docs,
+  archive, or git history instead of growing the startup path.
 - Do not rely on memory-only context between sessions.
 
 ## Protocol Work Closure Discipline
@@ -150,6 +153,7 @@ critical rules:
 
 - `docs/guides/TIGER_STYLE.md`: hard engineering baseline
 - `docs/guides/NOZTR_STYLE.md`: noztr protocol-kernel style profile
+- `docs/guides/PROCESS_CONTROL.md`: process-control and docs-surface refinement rules
 - `docs/guides/zig-patterns.md`: approved Zig-safe patterns
 - `docs/guides/zig-anti-patterns.md`: forbidden Zig footguns
 - Other guide documents are load-on-demand, not required startup context

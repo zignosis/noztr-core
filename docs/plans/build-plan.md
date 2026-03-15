@@ -129,6 +129,10 @@ Implementation status snapshot (post-I7 closure):
   - `NIP-94`, `NIP-92`, `NIP-99`, `NIP-B0`, `NIP-C0`, `NIP-64`, `NIP-88`, `NIP-49`, `NIP-98`,
     and `NIP-47` are complete.
   - Next requested-NIP execution focus is split-surface `NIP-B7`.
+- Docs/control-surface refinement is active:
+  - `docs/README.md` routes active vs reference vs archive docs
+  - `handoff.md` is state-only and should not carry historical narrative
+  - open doc-bloat findings are tracked in `docs/plans/docs-surface-audit.md`
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the
   approved pinned crypto backend policy and a narrow boundary module.
 - Phase H Wave 1 execution has started:

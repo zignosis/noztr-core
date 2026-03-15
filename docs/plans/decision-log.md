@@ -2534,3 +2534,39 @@ Immutable record of accepted planning decisions.
   surface that materially improves interoperability without widening `noztr` into wallet
   orchestration, relay workflow, or runtime encryption handling.
 - Supersedes: none
+
+## D-108: Adopt lean control-surface rules for docs and handoff state
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: adopt a leaner docs control surface influenced by the refined `nzdk` process.
+  - accepted behavior:
+    - `docs/README.md` is added as the canonical docs router for active vs reference vs archive
+      material
+    - `docs/guides/PROCESS_CONTROL.md` is added as the repo-specific policy for keeping control
+      docs lean
+    - `docs/plans/docs-surface-audit.md` is added as the stable-ID audit for doc-bloat and
+      discoverability findings
+    - `handoff.md` is reduced to current-state control information only and must not act as a
+      running changelog
+    - process/docs findings should use stable IDs instead of prose-only “cleanup later” notes
+  - accepted non-goals:
+    - immediate full rewrite of legacy planning/reference docs
+    - collapsing the decision log into a shorter file at the cost of losing accepted-default
+      provenance
+  - accepted follow-up posture:
+    - keep `decision-log.md` as a large reference surface if it remains the canonical home for
+      accepted defaults
+    - continue trimming active-doc repetition where it improves routing without hiding slice-
+      specific assumptions
+- Why: the repo had enough rigor, but too much active-memory load. The biggest problem was not
+  missing policy; it was that `handoff.md`, `build-plan.md`, and other active docs were carrying
+  overlapping narrative state. A lean control surface keeps rigor high while making startup reads
+  cheaper and current work easier to find.
+- Tradeoff: more explicit doc-role separation versus maintaining the illusion that every active doc
+  can be complete on its own.
+- Related Tradeoff: T-0-001, T-0-004.
+- Reversal Trigger: the leaner control surface causes repeated routing confusion or loses material
+  execution context that cannot be recovered from the decision log, build plan, archive, or git
+  history.
+- Supersedes: none
