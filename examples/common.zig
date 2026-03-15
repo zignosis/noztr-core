@@ -20,3 +20,11 @@ pub fn simple_event(
 pub fn finalize_event_id(event: *noztr.nip01_event.Event) !void {
     event.id = try noztr.nip01_event.event_compute_id_checked(event);
 }
+
+pub fn derive_public_key(secret_key: *const [32]u8) ![32]u8 {
+    return noztr.nostr_keys.nostr_derive_public_key(secret_key);
+}
+
+pub fn sign_event(secret_key: *const [32]u8, event: *noztr.nip01_event.Event) !void {
+    try noztr.nostr_keys.nostr_sign_event(secret_key, event);
+}

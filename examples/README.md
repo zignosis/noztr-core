@@ -23,16 +23,23 @@ fixtures so SDK and app authors can see what `noztr` rejects and why.
   - `remote_signing_recipe.zig`
   - `nip46_example.zig`
   - `remote_signing_adversarial_example.zig`
+- mailbox/private-message handoff:
+  - `nip17_wrap_recipe.zig`
+  - `nip17_example.zig`
 - identity lookup and proof flows:
   - `discovery_recipe.zig`
   - `identity_proof_recipe.zig`
   - `nip05_example.zig`
   - `nip39_example.zig`
   - `identity_proof_adversarial_example.zig`
+- local attestation verification:
+  - `nip03_verification_recipe.zig`
+  - `nip03_example.zig`
 - deterministic wallet flows:
   - `wallet_recipe.zig`
   - `nip06_example.zig`
   - `bip85_example.zig`
+  - `nostr_keys_example.zig`
 - media metadata and inline attachments:
   - `nip92_example.zig`
   - `nip94_example.zig`
@@ -92,6 +99,7 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip58_example.zig`
 - `nip59_example.zig`
   - typed boundary example; `noztr` does not expose a public gift-wrap builder
+- `nostr_keys_example.zig`
 - `nip65_example.zig`
 - `nip70_example.zig`
 - `nip73_example.zig`
@@ -120,6 +128,10 @@ The recipe files are slightly higher-level, but still stay inside `noztr` bounda
   - NIP-39 proof URL and expected-text helpers
 - `remote_signing_recipe.zig`
   - NIP-46 request, URI, and template composition
+- `nip03_verification_recipe.zig`
+  - NIP-03 extraction plus bounded local-proof verification
+- `nip17_wrap_recipe.zig`
+  - NIP-17 rumor construction, signed seal/wrap transcript building, and unwrap
 - `private_lists_recipe.zig`
   - NIP-51 private-list JSON boundary
 - `relay_admin_recipe.zig`

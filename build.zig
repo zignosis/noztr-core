@@ -396,6 +396,49 @@ const secp256k1_shim_source =
     \\    }
     \\};
     \\
+    \\pub fn derive_xonly_public_key(
+    \\    secret_key: *const [32]u8,
+    \\    out_public_key: *[32]u8,
+    \\) Error!void {
+    \\    std.debug.assert(secret_key[0] <= 255);
+    \\    std.debug.assert(out_public_key.len == 32);
+    \\
+    \\    const context = try get_signing_context();
+    \\
+    \\    var keypair: secp.secp256k1_keypair = undefined;
+    \\    defer wipe_keypair(&keypair);
+    \\
+    \\    const create_result = secp.secp256k1_keypair_create(
+    \\        context,
+    \\        &keypair,
+    \\        secret_key,
+    \\    );
+    \\    if (create_result != 1) {
+    \\        return error.InvalidSecretKey;
+    \\    }
+    \\
+    \\    var xonly_public_key: secp.secp256k1_xonly_pubkey = undefined;
+    \\    var pk_parity: c_int = 0;
+    \\    const xonly_result = secp.secp256k1_keypair_xonly_pub(
+    \\        context,
+    \\        &xonly_public_key,
+    \\        &pk_parity,
+    \\        &keypair,
+    \\    );
+    \\    if (xonly_result != 1) {
+    \\        return error.BackendUnavailable;
+    \\    }
+    \\
+    \\    const serialize_result = secp.secp256k1_xonly_pubkey_serialize(
+    \\        secp.secp256k1_context_no_precomp,
+    \\        out_public_key,
+    \\        &xonly_public_key,
+    \\    );
+    \\    if (serialize_result != 1) {
+    \\        return error.BackendUnavailable;
+    \\    }
+    \\}
+    \\
     \\pub fn verify_schnorr(
     \\    public_key: *const XOnlyPublicKey,
     \\    message_digest: *const [32]u8,

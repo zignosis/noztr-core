@@ -87,6 +87,9 @@ pub const nip06_mnemonic = @import("nip06_mnemonic.zig");
 /// Post-kernel concrete export for bounded BIP-85 derivation helpers.
 pub const bip85_derivation = @import("bip85_derivation.zig");
 
+/// Post-kernel concrete export for bounded Nostr key-derivation and signing helpers.
+pub const nostr_keys = @import("nostr_keys.zig");
+
 /// Phase H concrete export for the NIP-23 long-form metadata module.
 pub const nip23_long_form = @import("nip23_long_form.zig");
 
@@ -213,6 +216,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip46_remote_signing.Nip46Error) == type);
     try std.testing.expect(@TypeOf(nip06_mnemonic.Nip06Error) == type);
     try std.testing.expect(@TypeOf(bip85_derivation.Bip85Error) == type);
+    try std.testing.expect(@TypeOf(nostr_keys.NostrKeysError) == type);
     try std.testing.expect(@TypeOf(nip23_long_form.LongFormError) == type);
     try std.testing.expect(@TypeOf(nip24_extra_metadata.Nip24Error) == type);
     try std.testing.expect(@TypeOf(nip03_opentimestamps.OpenTimestampsError) == type);

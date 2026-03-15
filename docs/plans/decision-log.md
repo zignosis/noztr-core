@@ -2084,3 +2084,35 @@ Immutable record of accepted planning decisions.
   surface that materially improves interoperability without pulling bookmark workflow into the
   kernel.
 - Supersedes: none
+
+## D-099: Accept bounded public Nostr key helpers plus canonical SDK handoff recipes
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: expose `src/nostr_keys.zig` as the bounded public helper surface for deterministic
+  Nostr x-only public-key derivation and event signing, and use it to land the first
+  `nzdk`-driven canonical handoff recipes.
+  - accepted behavior:
+    - `nostr_derive_public_key(...)` derives one x-only public key from one `[32]u8` secret key
+    - `nostr_sign_event(...)` computes the canonical event id, requires the event pubkey to match
+      the signing secret key, and signs the event in place
+    - `examples/nip03_verification_recipe.zig` is the canonical end-to-end local
+      OpenTimestamps verification recipe over the existing bounded proof floor
+    - `examples/nip17_wrap_recipe.zig` is the canonical end-to-end wrapped-message transcript
+      recipe using only public `noztr` APIs
+  - accepted evidence posture:
+    - the change came from the first `nzdk` cross-repo feedback packet rather than a new NIP lane
+    - the added helper surface reuses the existing approved secp256k1 backend and does not add a
+      second crypto path
+    - green gates passed after the helper and recipe additions
+- Why: downstream SDK work found three real friction points: no public recipe-grade NIP-17
+  wrap/build transcript, no public local-verification recipe for `NIP-03`, and no clean public
+  way to derive an x-only public key from a Nostr secret key without reaching into internals. A
+  tiny deterministic helper surface plus canonical recipes fixes those gaps without dragging
+  session, relay, or wallet orchestration into the kernel.
+- Tradeoff: a slightly broader non-NIP helper surface versus cleaner downstream SDK reuse and less
+  incentive for apps or SDKs to bypass the kernel boundary.
+- Related Tradeoff: T-0-001, T-0-002.
+- Reversal Trigger: future evidence shows the public key/signing helper should move to a dedicated
+  lower-level crypto library without weakening the current `noztr` / `nzdk` boundary.
+- Supersedes: none

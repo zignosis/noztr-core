@@ -14,6 +14,12 @@ pub const BackendSignError = error{
     BackendUnavailable,
 };
 
+/// Typed boundary errors for public-key derivation from a secret key.
+pub const BackendDerivePublicKeyError = error{
+    InvalidSecretKey,
+    BackendUnavailable,
+};
+
 /// Typed boundary errors for the secp256k1 ECDH shared-secret path.
 pub const BackendSharedSecretError = error{
     InvalidPrivateKey,
@@ -89,6 +95,18 @@ pub fn sign_schnorr_signature_deterministic(
     };
 }
 
+pub fn derive_xonly_public_key(
+    secret_key: *const [32]u8,
+    out_public_key: *[32]u8,
+) BackendDerivePublicKeyError!void {
+    std.debug.assert(secret_key[0] <= 255);
+    std.debug.assert(@intFromPtr(out_public_key) != 0);
+
+    secp256k1.derive_xonly_public_key(secret_key, out_public_key) catch |derive_error| {
+        return map_derive_public_key_error(derive_error);
+    };
+}
+
 pub fn derive_shared_secret_x(
     private_key: *const [32]u8,
     public_key: *const [32]u8,
@@ -149,6 +167,20 @@ fn map_shared_secret_error(shared_secret_error: secp256k1.Error) BackendSharedSe
     return switch (shared_secret_error) {
         error.InvalidSecretKey => error.InvalidPrivateKey,
         error.InvalidPublicKey => error.InvalidPublicKey,
+        error.InvalidSignature => error.BackendUnavailable,
+        error.BackendUnavailable => error.BackendUnavailable,
+    };
+}
+
+fn map_derive_public_key_error(
+    derive_error: secp256k1.Error,
+) BackendDerivePublicKeyError {
+    std.debug.assert(@intFromError(derive_error) >= 0);
+    std.debug.assert(!@inComptime());
+
+    return switch (derive_error) {
+        error.InvalidSecretKey => error.InvalidSecretKey,
+        error.InvalidPublicKey => error.BackendUnavailable,
         error.InvalidSignature => error.BackendUnavailable,
         error.BackendUnavailable => error.BackendUnavailable,
     };

@@ -35,6 +35,13 @@ Current project context for the Phase H kickoff baseline.
     - backfilled the canonical audit report for `NIP-92`, `NIP-94`, and `NIP-99`
     - continued sweep over the other implemented NIPs found no further evidence-backed Layer 1
       issues in this pass
+  - addressed the first `nzdk` feedback packet:
+    - added `src/nostr_keys.zig` as a bounded public helper surface for Nostr x-only pubkey
+      derivation and event signing
+    - added `examples/nip03_verification_recipe.zig` as the canonical local OpenTimestamps
+      verification recipe
+    - added `examples/nip17_wrap_recipe.zig` as the canonical end-to-end wrapped-message recipe
+      using only public `noztr` APIs
   - Historical Phase F/G packet:
   - `docs/archive/plans/phase-f-kickoff.md`
   - `docs/archive/plans/phase-f-parity-matrix.md`

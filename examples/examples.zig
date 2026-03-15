@@ -13,6 +13,7 @@ comptime {
     _ = @import("nip05_example.zig");
     _ = @import("nip06_example.zig");
     _ = @import("bip85_example.zig");
+    _ = @import("nostr_keys_example.zig");
     _ = @import("nip10_example.zig");
     _ = @import("nip18_example.zig");
     _ = @import("nip22_example.zig");
@@ -61,4 +62,6 @@ comptime {
     _ = @import("remote_signing_recipe.zig");
     _ = @import("private_lists_recipe.zig");
     _ = @import("relay_admin_recipe.zig");
+    _ = @import("nip03_verification_recipe.zig");
+    _ = @import("nip17_wrap_recipe.zig");
 }
