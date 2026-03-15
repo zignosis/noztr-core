@@ -134,3 +134,6 @@ For boundary-heavy surfaces, examples should not stop at valid flows. The prefer
 - one direct valid reference example
 - one invalid or adversarial example fixture where misuse is plausible
 - recipe coverage only when the surface materially affects SDK-facing handoff work
+
+When the example policy gets stricter, recently added SDK-facing examples must be backfilled to the
+new standard before the repo claims the stronger example baseline.

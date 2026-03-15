@@ -275,6 +275,12 @@ Required per-NIP contract discipline:
   - capacity exhaustion must not surface as invalid input
 - When a NIP is `LIB_UNSUPPORTED` or only weakly covered in reference lanes, require one extra
   spec-first challenge pass before closure.
+- If the review process or closure standard becomes stricter mid-stream, run a retroactive backfill
+  pass over all recently closed or newly expanded NIPs touched before the new rule landed.
+  - minimum backfill output:
+    - checklist coverage confirmed or corrected
+    - adversarial/error-contract review applied where newly required
+    - canonical audit artifact updated if conclusions or status changed
 
 Required adversarial coverage:
 - Every implemented or newly expanded protocol surface must have:
@@ -286,6 +292,9 @@ Required adversarial coverage:
   merely fail ordinary parsing.
 - Boundary-heavy modules such as auth, encryption, relay-management, wrapping, remote-signing,
   list privacy, and RPC/message surfaces must explicitly include hostile transcript coverage.
+- Boundary-heavy SDK-facing modules must also expose at least one consumer-facing hostile or
+  invalid example fixture in `examples/` so downstream users can see the intended rejection path,
+  not only the valid flow.
 
 ### Implemented NIP Audit Execution
 
@@ -337,6 +346,9 @@ Audit quality rules:
   local git commit before the next NIP audit begins.
 - Every completed implemented-NIP audit must also update the canonical consolidated audit artifact
   when the accepted behavior, findings, or current status changed.
+- When the audit process itself changed after some NIPs were already closed, the first full-surface
+  audit under the stronger process must explicitly backfill those recently closed NIPs before the
+  repo can claim the new standard is satisfied.
 
 Consolidated audit artifact:
 - `docs/plans/implemented-nip-audit-report.md` is the canonical summary for audit findings,
@@ -379,15 +391,17 @@ Per-surface robustness steps:
    - builder/parser symmetry challenges
    - public error-contract challenges
    - invalid fixtures that are realistic enough for SDK/app consumers to misuse
-8. Run fresh gates after the final candidate:
+8. For boundary-heavy SDK-facing surfaces, ensure `examples/` includes at least one hostile or
+   invalid consumer-facing fixture that matches the hardened failure contract.
+9. Run fresh gates after the final candidate:
    - focused surface tests first
    - `zig build test --summary all`
    - `zig build`
    - focused parity/interop commands where applicable
-9. Update canonical docs only where accepted behavior, active risks, or current state changed.
+10. Update canonical docs only where accepted behavior, active risks, or current state changed.
    Keep the consolidated outcome in `docs/plans/implemented-nip-audit-report.md` if the pass
    changes accepted conclusions or opens new follow-ups.
-10. Land one local git commit scoped to the completed robustness item before moving to the next one.
+11. Land one local git commit scoped to the completed robustness item before moving to the next one.
 
 Robustness pass quality rules:
 - Reuse existing procedure; do not create a new ad hoc review process per surface.

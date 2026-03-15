@@ -81,6 +81,10 @@ Run tests after every code change.
 - When reference libraries are `LIB_UNSUPPORTED` or only weak evidence exists, require one extra
   spec-first challenge pass before closure.
 - Keep canonical audit and status artifacts current as part of closure, not as later cleanup.
+- If the review process gets stricter mid-stream, run a short retroactive backfill pass on all
+  recently closed or newly expanded NIPs before claiming the stronger standard is in force.
+- For boundary-heavy SDK-facing surfaces, require at least one consumer-facing hostile or invalid
+  example fixture in addition to module tests so callers can see the intended failure contract.
 
 ## Coding Standards
 
