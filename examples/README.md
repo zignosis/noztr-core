@@ -64,6 +64,9 @@ fixtures so SDK and app authors can see what `noztr` rejects and why.
   - `listings_adversarial_example.zig`
 - web bookmark metadata helpers:
   - `nipb0_example.zig`
+- chess PGN note helpers:
+  - `nip64_example.zig`
+  - `chess_pgn_adversarial_example.zig`
 
 ## Reference Examples
 
@@ -104,6 +107,7 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip58_example.zig`
 - `nip59_example.zig`
   - typed boundary example; `noztr` does not expose a public gift-wrap builder
+- `nip64_example.zig`
 - `nostr_keys_example.zig`
 - `nip65_example.zig`
 - `nip70_example.zig`
@@ -163,6 +167,8 @@ These are the first files to open when you need the failure contract for a bound
   - invalid NIP-99 listing identifiers on both builder and extractor paths
 - `code_snippet_adversarial_example.zig`
   - malformed NIP-C0 repository references rejected on both builder and extractor paths
+- `chess_pgn_adversarial_example.zig`
+  - malformed NIP-64 PGN structure rejected on both validator and metadata-builder paths
 - `nip29_adversarial_example.zig`
   - mixed-group moderation replay rejected by the pure reducer
 

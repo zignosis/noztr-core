@@ -612,8 +612,18 @@ Current project context for the Phase H kickoff baseline.
         `Invalid*Tag` paths instead of leaking `BufferTooSmall`
       - unrelated tags are ignored inbound
       - syntax highlighting, editor integration, and run/share workflow remain out of kernel scope
+    - `NIP-64` is now complete:
+      - accepted kernel slice is bounded chess PGN note parse/build/validate for kind `64`
+      - event `content` is required and must be non-empty valid UTF-8
+      - `alt` is accepted as an optional singleton metadata tag
+      - content validation accepts one-or-more PGN games with bounded tag-pair parsing, balanced
+        comments and variations, and required termination markers
+      - movetext validation now enforces bounded PGN token classes rather than accepting arbitrary
+        non-delimiter text before a result marker
+      - malformed tag-pair sections without whitespace separation before movetext now reject
+      - full chess move legality, board-state replay, rendering, playback, and engine workflow
+        remain out of kernel scope
     - requested-NIP loop next execution order is:
-      - `NIP-64`
       - `NIP-88`
       - `NIP-49`
       - split surfaces `NIP-98`, `NIP-47`, and `NIP-B7`

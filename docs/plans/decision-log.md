@@ -2195,3 +2195,56 @@ Immutable record of accepted planning decisions.
   additional helper surface that materially improves interoperability without pulling editor or
   execution workflow into the kernel.
 - Supersedes: none
+
+## D-102: Accept bounded NIP-64 chess PGN helpers with structural validation only
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: implement `src/nip64_chess_pgn.zig` as the accepted `noztr` slice for `NIP-64`.
+  - accepted behavior:
+    - only kind-`64` events are accepted
+    - event `content` is required and must be non-empty valid UTF-8
+    - `alt` is accepted as an optional singleton metadata tag
+    - content validation accepts one-or-more PGN games in the database with:
+      - bounded tag-pair parsing
+      - balanced quoted strings, brace comments, and recursive-variation parentheses
+      - required game termination markers (`*`, `1-0`, `0-1`, `1/2-1/2`)
+      - bounded PGN movetext token classes for move numbers, SAN-like moves, castling, NAGs, and
+        annotation glyphs
+    - malformed tag-pair sections without whitespace separation before movetext are rejected
+    - canonical downstream examples now include:
+      - `examples/nip64_example.zig`
+      - `examples/chess_pgn_adversarial_example.zig`
+  - accepted non-goals:
+    - full chess move legality checking
+    - board-state replay
+    - board rendering, playback, and engine workflow
+  - accepted evidence posture:
+    - the vendored `docs/nips/64.md` text was rechecked against the official source during the
+      freeze pass
+    - `rust-nostr` currently marks `NIP-64` unsupported, so rust parity for this pass is
+      `LIB_UNSUPPORTED`
+    - I did not find a comparable strict parser in the pinned local TypeScript lane, so the
+      secondary ecosystem signal for this pass is also weak and source/spec-first only
+    - because both reference lanes are weak here, this NIP received the extra spec-first challenge
+      pass required by the strengthened process
+    - Review A found two issues and both are fixed in the accepted surface:
+      - movetext validation no longer accepts arbitrary non-delimiter text before a result marker
+      - malformed tag-pair sections without delimiter whitespace no longer fall through into
+        accepted movetext
+    - Review B found no boundary or overengineering issue; the accepted surface remains a narrow
+      structural validation helper and keeps chess workflow out of the kernel
+    - green gates passed:
+      - `zig build test --summary all`
+      - `zig build`
+- Why: `NIP-64` is a reasonable kernel fit only if it stays on deterministic PGN structure rather
+  than drifting into chess-engine or viewer behavior. A bounded structural validator plus optional
+  `alt` metadata gives downstream callers a useful trust-boundary floor for PGN notes without
+  pulling gameplay or rendering concerns into `noztr`.
+- Tradeoff: a narrower structural-validation-only helper versus not enforcing the stronger
+  client-side SHOULD for full move legality inside the kernel.
+- Related Tradeoff: T-0-001, T-0-002.
+- Reversal Trigger: stronger protocol or ecosystem evidence shows a clearly bounded legality or
+  richer PGN helper surface that materially improves interoperability without pulling chess-engine
+  workflow into the kernel.
+- Supersedes: none
