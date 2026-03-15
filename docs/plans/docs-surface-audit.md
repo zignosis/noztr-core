@@ -159,6 +159,19 @@ Measured on 2026-03-15 before the current refinement pass:
   add explicit synchronization-discipline rules in `docs/guides/PROCESS_CONTROL.md` and fold the
   touchpoint declaration into the active requested-NIP execution packet.
 
+### DOC-PLAYBOOK-001
+
+- Status: fixed in this pass
+- Problem:
+  the repo had refined process rules, but no reusable `noztr`-specific playbook for sharing the
+  lessons with other agents or sibling repos without replaying the full local history.
+- Why it hurt:
+  cross-repo learning depended too much on conversational memory and ad hoc references to specific
+  recent slices.
+- Fix:
+  add `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`, then route `AGENTS.md`, `handoff.md`, and
+  `docs/README.md` to it when the task is process refinement or cross-repo process sharing.
+
 ## Adoption Notes
 
 This pass takes the minimal adoption path:
@@ -175,5 +188,7 @@ This pass takes the minimal adoption path:
    to archive
 10. declare refinement-packet sync touchpoints early enough that closeout work is visible before the
     slice finishes
+11. keep one reusable process-refinement playbook so cross-repo learning does not depend on replaying
+    recent session history
 
 That is enough to reduce startup load immediately without a risky full doc reorg.

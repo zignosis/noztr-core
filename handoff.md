@@ -45,6 +45,8 @@ Current execution state for `noztr`.
   - docs index and active/reference/archive routing
 - `docs/guides/PROCESS_CONTROL.md`
   - repo-specific process refinement rules for keeping control docs lean
+- `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`
+  - reusable `noztr` process lessons for future refinement or cross-repo sharing
 - `docs/plans/build-plan.md`
   - active execution baseline
 - `docs/plans/decision-index.md`
@@ -76,6 +78,7 @@ Current execution state for `noztr`.
   - active build-plan is lean baseline only
   - implemented-surface review procedure is in `docs/plans/implemented-nip-review-guide.md`
   - historical build-plan narrative is in `docs/archive/plans/build-plan-history.md`
+  - reusable process lessons are now captured in `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`
 - Latest requested-NIP closure:
   - `NIP-B7` / `no-z9g` is closed locally
   - the full requested-NIP loop is now complete
@@ -87,7 +90,8 @@ Current execution state for `noztr`.
 - Choose the next Phase H implementation or audit slice before starting new code work.
 - Use `docs/plans/noztr-sdk-ownership-matrix.md` when the next candidate touches kernel-vs-SDK
   scope.
-- Use the refined process controls in `docs/guides/PROCESS_CONTROL.md` when touching process/docs.
+- Use `docs/guides/PROCESS_CONTROL.md` and `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md` when
+  touching process/docs.
 
 ## Notes
 

@@ -2740,3 +2740,56 @@ payload is needed for the current task.
   surface that materially improves interoperability without widening `noztr` into Blossom service
   workflow.
 - Supersedes: none
+
+## D-113: Codify explicit review prompts and a shareable process-refinement playbook
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: codify the process lessons validated during `NIP-B7` into the canonical control docs
+  and add a reusable `noztr` playbook for cross-repo sharing.
+  - accepted behavior:
+    - `docs/guides/PROCESS_CONTROL.md` now requires a more explicit micro-freeze for materially
+      expanded trust-boundary surfaces:
+      - scope
+      - intended scan regions
+      - accepted equivalent valid forms
+      - canonical emitted forms
+      - invalid-vs-capacity matrix
+      - reject corpus
+    - `PROCESS_CONTROL.md` now defines minimum Review A prompts:
+      - can invalid input still panic or hit a debug assertion?
+      - can invalid input still leak as a capacity error?
+      - can capacity failure still leak as an invalid-input error?
+      - does any scan escape the intended syntactic region?
+      - does the parser accept nonsense just because delimiters balance?
+    - `PROCESS_CONTROL.md` now defines minimum Review B prompts:
+      - did canonicalization become over-strict input validation?
+      - did the surface stay inside deterministic kernel ownership?
+      - did workflow or policy behavior leak in from the SDK layer?
+      - do examples show both intended use and intended rejection?
+    - `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md` is added as a shareable `noztr` reference for
+      process lessons learned from real slices
+    - `AGENTS.md`, `docs/README.md`, and `handoff.md` route process-refinement tasks to the new
+      playbook on demand
+  - accepted non-goals:
+    - turning the playbook into a second canonical process owner
+    - requiring every repo to copy `noztr`’s exact doc layout or packet names
+    - adding new review phases beyond the existing freeze / Review A / Review B structure
+  - accepted evidence posture:
+    - the trigger for this refinement was recent `noztr` implementation evidence, not a theoretical
+      cleanup preference
+    - the `NIP-B7` slice validated that the refined process caught three concrete bug classes:
+      - over-strict valid-input rejection
+      - scan-region escape
+      - assertion-order public error leakage
+    - the useful process additions were small, explicit prompts rather than broader prose
+- Why: the updated process is working, but the main remaining risk is that the sharpest lessons
+  still live too much in reviewer memory. Converting those lessons into exact review prompts and a
+  reusable playbook keeps the stronger gate teachable without inflating the main control docs.
+- Tradeoff: slightly more explicit review structure and one more reference doc versus lower reliance
+  on conversational memory and easier cross-repo process transfer.
+- Related Tradeoff: T-0-004.
+- Reversal Trigger: the added prompts become ceremonial, fail to catch the intended bug classes, or
+  the playbook drifts into a second canonical process owner instead of remaining a shareable
+  reference.
+- Supersedes: none

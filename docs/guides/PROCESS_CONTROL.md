@@ -161,6 +161,45 @@ When refining an existing slice or the process itself:
 4. rerun the relevant checks
 5. update the audit doc explicitly
 
+When the refinement comes from a real escaped bug class:
+- add one concrete prompt or checklist item that would have caught it
+- prefer narrow prompts over broader prose
+- record the lesson in `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md` if it is worth sharing across
+  repos or future slices
+
+## Micro-Freeze Rule
+
+For new or materially expanded trust-boundary surfaces, the freeze note should cover:
+- scope
+  - supported kinds, required/optional fields, multiplicity, normalization, and non-goals
+- boundary
+  - intended scan regions, accepted equivalent valid forms, canonical emitted forms
+- invalid-vs-capacity matrix
+  - what maps to invalid input, what maps to capacity failure, and what must never hit assertions
+- reject corpus
+  - the minimum hostile set required for the slice
+
+The freeze note can live in a packet, handoff, or decision entry, but it should be explicit enough
+that Review A is validating a known contract rather than discovering one from code alone.
+
+## Review Prompt Rule
+
+When a slice has public parser/builder trust boundaries, Review A and Review B should use explicit
+prompts instead of generic “correctness” language.
+
+Minimum Review A prompts:
+- can any user-controlled invalid input still panic or trip a debug assertion?
+- can invalid input still leak as a capacity error?
+- can capacity failure still leak as an invalid-input error?
+- does any scan escape the intended syntactic region?
+- does the parser accept nonsense just because delimiters balance?
+
+Minimum Review B prompts:
+- did canonicalization become over-strict input validation?
+- did the surface stay inside deterministic kernel ownership?
+- did we add workflow or policy behavior that belongs in the SDK?
+- do the examples show both intended use and intended rejection?
+
 ## Synchronization Discipline
 
 When a packet or refinement slice is created, declare the closeout touchpoints early enough that
@@ -200,6 +239,13 @@ Good candidates for archive or de-emphasis:
 - superseded handoff-style narratives
 - bootstrap planning packets whose decisions are already accepted
 - temporary closeout packets once their deltas are absorbed into the steady-state control docs
+
+## Transfer Rule
+
+If a process lesson is mature enough to teach another repo or agent:
+- keep the canonical local rule in `PROCESS_CONTROL.md`
+- capture the reusable lesson in `PROCESS_REFINEMENT_PLAYBOOK.md`
+- update `docs/README.md` and `AGENTS.md` so the playbook is discoverable on demand
 
 ## Minimal Standard
 

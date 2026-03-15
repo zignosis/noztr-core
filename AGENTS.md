@@ -12,6 +12,9 @@ exceptions recorded in the decision log.
 - Treat `docs/plans/decision-index.md` as the startup route into accepted policy; load
   `docs/plans/decision-log.md` only when the current task changes policy, cites a specific
   decision ID, or needs the exact canonical decision payload.
+- Read `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md` when the task is refining repo process,
+  tightening review gates after real failures, or sharing `noztr` process lessons with another
+  repo or agent.
 - Read `docs/guides/TIGER_STYLE.md`, `docs/guides/NOZTR_STYLE.md`,
   `docs/guides/zig-patterns.md`, and `docs/guides/zig-anti-patterns.md` only when the task touches
   Zig implementation, public API shape, or code review.
@@ -158,6 +161,7 @@ critical rules:
 - `docs/guides/TIGER_STYLE.md`: hard engineering baseline
 - `docs/guides/NOZTR_STYLE.md`: noztr protocol-kernel style profile
 - `docs/guides/PROCESS_CONTROL.md`: process-control and docs-surface refinement rules
+- `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`: shareable process lessons learned from real slices
 - `docs/guides/zig-patterns.md`: approved Zig-safe patterns
 - `docs/guides/zig-anti-patterns.md`: forbidden Zig footguns
 - Other guide documents are load-on-demand, not required startup context

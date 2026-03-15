@@ -48,6 +48,7 @@ These docs control active work and should stay lean.
   - Zig guides on demand
 - Process or docs refinement:
   - `docs/guides/PROCESS_CONTROL.md`
+  - `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`
   - `docs/plans/docs-surface-audit.md`
   - `docs/plans/decision-index.md`
   - `docs/plans/decision-log.md` only when a cited decision ID or policy change requires the
@@ -67,6 +68,7 @@ These are active references, not startup defaults.
 - `docs/plans/post-kernel-requested-nips-loop.md`
 - `docs/plans/llm-usability-pass.md`
 - `docs/plans/security-hardening-register.md`
+- `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`
 - `docs/research/`
 - `docs/release/intentional-divergences.md`
 - `examples/README.md`
