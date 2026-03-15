@@ -1,14 +1,13 @@
 .{
-    .name = .recipes,
+    .name = .examples,
     .version = "0.0.0",
     .dependencies = .{
         .noztr = .{
-            .path = "../..",
+            .path = "..",
         },
     },
     .paths = .{
         "",
-        "src",
     },
-    .fingerprint = 0xa369e2b5614d8193,
+    .fingerprint = 0x7bd0ad452dec5361,
 }

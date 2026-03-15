@@ -12,9 +12,7 @@ Current project context for the Phase H kickoff baseline.
     `src/unicode_nfkd.zig`
     - this is an intentional improvement over the currently covered `rust-nostr` helper path for
       non-ASCII passphrase equivalence
-  - SDK-facing downstream examples now include:
-    - `examples/sdk_consumer_smoke`
-    - `examples/recipes`
+  - SDK-facing downstream examples now live in the single top-level `examples/` package
   - Nostr-relevant `BIP-85` subset remains implemented and accepted
   - deprecated `NIP-04` private-list compatibility remains deferred
   - crypto-boundary evaluation is recorded in `docs/plans/crypto-boundary-evaluation.md`
@@ -382,7 +380,7 @@ Current project context for the Phase H kickoff baseline.
    - next recommended `noztr` focus is the post-kernel follow-up loop:
      - SDK-consumer integration / hardening pass is now complete:
        - `build.zig` now exposes a public `noztr` package module for downstream Zig dependencies
-       - local consumer smoke package lives at `examples/sdk_consumer_smoke`
+      - local consumer smoke example lives at `examples/consumer_smoke.zig`
        - main `zig build test --summary all` now runs that downstream smoke package
        - `README.md` now documents local Zig dependency usage for SDK/bootstrap consumers
      - `no-mzd` BIP-85 deterministic child-entropy helpers are now complete:

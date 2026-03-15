@@ -7,15 +7,12 @@ test "recipe: deterministic wallet flows use nip06 plus bip85 directly" {
     var secret_output: [32]u8 = undefined;
     var child_mnemonic_output: [noztr.limits.bip85_mnemonic_bytes_max]u8 = undefined;
 
-    // For Nostr accounts, the direct secret-key helper is the shortest path.
     const secret_key = try noztr.nip06_mnemonic.derive_nostr_secret_key(
         secret_output[0..],
         mnemonic,
         null,
         0,
     );
-
-    // BIP-85 is exposed only for the Nostr-relevant subset currently accepted in the kernel.
     const child_mnemonic = try noztr.bip85_derivation.derive_bip39_mnemonic(
         child_mnemonic_output[0..],
         mnemonic,

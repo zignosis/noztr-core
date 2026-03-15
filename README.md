@@ -60,13 +60,12 @@ const noztr_module = noztr_dependency.module("noztr");
 exe.root_module.addImport("noztr", noztr_module);
 ```
 
-This repo now carries downstream example packages and wires them into
+This repo now carries one downstream examples package and wires it into
 `zig build test --summary all` so SDK-style local consumption stays checked:
 
-- [`examples/sdk_consumer_smoke`](/workspace/projects/noztr/examples/sdk_consumer_smoke)
-  - minimal dependency/import smoke path
-- [`examples/recipes`](/workspace/projects/noztr/examples/recipes)
-  - dedicated scenario-oriented recipes for `NIP-05`, `NIP-06`, `BIP-85`, `NIP-39`, `NIP-46`,
+- [`examples`](/workspace/projects/noztr/examples)
+  - `consumer_smoke.zig` for the minimal dependency/import path
+  - direct scenario-oriented recipe files for `NIP-05`, `NIP-06`, `BIP-85`, `NIP-39`, `NIP-46`,
     `NIP-51`, and `NIP-86`
   - intended as the main downstream example surface for `nzdk` and other SDK consumers
 

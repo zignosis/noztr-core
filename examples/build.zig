@@ -8,18 +8,17 @@ pub fn build(builder: *std.Build) void {
     const optimize = builder.standardOptimizeOption(.{});
     const noztr_dependency = builder.dependency("noztr", .{});
     const noztr_module = noztr_dependency.module("noztr");
-    const smoke_module = builder.createModule(.{
-        .root_source_file = builder.path("src/smoke.zig"),
+    const example_module = builder.createModule(.{
+        .root_source_file = builder.path("examples.zig"),
         .target = target,
         .optimize = optimize,
     });
-    smoke_module.addImport("noztr", noztr_module);
+    example_module.addImport("noztr", noztr_module);
 
-    const smoke_tests = builder.addTest(.{
-        .root_module = smoke_module,
+    const example_tests = builder.addTest(.{
+        .root_module = example_module,
     });
-
-    const run_smoke_tests = builder.addRunArtifact(smoke_tests);
-    const test_step = builder.step("test", "Run local noztr consumer smoke tests");
-    test_step.dependOn(&run_smoke_tests.step);
+    const run_example_tests = builder.addRunArtifact(example_tests);
+    const test_step = builder.step("test", "Run noztr downstream examples");
+    test_step.dependOn(&run_example_tests.step);
 }

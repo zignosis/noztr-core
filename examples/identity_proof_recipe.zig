@@ -11,7 +11,6 @@ test "recipe: identity proof helpers stay pure and deterministic" {
     var url_buffer: [256]u8 = undefined;
     var text_buffer: [256]u8 = undefined;
 
-    // noztr owns pure proof-shape glue. Provider fetch and verification stays in nzdk.
     const url = try noztr.nip39_external_identities.identity_claim_build_proof_url(
         url_buffer[0..],
         &claim,

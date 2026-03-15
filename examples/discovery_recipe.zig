@@ -15,8 +15,6 @@ test "recipe: identity lookup and bunker discovery stay obvious" {
         &address,
     );
 
-    // This is the minimal document shape an SDK consumer usually cares about:
-    // profile relays plus optional NIP-46 bunker discovery.
     const document =
         "{\"names\":{\"_\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
         "\"alice\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}," ++

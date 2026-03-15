@@ -1,4 +1,5 @@
 comptime {
+    _ = @import("consumer_smoke.zig");
     _ = @import("discovery_recipe.zig");
     _ = @import("wallet_recipe.zig");
     _ = @import("identity_proof_recipe.zig");

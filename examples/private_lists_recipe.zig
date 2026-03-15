@@ -17,7 +17,6 @@ test "recipe: private list helpers roundtrip without decrypt flow noise" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
 
-    // This shows the bounded plaintext JSON layer that nzdk can wrap with NIP-44 flows.
     const parsed = try noztr.nip51_lists.list_private_extract_json(
         10000,
         json,

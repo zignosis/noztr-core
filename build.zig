@@ -58,8 +58,7 @@ pub fn build(builder: *std.Build) void {
     const test_step = builder.step("test", "Run noztr unit tests");
     test_step.dependOn(&run_unit_tests.step);
     test_step.dependOn(&run_unit_tests_core_only.step);
-    add_example_test_step(builder, test_step, "examples/sdk_consumer_smoke");
-    add_example_test_step(builder, test_step, "examples/recipes");
+    add_example_test_step(builder, test_step, "examples");
 }
 
 fn create_root_module(
