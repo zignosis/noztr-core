@@ -65,9 +65,10 @@ This repo now carries downstream example packages and wires them into
 
 - [`examples/sdk_consumer_smoke`](/workspace/projects/noztr/examples/sdk_consumer_smoke)
   - minimal dependency/import smoke path
-- [`examples/sdk_surface_recipes`](/workspace/projects/noztr/examples/sdk_surface_recipes)
-  - concrete SDK-facing recipes for `NIP-05`, `NIP-06`, `BIP-85`, `NIP-39`, `NIP-46`, `NIP-51`,
-    and `NIP-86`
+- [`examples/recipes`](/workspace/projects/noztr/examples/recipes)
+  - dedicated scenario-oriented recipes for `NIP-05`, `NIP-06`, `BIP-85`, `NIP-39`, `NIP-46`,
+    `NIP-51`, and `NIP-86`
+  - intended as the main downstream example surface for `nzdk` and other SDK consumers
 
 ## Current Kernel Notes
 

@@ -1,5 +1,5 @@
 .{
-    .name = .sdk_surface_recipes,
+    .name = .recipes,
     .version = "0.0.0",
     .dependencies = .{
         .noztr = .{
@@ -10,5 +10,5 @@
         "",
         "src",
     },
-    .fingerprint = 0x06789ef74beea2b1,
+    .fingerprint = 0xa369e2b5614d8193,
 }

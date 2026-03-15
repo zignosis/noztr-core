@@ -14,7 +14,7 @@ Current project context for the Phase H kickoff baseline.
       non-ASCII passphrase equivalence
   - SDK-facing downstream examples now include:
     - `examples/sdk_consumer_smoke`
-    - `examples/sdk_surface_recipes`
+    - `examples/recipes`
   - Nostr-relevant `BIP-85` subset remains implemented and accepted
   - deprecated `NIP-04` private-list compatibility remains deferred
   - crypto-boundary evaluation is recorded in `docs/plans/crypto-boundary-evaluation.md`

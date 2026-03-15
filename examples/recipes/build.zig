@@ -19,6 +19,6 @@ pub fn build(builder: *std.Build) void {
         .root_module = recipe_module,
     });
     const run_recipe_tests = builder.addRunArtifact(recipe_tests);
-    const test_step = builder.step("test", "Run SDK-facing noztr recipe tests");
+    const test_step = builder.step("test", "Run noztr downstream recipe tests");
     test_step.dependOn(&run_recipe_tests.step);
 }

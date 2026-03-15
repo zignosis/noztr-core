@@ -59,7 +59,7 @@ pub fn build(builder: *std.Build) void {
     test_step.dependOn(&run_unit_tests.step);
     test_step.dependOn(&run_unit_tests_core_only.step);
     add_example_test_step(builder, test_step, "examples/sdk_consumer_smoke");
-    add_example_test_step(builder, test_step, "examples/sdk_surface_recipes");
+    add_example_test_step(builder, test_step, "examples/recipes");
 }
 
 fn create_root_module(
