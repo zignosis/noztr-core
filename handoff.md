@@ -29,6 +29,8 @@ Current project context for the Phase H kickoff baseline.
       generic non-empty UTF-8
     - fixed `NIP-86` serializer invalid-text handling so it now stays on the `InvalidText` path
       instead of leaking `BufferTooSmall`
+    - fixed `NIP-39` typed builder validation so overlong identity/proof inputs now fail with
+      `InvalidIdentity` / `InvalidProof` instead of tripping internal assertions
     - backfilled the canonical audit report for `NIP-92`, `NIP-94`, and `NIP-99`
     - continued sweep over the other implemented NIPs found no further evidence-backed Layer 1
       issues in this pass
