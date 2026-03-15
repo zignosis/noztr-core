@@ -67,6 +67,9 @@ fixtures so SDK and app authors can see what `noztr` rejects and why.
 - HTTP auth helpers:
   - `nip98_example.zig`
   - `http_auth_adversarial_example.zig`
+- Blossom server-list and fallback helpers:
+  - `nipb7_example.zig`
+  - `blossom_adversarial_example.zig`
 - listings and metadata commerce helpers:
   - `nip99_example.zig`
   - `listings_adversarial_example.zig`
@@ -136,6 +139,7 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip94_example.zig`
 - `nip99_example.zig`
 - `nipb0_example.zig`
+- `nipb7_example.zig`
 - `nipc0_example.zig`
 - optional I6 reference examples:
   - `nip45_example.zig`
@@ -195,6 +199,8 @@ These are the first files to open when you need the failure contract for a bound
   - malformed NWC request bodies and mismatched notification shapes stay on typed failures
 - `http_auth_adversarial_example.zig`
   - malformed `Authorization` values and noncanonical payload hashes stay on typed failures
+- `blossom_adversarial_example.zig`
+  - malformed server URLs and query-bearing blob URLs stay on typed `NIP-B7` failures
 - `nip29_adversarial_example.zig`
   - mixed-group moderation replay rejected by the pure reducer
 

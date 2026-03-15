@@ -74,3 +74,4 @@ Use this file to decide whether the full canonical decision payload is needed.
 - `D-105` accept bounded `NIP-49` private-key encryption with internal `NFKC` normalization
 - `D-106` accept bounded `NIP-98` HTTP-auth event and header helpers
 - `D-107` accept bounded `NIP-47` Wallet Connect kernel helpers
+- `D-112` accept bounded `NIP-B7` Blossom server-list and fallback helpers

@@ -2672,3 +2672,71 @@ payload is needed for the current task.
 - Reversal Trigger: touchpoint declarations become rote noise that do not measurably improve
   closeout consistency.
 - Supersedes: none
+
+## D-112: Accept bounded NIP-B7 Blossom server-list and fallback helpers
+
+- Date: 2026-03-15
+- Status: accepted
+- Decision: implement `src/nipb7_blossom_servers.zig` as the accepted `noztr` slice for `NIP-B7`.
+  - accepted behavior:
+    - strict event helpers cover only kind `10063`
+    - extraction requires one-or-more ordered `server` tags and rejects malformed `server` tags
+      instead of guessing at partial shapes
+    - accepted `server` tags are exactly `["server", "<url>"]`
+    - accepted server URLs require:
+      - `http` or `https`
+      - a host
+      - no userinfo
+      - no query or fragment
+      - optional base-path support
+    - canonical `server` tag builders trim trailing `/` while preserving an accepted base path
+    - blob-reference extraction accepts only `http` or `https` URLs with a real path, then uses
+      the last bounded 64-character hex occurrence in the URL path to extract the blob hash
+    - blob-reference extraction accepts uppercase or mixed-case hash input and canonicalizes output
+      fallback paths/URLs to lowercase hex
+    - optional extensions are accepted only as non-empty suffixes matching
+      `[A-Za-z0-9][A-Za-z0-9._-]*`
+    - public helpers expose deterministic fallback path and fallback URL builders
+    - public error contracts keep invalid input on:
+      - `InvalidServerTag`
+      - `InvalidServerUrl`
+      - `InvalidBlobUrl`
+      - `InvalidBlobHash`
+      - `InvalidBlobExtension`
+      while reserving `BufferTooSmall` for caller-output capacity failures
+    - canonical downstream examples now include:
+      - `examples/nipb7_example.zig`
+      - `examples/blossom_adversarial_example.zig`
+  - accepted non-goals:
+    - BUD upload, download, existence-check, or cache workflow
+    - content-hash verification after retrieval
+    - fallback retry policy or well-known-server policy
+    - Blossom URI (`BUD-10`) parsing
+  - accepted evidence posture:
+    - the vendored `docs/nips/B7.md` text was rechecked during freeze
+    - local `BUD-03` wording was used to freeze the ordered server-list semantics and the
+      “last occurrence of a 64 char hex string” retrieval rule
+    - the local applesauce helper lane was used only as weak supporting evidence that server-list
+      handling treats these entries as server-base URLs rather than arbitrary fetch URLs
+    - the local rust lane did not expose a strong direct `kind:10063` helper surface, so this
+      close used the extra weak-evidence reject corpus
+    - Review A found two real trust-boundary issues and both are fixed:
+      - blob-hash extraction no longer scans the host portion of a URL and only considers the path
+      - oversized invalid caller input no longer leaks through debug assertions and now stays on
+        typed public errors
+    - Review B found no further boundary or overengineering issue after the accepted split stayed
+      at ordered server-list parsing plus deterministic fallback derivation
+    - green gates passed on the post-review candidate:
+      - `zig build test --summary all`
+      - `zig build`
+- Why: `NIP-B7` is a good split kernel fit when scoped to ordered `kind:10063` server-list
+  parsing/building and pure fallback path/URL derivation from a broken blob URL. That gives
+  downstream SDK and app code a reusable trust-boundary floor without pulling file-service,
+  retrieval, or cache workflow into `noztr`.
+- Tradeoff: a narrow deterministic helper surface versus a more ergonomic but workflow-entangled
+  blob-discovery API that would need network policy, retry behavior, and existence checks.
+- Related Tradeoff: T-0-001, T-0-002.
+- Reversal Trigger: stronger protocol or ecosystem evidence shows a bounded additional helper
+  surface that materially improves interoperability without widening `noztr` into Blossom service
+  workflow.
+- Supersedes: none

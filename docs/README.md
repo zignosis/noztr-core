@@ -27,8 +27,6 @@ These docs control active work and should stay lean.
   - startup route into accepted policy and decision areas
 - `docs/plans/build-plan.md`
   - active execution baseline
-- `docs/plans/post-kernel-requested-nips-loop.md`
-  - requested-NIP lane order and loop rules
 - `docs/guides/PROCESS_CONTROL.md`
   - repo-specific process refinement rules for keeping the control surface lean
 - `docs/plans/docs-surface-audit.md`
@@ -66,6 +64,7 @@ These are active references, not startup defaults.
 - `docs/plans/implemented-nip-review-guide.md`
 - `docs/plans/nostr-principles.md`
 - `docs/plans/implemented-nip-audit-report.md`
+- `docs/plans/post-kernel-requested-nips-loop.md`
 - `docs/plans/llm-usability-pass.md`
 - `docs/plans/security-hardening-register.md`
 - `docs/research/`

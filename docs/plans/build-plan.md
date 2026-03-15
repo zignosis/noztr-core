@@ -100,9 +100,9 @@ This artifact is the lean active execution baseline and is aligned to:
   deferred-by-operator, and no git remote is configured in this repo.
 - Phase H Wave 1, the implemented-NIP audit, Wave 2 / `NIP-46`, Wave 3 / `NIP-06`, and the
   post-Wave `NIP-51` private-list follow-up are complete.
-- Current requested-NIP execution is governed by `docs/plans/post-kernel-requested-nips-loop.md`.
-  Keep that packet as the canonical owner for order and closure rules, and use `handoff.md` for the
-  current next item only.
+- The post-kernel requested-NIP loop is complete through `NIP-B7`.
+- `docs/plans/post-kernel-requested-nips-loop.md` now remains as reference evidence for the loop
+  order, closure rules, and split-surface scope calls rather than as an active execution packet.
 - Docs/control-surface refinement is active under `docs/guides/PROCESS_CONTROL.md` and
   `docs/plans/docs-surface-audit.md`.
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the
@@ -160,6 +160,8 @@ This artifact is the lean active execution baseline and is aligned to:
 
 - `docs/archive/plans/build-plan-history.md`
   - archived execution narrative, old phase/module schedule, and old Phase E tradeoff snapshot
+- `docs/plans/post-kernel-requested-nips-loop.md`
+  - completed requested-NIP loop order, review model, and split-surface traceability
 - `docs/archive/plans/phase-f-parity-matrix.md`
   - historical Phase F parity matrix
 - `docs/archive/plans/phase-f-parity-ledger.md`

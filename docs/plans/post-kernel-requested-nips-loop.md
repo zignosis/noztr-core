@@ -1,12 +1,12 @@
 ---
 title: Post-Kernel Requested NIP Loop
 doc_type: packet
-status: active
+status: reference
 owner: noztr
 phase: phase-h
 read_when:
-  - continuing_requested_nip_loop
-  - checking_requested_nip_order_and_gates
+  - tracing_requested_nip_loop_history
+  - auditing_requested_nip_closeout
 depends_on:
   - docs/plans/build-plan.md
   - docs/plans/decision-index.md
@@ -37,16 +37,14 @@ the serial research -> implementation -> review loop for each item.
 - `B7`
 - `C0`
 
-## Current Call
+## Final State
 
-- `NIP-40` is already implemented in `src/nip40_expire.zig`.
-  It enters this loop only as a review checkpoint, not as new implementation work.
-- `NIP-47`, `NIP-98`, and `NIP-B7` are split surfaces.
-  `noztr` owns only the deterministic protocol/kernel slice.
-  `nzdk` owns transport, orchestration, wallet/file-service workflow, and runtime policy.
-- `NIP-49`, `NIP-64`, `NIP-88`, `NIP-92`, `NIP-94`, `NIP-99`, `NIP-B0`, and `NIP-C0` are good
-  protocol-kernel fits for bounded parse/build/validate helpers and any pure fixed-capacity
-  reducers they clearly require.
+- This requested-NIP loop is complete through `NIP-B7`.
+- `NIP-40` remained a review-only checkpoint.
+- `NIP-47`, `NIP-98`, and `NIP-B7` closed as split surfaces where `noztr` owns only the
+  deterministic protocol/kernel slice and `nzdk` owns transport or workflow behavior.
+- `NIP-49`, `NIP-64`, `NIP-88`, `NIP-92`, `NIP-94`, `NIP-99`, `NIP-B0`, and `NIP-C0` all closed
+  as bounded protocol-kernel helpers.
 
 ## Classification Matrix
 
@@ -62,7 +60,7 @@ the serial research -> implementation -> review loop for each item.
 | `98` | complete | split | bounded auth event parse/build/validate, exact URL/method/payload-hash helpers, optional auth-header encode/decode glue | HTTP client/server middleware, request execution, challenge/session handling | split-medium |
 | `99` | complete | `noztr` | bounded listing metadata parse/build/validate, draft/inactive distinction, price/status tag handling, ordered images/hashtags, and ignored unrelated tags | listing publish UX, search, inventory/state workflows, commerce extensions | kernel-medium |
 | `B0` | complete | `noztr` | bounded web-bookmark parse/build helpers around `39701`, required scheme-less `d`, optional `title` / `published_at` / `t`, ignored unrelated tags, and bounded UTF-8 content | bookmark sync, browser integration, preview/render policy | kernel-low |
-| `B7` | not started | split | bounded `kind:10063` Blossom server-list parse/build helpers and deterministic fallback URL/path derivation where protocol-shaped | BUD fetch/upload/download flow, existence checks, caching, media workflow | split-medium |
+| `B7` | complete | split | bounded `kind:10063` Blossom server-list parse/build helpers and deterministic fallback URL/path derivation where protocol-shaped | BUD fetch/upload/download flow, existence checks, caching, media workflow | split-medium |
 | `C0` | complete | `noztr` | bounded code-snippet parse/build helpers for language/name/extension/repo metadata and deterministic repo reference validation | syntax highlighting, run/share workflow, editor integration | kernel-low |
 
 ## Recommended Serial Order

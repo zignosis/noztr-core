@@ -93,6 +93,12 @@ pub const Limits = struct {
     pub const nip49_scrypt_r: u8 = 8;
     pub const nip49_scrypt_p: u8 = 1;
 
+    pub const nipb7_servers_max: u16 = Limits.tags_max;
+    pub const nipb7_server_tag_items_max: u8 = 2;
+    pub const nipb7_server_url_bytes_max: u16 = Limits.tag_item_bytes_max;
+    pub const nipb7_blob_url_bytes_max: u16 = Limits.content_bytes_max;
+    pub const nipb7_blob_extension_bytes_max: u16 = Limits.tag_item_bytes_max;
+
     pub const nip06_mnemonic_bytes_max: u16 = 256;
     pub const nip06_passphrase_bytes_max: u16 = 256;
     pub const nip06_normalized_bytes_max: u16 = 4_096;
@@ -206,6 +212,12 @@ pub const nip49_password_normalized_bytes_max: u16 =
     Limits.nip49_password_normalized_bytes_max;
 pub const nip49_scrypt_r: u8 = Limits.nip49_scrypt_r;
 pub const nip49_scrypt_p: u8 = Limits.nip49_scrypt_p;
+
+pub const nipb7_servers_max: u16 = Limits.nipb7_servers_max;
+pub const nipb7_server_tag_items_max: u8 = Limits.nipb7_server_tag_items_max;
+pub const nipb7_server_url_bytes_max: u16 = Limits.nipb7_server_url_bytes_max;
+pub const nipb7_blob_url_bytes_max: u16 = Limits.nipb7_blob_url_bytes_max;
+pub const nipb7_blob_extension_bytes_max: u16 = Limits.nipb7_blob_extension_bytes_max;
 
 pub const nip06_mnemonic_bytes_max: u16 = Limits.nip06_mnemonic_bytes_max;
 pub const nip06_passphrase_bytes_max: u16 = Limits.nip06_passphrase_bytes_max;
