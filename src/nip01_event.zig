@@ -211,6 +211,18 @@ pub fn event_serialize_canonical_json(
     return event_serialize_canonical_json_unchecked(output, event);
 }
 
+/// Serialize a full event JSON object including `id` and `sig`.
+pub fn event_serialize_json_object(
+    output: []u8,
+    event: *const Event,
+) EventSerializeError![]const u8 {
+    std.debug.assert(@sizeOf(EventTag) > 0);
+    std.debug.assert(@sizeOf(Event) > 0);
+
+    try event_validate_shape(event);
+    return event_serialize_json_object_unchecked(output, event);
+}
+
 fn event_serialize_canonical_json_unchecked(
     output: []u8,
     event: *const Event,
@@ -232,6 +244,37 @@ fn event_serialize_canonical_json_unchecked(
     try write_buffer_bytes(output, &index, ",");
     try write_buffer_json_string(output, &index, event.content);
     try write_buffer_bytes(output, &index, "]");
+
+    return output[0..@intCast(index)];
+}
+
+fn event_serialize_json_object_unchecked(
+    output: []u8,
+    event: *const Event,
+) error{BufferTooSmall}![]const u8 {
+    std.debug.assert(output.len <= std.math.maxInt(usize));
+    std.debug.assert(event.tags.len <= limits.tags_max);
+
+    const id_hex = std.fmt.bytesToHex(event.id, .lower);
+    const pubkey_hex = std.fmt.bytesToHex(event.pubkey, .lower);
+    const sig_hex = std.fmt.bytesToHex(event.sig, .lower);
+    var index: u32 = 0;
+
+    try write_buffer_bytes(output, &index, "{\"id\":\"");
+    try write_buffer_bytes(output, &index, id_hex[0..]);
+    try write_buffer_bytes(output, &index, "\",\"pubkey\":\"");
+    try write_buffer_bytes(output, &index, pubkey_hex[0..]);
+    try write_buffer_bytes(output, &index, "\",\"created_at\":");
+    try write_buffer_u64(output, &index, event.created_at);
+    try write_buffer_bytes(output, &index, ",\"kind\":");
+    try write_buffer_u64(output, &index, event.kind);
+    try write_buffer_bytes(output, &index, ",\"tags\":");
+    try write_buffer_tags(output, &index, event.tags);
+    try write_buffer_bytes(output, &index, ",\"content\":");
+    try write_buffer_json_string(output, &index, event.content);
+    try write_buffer_bytes(output, &index, ",\"sig\":\"");
+    try write_buffer_bytes(output, &index, sig_hex[0..]);
+    try write_buffer_bytes(output, &index, "\"}");
 
     return output[0..@intCast(index)];
 }
@@ -871,6 +914,44 @@ test "event canonical serialization is deterministic" {
     try std.testing.expectEqualStrings(serialized_a, serialized_b);
 }
 
+test "event json object serialization is deterministic and parse-symmetric" {
+    const tag_alpha = [_][]const u8{ "p", "aaaaaaaa" };
+    const tag_beta = [_][]const u8{ "e", "bbbbbbbb", "relay" };
+    const tags = [_]EventTag{
+        .{ .items = tag_alpha[0..] },
+        .{ .items = tag_beta[0..] },
+    };
+    const event = Event{
+        .id = [_]u8{0x10} ** 32,
+        .pubkey = [_]u8{0x11} ** 32,
+        .sig = [_]u8{0x22} ** 64,
+        .kind = 1,
+        .created_at = 123,
+        .content = "line\n\"quoted\"",
+        .tags = tags[0..],
+    };
+    var buffer_a: [512]u8 = undefined;
+    var buffer_b: [512]u8 = undefined;
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const serialized_a = try event_serialize_json_object(&buffer_a, &event);
+    const serialized_b = try event_serialize_json_object(&buffer_b, &event);
+    const reparsed = try event_parse_json(serialized_a, arena.allocator());
+
+    try std.testing.expectEqualStrings(
+        "{\"id\":\"1010101010101010101010101010101010101010101010101010101010101010\"," ++
+            "\"pubkey\":\"1111111111111111111111111111111111111111111111111111111111111111\"," ++
+            "\"created_at\":123,\"kind\":1,\"tags\":[[\"p\",\"aaaaaaaa\"]," ++
+            "[\"e\",\"bbbbbbbb\",\"relay\"]],\"content\":\"line\\n\\\"quoted\\\"\"," ++
+            "\"sig\":\"2222222222222222222222222222222222222222222222222222222222222222" ++
+            "2222222222222222222222222222222222222222222222222222222222222222\"}",
+        serialized_a,
+    );
+    try std.testing.expectEqualStrings(serialized_a, serialized_b);
+    try std.testing.expectEqualDeep(event, reparsed);
+}
+
 test "event verify id follows canonical hash compute" {
     var event = Event{
         .id = [_]u8{0} ** 32,
@@ -922,6 +1003,25 @@ test "event serialize canonical json rejects oversized content" {
     );
 }
 
+test "event serialize json object rejects oversized content" {
+    var large_content: [limits.content_bytes_max + 1]u8 = undefined;
+    @memset(large_content[0..], 'x');
+    const event = Event{
+        .id = [_]u8{0} ** 32,
+        .pubkey = [_]u8{0x11} ** 32,
+        .sig = [_]u8{0x22} ** 64,
+        .kind = 1,
+        .created_at = 1,
+        .content = large_content[0..],
+    };
+    var output: [128]u8 = undefined;
+
+    try std.testing.expectError(
+        error.ContentTooLong,
+        event_serialize_json_object(&output, &event),
+    );
+}
+
 test "event serialize canonical json forces buffer too small on public path" {
     const event = Event{
         .id = [_]u8{0} ** 32,
@@ -940,6 +1040,27 @@ test "event serialize canonical json forces buffer too small on public path" {
     );
 
     const serialized = try event_serialize_canonical_json(&adequate_output, &event);
+    try std.testing.expect(serialized.len > tiny_output.len);
+}
+
+test "event serialize json object forces buffer too small on public path" {
+    const event = Event{
+        .id = [_]u8{0} ** 32,
+        .pubkey = [_]u8{0x11} ** 32,
+        .sig = [_]u8{0x22} ** 64,
+        .kind = 1,
+        .created_at = 1,
+        .content = "ok",
+    };
+    var tiny_output: [8]u8 = undefined;
+    var adequate_output: [384]u8 = undefined;
+
+    try std.testing.expectError(
+        error.BufferTooSmall,
+        event_serialize_json_object(&tiny_output, &event),
+    );
+
+    const serialized = try event_serialize_json_object(&adequate_output, &event);
     try std.testing.expect(serialized.len > tiny_output.len);
 }
 

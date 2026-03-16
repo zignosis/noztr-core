@@ -292,7 +292,7 @@ pub fn http_auth_encode_event_json_base64(
     std.debug.assert(json_scratch.len <= std.math.maxInt(usize));
 
     try nip01_event.event_verify(event);
-    const json = try serialize_event_json_object(json_scratch, event);
+    const json = try nip01_event.event_serialize_json_object(json_scratch, event);
     const encoded_len = std.base64.standard.Encoder.calcSize(json.len);
     if (encoded_len > output.len) return error.BufferTooSmall;
 
@@ -332,7 +332,7 @@ pub fn http_auth_encode_authorization_header(
     std.debug.assert(json_scratch.len <= std.math.maxInt(usize));
 
     try nip01_event.event_verify(event);
-    const json = try serialize_event_json_object(json_scratch, event);
+    const json = try nip01_event.event_serialize_json_object(json_scratch, event);
     const encoded_len = std.base64.standard.Encoder.calcSize(json.len);
     const total_len = authorization_scheme.len + encoded_len;
     if (total_len > output.len) return error.BufferTooSmall;
@@ -544,128 +544,6 @@ fn base64_byte_is_valid(byte: u8) bool {
     return false;
 }
 
-fn serialize_event_json_object(
-    output: []u8,
-    event: *const nip01_event.Event,
-) error{BufferTooSmall}![]const u8 {
-    std.debug.assert(@intFromPtr(event) != 0);
-    std.debug.assert(output.len <= std.math.maxInt(usize));
-
-    const id_hex = std.fmt.bytesToHex(event.id, .lower);
-    const pubkey_hex = std.fmt.bytesToHex(event.pubkey, .lower);
-    const sig_hex = std.fmt.bytesToHex(event.sig, .lower);
-    var index: u32 = 0;
-
-    try write_event_bytes(output, &index, "{\"id\":\"");
-    try write_event_bytes(output, &index, id_hex[0..]);
-    try write_event_bytes(output, &index, "\",\"pubkey\":\"");
-    try write_event_bytes(output, &index, pubkey_hex[0..]);
-    try write_event_bytes(output, &index, "\",\"created_at\":");
-    try write_event_u64(output, &index, event.created_at);
-    try write_event_bytes(output, &index, ",\"kind\":");
-    try write_event_u64(output, &index, event.kind);
-    try write_event_bytes(output, &index, ",\"tags\":");
-    try write_event_tags(output, &index, event.tags);
-    try write_event_bytes(output, &index, ",\"content\":");
-    try write_event_json_string(output, &index, event.content);
-    try write_event_bytes(output, &index, ",\"sig\":\"");
-    try write_event_bytes(output, &index, sig_hex[0..]);
-    try write_event_bytes(output, &index, "\"}");
-    return output[0..@intCast(index)];
-}
-
-fn write_event_tags(
-    output: []u8,
-    index: *u32,
-    tags: []const nip01_event.EventTag,
-) error{BufferTooSmall}!void {
-    std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(tags.len <= limits.tags_max);
-
-    try write_event_bytes(output, index, "[");
-    for (tags, 0..) |tag, tag_index| {
-        if (tag_index != 0) try write_event_bytes(output, index, ",");
-        try write_event_bytes(output, index, "[");
-        for (tag.items, 0..) |item, item_index| {
-            if (item_index != 0) try write_event_bytes(output, index, ",");
-            try write_event_json_string(output, index, item);
-        }
-        try write_event_bytes(output, index, "]");
-    }
-    try write_event_bytes(output, index, "]");
-}
-
-fn write_event_json_string(
-    output: []u8,
-    index: *u32,
-    input: []const u8,
-) error{BufferTooSmall}!void {
-    std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(input.len <= limits.content_bytes_max);
-
-    try write_event_bytes(output, index, "\"");
-    for (input) |byte| {
-        if (byte == '"' or byte == '\\') {
-            try write_event_bytes(output, index, "\\");
-            try write_event_byte(output, index, byte);
-            continue;
-        }
-        if (byte < 0x20) {
-            try write_event_control_escape(output, index, byte);
-            continue;
-        }
-        try write_event_byte(output, index, byte);
-    }
-    try write_event_bytes(output, index, "\"");
-}
-
-fn write_event_control_escape(
-    output: []u8,
-    index: *u32,
-    byte: u8,
-) error{BufferTooSmall}!void {
-    const alphabet = "0123456789abcdef";
-    std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(byte < 0x20);
-
-    try write_event_bytes(output, index, "\\u00");
-    try write_event_byte(output, index, alphabet[byte >> 4]);
-    try write_event_byte(output, index, alphabet[byte & 0x0f]);
-}
-
-fn write_event_u64(output: []u8, index: *u32, value: u64) error{BufferTooSmall}!void {
-    std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(value <= std.math.maxInt(u64));
-
-    var digits: [20]u8 = undefined;
-    const rendered = std.fmt.bufPrint(digits[0..], "{d}", .{value}) catch {
-        return error.BufferTooSmall;
-    };
-    try write_event_bytes(output, index, rendered);
-}
-
-fn write_event_bytes(
-    output: []u8,
-    index: *u32,
-    bytes: []const u8,
-) error{BufferTooSmall}!void {
-    std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(bytes.len <= std.math.maxInt(usize));
-
-    if (output.len - index.* < bytes.len) return error.BufferTooSmall;
-    @memcpy(output[index.* .. index.* + bytes.len], bytes);
-    index.* += @intCast(bytes.len);
-}
-
-fn write_event_byte(output: []u8, index: *u32, byte: u8) error{BufferTooSmall}!void {
-    std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(byte <= 255);
-
-    if (index.* == output.len) return error.BufferTooSmall;
-    output[index.*] = byte;
-    index.* += 1;
-}
-
 fn test_event(kind: u32, tags: []const nip01_event.EventTag) nip01_event.Event {
     std.debug.assert(kind <= std.math.maxInt(u32));
     std.debug.assert(tags.len <= limits.tags_max);
@@ -710,8 +588,7 @@ test "http auth extract parses required and optional tags" {
     const tags = [_]nip01_event.EventTag{
         .{ .items = &.{ "u", "https://api.example.com/v1?id=1" } },
         .{ .items = &.{ "method", "PATCH" } },
-        .{ .items = &.{ "payload",
-            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" } },
+        .{ .items = &.{ "payload", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" } },
         .{ .items = &.{ "x", "ignored" } },
     };
     var event = test_event(http_auth_kind, tags[0..]);
@@ -740,8 +617,7 @@ test "http auth extract rejects duplicate and malformed required tags" {
     const bad_payload_tags = [_]nip01_event.EventTag{
         .{ .items = &.{ "u", "https://api.example.com" } },
         .{ .items = &.{ "method", "GET" } },
-        .{ .items = &.{ "payload",
-            "ABCDEFabcdef0123456789abcdef0123456789abcdef0123456789abcdef01" } },
+        .{ .items = &.{ "payload", "ABCDEFabcdef0123456789abcdef0123456789abcdef0123456789abcdef01" } },
     };
 
     try std.testing.expectError(
@@ -829,8 +705,7 @@ test "http auth validate request enforces payload and time windows" {
     const tags = [_]nip01_event.EventTag{
         .{ .items = &.{ "u", "https://api.example.com/upload" } },
         .{ .items = &.{ "method", "POST" } },
-        .{ .items = &.{ "payload",
-            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" } },
+        .{ .items = &.{ "payload", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" } },
     };
     const event = test_event(http_auth_kind, tags[0..]);
 
@@ -1029,7 +904,6 @@ test "http auth verify request rejects invalid signatures without hiding the cau
 
     try std.testing.expectError(
         error.InvalidId,
-        http_auth_verify_request(&event, "https://api.example.com", "GET", null, 1_700_000_000,
-            60, 30),
+        http_auth_verify_request(&event, "https://api.example.com", "GET", null, 1_700_000_000, 60, 30),
     );
 }

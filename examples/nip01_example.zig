@@ -36,6 +36,7 @@ test "NIP-01 example: canonical event lifecycle stays explicit" {
     try noztr.nip01_event.event_verify_id(&reparsed);
     try noztr.nip01_event.event_verify(&reparsed);
     try std.testing.expect(noztr.nip01_filter.filter_matches_event(&filter, &reparsed));
+    try std.testing.expect(std.mem.startsWith(u8, event_json, "{\"id\":\""));
     try std.testing.expect(std.mem.startsWith(u8, canonical_json, "[0,\""));
     try std.testing.expect(std.mem.indexOf(u8, relay_json, "\"EVENT\"") != null);
 }

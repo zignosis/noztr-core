@@ -32,7 +32,10 @@ test "recipe: build and unwrap a full signed NIP-17 gift wrap transcript" {
     var seal = common.simple_event(13, sender_pubkey, seal_payload, &.{});
     try common.sign_event(&sender_secret, &seal);
     var seal_json_storage: [1536]u8 = undefined;
-    const seal_json = try build_signed_event_json(seal_json_storage[0..], &seal);
+    const seal_json = try noztr.nip01_event.event_serialize_json_object(
+        seal_json_storage[0..],
+        &seal,
+    );
     var wrap_payload_storage: [2048]u8 = undefined;
     const wrap_payload = try encrypt_for_recipient(
         wrap_payload_storage[0..],
@@ -128,30 +131,5 @@ fn encrypt_for_recipient(
         &conversation_key,
         plaintext,
         &nonce,
-    );
-}
-
-fn build_signed_event_json(
-    output: []u8,
-    event: *const noztr.nip01_event.Event,
-) ![]const u8 {
-    std.debug.assert(output.len >= 128);
-    std.debug.assert(@intFromPtr(event) != 0);
-
-    const id_hex = std.fmt.bytesToHex(event.id, .lower);
-    const pubkey_hex = std.fmt.bytesToHex(event.pubkey, .lower);
-    const sig_hex = std.fmt.bytesToHex(event.sig, .lower);
-    return std.fmt.bufPrint(
-        output,
-        "{{\"id\":\"{s}\",\"pubkey\":\"{s}\",\"created_at\":{d},\"kind\":{d}," ++
-            "\"tags\":[],\"content\":\"{s}\",\"sig\":\"{s}\"}}",
-        .{
-            id_hex[0..],
-            pubkey_hex[0..],
-            event.created_at,
-            event.kind,
-            event.content,
-            sig_hex[0..],
-        },
     );
 }

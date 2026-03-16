@@ -61,6 +61,8 @@ pub fn event_serialize_canonical(output: []u8, event: *const Event)
     EventSerializeError![]const u8;
 pub fn event_serialize_canonical_json(output: []u8, event: *const Event)
     EventSerializeError![]const u8;
+pub fn event_serialize_json_object(output: []u8, event: *const Event)
+    EventSerializeError![]const u8;
 pub fn event_compute_id(event: *const Event) EventShapeError![32]u8;
 pub fn event_compute_id_checked(event: *const Event) EventShapeError![32]u8;
 pub fn event_verify_id(event: *const Event) EventVerifyError!void;

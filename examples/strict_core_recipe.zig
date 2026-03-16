@@ -49,6 +49,7 @@ test "recipe: strict core event lifecycle and filter matching stay discoverable"
     try noztr.nip01_event.event_verify_id(&reparsed);
     try noztr.nip01_event.event_verify(&reparsed);
     try std.testing.expect(noztr.nip01_filter.filters_match_event(filters[0..], &reparsed));
+    try std.testing.expect(std.mem.startsWith(u8, event_json, "{\"id\":\""));
     try std.testing.expect(std.mem.startsWith(u8, canonical_json, "[0,\""));
 }
 

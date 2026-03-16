@@ -1,4 +1,3 @@
-const std = @import("std");
 const noztr = @import("noztr");
 
 pub fn simple_event(
@@ -26,26 +25,7 @@ pub fn simple_event_json(
     output: []u8,
     event: *const noztr.nip01_event.Event,
 ) ![]const u8 {
-    const id_hex = std.fmt.bytesToHex(event.id, .lower);
-    const pubkey_hex = std.fmt.bytesToHex(event.pubkey, .lower);
-    const sig_hex = std.fmt.bytesToHex(event.sig, .lower);
-
-    std.debug.assert(event.tags.len == 0);
-    std.debug.assert(std.mem.indexOfAny(u8, event.content, "\"\\\n\r\t") == null);
-
-    return std.fmt.bufPrint(
-        output,
-        "{{\"id\":\"{s}\",\"pubkey\":\"{s}\",\"created_at\":{},\"kind\":{},\"tags\":[]," ++
-            "\"content\":\"{s}\",\"sig\":\"{s}\"}}",
-        .{
-            id_hex[0..],
-            pubkey_hex[0..],
-            event.created_at,
-            event.kind,
-            event.content,
-            sig_hex[0..],
-        },
-    );
+    return noztr.nip01_event.event_serialize_json_object(output, event);
 }
 
 pub fn derive_public_key(secret_key: *const [32]u8) ![32]u8 {
