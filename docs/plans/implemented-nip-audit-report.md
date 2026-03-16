@@ -1,10 +1,11 @@
 # Implemented NIP Audit Report
 
-Date: 2026-03-10
+Date: 2026-03-16
 
-Purpose: provide one canonical review artifact for the autonomous implemented-NIP audit so findings,
-accepted risks, decision points, and follow-up items can be reviewed systematically after the audit
-completes.
+Purpose: provide one canonical review artifact for the autonomous implemented-NIP audit so
+findings, accepted risks, decision points, and follow-up items can be reviewed systematically
+after the audit completes. This report now also absorbs the single post-audit requested-NIP loop
+so those later surfaces do not live in a second partial audit artifact.
 
 ## Scope
 
@@ -12,6 +13,8 @@ completes.
 - It summarizes audit conclusions after the per-NIP evidence is gathered in beads issues.
 - It does not replace raw evidence in beads or canonical policy decisions in
   `docs/plans/decision-log.md`.
+- The 2026-03-16 supplement folds the later requested-loop closures for `47`, `49`, `64`, `88`,
+  `98`, `B7`, and `C0` back into this canonical report.
 
 ## Evidence Sources
 
@@ -77,6 +80,13 @@ completes.
 | 94 | complete | `HARNESS_COVERED BASELINE PASS` | `LIB_UNSUPPORTED BASELINE PASS` | Accepted bounded kind-`1063` parse/build/validate with required `url` / lowercase MIME / `x`, exact supported-tag shapes, and repeated fallback support; no further Layer 1 change required after the initial implementation and review passes | none | none | Rust provides generic file-metadata support while `nostr-tools` remains a non-dedicated audit signal here; the current helper stays deterministic and metadata-only |
 | 99 | complete | `LIB_UNSUPPORTED BASELINE PASS` | `LIB_UNSUPPORTED BASELINE PASS` | Tightened `d` so listing identifiers must be scheme-less URL-shaped values rather than generic non-empty UTF-8, while keeping the bounded metadata-only surface for `30402` / `30403` unchanged otherwise | none | none | Neither active reference lane exposes a dedicated NIP-99 helper, so the stronger identifier rule is spec-first and keeps addressable listing metadata deterministic without pulling commerce workflow into the kernel |
 | B0 | complete | `LIB_UNSUPPORTED BASELINE PASS` | `LIB_UNSUPPORTED BASELINE PASS` | Accepted bounded kind-`39701` parse/build helpers with required scheme-less `d`, optional `title` / `published_at`, ordered lowercase `t` hashtags, and ignored unrelated tags; no further Layer 1 change required after Review A/B | none | none | Neither active reference lane exposes a dedicated NIP-B0 helper; the accepted surface stays metadata-only and leaves bookmark sync/browser workflow outside the kernel |
+| 47 | complete | `HARNESS_COVERED BASELINE PASS` | `NOT_COVERED_IN_THIS_PASS applesauce lane unavailable locally` | Overlong direct token input now stays on typed `InvalidCapability` / `InvalidEncryptionTag` / `InvalidNotificationsTag` / `InvalidErrorObject` / `InvalidTransaction` paths, and direct error/transaction token parsers no longer reuse unrelated error variants | none | none | Requested-loop supplement: the accepted split surface stays on deterministic NWC URI handling, event-envelope extraction, and typed decrypted JSON contracts; relay, encryption, and wallet workflow remain SDK-side |
+| 49 | complete | `SOURCE_REVIEW_ONLY fixed-payload parity lane` | `SOURCE_REVIEW_ONLY fixed-payload parity lane` | No further Layer 1 change required; current `ncryptsec` payload framing, bounded `NFKC` normalization, typed `log_n` / key-security handling, and caller-scratch `scrypt` surface remain acceptable after the checksum-path review fixes | none | none | Requested-loop supplement: `rust-nostr` and vendored `nostr-tools` align on `NFKC`, `scrypt`, XChaCha20-Poly1305, and the fixed versioned payload shape; password UX and storage policy remain out of scope |
+| 64 | complete | `LIB_UNSUPPORTED BASELINE PASS` | `LIB_UNSUPPORTED BASELINE PASS` | No further Layer 1 change required; the structural PGN validator remains accepted after Review A closed the nonsense-token and separator-discipline bugs | none | none | Requested-loop supplement: the accepted surface stays on bounded PGN structure with optional `alt` metadata and keeps move legality, replay, rendering, and engine workflow out of the kernel |
+| 88 | complete | `SOURCE_REVIEW_ONLY dedicated builder lane only` | `SOURCE_REVIEW_ONLY getter/compose lane only` | No further Layer 1 change required; poll/response parse-build helpers and the pure tally reducer remain accepted, and latest malformed same-poll responses no longer leave older valid votes counted | none | none | Requested-loop supplement: the accepted surface stays on deterministic poll metadata and pure tally reduction; relay fetches, live refresh, curation, and publish UX remain outside the kernel |
+| 98 | complete | `SOURCE_REVIEW_ONLY dedicated helper lane with accepted deltas` | `SOURCE_REVIEW_ONLY helper lane with accepted deltas` | Overlong caller URL/method/payload input now stays on typed `InvalidUrl*` / `InvalidMethod*` / `InvalidPayload*` paths, and the strict auth-event/header surface otherwise remains accepted | none | none | Requested-loop supplement: the accepted split surface stays on deterministic auth-event extraction, exact request matching, lowercase payload hashing, and strict header encode/decode while HTTP middleware and session workflow remain outside the kernel |
+| B7 | complete | `LIB_UNSUPPORTED BASELINE PASS` | `SOURCE_REVIEW_ONLY weak supporting lane` | No further Layer 1 change required; server-list and fallback helpers remain accepted after Review A closed path-only hash scanning and oversized invalid-input error-contract bugs | none | none | Requested-loop supplement: the accepted split surface stays on ordered `kind:10063` server lists plus deterministic fallback derivation; Blossom fetch, upload, cache, and retrieval workflow remain outside the kernel |
+| C0 | complete | `SOURCE_REVIEW_ONLY dedicated builder lane only` | `SOURCE_REVIEW_ONLY getter/cast lane only` | No further Layer 1 change required; the metadata-only helper remains accepted after Review A closed lowercase `l` canonicalization and overlong builder-input error-contract bugs | none | none | Requested-loop supplement: the accepted surface stays on deterministic code-snippet metadata, repeated license/dependency extraction, and validated repository references without absorbing editor or execution workflow |
 
 ## Decision Summary
 
@@ -180,6 +190,24 @@ completes.
   while keeping the current bounded metadata-only listing helper surface.
 - NIP-B0: keep the current bounded kind-`39701` helper with required scheme-less `d`, optional
   `title` / `published_at`, ordered lowercase `t` hashtags, and no bookmark workflow in-kernel.
+- Requested-loop supplement:
+- NIP-47: keep the split kernel surface for deterministic NWC URI handling, bounded event-envelope
+  extraction, and typed decrypted JSON contracts, and keep direct token-parser failures on
+  semantically correct typed errors instead of unrelated variants or debug assertions.
+- NIP-49: no further Layer 1 change required; keep the current bounded `ncryptsec` payload,
+  internal `NFKC`, typed `log_n` / key-security handling, and caller-scratch `scrypt` boundary.
+- NIP-64: no further Layer 1 change required; keep the current bounded PGN structural validation
+  helper and optional `alt` metadata while leaving move legality and chess workflow to the SDK.
+- NIP-88: no further Layer 1 change required; keep the current bounded poll/response helper
+  surface and pure tally reducer, with malformed latest responses suppressing older valid votes.
+- NIP-98: keep the split kernel surface for strict auth-event extraction, exact request matching,
+  lowercase payload hashing, and strict header helpers, and keep overlong caller inputs on typed
+  invalid-input paths instead of debug assertions.
+- NIP-B7: no further Layer 1 change required; keep the split kernel surface on ordered server-list
+  parsing/building and deterministic fallback derivation while leaving Blossom service workflow out
+  of `noztr`.
+- NIP-C0: no further Layer 1 change required; keep the metadata-only helper on deterministic
+  snippet metadata, repeated license/dependency extraction, and validated repository references.
 
 ## Accepted Risks
 

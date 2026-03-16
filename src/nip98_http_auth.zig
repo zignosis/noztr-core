@@ -233,7 +233,7 @@ pub fn http_auth_build_url_tag(
     url: []const u8,
 ) Nip98Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(url.len <= limits.tag_item_bytes_max);
+    std.debug.assert(url.len <= std.math.maxInt(usize));
 
     output.items[0] = "u";
     output.items[1] = validate_absolute_url(url) catch return error.InvalidUrlTag;
@@ -247,7 +247,7 @@ pub fn http_auth_build_method_tag(
     method: []const u8,
 ) Nip98Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(method.len <= limits.tag_item_bytes_max);
+    std.debug.assert(method.len <= std.math.maxInt(usize));
 
     output.items[0] = "method";
     output.items[1] = validate_http_method(method) catch return error.InvalidMethodTag;
@@ -261,7 +261,7 @@ pub fn http_auth_build_payload_tag(
     payload_hex: []const u8,
 ) Nip98Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(payload_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(payload_hex.len <= std.math.maxInt(usize));
 
     output.items[0] = "payload";
     output.items[1] = validate_payload_hex(payload_hex) catch return error.InvalidPayloadTag;
@@ -440,10 +440,10 @@ fn validate_expected_payload(
 }
 
 fn validate_absolute_url(text: []const u8) error{InvalidValue}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(limits.tag_item_bytes_max > 0);
     std.debug.assert(text.len <= std.math.maxInt(usize));
 
-    if (text.len == 0) return error.InvalidValue;
+    if (text.len == 0 or text.len > limits.tag_item_bytes_max) return error.InvalidValue;
     const parsed = std.Uri.parse(text) catch return error.InvalidValue;
     if (parsed.scheme.len == 0) return error.InvalidValue;
     if (parsed.host == null) return error.InvalidValue;
@@ -451,10 +451,10 @@ fn validate_absolute_url(text: []const u8) error{InvalidValue}![]const u8 {
 }
 
 fn validate_http_method(text: []const u8) error{InvalidValue}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(limits.tag_item_bytes_max > 0);
     std.debug.assert(text.len <= std.math.maxInt(usize));
 
-    if (text.len == 0) return error.InvalidValue;
+    if (text.len == 0 or text.len > limits.tag_item_bytes_max) return error.InvalidValue;
     for (text) |byte| {
         if (!http_method_byte_is_valid(byte)) return error.InvalidValue;
     }
@@ -485,9 +485,10 @@ fn http_method_byte_is_valid(byte: u8) bool {
 }
 
 fn validate_payload_hex(text: []const u8) error{InvalidValue}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(limits.tag_item_bytes_max > 0);
     std.debug.assert(payload_hash_hex_length > 0);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidValue;
     if (text.len != payload_hash_hex_length) return error.InvalidValue;
     for (text) |byte| {
         const is_digit = byte >= '0' and byte <= '9';
@@ -682,6 +683,11 @@ test "http auth validate request distinguishes invalid caller input from mismatc
         .{ .items = &.{ "method", "POST" } },
     };
     const event = test_event(http_auth_kind, tags[0..]);
+    var overlong_url = [_]u8{'a'} ** (limits.tag_item_bytes_max + 1);
+    const overlong_method = [_]u8{'P'} ** (limits.tag_item_bytes_max + 1);
+    const overlong_payload = [_]u8{'a'} ** (limits.tag_item_bytes_max + 1);
+
+    @memcpy(overlong_url[0..8], "https://");
 
     try std.testing.expectError(
         error.InvalidUrl,
@@ -694,6 +700,42 @@ test "http auth validate request distinguishes invalid caller input from mismatc
             "https://api.example.com",
             "POST ",
             null,
+            1_700_000_000,
+            60,
+            30,
+        ),
+    );
+    try std.testing.expectError(
+        error.InvalidUrl,
+        http_auth_validate_request(
+            &event,
+            overlong_url[0..],
+            "POST",
+            null,
+            1_700_000_000,
+            60,
+            30,
+        ),
+    );
+    try std.testing.expectError(
+        error.InvalidMethod,
+        http_auth_validate_request(
+            &event,
+            "https://api.example.com",
+            overlong_method[0..],
+            null,
+            1_700_000_000,
+            60,
+            30,
+        ),
+    );
+    try std.testing.expectError(
+        error.InvalidPayload,
+        http_auth_validate_request(
+            &event,
+            "https://api.example.com",
+            "POST",
+            overlong_payload[0..],
             1_700_000_000,
             60,
             30,
@@ -782,6 +824,11 @@ test "http auth builders reject invalid tag values with typed errors" {
     var url_tag: BuiltTag = .{};
     var method_tag: BuiltTag = .{};
     var payload_tag: BuiltTag = .{};
+    var overlong_url = [_]u8{'a'} ** (limits.tag_item_bytes_max + 1);
+    const overlong_method = [_]u8{'P'} ** (limits.tag_item_bytes_max + 1);
+    const overlong_payload = [_]u8{'a'} ** (limits.tag_item_bytes_max + 1);
+
+    @memcpy(overlong_url[0..8], "https://");
 
     try std.testing.expectError(error.InvalidUrlTag, http_auth_build_url_tag(&url_tag, "relative"));
     try std.testing.expectError(
@@ -794,6 +841,18 @@ test "http auth builders reject invalid tag values with typed errors" {
             &payload_tag,
             "0123456789ABCDEF0123456789abcdef0123456789abcdef0123456789abcdef",
         ),
+    );
+    try std.testing.expectError(
+        error.InvalidUrlTag,
+        http_auth_build_url_tag(&url_tag, overlong_url[0..]),
+    );
+    try std.testing.expectError(
+        error.InvalidMethodTag,
+        http_auth_build_method_tag(&method_tag, overlong_method[0..]),
+    );
+    try std.testing.expectError(
+        error.InvalidPayloadTag,
+        http_auth_build_payload_tag(&payload_tag, overlong_payload[0..]),
     );
 }
 

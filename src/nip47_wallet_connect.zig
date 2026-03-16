@@ -149,9 +149,10 @@ pub const BuiltTag = struct {
 };
 
 pub fn method_parse(text: []const u8) NwcError!Method {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(Method) > 0);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidCapability;
     if (std.mem.eql(u8, text, "pay_invoice")) return .pay_invoice;
     if (std.mem.eql(u8, text, "pay_keysend")) return .pay_keysend;
     if (std.mem.eql(u8, text, "make_invoice")) return .make_invoice;
@@ -184,9 +185,10 @@ pub fn method_text(method: Method) []const u8 {
 }
 
 pub fn encryption_parse(text: []const u8) NwcError!Encryption {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(Encryption) > 0);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidEncryptionTag;
     if (std.mem.eql(u8, text, "nip44_v2")) return .nip44_v2;
     if (std.mem.eql(u8, text, "nip04")) return .nip04;
     return error.InvalidEncryptionTag;
@@ -203,9 +205,10 @@ pub fn encryption_text(encryption: Encryption) []const u8 {
 }
 
 pub fn notification_type_parse(text: []const u8) NwcError!NotificationType {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(NotificationType) > 0);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidNotificationsTag;
     if (std.mem.eql(u8, text, "payment_received")) return .payment_received;
     if (std.mem.eql(u8, text, "payment_sent")) return .payment_sent;
     if (std.mem.eql(u8, text, "hold_invoice_accepted")) return .hold_invoice_accepted;
@@ -225,9 +228,10 @@ pub fn notification_type_text(notification_type: NotificationType) []const u8 {
 }
 
 pub fn error_code_parse(text: []const u8) NwcError!ErrorCode {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(ErrorCode) > 0);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidErrorObject;
     if (std.mem.eql(u8, text, "RATE_LIMITED")) return .rate_limited;
     if (std.mem.eql(u8, text, "NOT_IMPLEMENTED")) return .not_implemented;
     if (std.mem.eql(u8, text, "INSUFFICIENT_BALANCE")) return .insufficient_balance;
@@ -239,7 +243,7 @@ pub fn error_code_parse(text: []const u8) NwcError!ErrorCode {
     if (std.mem.eql(u8, text, "INTERNAL")) return .internal;
     if (std.mem.eql(u8, text, "UNSUPPORTED_ENCRYPTION")) return .unsupported_encryption;
     if (std.mem.eql(u8, text, "OTHER")) return .other;
-    return error.InvalidNotificationsTag;
+    return error.InvalidErrorObject;
 }
 
 pub fn error_code_text(error_code: ErrorCode) []const u8 {
@@ -262,12 +266,13 @@ pub fn error_code_text(error_code: ErrorCode) []const u8 {
 }
 
 pub fn transaction_type_parse(text: []const u8) NwcError!TransactionType {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(TransactionType) > 0);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidTransaction;
     if (std.mem.eql(u8, text, "incoming")) return .incoming;
     if (std.mem.eql(u8, text, "outgoing")) return .outgoing;
-    return error.InvalidCapability;
+    return error.InvalidTransaction;
 }
 
 pub fn transaction_type_text(transaction_type: TransactionType) []const u8 {
@@ -281,15 +286,16 @@ pub fn transaction_type_text(transaction_type: TransactionType) []const u8 {
 }
 
 pub fn transaction_state_parse(text: []const u8) NwcError!TransactionState {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(TransactionState) > 0);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidTransaction;
     if (std.mem.eql(u8, text, "pending")) return .pending;
     if (std.mem.eql(u8, text, "settled")) return .settled;
     if (std.mem.eql(u8, text, "accepted")) return .accepted;
     if (std.mem.eql(u8, text, "expired")) return .expired;
     if (std.mem.eql(u8, text, "failed")) return .failed;
-    return error.InvalidCapability;
+    return error.InvalidTransaction;
 }
 
 pub fn transaction_state_text(transaction_state: TransactionState) []const u8 {
@@ -3136,6 +3142,8 @@ fn write_u32(output: []u8, index: *u32, value: u32) NwcError!void {
 }
 
 test "method and enum parsing cover supported kernel contract" {
+    const overlong = [_]u8{'a'} ** (limits.tag_item_bytes_max + 1);
+
     try std.testing.expectEqual(Method.pay_invoice, try method_parse("pay_invoice"));
     try std.testing.expectEqual(Encryption.nip44_v2, try encryption_parse("nip44_v2"));
     try std.testing.expectEqual(
@@ -3149,6 +3157,18 @@ test "method and enum parsing cover supported kernel contract" {
     try std.testing.expectEqual(ErrorCode.unsupported_encryption, try error_code_parse(
         "UNSUPPORTED_ENCRYPTION",
     ));
+    try std.testing.expectError(error.InvalidCapability, method_parse(overlong[0..]));
+    try std.testing.expectError(error.InvalidEncryptionTag, encryption_parse(overlong[0..]));
+    try std.testing.expectError(
+        error.InvalidNotificationsTag,
+        notification_type_parse(overlong[0..]),
+    );
+    try std.testing.expectError(error.InvalidErrorObject, error_code_parse(overlong[0..]));
+    try std.testing.expectError(error.InvalidTransaction, transaction_type_parse(overlong[0..]));
+    try std.testing.expectError(error.InvalidTransaction, transaction_state_parse(overlong[0..]));
+    try std.testing.expectError(error.InvalidErrorObject, error_code_parse("UNKNOWN"));
+    try std.testing.expectError(error.InvalidTransaction, transaction_type_parse("sideways"));
+    try std.testing.expectError(error.InvalidTransaction, transaction_state_parse("queued"));
 }
 
 test "connection uri parse and format keep relay order and lowercase secrets" {
