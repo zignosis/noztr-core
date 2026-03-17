@@ -21,8 +21,7 @@ canonical: true
 - packet: `no-ard`
 - author: Codex
 - current-note:
-  - this is the pre-benchmark synthesis
-  - `no-io56` must revise it after `docs/plans/empirical-benchmark-supplement.md` completes
+  - revised after the empirical benchmark supplement
 
 ## Inputs
 
@@ -37,6 +36,7 @@ canonical: true
   - `docs/research/exhaustive-audit-angle-8-api-consistency-report.md`
   - `docs/research/exhaustive-audit-angle-9-docs-discoverability-report.md`
   - `docs/research/llm-structured-usability-audit-report.md`
+  - `docs/research/empirical-benchmark-supplement-report.md`
 - finalized matrix:
   - `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
 - working draft ledger:
@@ -56,6 +56,10 @@ canonical: true
 - performance issues are real but locally bounded
   - the reports found reducer/scanner inefficiencies in `NIP-88`, `NIP-29`, and `NIP-06`
   - they do not currently point to systemic memory or runtime collapse
+- empirical benchmark evidence sharpened the performance picture
+  - `NIP-29` is the strongest measured local hotspot
+  - `NIP-88` is a real measured hotspot but still bounded
+  - `NIP-06` repeated scans are not the dominant derivation cost once backend work is included
 - docs/examples drift is real but not a control-surface failure
   - internal control docs stayed coherent
   - public discovery and teaching surfaces lagged on a few important examples and the root README
@@ -110,7 +114,6 @@ canonical: true
 - non-blocking but still worth remediation:
   - `NIP-88` reducer hotspot
   - `NIP-29` reducer hotspot
-  - `NIP-06` repeated passes / scans
   - `NIP-25` misuse-prone direct classifier helper
   - test-oriented verify counters in the production secp wrapper
 
@@ -143,7 +146,9 @@ canonical: true
     structured post-core contract mapping, examples index symbol routing, and `nzdk`
     remediation-brief enrichment
 - targeted fix
-  - clean up the bounded local performance hotspots in `NIP-88`, `NIP-29`, and `NIP-06`
+  - clean up the bounded local performance hotspots in `NIP-88` and `NIP-29`
+  - keep `NIP-06` performance concerns coupled to the backend redesign lane rather than as a
+    standalone required performance cleanup
 - audit/freeze follow-up
   - run one post-remediation freeze-readiness recheck before any RC-freeze packet
 

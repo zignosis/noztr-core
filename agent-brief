@@ -68,7 +68,6 @@ plan_docs=(
     "docs/guides/IMPLEMENTATION_QUALITY_GATE.md"
     "docs/plans/noztr-sdk-ownership-matrix.md"
     "docs/plans/phase-h-remaining-work.md"
-    "docs/plans/empirical-benchmark-supplement.md"
     "docs/plans/post-exhaustive-audit-remediation-plan.md"
     "handoff.md"
 )
@@ -142,7 +141,7 @@ printf -- '- `docs/README.md`\n'
 printf -- '- `docs/plans/build-plan.md`\n'
 printf -- '- `docs/plans/decision-index.md`\n'
 printf -- '- `docs/plans/phase-h-remaining-work.md`\n'
-printf -- '- `docs/plans/empirical-benchmark-supplement.md`\n'
+printf -- '- `docs/plans/post-exhaustive-audit-remediation-plan.md`\n'
 printf "\n"
 
 printf "## Load On Demand\n\n"
@@ -150,11 +149,12 @@ printf -- '- `docs/guides/IMPLEMENTATION_QUALITY_GATE.md` when starting or closi
 printf -- '- `docs/guides/TIGER_STYLE.md` and `docs/guides/NOZTR_STYLE.md` for Zig implementation or API work\n'
 printf -- '- `docs/guides/zig-patterns.md` and `docs/guides/zig-anti-patterns.md` for Zig implementation or review\n'
 printf -- '- Current Phase H remaining-work packet: `docs/plans/phase-h-remaining-work.md`\n'
-printf -- '- Current benchmark supplement packet: `docs/plans/empirical-benchmark-supplement.md`\n'
-printf -- '- Prepared remediation packet: `docs/plans/post-exhaustive-audit-remediation-plan.md`\n'
+printf -- '- Current remediation packet: `docs/plans/post-exhaustive-audit-remediation-plan.md`\n'
+printf -- '- Completed benchmark supplement packet: `docs/plans/empirical-benchmark-supplement.md`\n'
 printf -- '- Structured `nzdk` remediation brief: `docs/plans/noztr-sdk-remediation-brief.md`\n'
 printf -- '- Completed exhaustive audit meta-analysis: `docs/research/exhaustive-audit-meta-analysis-report.md`\n'
 printf -- '- Completed LLM structured usability audit: `docs/research/llm-structured-usability-audit-report.md`\n'
+printf -- '- Completed empirical benchmark supplement: `docs/research/empirical-benchmark-supplement-report.md`\n'
 printf -- '- Completed exhaustive audit draft: `docs/plans/exhaustive-pre-freeze-audit.md`\n'
 printf -- '- Completed exhaustive audit matrix: `docs/plans/exhaustive-pre-freeze-audit-matrix.md`\n'
 printf -- '- `docs/plans/audit-angle-standards.md` when revisiting the completed audit evidence\n'

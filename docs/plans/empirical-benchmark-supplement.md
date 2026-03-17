@@ -1,7 +1,7 @@
 ---
 title: Empirical Benchmark Supplement
 doc_type: packet
-status: active
+status: reference
 owner: noztr
 phase: phase-h
 read_when:
@@ -25,7 +25,7 @@ canonical: true
 
 # Empirical Benchmark Supplement
 
-Supplemental Phase H packet that must complete before the prepared remediation program begins.
+Completed supplemental Phase H packet that ran before the remediation program resumes.
 
 ## Purpose
 
@@ -54,7 +54,7 @@ Supplemental Phase H packet that must complete before the prepared remediation p
 
 - the nine-angle exhaustive audit is complete
 - the LLM structured-usability supplement is complete
-- the prepared remediation program is deferred pending this supplement:
+- the prepared remediation program was deferred pending this supplement:
   - `no-65ev`
   - `no-65ev.1`
   - `no-65ev.2`
@@ -70,9 +70,9 @@ Supplemental Phase H packet that must complete before the prepared remediation p
 
 ## Next Step
 
-1. execute `no-m4o2` and produce a dedicated benchmark report
-2. execute `no-io56` and revise the synthesis using the benchmark evidence
-3. only then reactivate or revise `docs/plans/post-exhaustive-audit-remediation-plan.md`
+1. keep the benchmark report as reference evidence
+2. execute the reactivated remediation packet in
+   `docs/plans/post-exhaustive-audit-remediation-plan.md`
 
 ## Open Questions Or Targeted Findings
 
@@ -105,6 +105,4 @@ Supplemental Phase H packet that must complete before the prepared remediation p
 - `no-m4o2` produced a dedicated benchmark report with explicit scope, method, findings, limits,
   and residual risk
 - `no-io56` revised the meta-analysis and active routing honestly
-- remediation is either:
-  - reactivated unchanged with benchmark support, or
-  - revised explicitly before any fixes begin
+- remediation is now reactivated under the revised synthesis

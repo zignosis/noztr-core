@@ -125,10 +125,9 @@ This artifact is the lean active execution baseline and is aligned to:
   order, closure rules, and split-surface scope calls rather than as an active execution packet.
 - The exhaustive pre-freeze audit and its meta-analysis are complete.
 - The supplemental LLM structured usability audit is complete.
-- Current active next slice is the empirical benchmark supplement in
-  `docs/plans/empirical-benchmark-supplement.md`.
-- The prepared remediation packet is deferred pending the benchmark supplement and revised
-  synthesis.
+- The empirical benchmark supplement is complete.
+- Current active next slice is the post-exhaustive-audit remediation program in
+  `docs/plans/post-exhaustive-audit-remediation-plan.md`.
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the
   approved pinned crypto backend policy and a narrow boundary module.
 
@@ -138,10 +137,10 @@ This artifact is the lean active execution baseline and is aligned to:
   `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`.
 - For active Phase H remaining work and next-slice selection, use
   `docs/plans/phase-h-remaining-work.md`.
-- For the current remediation sequence after the completed exhaustive audit, use
-  `docs/plans/post-exhaustive-audit-remediation-plan.md`.
 - For the empirical benchmark supplement that must complete before remediation execution, use
   `docs/plans/empirical-benchmark-supplement.md`.
+- For the current remediation sequence after the completed audit supplements, use
+  `docs/plans/post-exhaustive-audit-remediation-plan.md`.
 - The completed requested-NIP loop remains reference-only in
   `docs/plans/post-kernel-requested-nips-loop.md`.
 - For implemented-surface audits or robustness work, use
@@ -161,7 +160,7 @@ This artifact is the lean active execution baseline and is aligned to:
 - `docs/plans/phase-h-remaining-work.md`
   - current active Phase H packet and remaining-work routing
 - `docs/plans/empirical-benchmark-supplement.md`
-  - active benchmark supplement before remediation
+  - completed benchmark supplement reference
 - `docs/plans/llm-structured-usability-audit.md`
   - supplemental LLM-first audit that must complete before remediation execution begins
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
@@ -198,9 +197,12 @@ This artifact is the lean active execution baseline and is aligned to:
   - add one current structured post-core contract map
   - add stronger symbol-level routing in the examples index
   - enrich the `nzdk` remediation brief
-- one empirical benchmark supplement is now required before remediation execution:
-  - measure the named static-review hotspots under representative local workloads
-  - revise the synthesis before any fixes begin
+- the empirical benchmark supplement is complete:
+  - measured the named static-review hotspots under representative local workloads
+  - revised the synthesis before fixes begin
+- the completed benchmark supplement refined the performance lane:
+  - keep `NIP-29` and `NIP-88` in the targeted performance cleanup lane
+  - do not treat `NIP-06` repeated scans as a standalone required performance remediation item
 - current remaining freeze blockers are:
   - public helper assertion leaks in `NIP-86` and `NIP-46`
   - backend-outage misclassification in `NIP-44` and `NIP-26`

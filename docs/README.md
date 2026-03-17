@@ -32,9 +32,9 @@ These docs control active work and should stay lean.
 - `docs/plans/phase-h-remaining-work.md`
   - current active Phase H packet and next remaining work
 - `docs/plans/empirical-benchmark-supplement.md`
-  - current active benchmark supplement packet before remediation execution
+  - completed benchmark supplement reference packet
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
-  - prepared remediation packet deferred pending the benchmark supplement
+  - current active remediation packet after the completed audit supplements
 - `docs/plans/noztr-sdk-remediation-brief.md`
   - structured downstream brief for `nzdk` during remediation
 - `docs/plans/docs-surface-audit.md`
@@ -74,6 +74,7 @@ These docs control active work and should stay lean.
   - `docs/plans/audit-angle-standards.md`
 - Reviewing the benchmark supplement:
   - `docs/plans/empirical-benchmark-supplement.md`
+  - `docs/research/empirical-benchmark-supplement-report.md`
   - `docs/research/exhaustive-audit-angle-7-performance-memory-report.md`
   - `docs/research/exhaustive-audit-meta-analysis-report.md`
 
@@ -115,7 +116,6 @@ These are active references, not startup defaults.
 These are lane- or phase-specific packets. They should be read only when that lane is active.
 
 - `docs/plans/phase-h-remaining-work.md`
-- `docs/plans/empirical-benchmark-supplement.md`
 - `docs/plans/prompts/`
 
 ## Archive

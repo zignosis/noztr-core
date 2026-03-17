@@ -57,7 +57,8 @@ the `OQ-E-006` usability pass.
 - Phase H remains active
 - the requested-NIP loop is complete through `NIP-B7`
 - `OQ-E-006` is closed
-- the next active Phase H slice is the empirical benchmark supplement
+- the empirical benchmark supplement is complete
+- the next active Phase H slice is post-exhaustive-audit remediation
 - RC API-freeze remains deferred until this slice shows the current boundary is stable enough
 - accepted sub-findings from this slice so far:
   - export public signed event-object JSON serialization from `nip01_event`
@@ -75,19 +76,19 @@ the `OQ-E-006` usability pass.
     `bool` / `?` helper boundaries, as bounded exceptions
   - complete the exhaustive pre-freeze audit and meta-analysis
   - choose a bounded-redesign-first remediation posture instead of a major rewrite
-  - defer the prepared remediation packet until one empirical benchmark supplement and revised
-    synthesis complete
+  - complete one empirical benchmark supplement and revised synthesis before reactivating
+    remediation
+  - keep `NIP-29` and `NIP-88` in the performance lane and drop standalone `NIP-06`
+    performance cleanup as a required remediation item
 
 ## Next Step
 
-1. execute `docs/plans/empirical-benchmark-supplement.md`
-2. only after that reactivate or revise
-   `docs/plans/post-exhaustive-audit-remediation-plan.md`
-3. keep RC API-freeze deferred until the remediation program and one freeze recheck complete
-4. if remediation surfaces a real compatibility or ergonomics blocker that does not belong in
+1. execute `docs/plans/post-exhaustive-audit-remediation-plan.md`
+2. keep RC API-freeze deferred until the remediation program and one freeze recheck complete
+3. if remediation surfaces a real compatibility or ergonomics blocker that does not belong in
    Layer 1, create one explicit Layer 2 adapter-boundary packet instead of widening the kernel by
    default
-5. after remediation and recheck close, decide whether the next packet is:
+4. after remediation and recheck close, decide whether the next packet is:
   - RC API-freeze, or
   - one explicit remaining blocker packet
 
@@ -135,9 +136,8 @@ the `OQ-E-006` usability pass.
       - then targeted fixes
       - then a freeze recheck
     - supplemental LLM structured usability audit is complete
-    - current benchmark supplement packet:
-      - `docs/plans/empirical-benchmark-supplement.md`
-    - prepared remediation packet remains deferred pending the supplement:
+    - empirical benchmark supplement is complete
+    - current active remediation packet:
       - `docs/plans/post-exhaustive-audit-remediation-plan.md`
 
 ## Tradeoff
@@ -174,6 +174,6 @@ the `OQ-E-006` usability pass.
 - `OQ-E-006` remains closed in docs and state routing
 - startup routing points to the current boundary-validation packet, not a completed lane
 - the boundary-validation result is explicit:
-  - a benchmark supplement or remediation packet is active, or
+  - a remediation packet is active, or
   - RC-freeze packet becomes justified after remediation and recheck
 - superseded Phase H packets are marked `reference` or moved to archive
