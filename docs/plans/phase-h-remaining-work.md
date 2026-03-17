@@ -104,8 +104,11 @@ the `OQ-E-006` usability pass.
   - does a report-only Zig-quality comparison against TigerBeetle surface any implementation,
     memory, assertion, control-flow, or safety-discipline concerns that should change `noztr`
     before freeze?
-  - current status:
-    - open as `no-z2y`
+  - current result:
+    - comparison report completed
+    - follow-up lanes opened:
+      - `no-ow4` structural Tiger-style hotspots
+      - `no-3jb` explicit-state and fixed-capacity Tiger follow-ups
 
 ## Tradeoff
 

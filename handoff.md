@@ -43,6 +43,7 @@ Current execution state for `noztr`.
   - second implemented-surface audit batch closure with typed invalid-input fixes across
     `NIP-05`, `NIP-17`, `NIP-37`, `NIP-46`, `NIP-47`, `NIP-94`, and `NIP-99`
   - report-only `libnostr-z` comparison closure with no immediate kernel correction required
+  - report-only TigerBeetle Zig-quality comparison closure with targeted follow-up tasks
 - Only expected untracked local artifact:
   - `tools/interop/rust-nostr-parity-all/target/`
 
@@ -85,8 +86,8 @@ Current execution state for `noztr`.
 - execute the SDK-informed boundary-validation packet in `docs/plans/phase-h-remaining-work.md`
 - keep the completed `libnostr-z` comparison report as reference evidence and reopen only on new
   contrary evidence
-- run the new TigerBeetle Zig-quality comparison lane as report-only evidence; do not widen kernel
-  scope or protocol policy from it by default
+- keep the completed TigerBeetle Zig-quality report as reference evidence and use `no-ow4` plus
+  `no-3jb` for the concrete follow-up work it discovered
 - if the validation finds a real non-kernel blocker, create one explicit Layer 2 adapter-boundary
   packet instead of widening the kernel by default
 - use `docs/plans/noztr-sdk-ownership-matrix.md` when a candidate touches kernel-vs-SDK scope
