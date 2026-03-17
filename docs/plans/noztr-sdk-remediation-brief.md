@@ -40,10 +40,13 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 - `no-65ev.1` has landed
 - `no-65ev.2` has landed
 - `no-65ev.3` has landed
+- `no-65ev.4` has landed
+- `no-65ev.5` has landed
 - the supplemental LLM structured usability audit is complete
 - the empirical benchmark supplement is complete
 - the external crypto/backend assurance supplement is complete
-- remediation execution is now reactivated under the revised synthesis
+- the remediation program is complete
+- the next active lane is the RC API-freeze review
 
 ## Landed Remediation Updates
 
@@ -122,7 +125,7 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
   - refresh any internal links or onboarding notes to use the new post-core contract map and the
     corrected examples routing; no code changes expected by default
 
-## Open Lane Handoff Inputs
+## Recent And Open Lane Handoff Inputs
 
 ### `no-65ev.4`
 
@@ -147,9 +150,16 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 - likely affected public symbols:
   - none by default
 - likely `nzdk` impact:
-  - none unless the freeze recheck finds one new blocker
+  - landed: no direct runtime change
+  - no new blocker was found in the freeze recheck
 - downstream document bundle after landing:
-  - freeze recheck report and current handoff/build-plan state
+  - `docs/research/post-remediation-freeze-recheck-report.md`
+  - `docs/plans/phase-h-rc-api-freeze.md`
+  - current handoff/build-plan state
+- landed notes:
+  - the post-remediation freeze recheck passed
+  - the next justified lane is the RC API-freeze review in `no-6e6p`
+  - downstream should keep using this brief plus the freeze-recheck report instead of chat history
 
 ## Remediation Lanes
 
@@ -159,7 +169,7 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 | `no-65ev.2` | `NIP-86`, `NIP-46`, `NIP-25` public helper hardening | landed: direct helper misuse now stays on typed errors; `reaction_classify_content(...)` now returns `ReactionError!ReactionType` | admin helper wrappers, remote-signing helper tests, any direct reaction helper use | landed |
 | `no-65ev.3` | examples/docs/discovery only | landed: stronger docs/example routing, no intended runtime contract change | docs/examples references only | landed |
 | `no-65ev.4` | `NIP-88`, `NIP-29` local performance cleanup; `NIP-06` only if touched indirectly by backend redesign | landed: bounded reducer-local caches, no intended happy-path API change | only if `nzdk` relies on specific complexity or ordering assumptions | landed |
-| `no-65ev.5` | freeze recheck only | no direct runtime change | none unless new blocker is found | open |
+| `no-65ev.5` | freeze recheck only | landed: no direct runtime change, no new blocker found | none by default; follow the freeze-recheck report and RC packet | landed |
 
 ## Update Rule
 

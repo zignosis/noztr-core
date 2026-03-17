@@ -46,7 +46,8 @@ Current execution state for `noztr`.
 - The second remediation lane, `no-65ev.2`, is complete.
 - The third remediation lane, `no-65ev.3`, is complete.
 - The fourth remediation lane, `no-65ev.4`, is complete.
-- The next active Phase H slice is the post-exhaustive-audit remediation program.
+- The post-remediation freeze recheck, `no-65ev.5`, is complete and passed.
+- The next active Phase H slice is the RC API-freeze review.
 - Boundary validation has already accepted:
   - public signed event-object JSON serialization
   - deterministic one-recipient `NIP-59` outbound transcript construction
@@ -84,7 +85,11 @@ Current execution state for `noztr`.
 - `docs/plans/external-crypto-backend-assurance-supplement.md`
   - completed external backend assurance reference packet
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
-  - active remediation packet after the completed audit supplements
+  - completed remediation reference packet
+- `docs/plans/phase-h-rc-api-freeze.md`
+  - active RC API-freeze review packet
+- `docs/research/post-remediation-freeze-recheck-report.md`
+  - canonical freeze-recheck decision after remediation
 - `docs/plans/noztr-sdk-remediation-brief.md`
   - structured downstream brief for `nzdk` during remediation
 - `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
@@ -111,10 +116,9 @@ Current execution state for `noztr`.
 
 ## Next Work
 
-- execute `docs/plans/post-exhaustive-audit-remediation-plan.md`
-- current remediation tracker epic and child lanes:
-  - `no-65ev`
-  - `no-65ev.5`
+- execute `docs/plans/phase-h-rc-api-freeze.md`
+- current RC API-freeze tracker lane:
+  - `no-6e6p`
 - keep the completed external crypto/backend assurance report as reference evidence and reopen it
   only on new contrary backend or provenance evidence
 - keep the completed exhaustive audit reports, matrix, and meta-analysis as reference evidence and

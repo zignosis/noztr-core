@@ -130,8 +130,10 @@ This artifact is the lean active execution baseline and is aligned to:
 - The first remediation lane, `no-65ev.1`, is complete.
 - The second remediation lane, `no-65ev.2`, is complete.
 - The third remediation lane, `no-65ev.3`, is complete.
-- Current active next slice is the post-exhaustive-audit remediation program in
-  `docs/plans/post-exhaustive-audit-remediation-plan.md`.
+- The fourth remediation lane, `no-65ev.4`, is complete.
+- The post-remediation freeze recheck, `no-65ev.5`, is complete and passed.
+- Current active next slice is the RC API-freeze review in
+  `docs/plans/phase-h-rc-api-freeze.md`.
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the
   approved pinned crypto backend policy and a narrow boundary module.
 
@@ -165,6 +167,8 @@ This artifact is the lean active execution baseline and is aligned to:
   - startup route into accepted policy
 - `docs/plans/phase-h-remaining-work.md`
   - current active Phase H packet and remaining-work routing
+- `docs/plans/phase-h-rc-api-freeze.md`
+  - current RC API-freeze review packet
 - `docs/plans/empirical-benchmark-supplement.md`
   - completed benchmark supplement reference
 - `docs/plans/external-crypto-backend-assurance-supplement.md`
@@ -172,7 +176,9 @@ This artifact is the lean active execution baseline and is aligned to:
 - `docs/plans/llm-structured-usability-audit.md`
   - supplemental LLM-first audit that must complete before remediation execution begins
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
-  - ordered remediation program after the completed audit supplements
+  - completed remediation program reference
+- `docs/research/post-remediation-freeze-recheck-report.md`
+  - canonical freeze-recheck decision after remediation
 - `docs/plans/noztr-sdk-remediation-brief.md`
   - structured downstream brief for `nzdk` during remediation
 - `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
@@ -224,11 +230,15 @@ This artifact is the lean active execution baseline and is aligned to:
   - bounded reducer-local caches now remove the repeated linear lookup pressure in `NIP-88` and
     `NIP-29` without widening the public reducer contracts
   - the empirical benchmark rerun materially lowered the named hotspots
+- `no-65ev.5` is complete:
+  - the post-remediation freeze recheck passed on a fresh green `HEAD`
+  - the next justified packet is `docs/plans/phase-h-rc-api-freeze.md`
 - current remaining known remediation work before the freeze recheck is:
-  - none beyond the freeze recheck itself
+  - none
 - the selected remediation posture is bounded redesign first, then targeted fixes, then a
   freeze-readiness recheck.
-- RC API-freeze remains deferred until the boundary-validation slice closes.
+- RC API-freeze review is now justified and active; no additional blocker packet is currently
+  required.
 - Layer 2 compatibility/ergonomic adapter work remains contingent; start it only if the
   boundary-validation pass finds a real blocker that belongs outside the kernel.
 - `UT-E-003` and `UT-E-004` remain maintenance-mode items; reopen only on new behavior-class

@@ -62,8 +62,10 @@ the `OQ-E-006` usability pass.
 - the first remediation lane, `no-65ev.1`, is complete
 - the second remediation lane, `no-65ev.2`, is complete
 - the third remediation lane, `no-65ev.3`, is complete
-- the next active Phase H slice is post-exhaustive-audit remediation
-- RC API-freeze remains deferred until this slice shows the current boundary is stable enough
+- the fourth remediation lane, `no-65ev.4`, is complete
+- the post-remediation freeze recheck `no-65ev.5` is complete
+- the next active Phase H slice is the RC API-freeze review
+- any actual RC claim remains deferred until the current RC API-freeze review closes
 - accepted sub-findings from this slice so far:
   - export public signed event-object JSON serialization from `nip01_event`
   - keep deterministic one-recipient outbound `NIP-59` transcript construction in `noztr`
@@ -98,19 +100,19 @@ the `OQ-E-006` usability pass.
     and richer downstream-brief structure
   - complete the local performance lane with bounded reducer-local caches for `NIP-88` and
     `NIP-29`, with the benchmark rerun showing materially lower local hotspot pressure
+  - pass the post-remediation freeze recheck and justify the next RC API-freeze packet
 
 ## Next Step
 
-1. execute `docs/plans/post-exhaustive-audit-remediation-plan.md`
+1. execute `docs/plans/phase-h-rc-api-freeze.md`
   - immediate next lane:
-    - `no-65ev.5`
-2. keep RC API-freeze deferred until the remediation program and one freeze recheck complete
+    - `no-6e6p`
+2. treat `docs/plans/post-exhaustive-audit-remediation-plan.md` as reference-only evidence
 3. if remediation surfaces a real compatibility or ergonomics blocker that does not belong in
    Layer 1, create one explicit Layer 2 adapter-boundary packet instead of widening the kernel by
    default
-4. after remediation and recheck close, decide whether the next packet is:
-  - RC API-freeze, or
-  - one explicit remaining blocker packet
+4. after the RC API-freeze review closes, decide whether the current surface is accepted for RC
+   or one explicit remaining blocker packet is needed
 
 ## Seam Constraints
 
@@ -159,8 +161,9 @@ the `OQ-E-006` usability pass.
     - empirical benchmark supplement is complete
     - external crypto/backend assurance supplement is complete
     - bounded backend redesign lane is complete
-    - current active remediation packet:
-      - `docs/plans/post-exhaustive-audit-remediation-plan.md`
+    - targeted hardening/docs/performance lanes are complete
+    - the freeze recheck passed and justified the RC API-freeze packet:
+      - `docs/plans/phase-h-rc-api-freeze.md`
 
 ## Tradeoff
 

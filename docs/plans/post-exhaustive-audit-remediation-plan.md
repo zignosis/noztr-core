@@ -1,7 +1,7 @@
 ---
 title: Post Exhaustive Audit Remediation Plan
 doc_type: packet
-status: active
+status: reference
 owner: noztr
 phase: phase-h
 read_when:
@@ -49,6 +49,7 @@ assurance supplement, and the revised synthesis.
 
 - the exhaustive audit program `no-ard` is complete
 - the meta-analysis `no-mja` is complete
+- the post-remediation freeze recheck `no-65ev.5` passed
 - the empirical benchmark supplement and revised synthesis are complete:
   - `no-m4o2`
   - `no-io56`
@@ -80,8 +81,8 @@ assurance supplement, and the revised synthesis.
         - `NIP-88` `32 options / 1024 responses`: `321,922 ns/op -> 98,570 ns/op`
         - `NIP-29` `1024 users snapshot replay`: `538,181 ns/op -> 110,102 ns/op`
   - `no-65ev.5`
-    - next active lane:
-      - blocked freeze recheck after the remediation lanes close
+    - complete:
+      - the freeze recheck passed and justified the next RC API-freeze packet
 - completed audit artifacts are now reference evidence:
   - `docs/plans/exhaustive-pre-freeze-audit.md`
   - `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
@@ -91,11 +92,13 @@ assurance supplement, and the revised synthesis.
   - bounded redesign first
   - then targeted fixes
   - then a freeze-readiness recheck
+- current next packet:
+  - `docs/plans/phase-h-rc-api-freeze.md`
 
 ## Next Step
 
-1. run the blocked post-remediation freeze recheck lane `no-65ev.5`
-2. then decide whether RC-freeze is honestly ready or one bounded blocker remains
+1. use this packet as reference evidence only
+2. execute the current RC API-freeze packet `docs/plans/phase-h-rc-api-freeze.md`
 
 ## Open Questions Or Targeted Findings
 
