@@ -7,7 +7,7 @@ Goal: define parity-relevant guidance from libnostr-z under noztr constraints.
 - `docs/plans/v1-scope.md`
 - `docs/research/v1-protocol-reference.md`
 - `docs/research/libnostr-z-study.md` (reference only)
-- local mirror at `/workspace/pkgs/libnostr-z`
+- local mirror at `/workspace/pkgs/nostr/libnostr-z`
 
 ## Required Work
 

@@ -64,6 +64,8 @@ the `OQ-E-006` usability pass.
   - close a second implemented-surface audit batch with typed invalid-input fixes across
     `NIP-05`, `NIP-17`, `NIP-37`, `NIP-46`, `NIP-47`, `NIP-94`, and `NIP-99`
   - backfill hostile examples on `NIP-03`, `NIP-17`, `NIP-37`, `NIP-42`, and `NIP-59`
+  - close the report-only `libnostr-z` comparison lane with no immediate kernel correction required;
+    keep `libnostr-z` as behavior evidence, not as a runtime or memory-model authority
 
 ## Next Step
 
@@ -96,6 +98,8 @@ the `OQ-E-006` usability pass.
 - `OQ-BV-003`
   - does a report-only comparison against `libnostr-z` surface any Zig, cryptography, memory,
     security, or protocol-shape concerns that should change the kernel before freeze?
+  - current result:
+    - comparison report completed with no immediate kernel change required
 
 ## Tradeoff
 

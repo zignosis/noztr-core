@@ -48,7 +48,7 @@ payload is needed for the current task.
     - commit: `9bcc6cd779a7c6eb41509b37aee4575fa5ae47b9`
   - libnostr-z
     - repo: `git@github.com:privkeyio/libnostr-z.git`
-    - local path: `/workspace/pkgs/libnostr-z`
+    - local path: `/workspace/pkgs/nostr/libnostr-z`
     - commit: `a849dc804521801971f42d71c172aa681ecdc573`
   - pin date: `2026-03-04`
 - Reference role: these sources are pinned to make analysis and parity evidence reproducible. They

@@ -6,14 +6,14 @@ Scope: H1-selected NIPs and v1 build-plan modules only.
 
 ## Source Provenance
 
-- Local mirror path: `/workspace/pkgs/libnostr-z`
+- Local mirror path: `/workspace/pkgs/nostr/libnostr-z`
 - Origin URL: `git@github.com:privkeyio/libnostr-z.git`
 - Commit hash: `a849dc804521801971f42d71c172aa681ecdc573`
 - Pin date: `2026-03-04` (frozen by `D-001`)
 - Reproducibility note:
   - Verify snapshot with:
-    - `git -C /workspace/pkgs/libnostr-z remote get-url origin`
-    - `git -C /workspace/pkgs/libnostr-z rev-parse HEAD`
+    - `git -C /workspace/pkgs/nostr/libnostr-z remote get-url origin`
+    - `git -C /workspace/pkgs/nostr/libnostr-z rev-parse HEAD`
   - Study is valid only for this pinned commit and must be re-run after any `D-001` refresh.
 
 ## Decisions
@@ -30,71 +30,71 @@ Scope: H1-selected NIPs and v1 build-plan modules only.
 
 | v1 module | Scope class | libnostr-z evidence | Coverage status | Gap and enforceable recommendation |
 | --- | --- | --- | --- | --- |
-| `nip01_event` | parity-core | `/workspace/pkgs/libnostr-z/src/event.zig`, `/workspace/pkgs/libnostr-z/src/replaceable.zig` | partial | Keep canonical id/signature/replaceable ordering behavior, but replace permissive parsing (uppercase tags, nullable expiration parse) with strict typed errors and bounded fixed-capacity event structs. |
-| `nip01_filter` | parity-core | `/workspace/pkgs/libnostr-z/src/filter.zig`, `/workspace/pkgs/libnostr-z/src/messages.zig` | partial | Preserve filter AND/OR semantics and `#x` handling, but move from heap-backed slices to fixed limits and reject invalid/malformed filter fields in strict mode. |
-| `nip01_message` | parity-core | `/workspace/pkgs/libnostr-z/src/messages.zig` | partial | Preserve message enum grammar (`EVENT/REQ/CLOSE/AUTH/COUNT/NEG-*`) and transcript serialization patterns, but enforce exact arity/type checks and eliminate parse-time allocations on hot paths. |
-| `nip42_auth` | parity-core | `/workspace/pkgs/libnostr-z/src/auth.zig` | partial | Preserve relay/challenge tag extraction and URL normalization checks, but add explicit auth-event validator (`kind=22242`, timestamp window, signature checked upstream, relay/challenge match typed failures). |
-| `nip70_protected` | parity-core | `/workspace/pkgs/libnostr-z/src/event.zig` | partial | Keep exact protected-tag detection (`["-"]` only), and add dedicated acceptance gate module bound to authenticated pubkey context; default deny when unauthenticated. |
-| `nip09_delete` | parity-core | `/workspace/pkgs/libnostr-z/src/event.zig` | gap | libnostr-z exposes only `kind=5` detection and `e` extraction; implement full author-bound delete policy for `e`/`a` coordinates and strict empty-target rejection in `nip09_delete`. |
-| `nip40_expire` | parity-core | `/workspace/pkgs/libnostr-z/src/event.zig` | partial | Preserve expiration tag presence semantics, but reject malformed `expiration` values instead of silently treating parse failure as non-expired. |
-| `nip13_pow` | parity-core | `/workspace/pkgs/libnostr-z/src/pow.zig` | partial | Preserve leading-zero-bit and nonce-tag behavior, but remove page-allocator JSON parse dependency from validator path and use strict typed nonce/target parse outcomes. |
-| `nip19_bech32` | parity-optional | `/workspace/pkgs/libnostr-z/src/bech32.zig` | partial | Preserve bech32 checksum, mixed-case rejection, and TLV decode shape, but enforce strict required/optional TLV validation for v1 entities and avoid allocator ownership in core decode path. |
-| `nip21_uri` | parity-optional | `/workspace/pkgs/libnostr-z/src/nip21.zig` | parity-ready | Keep `nostr:` scheme requirement and `nsec` rejection behavior; keep decoded-entity typing but route ownership to caller buffers in core APIs. |
-| `nip02_contacts` | parity-optional | `/workspace/pkgs/libnostr-z/src/event.zig` (kind constants only) | gap | No dedicated kind-3 contact extraction module; implement strict `p`-tag extraction and malformed-pubkey error paths in `nip02_contacts`. |
-| `nip65_relays` | parity-optional | `/workspace/pkgs/libnostr-z/src/relay_metadata.zig` | partial | Preserve kind-10002 parsing and marker semantics (`read`/`write`/empty), but reject unknown marker tokens and malformed relay URLs explicitly in strict mode. |
-| `nip44` | parity-core | `/workspace/pkgs/libnostr-z/src/crypto.zig` | partial | Preserve v2 framing/padding/range gates and decrypt check order, but reject dependency-backed cryptography and allocation-heavy payload flow; implement stdlib-only bounded NIP-44 contract in `noztr`. |
-| `nip59_wrap` | parity-core | `/workspace/pkgs/libnostr-z/src/nip59.zig` | partial | Preserve unwrap stage ordering (`wrap -> seal -> rumor`) and signature checks, but add strict rumor constraints and deterministic timestamp policy hooks without heap growth. |
-| `nip45_count` | parity-optional | `/workspace/pkgs/libnostr-z/src/messages.zig` | partial | Preserve COUNT request/response grammar, but add strict optional metadata handling (`approximate`, `hll`) and explicit malformed object errors. |
-| `nip50_search` | parity-optional | `/workspace/pkgs/libnostr-z/src/filter.zig`, `/workspace/pkgs/libnostr-z/src/utils.zig` | partial | Preserve optional `search` field carriage and token match utility, but isolate from core parser and keep extension-gated semantics only. |
-| `nip77_negentropy` | parity-optional | `/workspace/pkgs/libnostr-z/src/messages.zig`, `/workspace/pkgs/libnostr-z/src/negentropy.zig` | partial | Preserve NEG message family and item ordering (`timestamp`,`id`), but replace dynamic storage/maps with bounded static structures and strict v1 framing policy in extension module. |
-| `nip11` | parity-core | `/workspace/pkgs/libnostr-z/src/nip11.zig` | partial | Preserve partial-document acceptance and known-field extraction, but add strict known-type validation and bounded parser contracts for structured sub-objects. |
+| `nip01_event` | parity-core | `/workspace/pkgs/nostr/libnostr-z/src/event.zig`, `/workspace/pkgs/nostr/libnostr-z/src/replaceable.zig` | partial | Keep canonical id/signature/replaceable ordering behavior, but replace permissive parsing (uppercase tags, nullable expiration parse) with strict typed errors and bounded fixed-capacity event structs. |
+| `nip01_filter` | parity-core | `/workspace/pkgs/nostr/libnostr-z/src/filter.zig`, `/workspace/pkgs/nostr/libnostr-z/src/messages.zig` | partial | Preserve filter AND/OR semantics and `#x` handling, but move from heap-backed slices to fixed limits and reject invalid/malformed filter fields in strict mode. |
+| `nip01_message` | parity-core | `/workspace/pkgs/nostr/libnostr-z/src/messages.zig` | partial | Preserve message enum grammar (`EVENT/REQ/CLOSE/AUTH/COUNT/NEG-*`) and transcript serialization patterns, but enforce exact arity/type checks and eliminate parse-time allocations on hot paths. |
+| `nip42_auth` | parity-core | `/workspace/pkgs/nostr/libnostr-z/src/auth.zig` | partial | Preserve relay/challenge tag extraction and URL normalization checks, but add explicit auth-event validator (`kind=22242`, timestamp window, signature checked upstream, relay/challenge match typed failures). |
+| `nip70_protected` | parity-core | `/workspace/pkgs/nostr/libnostr-z/src/event.zig` | partial | Keep exact protected-tag detection (`["-"]` only), and add dedicated acceptance gate module bound to authenticated pubkey context; default deny when unauthenticated. |
+| `nip09_delete` | parity-core | `/workspace/pkgs/nostr/libnostr-z/src/event.zig` | gap | libnostr-z exposes only `kind=5` detection and `e` extraction; implement full author-bound delete policy for `e`/`a` coordinates and strict empty-target rejection in `nip09_delete`. |
+| `nip40_expire` | parity-core | `/workspace/pkgs/nostr/libnostr-z/src/event.zig` | partial | Preserve expiration tag presence semantics, but reject malformed `expiration` values instead of silently treating parse failure as non-expired. |
+| `nip13_pow` | parity-core | `/workspace/pkgs/nostr/libnostr-z/src/pow.zig` | partial | Preserve leading-zero-bit and nonce-tag behavior, but remove page-allocator JSON parse dependency from validator path and use strict typed nonce/target parse outcomes. |
+| `nip19_bech32` | parity-optional | `/workspace/pkgs/nostr/libnostr-z/src/bech32.zig` | partial | Preserve bech32 checksum, mixed-case rejection, and TLV decode shape, but enforce strict required/optional TLV validation for v1 entities and avoid allocator ownership in core decode path. |
+| `nip21_uri` | parity-optional | `/workspace/pkgs/nostr/libnostr-z/src/nip21.zig` | parity-ready | Keep `nostr:` scheme requirement and `nsec` rejection behavior; keep decoded-entity typing but route ownership to caller buffers in core APIs. |
+| `nip02_contacts` | parity-optional | `/workspace/pkgs/nostr/libnostr-z/src/event.zig` (kind constants only) | gap | No dedicated kind-3 contact extraction module; implement strict `p`-tag extraction and malformed-pubkey error paths in `nip02_contacts`. |
+| `nip65_relays` | parity-optional | `/workspace/pkgs/nostr/libnostr-z/src/relay_metadata.zig` | partial | Preserve kind-10002 parsing and marker semantics (`read`/`write`/empty), but reject unknown marker tokens and malformed relay URLs explicitly in strict mode. |
+| `nip44` | parity-core | `/workspace/pkgs/nostr/libnostr-z/src/crypto.zig` | partial | Preserve v2 framing/padding/range gates and decrypt check order, but reject dependency-backed cryptography and allocation-heavy payload flow; implement stdlib-only bounded NIP-44 contract in `noztr`. |
+| `nip59_wrap` | parity-core | `/workspace/pkgs/nostr/libnostr-z/src/nip59.zig` | partial | Preserve unwrap stage ordering (`wrap -> seal -> rumor`) and signature checks, but add strict rumor constraints and deterministic timestamp policy hooks without heap growth. |
+| `nip45_count` | parity-optional | `/workspace/pkgs/nostr/libnostr-z/src/messages.zig` | partial | Preserve COUNT request/response grammar, but add strict optional metadata handling (`approximate`, `hll`) and explicit malformed object errors. |
+| `nip50_search` | parity-optional | `/workspace/pkgs/nostr/libnostr-z/src/filter.zig`, `/workspace/pkgs/nostr/libnostr-z/src/utils.zig` | partial | Preserve optional `search` field carriage and token match utility, but isolate from core parser and keep extension-gated semantics only. |
+| `nip77_negentropy` | parity-optional | `/workspace/pkgs/nostr/libnostr-z/src/messages.zig`, `/workspace/pkgs/nostr/libnostr-z/src/negentropy.zig` | partial | Preserve NEG message family and item ordering (`timestamp`,`id`), but replace dynamic storage/maps with bounded static structures and strict v1 framing policy in extension module. |
+| `nip11` | parity-core | `/workspace/pkgs/nostr/libnostr-z/src/nip11.zig` | partial | Preserve partial-document acceptance and known-field extraction, but add strict known-type validation and bounded parser contracts for structured sub-objects. |
 
 ## Adopt / Adapt / Reject
 
 | Candidate | Decision | Evidence (libnostr-z source) | v1 modules impacted | Enforceable action |
 | --- | --- | --- | --- | --- |
-| Root facade + feature-oriented files | Adopt | `/workspace/pkgs/libnostr-z/src/root.zig` | all v1 modules | Keep one-file-per-feature export surface in `src/root.zig` while maintaining module-specific contracts. |
-| Replaceable tie-break (`created_at`, then lexical `id`) | Adopt | `/workspace/pkgs/libnostr-z/src/replaceable.zig` | `nip01_event` | Encode deterministic replacement helper with direct vectors for equal-timestamp branch behavior. |
-| Message grammar enums for client/relay channels | Adopt | `/workspace/pkgs/libnostr-z/src/messages.zig` | `nip01_message`, `nip45_count`, `nip77_negentropy` | Keep explicit union-style message types and exact formatter helpers for transcript parity. |
-| NIP-21 strict `nostr:` parsing with `nsec` deny | Adopt | `/workspace/pkgs/libnostr-z/src/nip21.zig` | `nip21_uri` | Keep strict scheme + secret-key rejection default and typed URI decode outcomes. |
-| NIP-65 marker model (`read`/`write`/both) | Adapt | `/workspace/pkgs/libnostr-z/src/relay_metadata.zig` | `nip65_relays` | Keep marker semantics but add strict reject for unknown marker tokens and invalid URL forms. |
-| NIP-44 algorithm order and range checks | Adapt | `/workspace/pkgs/libnostr-z/src/crypto.zig` | `nip44`, `nip59_wrap` | Preserve v2 check order and framing limits; reimplement with stdlib-only crypto and caller-owned buffers. |
-| NIP-77 reconciliation ordering/state flow | Adapt | `/workspace/pkgs/libnostr-z/src/negentropy.zig` | `nip77_negentropy` | Keep protocol ordering and mode flow while replacing dynamic lists/maps with bounded structures and explicit limits. |
-| noscrypt/OpenSSL C-backed crypto stack | Reject | `/workspace/pkgs/libnostr-z/build.zig`, `/workspace/pkgs/libnostr-z/src/crypto.zig` | `nip01_event`, `nip44`, `nip59_wrap` | Do not link C/system crypto libs; implement cryptographic boundaries with Zig stdlib only. |
-| StringZilla + C wrapper dependency path | Reject | `/workspace/pkgs/libnostr-z/build.zig`, `/workspace/pkgs/libnostr-z/build.zig.zon`, `/workspace/pkgs/libnostr-z/src/stringzilla.zig` | hashing/serialization paths | Remove external string library assumptions; use stdlib hashing/serialization primitives. |
-| Heap-first runtime collections in hot parsers | Reject | `/workspace/pkgs/libnostr-z/src/event.zig`, `/workspace/pkgs/libnostr-z/src/filter.zig`, `/workspace/pkgs/libnostr-z/src/messages.zig`, `/workspace/pkgs/libnostr-z/src/negentropy.zig` | all v1 modules | Replace `ArrayListUnmanaged`, `AutoHashMap`, ad hoc `allocator.dupe` usage in runtime parse paths with fixed-capacity caller-owned storage. |
+| Root facade + feature-oriented files | Adopt | `/workspace/pkgs/nostr/libnostr-z/src/root.zig` | all v1 modules | Keep one-file-per-feature export surface in `src/root.zig` while maintaining module-specific contracts. |
+| Replaceable tie-break (`created_at`, then lexical `id`) | Adopt | `/workspace/pkgs/nostr/libnostr-z/src/replaceable.zig` | `nip01_event` | Encode deterministic replacement helper with direct vectors for equal-timestamp branch behavior. |
+| Message grammar enums for client/relay channels | Adopt | `/workspace/pkgs/nostr/libnostr-z/src/messages.zig` | `nip01_message`, `nip45_count`, `nip77_negentropy` | Keep explicit union-style message types and exact formatter helpers for transcript parity. |
+| NIP-21 strict `nostr:` parsing with `nsec` deny | Adopt | `/workspace/pkgs/nostr/libnostr-z/src/nip21.zig` | `nip21_uri` | Keep strict scheme + secret-key rejection default and typed URI decode outcomes. |
+| NIP-65 marker model (`read`/`write`/both) | Adapt | `/workspace/pkgs/nostr/libnostr-z/src/relay_metadata.zig` | `nip65_relays` | Keep marker semantics but add strict reject for unknown marker tokens and invalid URL forms. |
+| NIP-44 algorithm order and range checks | Adapt | `/workspace/pkgs/nostr/libnostr-z/src/crypto.zig` | `nip44`, `nip59_wrap` | Preserve v2 check order and framing limits; reimplement with stdlib-only crypto and caller-owned buffers. |
+| NIP-77 reconciliation ordering/state flow | Adapt | `/workspace/pkgs/nostr/libnostr-z/src/negentropy.zig` | `nip77_negentropy` | Keep protocol ordering and mode flow while replacing dynamic lists/maps with bounded structures and explicit limits. |
+| noscrypt/OpenSSL C-backed crypto stack | Reject | `/workspace/pkgs/nostr/libnostr-z/build.zig`, `/workspace/pkgs/nostr/libnostr-z/src/crypto.zig` | `nip01_event`, `nip44`, `nip59_wrap` | Do not link C/system crypto libs; implement cryptographic boundaries with Zig stdlib only. |
+| StringZilla + C wrapper dependency path | Reject | `/workspace/pkgs/nostr/libnostr-z/build.zig`, `/workspace/pkgs/nostr/libnostr-z/build.zig.zon`, `/workspace/pkgs/nostr/libnostr-z/src/stringzilla.zig` | hashing/serialization paths | Remove external string library assumptions; use stdlib hashing/serialization primitives. |
+| Heap-first runtime collections in hot parsers | Reject | `/workspace/pkgs/nostr/libnostr-z/src/event.zig`, `/workspace/pkgs/nostr/libnostr-z/src/filter.zig`, `/workspace/pkgs/nostr/libnostr-z/src/messages.zig`, `/workspace/pkgs/nostr/libnostr-z/src/negentropy.zig` | all v1 modules | Replace `ArrayListUnmanaged`, `AutoHashMap`, ad hoc `allocator.dupe` usage in runtime parse paths with fixed-capacity caller-owned storage. |
 
 ## Edge Cases to Preserve for Parity Behavior
 
 - Replaceable/addressable ordering rule and equal-timestamp lexical tie-break must stay deterministic
-  (`/workspace/pkgs/libnostr-z/src/replaceable.zig`).
+  (`/workspace/pkgs/nostr/libnostr-z/src/replaceable.zig`).
 - Protected event tag semantics must remain exact: only tag shape `["-"]` sets protected status; extra
-  tag elements are not protected (`/workspace/pkgs/libnostr-z/src/event.zig`).
+  tag elements are not protected (`/workspace/pkgs/nostr/libnostr-z/src/event.zig`).
 - COUNT and NEG message grammar must preserve canonical wire names and payload framing behavior
-  (`/workspace/pkgs/libnostr-z/src/messages.zig`).
+  (`/workspace/pkgs/nostr/libnostr-z/src/messages.zig`).
 - NIP-21 must reject `nsec` even when scheme and checksum decode pass
-  (`/workspace/pkgs/libnostr-z/src/nip21.zig`).
+  (`/workspace/pkgs/nostr/libnostr-z/src/nip21.zig`).
 - NIP-13 committed-difficulty behavior must preserve "missing target means no commitment check"
-  semantics while still enforcing requested minimum difficulty (`/workspace/pkgs/libnostr-z/src/pow.zig`).
+  semantics while still enforcing requested minimum difficulty (`/workspace/pkgs/nostr/libnostr-z/src/pow.zig`).
 - NIP-44 decrypt gate ordering must stay strict: payload length checks, version check, MAC validation,
-  decrypt, then padding validation (`/workspace/pkgs/libnostr-z/src/crypto.zig`).
+  decrypt, then padding validation (`/workspace/pkgs/nostr/libnostr-z/src/crypto.zig`).
 - NIP-77 item ordering must stay timestamp-ascending, id-lexical for equal timestamps
-  (`/workspace/pkgs/libnostr-z/src/negentropy.zig`).
+  (`/workspace/pkgs/nostr/libnostr-z/src/negentropy.zig`).
 
 ## Rejected Dependency and Runtime Assumptions
 
 - External dependency graph is incompatible with `noztr` defaults:
-  - `noscrypt` dependency and C header imports (`/workspace/pkgs/libnostr-z/build.zig`,
-    `/workspace/pkgs/libnostr-z/src/crypto.zig`).
-  - `stringzilla` dependency and C wrapper build (`/workspace/pkgs/libnostr-z/build.zig`,
-    `/workspace/pkgs/libnostr-z/build.zig.zon`).
-  - OpenSSL system link requirements (`ssl`, `crypto`) (`/workspace/pkgs/libnostr-z/build.zig`).
+  - `noscrypt` dependency and C header imports (`/workspace/pkgs/nostr/libnostr-z/build.zig`,
+    `/workspace/pkgs/nostr/libnostr-z/src/crypto.zig`).
+  - `stringzilla` dependency and C wrapper build (`/workspace/pkgs/nostr/libnostr-z/build.zig`,
+    `/workspace/pkgs/nostr/libnostr-z/build.zig.zon`).
+  - OpenSSL system link requirements (`ssl`, `crypto`) (`/workspace/pkgs/nostr/libnostr-z/build.zig`).
 - Runtime assumptions rejected for v1 kernel:
-  - page allocator defaults in parse paths (`/workspace/pkgs/libnostr-z/src/event.zig`,
-    `/workspace/pkgs/libnostr-z/src/pow.zig`).
-  - unbounded/dynamic collection growth in core protocol paths (`/workspace/pkgs/libnostr-z/src/filter.zig`,
-    `/workspace/pkgs/libnostr-z/src/messages.zig`, `/workspace/pkgs/libnostr-z/src/negentropy.zig`).
-  - global mutable crypto context lifecycle (`/workspace/pkgs/libnostr-z/src/crypto.zig`) as a
+  - page allocator defaults in parse paths (`/workspace/pkgs/nostr/libnostr-z/src/event.zig`,
+    `/workspace/pkgs/nostr/libnostr-z/src/pow.zig`).
+  - unbounded/dynamic collection growth in core protocol paths (`/workspace/pkgs/nostr/libnostr-z/src/filter.zig`,
+    `/workspace/pkgs/nostr/libnostr-z/src/messages.zig`, `/workspace/pkgs/nostr/libnostr-z/src/negentropy.zig`).
+  - global mutable crypto context lifecycle (`/workspace/pkgs/nostr/libnostr-z/src/crypto.zig`) as a
     mandatory runtime dependency for all event verify/sign operations.
 
 ## Ambiguity Checkpoint

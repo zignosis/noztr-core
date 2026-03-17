@@ -17,7 +17,7 @@ Change requires a new entry in `docs/plans/decision-log.md`.
     - upstream: `git@github.com:rust-nostr/nostr.git`
     - commit: `9bcc6cd779a7c6eb41509b37aee4575fa5ae47b9`
   - libnostr-z
-    - local: `/workspace/pkgs/libnostr-z`
+    - local: `/workspace/pkgs/nostr/libnostr-z`
     - upstream: `git@github.com:privkeyio/libnostr-z.git`
     - commit: `a849dc804521801971f42d71c172aa681ecdc573`
   - pin date: `2026-03-04`
