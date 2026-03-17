@@ -100,6 +100,12 @@ the `OQ-E-006` usability pass.
     security, or protocol-shape concerns that should change the kernel before freeze?
   - current result:
     - comparison report completed with no immediate kernel change required
+- `OQ-BV-004`
+  - does a report-only Zig-quality comparison against TigerBeetle surface any implementation,
+    memory, assertion, control-flow, or safety-discipline concerns that should change `noztr`
+    before freeze?
+  - current status:
+    - open as `no-z2y`
 
 ## Tradeoff
 
@@ -108,6 +114,7 @@ the `OQ-E-006` usability pass.
     - lets SDK-facing evidence inform the kernel boundary before release-facing claims harden
   - cost:
     - RC-freeze work happens one step later, after the validation slice
+    - extra report-only quality lanes may extend Phase H while evidence is still being gathered
 
 ## Sync Touchpoints
 

@@ -164,6 +164,8 @@ This artifact is the lean active execution baseline and is aligned to:
 - execute the SDK-informed boundary-validation packet and make the result explicit.
 - keep the completed `libnostr-z` comparison report as reference evidence; reopen only if later
   SDK or RC-freeze work surfaces a concrete contrary finding.
+- keep the TigerBeetle Zig-quality comparison lane report-only; use it to challenge Zig usage and
+  engineering discipline without treating TigerBeetle as protocol authority.
 - RC API-freeze remains deferred until the boundary-validation slice closes.
 - Layer 2 compatibility/ergonomic adapter work remains contingent; start it only if the
   boundary-validation pass finds a real blocker that belongs outside the kernel.

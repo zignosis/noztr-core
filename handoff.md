@@ -85,6 +85,8 @@ Current execution state for `noztr`.
 - execute the SDK-informed boundary-validation packet in `docs/plans/phase-h-remaining-work.md`
 - keep the completed `libnostr-z` comparison report as reference evidence and reopen only on new
   contrary evidence
+- run the new TigerBeetle Zig-quality comparison lane as report-only evidence; do not widen kernel
+  scope or protocol policy from it by default
 - if the validation finds a real non-kernel blocker, create one explicit Layer 2 adapter-boundary
   packet instead of widening the kernel by default
 - use `docs/plans/noztr-sdk-ownership-matrix.md` when a candidate touches kernel-vs-SDK scope
