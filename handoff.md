@@ -13,6 +13,7 @@ depends_on:
   - docs/plans/build-plan.md
   - docs/plans/decision-index.md
   - docs/plans/phase-h-remaining-work.md
+  - docs/plans/post-audit-improvement-plan.md
 canonical: true
 ---
 
@@ -27,6 +28,7 @@ Current execution state for `noztr`.
 - `docs/plans/build-plan.md`
 - `docs/plans/decision-index.md`
 - `docs/plans/phase-h-remaining-work.md`
+- `docs/plans/post-audit-improvement-plan.md`
 
 ## Current Status
 
@@ -59,6 +61,8 @@ Current execution state for `noztr`.
   - startup route into accepted policy
 - `docs/plans/phase-h-remaining-work.md`
   - current active Phase H packet
+- `docs/plans/post-audit-improvement-plan.md`
+  - ordered execution plan for the completed audit follow-ups
 - `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
   - staged implementation and review gate for any new slice
 
@@ -84,10 +88,11 @@ Current execution state for `noztr`.
 ## Next Work
 
 - execute the SDK-informed boundary-validation packet in `docs/plans/phase-h-remaining-work.md`
-- keep the completed `libnostr-z` comparison report as reference evidence and reopen only on new
-  contrary evidence
-- keep the completed TigerBeetle Zig-quality report as reference evidence and use `no-ow4` plus
-  `no-3jb` for the concrete follow-up work it discovered
+- execute `docs/plans/post-audit-improvement-plan.md` in order:
+  - `no-ow4`
+  - `no-3jb`
+- keep the completed audit reports as reference evidence and reopen them only on new contrary
+  evidence
 - if the validation finds a real non-kernel blocker, create one explicit Layer 2 adapter-boundary
   packet instead of widening the kernel by default
 - use `docs/plans/noztr-sdk-ownership-matrix.md` when a candidate touches kernel-vs-SDK scope

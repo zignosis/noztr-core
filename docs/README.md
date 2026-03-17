@@ -31,6 +31,8 @@ These docs control active work and should stay lean.
   - repo-specific process refinement rules for keeping the control surface lean
 - `docs/plans/phase-h-remaining-work.md`
   - current active Phase H packet and next remaining work
+- `docs/plans/post-audit-improvement-plan.md`
+  - ordered execution plan for the completed `libnostr-z` and TigerBeetle audit follow-ups
 - `docs/plans/docs-surface-audit.md`
   - stable-ID audit of doc bloat, repetition, and control-surface drift
 
@@ -68,6 +70,7 @@ These are active references, not startup defaults.
 - `docs/plans/decision-log.md`
 - `docs/plans/noztr-sdk-ownership-matrix.md`
 - `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
+- `docs/plans/post-audit-improvement-plan.md`
 - `docs/plans/implemented-nip-review-guide.md`
 - `docs/plans/nostr-principles.md`
 - `docs/plans/implemented-nip-audit-report.md`

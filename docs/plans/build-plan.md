@@ -166,8 +166,10 @@ This artifact is the lean active execution baseline and is aligned to:
   SDK or RC-freeze work surfaces a concrete contrary finding.
 - keep the TigerBeetle Zig-quality comparison lane report-only; use it to challenge Zig usage and
   engineering discipline without treating TigerBeetle as protocol authority.
+- execute `docs/plans/post-audit-improvement-plan.md` as the ordered response to the completed
+  `libnostr-z` and TigerBeetle audits.
 - keep the completed TigerBeetle Zig-quality report as reference evidence; the current concrete
-  follow-up lanes are `no-ow4` and `no-3jb`.
+  follow-up lanes remain `no-ow4` and `no-3jb`.
 - RC API-freeze remains deferred until the boundary-validation slice closes.
 - Layer 2 compatibility/ergonomic adapter work remains contingent; start it only if the
   boundary-validation pass finds a real blocker that belongs outside the kernel.

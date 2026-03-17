@@ -11,6 +11,7 @@ depends_on:
   - docs/plans/build-plan.md
   - docs/guides/IMPLEMENTATION_QUALITY_GATE.md
   - docs/plans/llm-usability-pass.md
+  - docs/plans/post-audit-improvement-plan.md
 sync_touchpoints:
   - handoff.md
   - docs/README.md
@@ -71,10 +72,13 @@ the `OQ-E-006` usability pass.
 
 1. execute the SDK-informed boundary-validation slice through
    `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
-2. if the validation finds a real compatibility or ergonomics blocker that does not belong in
+2. execute `docs/plans/post-audit-improvement-plan.md` in order:
+   - `no-ow4`
+   - `no-3jb`
+3. if the validation finds a real compatibility or ergonomics blocker that does not belong in
    Layer 1, create one explicit Layer 2 adapter-boundary packet instead of widening the kernel by
    default
-3. after the validation closes, decide whether the next packet is:
+4. after the validation closes, decide whether the next packet is:
    - RC API-freeze, or
    - one bounded adapter-boundary packet
 
@@ -106,7 +110,8 @@ the `OQ-E-006` usability pass.
     before freeze?
   - current result:
     - comparison report completed
-    - follow-up lanes opened:
+    - active follow-up execution is sequenced in `docs/plans/post-audit-improvement-plan.md`
+    - concrete lanes:
       - `no-ow4` structural Tiger-style hotspots
       - `no-3jb` explicit-state and fixed-capacity Tiger follow-ups
 

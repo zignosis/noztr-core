@@ -68,6 +68,7 @@ plan_docs=(
     "docs/guides/IMPLEMENTATION_QUALITY_GATE.md"
     "docs/plans/noztr-sdk-ownership-matrix.md"
     "docs/plans/phase-h-remaining-work.md"
+    "docs/plans/post-audit-improvement-plan.md"
     "handoff.md"
 )
 
@@ -140,6 +141,7 @@ printf -- '- `docs/README.md`\n'
 printf -- '- `docs/plans/build-plan.md`\n'
 printf -- '- `docs/plans/decision-index.md`\n'
 printf -- '- `docs/plans/phase-h-remaining-work.md`\n'
+printf -- '- `docs/plans/post-audit-improvement-plan.md`\n'
 printf "\n"
 
 printf "## Load On Demand\n\n"
@@ -147,6 +149,7 @@ printf -- '- `docs/guides/IMPLEMENTATION_QUALITY_GATE.md` when starting or closi
 printf -- '- `docs/guides/TIGER_STYLE.md` and `docs/guides/NOZTR_STYLE.md` for Zig implementation or API work\n'
 printf -- '- `docs/guides/zig-patterns.md` and `docs/guides/zig-anti-patterns.md` for Zig implementation or review\n'
 printf -- '- Current Phase H remaining-work packet: `docs/plans/phase-h-remaining-work.md`\n'
+printf -- '- Current post-audit execution plan: `docs/plans/post-audit-improvement-plan.md`\n'
 printf -- '- Completed Phase H packets for traceability: `docs/plans/phase-h-kickoff.md`, `docs/plans/phase-h-additional-nips-plan.md`, `docs/plans/phase-h-wave1-loop.md`\n'
 printf -- '- `docs/plans/packet-template.md` when creating or repairing packet docs\n'
 printf -- '- `docs/plans/decision-log.md` when a task cites a specific decision ID or changes policy defaults\n'
