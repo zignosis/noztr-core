@@ -31,8 +31,10 @@ These docs control active work and should stay lean.
   - repo-specific process refinement rules for keeping the control surface lean
 - `docs/plans/phase-h-remaining-work.md`
   - current active Phase H packet and next remaining work
+- `docs/plans/empirical-benchmark-supplement.md`
+  - current active benchmark supplement packet before remediation execution
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
-  - current active remediation packet after the completed exhaustive audit
+  - prepared remediation packet deferred pending the benchmark supplement
 - `docs/plans/noztr-sdk-remediation-brief.md`
   - structured downstream brief for `nzdk` during remediation
 - `docs/plans/docs-surface-audit.md`
@@ -70,6 +72,10 @@ These docs control active work and should stay lean.
   - `docs/plans/exhaustive-pre-freeze-audit.md`
   - `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
   - `docs/plans/audit-angle-standards.md`
+- Reviewing the benchmark supplement:
+  - `docs/plans/empirical-benchmark-supplement.md`
+  - `docs/research/exhaustive-audit-angle-7-performance-memory-report.md`
+  - `docs/research/exhaustive-audit-meta-analysis-report.md`
 
 ## Reference Docs
 
@@ -85,6 +91,7 @@ These are active references, not startup defaults.
 - `docs/plans/audit-meta-analysis-template.md`
 - `docs/plans/post-audit-improvement-plan.md`
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
+- `docs/plans/empirical-benchmark-supplement.md`
 - `docs/plans/llm-structured-usability-audit.md`
 - `docs/plans/noztr-sdk-remediation-brief.md`
 - `docs/research/llm-structured-usability-audit-report.md`
@@ -108,6 +115,7 @@ These are active references, not startup defaults.
 These are lane- or phase-specific packets. They should be read only when that lane is active.
 
 - `docs/plans/phase-h-remaining-work.md`
+- `docs/plans/empirical-benchmark-supplement.md`
 - `docs/plans/prompts/`
 
 ## Archive

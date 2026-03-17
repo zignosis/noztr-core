@@ -1,7 +1,7 @@
 ---
 title: Post Exhaustive Audit Remediation Plan
 doc_type: packet
-status: active
+status: reference
 owner: noztr
 phase: phase-h
 read_when:
@@ -22,14 +22,16 @@ canonical: true
 
 # Post-Exhaustive Audit Remediation Plan
 
-Current remediation packet after completion of the exhaustive pre-freeze audit, the LLM
-structured-usability supplement, and the revised synthesis.
+Prepared remediation packet after completion of the exhaustive pre-freeze audit, the LLM
+structured-usability supplement, and the revised synthesis. This packet is currently deferred
+pending the empirical benchmark supplement.
 
 ## Purpose
 
 - execute the remediation program chosen by the completed exhaustive audit and revised synthesis
 - keep remediation ordered and explicit instead of scattering fixes ad hoc
 - block RC-freeze claims until the redesign/fix lanes and the follow-up freeze recheck complete
+- keep remediation deferred until the benchmark supplement and revised synthesis finish
 
 ## Scope Delta
 
@@ -40,6 +42,7 @@ structured-usability supplement, and the revised synthesis.
   - targeted performance hotspot cleanup
   - one post-remediation freeze-readiness recheck
 - out of scope:
+  - executing remediation before the empirical benchmark supplement closes
   - major rewrite unless remediation uncovers evidence materially stronger than the completed audit
   - RC-freeze by default before the remediation program and recheck close
   - widening the kernel into SDK workflow or transport/runtime layers
@@ -48,6 +51,9 @@ structured-usability supplement, and the revised synthesis.
 
 - the exhaustive audit program `no-ard` is complete
 - the meta-analysis `no-mja` is complete
+- the empirical benchmark supplement is now required before this packet becomes active:
+  - `no-m4o2`
+  - `no-io56`
 - remediation tracker epic:
   - `no-65ev`
 - current child lanes:
@@ -70,13 +76,17 @@ structured-usability supplement, and the revised synthesis.
   - bounded redesign first
   - then targeted fixes
   - then a freeze-readiness recheck
+- current state:
+  - prepared but deferred pending the benchmark supplement and revised synthesis
 
 ## Next Step
 
-1. execute the bounded backend redesign lane first
-2. then execute the targeted hardening, docs, and performance lanes
-3. then run the blocked post-remediation freeze recheck lane
-4. only after that decide whether RC-freeze work is honestly ready
+1. complete `docs/plans/empirical-benchmark-supplement.md`
+2. revise the synthesis using the benchmark evidence
+3. only then execute the bounded backend redesign lane first
+4. then execute the targeted hardening, docs, and performance lanes
+5. then run the blocked post-remediation freeze recheck lane
+6. only after that decide whether RC-freeze work is honestly ready
 
 ## Open Questions Or Targeted Findings
 
@@ -102,15 +112,20 @@ structured-usability supplement, and the revised synthesis.
 - active baseline and state:
   - `docs/plans/build-plan.md`
   - `docs/plans/phase-h-remaining-work.md`
+- active supplement routing:
+  - `docs/plans/empirical-benchmark-supplement.md`
 - audit references:
   - `docs/research/exhaustive-audit-meta-analysis-report.md`
   - `docs/plans/exhaustive-pre-freeze-audit.md`
 
 ## Closeout Conditions
 
-- the bounded redesign lane is complete or explicitly split with evidence
-- targeted hardening/docs/performance lanes are complete
-- one post-remediation freeze recheck is complete
-- the repo can either:
-  - open an RC-freeze packet honestly, or
-  - name one explicit remaining blocker packet
+- the benchmark supplement and revised synthesis are complete
+- remediation is reactivated or revised explicitly
+- later, after remediation runs:
+  - the bounded redesign lane is complete or explicitly split with evidence
+  - targeted hardening/docs/performance lanes are complete
+  - one post-remediation freeze recheck is complete
+  - the repo can either:
+    - open an RC-freeze packet honestly, or
+    - name one explicit remaining blocker packet

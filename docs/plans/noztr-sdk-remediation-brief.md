@@ -30,7 +30,8 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 
 - no remediation fixes have landed yet
 - the supplemental LLM structured usability audit is complete
-- remediation execution is now allowed to begin under the revised synthesis
+- the empirical benchmark supplement is now active
+- remediation execution is deferred pending the benchmark supplement and revised synthesis
 
 ## Remediation Lanes
 

@@ -51,7 +51,8 @@ Completed supplemental Phase H packet that ran before the remediation program be
 ## Current Status
 
 - the nine-angle exhaustive audit and its meta-analysis are complete
-- the remediation program is prepared but deferred:
+- the remediation program is prepared
+- remediation is now deferred again pending the empirical benchmark supplement:
   - `no-65ev`
   - `no-65ev.1`
   - `no-65ev.2`
@@ -67,7 +68,8 @@ Completed supplemental Phase H packet that ran before the remediation program be
 ## Next Step
 
 1. keep the supplemental report as reference evidence
-2. execute the active remediation program in
+2. complete `docs/plans/empirical-benchmark-supplement.md`
+3. only then reactivate or revise
    `docs/plans/post-exhaustive-audit-remediation-plan.md`
 
 ## Open Questions Or Targeted Findings
@@ -103,4 +105,5 @@ Completed supplemental Phase H packet that ran before the remediation program be
 
 - `no-ad91` produced a dedicated report
 - `no-kbwf` revised the meta-analysis and active routing honestly
-- remediation is now allowed to begin under the revised synthesis
+- remediation was prepared under the revised synthesis and is now deferred again pending the
+  empirical benchmark supplement

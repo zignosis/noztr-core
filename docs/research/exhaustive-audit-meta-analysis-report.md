@@ -20,6 +20,9 @@ canonical: true
 - issue: `no-mja`
 - packet: `no-ard`
 - author: Codex
+- current-note:
+  - this is the pre-benchmark synthesis
+  - `no-io56` must revise it after `docs/plans/empirical-benchmark-supplement.md` completes
 
 ## Inputs
 
