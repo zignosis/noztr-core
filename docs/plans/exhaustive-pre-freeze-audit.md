@@ -127,13 +127,14 @@ Why this order:
   - protocol correctness: `docs/research/exhaustive-audit-angle-1-protocol-correctness-report.md`
   - ecosystem parity / interoperability:
     `docs/research/exhaustive-audit-angle-2-parity-interoperability-report.md`
+  - security / misuse resistance:
+    `docs/research/exhaustive-audit-angle-3-security-misuse-report.md`
 - completed in prior targeted lanes:
   - `libnostr-z` report-only comparison
   - TigerBeetle Zig-quality report-only comparison
   - structural hotspot follow-up
   - explicit-state and fixed-capacity follow-up
 - still required for this exhaustive pass:
-  - explicit security and misuse-resistance review lane output
   - explicit cryptographic-correctness review lane output
   - explicit performance-focused review
   - explicit crypto/backend-wrapper review
@@ -207,6 +208,7 @@ Rewrite-pressure interpretation:
 
 - none from angle 1 protocol correctness
 - none from angle 2 parity / interoperability
+- none from angle 3 security / misuse resistance
 
 ### Accepted Exceptions Ledger
 
@@ -227,6 +229,12 @@ Rewrite-pressure interpretation:
   - reversal trigger:
     - ecosystem or SDK integration evidence showing real incompatibility on a currently weak-evidence
       surface
+- security / misuse resistance
+  - accepted reuse of the hardening register and the canonical implemented-NIP audit artifact for
+    some later leaf-module hostile-input evidence
+  - reversal trigger:
+    - any newly discovered public invalid-input path that still depends on debug assertions or
+      misclassifies invalid input as capacity failure
 
 ### Open Blockers
 
@@ -238,8 +246,8 @@ Rewrite-pressure interpretation:
 
 ## Next Step
 
-1. close `no-f2u` with the parity/interoperability report and matrix updates
-2. execute security / misuse resistance as `no-odj`
+1. close `no-odj` with the security / misuse report and matrix updates
+2. execute cryptographic correctness / secret handling as `no-dwu`
 3. keep `docs/plans/exhaustive-pre-freeze-audit-matrix.md` current as the hard coverage ledger
 4. write each remaining angle report against `docs/plans/audit-angle-report-template.md`
 5. record findings in this draft instead of fixing them
