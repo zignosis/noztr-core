@@ -135,13 +135,14 @@ Why this order:
     `docs/research/exhaustive-audit-angle-5-crypto-backend-wrapper-report.md`
   - Zig engineering quality:
     `docs/research/exhaustive-audit-angle-6-zig-engineering-report.md`
+  - performance / memory posture:
+    `docs/research/exhaustive-audit-angle-7-performance-memory-report.md`
 - completed in prior targeted lanes:
   - `libnostr-z` report-only comparison
   - TigerBeetle Zig-quality report-only comparison
   - structural hotspot follow-up
   - explicit-state and fixed-capacity follow-up
 - still required for this exhaustive pass:
-  - explicit performance-focused review
   - explicit API consistency / determinism review
   - explicit docs/examples/discoverability review
   - explicit final residual-risk and blocker summary
@@ -226,11 +227,15 @@ Rewrite-pressure interpretation:
   - the `libwally` boundary is still fragmented across `NIP-06` and `BIP-85`, and
     `bip85_derivation.ensure_backend()` bootstraps readiness indirectly through
     `nip06_mnemonic.mnemonic_validate(...)`
+  - `NIP-88` tally reduction still uses quadratic lookup on the main aggregation path
+  - `NIP-29` group reducers still rebuild user state with repeated linear membership lookup
 - low
   - `NIP-25` exposes a misuse-prone public classifier that asserts UTF-8 instead of handling direct
     malformed input safely
   - `secp256k1_backend` still carries mutable verify-counter helpers in the production wrapper
     module
+  - `NIP-06` still pays repeated full-string passes and linear wordlist scans before backend
+    validation
 
 ### Accepted Exceptions Ledger
 
@@ -286,6 +291,15 @@ Rewrite-pressure interpretation:
   - reversal trigger:
     - any later docs/control-surface review concluding the current rule wording is materially
       misleading
+- performance / memory posture
+  - accepted scratch-backed shared JSON ingress, borrowed-slice `NIP-47` parsing, borrowed
+    `NIP-21` references, and fixed-scratch `NIP-49` derivation as defensible bounded costs
+  - reversal trigger:
+    - benchmark or consumer evidence showing those accepted costs are materially too expensive
+  - accepted the current `NIP-27` scratch-to-capacity tradeoff as non-blocking absent consumer
+    evidence
+  - reversal trigger:
+    - any measured workload or caller feedback showing that tradeoff is materially harmful
 
 ### Open Blockers
 
@@ -305,8 +319,8 @@ Rewrite-pressure interpretation:
 
 ## Next Step
 
-1. close `no-5a7o` with the Zig engineering report and matrix updates
-2. execute performance / memory posture as `no-jacg`
+1. close `no-jacg` with the performance / memory report and matrix updates
+2. execute API consistency / determinism as `no-ohgb`
 3. keep `docs/plans/exhaustive-pre-freeze-audit-matrix.md` current as the hard coverage ledger
 4. write each remaining angle report against `docs/plans/audit-angle-report-template.md`
 5. record findings in this draft instead of fixing them
