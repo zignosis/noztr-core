@@ -124,9 +124,9 @@ This artifact is the lean active execution baseline and is aligned to:
 - `docs/plans/post-kernel-requested-nips-loop.md` now remains as reference evidence for the loop
   order, closure rules, and split-surface scope calls rather than as an active execution packet.
 - The exhaustive pre-freeze audit and its meta-analysis are complete.
-- Current active next slice is the supplemental LLM structured usability audit in
-  `docs/plans/llm-structured-usability-audit.md`.
-- The prepared remediation program remains deferred pending that supplement and revised synthesis.
+- The supplemental LLM structured usability audit is complete.
+- Current active next slice is the post-exhaustive-audit remediation program in
+  `docs/plans/post-exhaustive-audit-remediation-plan.md`.
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the
   approved pinned crypto backend policy and a narrow boundary module.
 
@@ -136,8 +136,6 @@ This artifact is the lean active execution baseline and is aligned to:
   `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`.
 - For active Phase H remaining work and next-slice selection, use
   `docs/plans/phase-h-remaining-work.md`.
-- Before remediation begins, execute the supplemental LLM structured usability audit in
-  `docs/plans/llm-structured-usability-audit.md`.
 - For the current remediation sequence after the completed exhaustive audit, use
   `docs/plans/post-exhaustive-audit-remediation-plan.md`.
 - The completed requested-NIP loop remains reference-only in
@@ -190,8 +188,10 @@ This artifact is the lean active execution baseline and is aligned to:
   execution packets.
 - the exhaustive pre-freeze audit is complete and now remains as reference evidence for the chosen
   remediation posture.
-- before remediation begins, run one supplemental LLM-first audit focused on structured docs,
-  structured examples, contract-layer discoverability, and downstream agent usability.
+- the supplemental LLM-first audit is complete and tightened the docs/examples remediation scope:
+  - add one current structured post-core contract map
+  - add stronger symbol-level routing in the examples index
+  - enrich the `nzdk` remediation brief
 - current remaining freeze blockers are:
   - public helper assertion leaks in `NIP-86` and `NIP-46`
   - backend-outage misclassification in `NIP-44` and `NIP-26`

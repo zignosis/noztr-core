@@ -29,9 +29,8 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 ## Current State
 
 - no remediation fixes have landed yet
-- remediation execution is currently deferred pending:
-  - `no-ad91`
-  - `no-kbwf`
+- the supplemental LLM structured usability audit is complete
+- remediation execution is now allowed to begin under the revised synthesis
 
 ## Remediation Lanes
 

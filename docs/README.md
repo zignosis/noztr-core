@@ -31,10 +31,8 @@ These docs control active work and should stay lean.
   - repo-specific process refinement rules for keeping the control surface lean
 - `docs/plans/phase-h-remaining-work.md`
   - current active Phase H packet and next remaining work
-- `docs/plans/llm-structured-usability-audit.md`
-  - current supplemental audit packet before remediation begins
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
-  - prepared remediation packet after the completed exhaustive audit
+  - current active remediation packet after the completed exhaustive audit
 - `docs/plans/noztr-sdk-remediation-brief.md`
   - structured downstream brief for `nzdk` during remediation
 - `docs/plans/docs-surface-audit.md`
@@ -68,6 +66,7 @@ These docs control active work and should stay lean.
   - `docs/plans/noztr-sdk-ownership-matrix.md`
 - Reviewing the completed exhaustive audit:
   - `docs/research/exhaustive-audit-meta-analysis-report.md`
+  - `docs/research/llm-structured-usability-audit-report.md`
   - `docs/plans/exhaustive-pre-freeze-audit.md`
   - `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
   - `docs/plans/audit-angle-standards.md`
@@ -88,6 +87,7 @@ These are active references, not startup defaults.
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
 - `docs/plans/llm-structured-usability-audit.md`
 - `docs/plans/noztr-sdk-remediation-brief.md`
+- `docs/research/llm-structured-usability-audit-report.md`
 - `docs/plans/implemented-nip-review-guide.md`
 - `docs/plans/nostr-principles.md`
 - `docs/plans/implemented-nip-audit-report.md`
@@ -108,7 +108,6 @@ These are active references, not startup defaults.
 These are lane- or phase-specific packets. They should be read only when that lane is active.
 
 - `docs/plans/phase-h-remaining-work.md`
-- `docs/plans/llm-structured-usability-audit.md`
 - `docs/plans/prompts/`
 
 ## Archive

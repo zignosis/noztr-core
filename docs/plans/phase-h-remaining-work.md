@@ -11,7 +11,7 @@ depends_on:
   - docs/plans/build-plan.md
   - docs/guides/IMPLEMENTATION_QUALITY_GATE.md
   - docs/plans/llm-usability-pass.md
-  - docs/plans/llm-structured-usability-audit.md
+  - docs/plans/post-exhaustive-audit-remediation-plan.md
 sync_touchpoints:
   - handoff.md
   - docs/README.md
@@ -56,7 +56,7 @@ the `OQ-E-006` usability pass.
 - Phase H remains active
 - the requested-NIP loop is complete through `NIP-B7`
 - `OQ-E-006` is closed
-- the next active Phase H slice is the LLM structured usability audit supplement
+- the next active Phase H slice is post-exhaustive-audit remediation
 - RC API-freeze remains deferred until this slice shows the current boundary is stable enough
 - accepted sub-findings from this slice so far:
   - export public signed event-object JSON serialization from `nip01_event`
@@ -77,14 +77,12 @@ the `OQ-E-006` usability pass.
 
 ## Next Step
 
-1. execute `docs/plans/llm-structured-usability-audit.md`
-2. revise the meta-analysis after that supplement closes
-3. only then execute `docs/plans/post-exhaustive-audit-remediation-plan.md`
-4. keep RC API-freeze deferred until the remediation program and one freeze recheck complete
-5. if remediation surfaces a real compatibility or ergonomics blocker that does not belong in
+1. execute `docs/plans/post-exhaustive-audit-remediation-plan.md`
+2. keep RC API-freeze deferred until the remediation program and one freeze recheck complete
+3. if remediation surfaces a real compatibility or ergonomics blocker that does not belong in
    Layer 1, create one explicit Layer 2 adapter-boundary packet instead of widening the kernel by
    default
-6. after remediation and recheck close, decide whether the next packet is:
+4. after remediation and recheck close, decide whether the next packet is:
    - RC API-freeze, or
    - one explicit remaining blocker packet
 
@@ -131,10 +129,7 @@ the `OQ-E-006` usability pass.
       - bounded redesign first
       - then targeted fixes
       - then a freeze recheck
-    - immediate next step before remediation:
-      - one supplemental LLM ease-of-use audit and revised synthesis
-      - `no-ad91`
-      - `no-kbwf`
+    - supplemental LLM structured usability audit is complete
     - current active remediation packet:
       - `docs/plans/post-exhaustive-audit-remediation-plan.md`
 

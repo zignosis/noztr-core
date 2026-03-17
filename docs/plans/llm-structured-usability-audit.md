@@ -1,7 +1,7 @@
 ---
 title: LLM Structured Usability Audit Supplement
 doc_type: packet
-status: active
+status: reference
 owner: noztr
 phase: phase-h
 read_when:
@@ -25,7 +25,7 @@ canonical: true
 
 # LLM Structured Usability Audit Supplement
 
-Current active Phase H packet before the prepared remediation program begins.
+Completed supplemental Phase H packet that ran before the remediation program begins.
 
 ## Purpose
 
@@ -58,7 +58,7 @@ Current active Phase H packet before the prepared remediation program begins.
   - `no-65ev.3`
   - `no-65ev.4`
   - `no-65ev.5`
-- current active supplement lanes:
+- completed supplement lanes:
   - `no-ad91`
     - audit LLM ease of use and structured teaching surface
   - `no-kbwf`
@@ -66,9 +66,9 @@ Current active Phase H packet before the prepared remediation program begins.
 
 ## Next Step
 
-1. execute `no-ad91` and produce a dedicated report
-2. execute `no-kbwf` and revise the meta-analysis plus active routing
-3. only then begin the deferred remediation program
+1. keep the supplemental report as reference evidence
+2. execute the active remediation program in
+   `docs/plans/post-exhaustive-audit-remediation-plan.md`
 
 ## Open Questions Or Targeted Findings
 
@@ -101,6 +101,6 @@ Current active Phase H packet before the prepared remediation program begins.
 
 ## Closeout Conditions
 
-- `no-ad91` produces a dedicated report
-- `no-kbwf` revises the meta-analysis and active routing honestly
-- remediation remains deferred until that revised synthesis is complete
+- `no-ad91` produced a dedicated report
+- `no-kbwf` revised the meta-analysis and active routing honestly
+- remediation is now allowed to begin under the revised synthesis

@@ -33,6 +33,7 @@ canonical: true
   - `docs/research/exhaustive-audit-angle-7-performance-memory-report.md`
   - `docs/research/exhaustive-audit-angle-8-api-consistency-report.md`
   - `docs/research/exhaustive-audit-angle-9-docs-discoverability-report.md`
+  - `docs/research/llm-structured-usability-audit-report.md`
 - finalized matrix:
   - `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
 - working draft ledger:
@@ -55,14 +56,18 @@ canonical: true
 - docs/examples drift is real but not a control-surface failure
   - internal control docs stayed coherent
   - public discovery and teaching surfaces lagged on a few important examples and the root README
+- LLM-first discoverability is stronger than before, but still too dependent on cross-referencing
+  examples, source exports, and legacy contract docs for post-core surfaces
+  - this adds documentation-structure pressure
+  - it does not change the kernel-side rewrite call
 
 ## Rewrite Pressure Assessment
 
 - `medium`
   - the audit does not support a major rewrite
   - it does support one bounded redesign area around the `libwally` seam and backend-outage
-    contract sharpness, plus a set of targeted fixes on public helper families and discovery
-    surfaces
+    contract sharpness, plus a set of targeted fixes on public helper families and structured
+    teaching/discovery surfaces
 
 ## Remediation Posture Decision
 
@@ -97,6 +102,8 @@ canonical: true
     - backend-outage misclassification in `NIP-44` and `NIP-26`
     - fragmented `libwally` readiness/derivation seam across `NIP-06` and `BIP-85`
     - examples/discovery drift on `NIP-59`, `NIP-05`, and the root README
+    - lack of one current structured post-core contract map and too-weak public-symbol routing for
+      common LLM-facing jobs
 - non-blocking but still worth remediation:
   - `NIP-88` reducer hotspot
   - `NIP-29` reducer hotspot
@@ -129,7 +136,9 @@ canonical: true
     `NIP-86`, `NIP-46`, and `NIP-25`
 - targeted fix
   - repair docs/examples/discovery drift:
-    `NIP-59` example routing, `NIP-05` hostile example coverage, and root `README.md`
+    `NIP-59` example routing, `NIP-05` hostile example coverage, root `README.md`,
+    structured post-core contract mapping, examples index symbol routing, and `nzdk`
+    remediation-brief enrichment
 - targeted fix
   - clean up the bounded local performance hotspots in `NIP-88`, `NIP-29`, and `NIP-06`
 - audit/freeze follow-up
@@ -140,5 +149,3 @@ canonical: true
 - no major rewrite is justified from the completed evidence
 - the correct next move is a bounded-remediation program led by one backend-boundary redesign lane,
   followed by targeted hardening/cleanup lanes and then a fresh freeze-readiness check
-- remediation execution is currently deferred pending one supplemental LLM ease-of-use audit and a
-  revised synthesis update before fixes begin
