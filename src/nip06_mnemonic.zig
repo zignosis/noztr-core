@@ -20,8 +20,12 @@ pub const Nip06Error = error{
     BackendUnavailable,
 };
 
-var backend_once = std.once(init_backend_once);
-var backend_error: ?Nip06Error = null;
+const BackendState = struct {
+    once: @TypeOf(std.once(init_backend_once)) = std.once(init_backend_once),
+    err: ?Nip06Error = null,
+};
+
+var backend_state = BackendState{};
 
 /// Validate an English BIP39 mnemonic for the NIP-06 derivation boundary.
 pub fn mnemonic_validate(mnemonic: []const u8) Nip06Error!void {
@@ -145,19 +149,19 @@ pub fn derive_nostr_secret_key(
 }
 
 fn ensure_backend() Nip06Error!void {
-    std.debug.assert(backend_error == null or @intFromError(backend_error.?) >= 0);
+    std.debug.assert(backend_state.err == null or @intFromError(backend_state.err.?) >= 0);
     std.debug.assert(!@inComptime());
 
-    backend_once.call();
-    if (backend_error) |err| return err;
+    backend_state.once.call();
+    if (backend_state.err) |err| return err;
 }
 
 fn init_backend_once() void {
     std.debug.assert(!@inComptime());
-    std.debug.assert(backend_error == null);
+    std.debug.assert(backend_state.err == null);
 
     if (c.wally_init(0) != c.WALLY_OK) {
-        backend_error = error.BackendUnavailable;
+        backend_state.err = error.BackendUnavailable;
         return;
     }
 
@@ -165,7 +169,7 @@ fn init_backend_once() void {
     std.crypto.random.bytes(&entropy);
     defer wipe_bytes(entropy[0..]);
     if (c.wally_secp_randomize(&entropy, entropy.len) != c.WALLY_OK) {
-        backend_error = error.BackendUnavailable;
+        backend_state.err = error.BackendUnavailable;
     }
 }
 

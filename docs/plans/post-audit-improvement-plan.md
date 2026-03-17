@@ -104,7 +104,7 @@ Tracker lane:
 - `no-3jb`
 
 Status:
-- next active slice
+- complete
 
 Target surfaces:
 - `src/nip06_mnemonic.zig`
@@ -135,11 +135,33 @@ Closure bar:
 - no hidden state or scratch-backed path remains unexplained
 - `zig build test --summary all` and `zig build` pass if code changes
 
+Resolution:
+- `NIP-06`
+  - isolated the libwally initialization seam into one internal backend-state cell
+  - keep the global once-only backend requirement as an accepted backend-boundary constraint rather
+    than ambient state spread across public functions
+- `NIP-05`, `NIP-46`, and `NIP-77`
+  - retain the current caller-owned scratch posture as an accepted bounded exception
+  - rationale:
+    - these public parse surfaces return variable-length slices and arrays as part of their typed
+      result contracts
+    - switching them to fixed-capacity output structs or borrowed-input zero-copy semantics would be
+      a public ownership-shape change, not just an internal hardening pass
+    - current behavior remains bounded, caller-owned, and typed at failure boundaries
+- `bool` / `?` helpers
+  - retain `nip05_identity.profile_verify_json(...) -> bool` as intentional verifier semantics:
+    parse and shape errors stay typed, while a missing or mismatched mapping remains a boolean
+    answer
+  - retain `internal.relay_origin.parse_websocket_origin(...) -> ?WebsocketOrigin` as an internal
+    parser primitive; module-level callers already map `null` into their own typed public errors
+
 ### Slice 3: Freeze-Readiness Consolidation
 
-Depends on:
-- `no-ow4`
-- `no-3jb`
+Tracker lane:
+- `no-mja`
+
+Status:
+- next active slice
 
 Goals:
 - update the boundary-validation packet with the final post-audit result

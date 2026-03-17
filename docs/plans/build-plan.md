@@ -115,6 +115,12 @@ This artifact is the lean active execution baseline and is aligned to:
   - hostile example backfill on `NIP-03`, `NIP-17`, `NIP-37`, `NIP-42`, and `NIP-59`
 - Boundary-validation has also closed the report-only `libnostr-z` comparison lane with no
   immediate kernel correction required.
+- Boundary-validation has also closed the explicit-state and fixed-capacity review lane:
+  - `NIP-06` backend state is now isolated into one internal cell
+  - current bounded scratch-backed ingress in `NIP-05`, `NIP-46`, and `NIP-77` is explicitly
+    accepted
+  - reviewed `bool` / `?` helper boundaries remain accepted where typed public mapping already
+    exists
 - `docs/plans/post-kernel-requested-nips-loop.md` now remains as reference evidence for the loop
   order, closure rules, and split-surface scope calls rather than as an active execution packet.
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the
@@ -169,7 +175,8 @@ This artifact is the lean active execution baseline and is aligned to:
 - execute `docs/plans/post-audit-improvement-plan.md` as the ordered response to the completed
   `libnostr-z` and TigerBeetle audits.
 - keep the completed TigerBeetle Zig-quality report as reference evidence; the current concrete
-  remaining follow-up lane is `no-3jb` after structural-hotspot slice `no-ow4` closed cleanly.
+  remaining follow-up lane is `no-mja` after structural-hotspot slice `no-ow4` and
+  explicit-state/fixed-capacity slice `no-3jb` closed cleanly.
 - RC API-freeze remains deferred until the boundary-validation slice closes.
 - Layer 2 compatibility/ergonomic adapter work remains contingent; start it only if the
   boundary-validation pass finds a real blocker that belongs outside the kernel.

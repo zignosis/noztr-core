@@ -69,13 +69,16 @@ the `OQ-E-006` usability pass.
     keep `libnostr-z` as behavior evidence, not as a runtime or memory-model authority
   - close `no-ow4` with structural refactors across `NIP-22`, `NIP-46`, and `NIP-47`, plus
     local public assertion-density fixes on `NIP-49`, with no protocol contract change
+  - close `no-3jb` by isolating `NIP-06` backend state and explicitly accepting the current
+    caller-owned scratch posture in `NIP-05`, `NIP-46`, and `NIP-77`, plus the reviewed
+    `bool` / `?` helper boundaries, as bounded exceptions
 
 ## Next Step
 
 1. execute the SDK-informed boundary-validation slice through
    `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
 2. execute `docs/plans/post-audit-improvement-plan.md` in order:
-   - `no-3jb`
+   - execute `no-mja` to complete Slice 3 freeze-readiness consolidation
 3. if the validation finds a real compatibility or ergonomics blocker that does not belong in
    Layer 1, create one explicit Layer 2 adapter-boundary packet instead of widening the kernel by
    default
@@ -113,8 +116,9 @@ the `OQ-E-006` usability pass.
     - comparison report completed
     - active follow-up execution is sequenced in `docs/plans/post-audit-improvement-plan.md`
     - concrete lanes:
-      - `no-ow4` structural Tiger-style hotspots
-      - `no-3jb` explicit-state and fixed-capacity Tiger follow-ups
+      - `no-ow4` structural Tiger-style hotspots, complete
+      - `no-3jb` explicit-state and fixed-capacity Tiger follow-ups, complete
+      - `no-mja` freeze-readiness consolidation, next active
 
 ## Tradeoff
 

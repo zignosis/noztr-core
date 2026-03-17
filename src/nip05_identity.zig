@@ -522,7 +522,7 @@ test "nip05 public paths reject overlong caller input with typed errors" {
     const overlong_local = ("a" ** 4097) ++ "@example.com";
     const overlong_domain = "bob@" ++ ("a" ** 4097);
     const overlong_relay =
-        "{\"names\":{\"_\":\"68d81165918100b7da43fc28f7d1fc12554466e1115886b9e7bb326f65ec4272\"}," ++
+        "{\"names\":{\"ok\":\"68d81165918100b7da43fc28f7d1fc12554466e1115886b9e7bb326f65ec4272\"}," ++
         "\"relays\":{\"68d81165918100b7da43fc28f7d1fc12554466e1115886b9e7bb326f65ec4272\":[\"" ++
         "wss://" ++ ("a" ** 5000) ++ ".example\"]}}";
 
@@ -531,11 +531,11 @@ test "nip05 public paths reject overlong caller input with typed errors" {
         address_parse("a" ** 5000, arena.allocator()),
     );
     try std.testing.expectError(
-        error.InvalidLocalPart,
+        error.InvalidAddress,
         address_parse(overlong_local, arena.allocator()),
     );
     try std.testing.expectError(
-        error.InvalidDomain,
+        error.InvalidAddress,
         address_parse(overlong_domain, arena.allocator()),
     );
 

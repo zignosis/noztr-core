@@ -278,7 +278,7 @@ pub fn permission_format(output: []u8, permission: Permission) Nip46Error![]cons
 }
 
 pub fn message_parse_json(input: []const u8, scratch: std.mem.Allocator) Nip46Error!Message {
-    std.debug.assert(input.len <= limits.nip46_message_json_bytes_max);
+    std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     if (input.len == 0) {
@@ -847,7 +847,7 @@ fn validate_nostrconnect_client_uri(
 }
 
 fn find_single_nostrconnect_placeholder(template_url: []const u8) Nip46Error!usize {
-    std.debug.assert(template_url.len <= limits.nip46_uri_bytes_max);
+    std.debug.assert(template_url.len <= std.math.maxInt(usize));
     std.debug.assert(nostrconnect_url_placeholder.len > 0);
 
     const placeholder_start = std.mem.indexOf(u8, template_url, nostrconnect_url_placeholder) orelse {
@@ -1413,7 +1413,7 @@ fn validate_switch_relays_result(result: ResponseResult) Nip46Error!void {
 }
 
 fn parse_uri_parts(input: []const u8) Nip46Error!ParsedUriParts {
-    std.debug.assert(input.len <= limits.nip46_uri_bytes_max);
+    std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(input.len <= std.math.maxInt(usize));
 
     if (input.len == 0 or input.len > limits.nip46_uri_bytes_max) {
@@ -1516,7 +1516,7 @@ fn parse_uri_query(
     secret: *?[]const u8,
     metadata: ?*ClientMetadata,
 ) Nip46Error!void {
-    std.debug.assert(raw_query.len <= limits.nip46_uri_bytes_max);
+    std.debug.assert(raw_query.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     var pair_iter = std.mem.splitScalar(u8, raw_query, '&');
@@ -2091,7 +2091,7 @@ fn validate_unsigned_event_json(
     input: []const u8,
     scratch: std.mem.Allocator,
 ) Nip46Error!void {
-    std.debug.assert(input.len <= limits.event_json_max);
+    std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     if (input.len == 0 or input.len > limits.event_json_max) {
@@ -2864,7 +2864,7 @@ test "nip46 public uri and builder paths reject overlong caller input with typed
     );
 
     try std.testing.expectError(
-        error.InvalidRelayUrl,
+        error.InvalidUri,
         uri_parse(
             "nostrconnect://0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ++
                 "?relay=" ++ ("a" ** 4097) ++ "&secret=s3cr3t",

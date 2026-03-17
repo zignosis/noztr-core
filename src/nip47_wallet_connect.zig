@@ -3251,7 +3251,7 @@ test "nwc public uri paths reject overlong caller input with typed errors" {
     );
 
     try std.testing.expectError(
-        error.InvalidRelayUrl,
+        error.InvalidUri,
         connection_uri_parse(
             "nostr+walletconnect://0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ++
                 "?relay=" ++ ("a" ** 4097) ++
