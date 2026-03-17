@@ -126,6 +126,7 @@ This artifact is the lean active execution baseline and is aligned to:
 - The exhaustive pre-freeze audit and its meta-analysis are complete.
 - The supplemental LLM structured usability audit is complete.
 - The empirical benchmark supplement is complete.
+- The external crypto/backend assurance supplement is complete.
 - Current active next slice is the post-exhaustive-audit remediation program in
   `docs/plans/post-exhaustive-audit-remediation-plan.md`.
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the
@@ -139,6 +140,8 @@ This artifact is the lean active execution baseline and is aligned to:
   `docs/plans/phase-h-remaining-work.md`.
 - For the empirical benchmark supplement that must complete before remediation execution, use
   `docs/plans/empirical-benchmark-supplement.md`.
+- For the completed external crypto/backend assurance supplement, use
+  `docs/plans/external-crypto-backend-assurance-supplement.md`.
 - For the current remediation sequence after the completed audit supplements, use
   `docs/plans/post-exhaustive-audit-remediation-plan.md`.
 - The completed requested-NIP loop remains reference-only in
@@ -161,6 +164,8 @@ This artifact is the lean active execution baseline and is aligned to:
   - current active Phase H packet and remaining-work routing
 - `docs/plans/empirical-benchmark-supplement.md`
   - completed benchmark supplement reference
+- `docs/plans/external-crypto-backend-assurance-supplement.md`
+  - completed external backend assurance supplement reference
 - `docs/plans/llm-structured-usability-audit.md`
   - supplemental LLM-first audit that must complete before remediation execution begins
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
@@ -200,6 +205,10 @@ This artifact is the lean active execution baseline and is aligned to:
 - the empirical benchmark supplement is complete:
   - measured the named static-review hotspots under representative local workloads
   - revised the synthesis before fixes begin
+- the external crypto/backend assurance supplement is complete:
+  - `secp256k1` external assurance remained strong for the current narrow wrapper posture
+  - `libwally` remained acceptable, but the canonical recorded pin and backend feature floor now
+    need explicit reconciliation in the backend redesign lane
 - the completed benchmark supplement refined the performance lane:
   - keep `NIP-29` and `NIP-88` in the targeted performance cleanup lane
   - do not treat `NIP-06` repeated scans as a standalone required performance remediation item
@@ -207,6 +216,7 @@ This artifact is the lean active execution baseline and is aligned to:
   - public helper assertion leaks in `NIP-86` and `NIP-46`
   - backend-outage misclassification in `NIP-44` and `NIP-26`
   - fragmented `libwally` readiness and derivation seam across `NIP-06` and `BIP-85`
+  - canonical provenance/build-floor drift around the current `libwally` pin
   - docs/examples/discovery drift on `NIP-59`, `NIP-05`, and the root `README.md`
 - the selected remediation posture is bounded redesign first, then targeted fixes, then a
   freeze-readiness recheck.

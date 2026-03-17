@@ -23,7 +23,8 @@ canonical: true
 # Post-Exhaustive Audit Remediation Plan
 
 Current remediation packet after completion of the exhaustive pre-freeze audit, the LLM
-structured-usability supplement, the empirical benchmark supplement, and the revised synthesis.
+structured-usability supplement, the empirical benchmark supplement, the external crypto/backend
+assurance supplement, and the revised synthesis.
 
 ## Purpose
 
@@ -51,11 +52,15 @@ structured-usability supplement, the empirical benchmark supplement, and the rev
 - the empirical benchmark supplement and revised synthesis are complete:
   - `no-m4o2`
   - `no-io56`
+- the external crypto/backend assurance supplement and revised synthesis are complete:
+  - `no-1t7m`
+  - `no-ik85`
 - remediation tracker epic:
   - `no-65ev`
 - current child lanes:
   - `no-65ev.1`
-    - bounded redesign: `libwally` backend seam and backend-outage mapping
+    - bounded redesign: `libwally` backend seam, backend-outage mapping, and backend
+      provenance/build-floor reconciliation
   - `no-65ev.2`
     - targeted hardening: remaining public helper assertion leaks and direct-helper misuse
   - `no-65ev.3`
@@ -85,7 +90,8 @@ structured-usability supplement, the empirical benchmark supplement, and the rev
 
 - `AQ-REM-001`
   - can the `libwally` readiness and derivation seam be consolidated cleanly enough that backend
-    error mapping and ownership remain sharp without widening the kernel?
+    error mapping, ownership, and recorded provenance/build-floor assumptions remain sharp without
+    widening the kernel?
 - `AQ-REM-002`
   - after the targeted hardening lanes close, does any public helper family still rely on debug
     assertions or inconsistent direct-call semantics?
@@ -110,6 +116,7 @@ structured-usability supplement, the empirical benchmark supplement, and the rev
   - `docs/research/exhaustive-audit-meta-analysis-report.md`
   - `docs/plans/exhaustive-pre-freeze-audit.md`
   - `docs/research/empirical-benchmark-supplement-report.md`
+  - `docs/research/external-crypto-backend-assurance-report.md`
 
 ## Closeout Conditions
 

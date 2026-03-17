@@ -58,6 +58,7 @@ the `OQ-E-006` usability pass.
 - the requested-NIP loop is complete through `NIP-B7`
 - `OQ-E-006` is closed
 - the empirical benchmark supplement is complete
+- the external crypto/backend assurance supplement is complete
 - the next active Phase H slice is post-exhaustive-audit remediation
 - RC API-freeze remains deferred until this slice shows the current boundary is stable enough
 - accepted sub-findings from this slice so far:
@@ -80,6 +81,10 @@ the `OQ-E-006` usability pass.
     remediation
   - keep `NIP-29` and `NIP-88` in the performance lane and drop standalone `NIP-06`
     performance cleanup as a required remediation item
+  - complete one external crypto/backend assurance supplement and keep the remediation posture on
+    bounded redesign rather than major rewrite
+  - sharpen the backend redesign lane to include `libwally` provenance and feature-floor
+    reconciliation in addition to the local seam redesign
 
 ## Next Step
 
@@ -137,6 +142,7 @@ the `OQ-E-006` usability pass.
       - then a freeze recheck
     - supplemental LLM structured usability audit is complete
     - empirical benchmark supplement is complete
+    - external crypto/backend assurance supplement is complete
     - current active remediation packet:
       - `docs/plans/post-exhaustive-audit-remediation-plan.md`
 

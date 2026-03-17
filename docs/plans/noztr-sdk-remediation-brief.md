@@ -11,6 +11,7 @@ depends_on:
   - docs/plans/post-exhaustive-audit-remediation-plan.md
   - docs/research/exhaustive-audit-meta-analysis-report.md
   - docs/research/empirical-benchmark-supplement-report.md
+  - docs/research/external-crypto-backend-assurance-report.md
 canonical: true
 ---
 
@@ -32,13 +33,14 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 - no remediation fixes have landed yet
 - the supplemental LLM structured usability audit is complete
 - the empirical benchmark supplement is complete
+- the external crypto/backend assurance supplement is complete
 - remediation execution is now reactivated under the revised synthesis
 
 ## Remediation Lanes
 
 | Lane | Kernel scope | Likely `nzdk` impact | `nzdk` recheck after landing | Current status |
 | --- | --- | --- | --- | --- |
-| `no-65ev.1` | `libwally` seam, `NIP-06`, `BIP-85`, `NIP-44`, `NIP-26` backend-outage mapping | possible typed error or boundary-contract changes in crypto-bearing helpers | wallet/bootstrap, delegation, conversation-key acquisition, BIP-85 consumers | open |
+| `no-65ev.1` | `libwally` seam, `NIP-06`, `BIP-85`, `NIP-44`, `NIP-26` backend-outage mapping, and backend provenance/build-floor reconciliation | possible typed error or boundary-contract changes in crypto-bearing helpers; provenance/doc updates should not change runtime behavior by themselves | wallet/bootstrap, delegation, conversation-key acquisition, BIP-85 consumers | open |
 | `no-65ev.2` | `NIP-86`, `NIP-46`, `NIP-25` public helper hardening | direct helper failure behavior may tighten | admin helper wrappers, remote-signing helper tests, any direct reaction helper use | open |
 | `no-65ev.3` | examples/docs/discovery only | teaching/discovery updates, no runtime contract change intended | docs/examples references only | open |
 | `no-65ev.4` | `NIP-88`, `NIP-29` local performance cleanup; `NIP-06` only if touched indirectly by backend redesign | no intended happy-path API change | only if `nzdk` relies on specific complexity or ordering assumptions | open |

@@ -41,6 +41,7 @@ Current execution state for `noztr`.
 - The exhaustive pre-freeze audit and `no-mja` meta-analysis are complete.
 - The supplemental LLM structured usability audit is complete.
 - The empirical benchmark supplement is complete.
+- The external crypto/backend assurance supplement is complete.
 - The next active Phase H slice is the post-exhaustive-audit remediation program.
 - Boundary validation has already accepted:
   - public signed event-object JSON serialization
@@ -76,6 +77,8 @@ Current execution state for `noztr`.
   - current active Phase H packet
 - `docs/plans/empirical-benchmark-supplement.md`
   - completed benchmark supplement reference packet
+- `docs/plans/external-crypto-backend-assurance-supplement.md`
+  - completed external backend assurance reference packet
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
   - active remediation packet after the completed audit supplements
 - `docs/plans/noztr-sdk-remediation-brief.md`
@@ -112,6 +115,8 @@ Current execution state for `noztr`.
   - `no-65ev.3`
   - `no-65ev.4`
   - `no-65ev.5`
+- keep the completed external crypto/backend assurance report as reference evidence and reopen it
+  only on new contrary backend or provenance evidence
 - keep the completed exhaustive audit reports, matrix, and meta-analysis as reference evidence and
   reopen them only on new contrary evidence
 - if the validation finds a real non-kernel blocker, create one explicit Layer 2 adapter-boundary

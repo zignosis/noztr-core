@@ -21,7 +21,8 @@ canonical: true
 - packet: `no-ard`
 - author: Codex
 - current-note:
-  - revised after the empirical benchmark supplement
+  - revised after the empirical benchmark supplement and the external crypto/backend assurance
+    supplement
 
 ## Inputs
 
@@ -37,6 +38,7 @@ canonical: true
   - `docs/research/exhaustive-audit-angle-9-docs-discoverability-report.md`
   - `docs/research/llm-structured-usability-audit-report.md`
   - `docs/research/empirical-benchmark-supplement-report.md`
+  - `docs/research/external-crypto-backend-assurance-report.md`
 - finalized matrix:
   - `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
 - working draft ledger:
@@ -60,6 +62,11 @@ canonical: true
   - `NIP-29` is the strongest measured local hotspot
   - `NIP-88` is a real measured hotspot but still bounded
   - `NIP-06` repeated scans are not the dominant derivation cost once backend work is included
+- external backend assurance sharpened the crypto-boundary picture
+  - `secp256k1` remains externally well supported for the current narrow wrapper posture
+  - `libwally` remains an acceptable backend choice for the current narrow boundary
+  - the main remaining external-assurance weakness is provenance/control drift around the recorded
+    `libwally` pin and local feature-floor assumptions, not primitive failure or rewrite pressure
 - docs/examples drift is real but not a control-surface failure
   - internal control docs stayed coherent
   - public discovery and teaching surfaces lagged on a few important examples and the root README
@@ -108,6 +115,7 @@ canonical: true
     - `NIP-46` direct helper assertion leaks
     - backend-outage misclassification in `NIP-44` and `NIP-26`
     - fragmented `libwally` readiness/derivation seam across `NIP-06` and `BIP-85`
+    - canonical provenance and build-floor drift around the current `libwally` pin
     - examples/discovery drift on `NIP-59`, `NIP-05`, and the root README
     - lack of one current structured post-core contract map and too-weak public-symbol routing for
       common LLM-facing jobs
@@ -137,6 +145,8 @@ canonical: true
 - bounded redesign
   - consolidate `libwally` readiness and derivation entry points behind one sharper backend seam
     and repair backend-outage error mapping in dependent crypto consumers
+  - reconcile the canonical recorded `libwally` pin with the live build pin and record the
+    approved backend feature floor explicitly
 - targeted fix
   - harden the remaining public helper assertion leaks and direct-helper misuse surfaces:
     `NIP-86`, `NIP-46`, and `NIP-25`

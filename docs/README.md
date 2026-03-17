@@ -33,6 +33,8 @@ These docs control active work and should stay lean.
   - current active Phase H packet and next remaining work
 - `docs/plans/empirical-benchmark-supplement.md`
   - completed benchmark supplement reference packet
+- `docs/plans/external-crypto-backend-assurance-supplement.md`
+  - completed external backend assurance supplement reference packet
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
   - current active remediation packet after the completed audit supplements
 - `docs/plans/noztr-sdk-remediation-brief.md`
@@ -77,6 +79,11 @@ These docs control active work and should stay lean.
   - `docs/research/empirical-benchmark-supplement-report.md`
   - `docs/research/exhaustive-audit-angle-7-performance-memory-report.md`
   - `docs/research/exhaustive-audit-meta-analysis-report.md`
+- Reviewing the external crypto/backend assurance supplement:
+  - `docs/plans/external-crypto-backend-assurance-supplement.md`
+  - `docs/research/external-crypto-backend-assurance-report.md`
+  - `docs/research/exhaustive-audit-angle-5-crypto-backend-wrapper-report.md`
+  - `docs/research/exhaustive-audit-meta-analysis-report.md`
 
 ## Reference Docs
 
@@ -93,9 +100,11 @@ These are active references, not startup defaults.
 - `docs/plans/post-audit-improvement-plan.md`
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
 - `docs/plans/empirical-benchmark-supplement.md`
+- `docs/plans/external-crypto-backend-assurance-supplement.md`
 - `docs/plans/llm-structured-usability-audit.md`
 - `docs/plans/noztr-sdk-remediation-brief.md`
 - `docs/research/llm-structured-usability-audit-report.md`
+- `docs/research/external-crypto-backend-assurance-report.md`
 - `docs/plans/implemented-nip-review-guide.md`
 - `docs/plans/nostr-principles.md`
 - `docs/plans/implemented-nip-audit-report.md`
