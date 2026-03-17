@@ -3111,3 +3111,42 @@ payload is needed for the current task.
   or remediation decisions, or the repo shows that a narrower variant catches the same class of
   failure just as well.
 - Supersedes: none
+
+## D-123: Drive the exhaustive pre-freeze audit with a fixed angle order, matrix, and templates
+
+- Date: 2026-03-17
+- Status: accepted
+- Decision: the `no-ard` exhaustive pre-freeze audit must use a fixed execution framework rather
+  than ad hoc report writing.
+  - accepted behavior:
+    - freeze one audit angle order for the active program:
+      - protocol correctness
+      - ecosystem parity / interoperability
+      - security / misuse resistance
+      - crypto/backend-wrapper quality
+      - Zig engineering quality
+      - performance / memory posture
+      - API consistency / determinism
+      - docs/examples / discoverability
+      - final meta-analysis
+    - maintain one hard surface-by-angle coverage ledger in
+      `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
+    - require dedicated angle reports to use
+      `docs/plans/audit-angle-report-template.md`
+    - require the final synthesis to use
+      `docs/plans/audit-meta-analysis-template.md`
+    - define severity and rewrite-pressure interpretation explicitly inside the audit packet
+    - do not mark matrix coverage complete without cited report evidence
+  - accepted non-goals:
+    - freeform angle ordering during the active program
+    - vague claims that a surface was reviewed without matrix/report backing
+    - skipping from angle reports straight into remediation without the meta-analysis step
+- Why: the audit-first rule established the right separation, but execution could still drift
+  without harder controls. A fixed order, explicit matrix, and shared templates make the program
+  easier to execute thoroughly and much harder to hand-wave.
+- Tradeoff: more structure and upfront documentation overhead versus stronger audit completeness,
+  clearer residual-risk accounting, and less room for accidental overclaiming.
+- Related Tradeoff: T-0-004.
+- Reversal Trigger: the added execution framework becomes mostly ceremonial and does not materially
+  improve audit thoroughness or honesty.
+- Supersedes: none

@@ -11,6 +11,9 @@ depends_on:
   - docs/plans/build-plan.md
   - docs/guides/IMPLEMENTATION_QUALITY_GATE.md
   - docs/plans/implemented-nip-audit-report.md
+  - docs/plans/exhaustive-pre-freeze-audit-matrix.md
+  - docs/plans/audit-angle-report-template.md
+  - docs/plans/audit-meta-analysis-template.md
   - docs/research/libnostr-z-comparison-report.md
   - docs/research/tigerbeetle-zig-quality-report.md
 sync_touchpoints:
@@ -85,6 +88,28 @@ Posture:
 7. Zig engineering quality and anti-pattern review
 8. Examples, docs, and discovery-surface correctness
 
+## Frozen Execution Order
+
+Run the angle audits in this order unless the packet is explicitly revised:
+
+1. protocol correctness
+2. ecosystem parity / interoperability
+3. security / misuse resistance
+4. crypto/backend-wrapper quality
+5. Zig engineering quality
+6. performance / memory posture
+7. API consistency / determinism
+8. docs/examples / discoverability
+9. meta-analysis in `no-mja`
+
+Why this order:
+- correctness and parity establish whether the library is fundamentally right before deeper
+  architecture judgments
+- security and crypto review challenge the highest-trust boundaries before performance or ergonomics
+  arguments dominate
+- Zig and performance review come after the trust-boundary core is understood
+- API and docs/discoverability review happen after the implementation realities are explicit
+
 ## Working Draft Ledger
 
 ### Coverage Status
@@ -107,6 +132,7 @@ Posture:
 
 - every audit angle must produce a dedicated report or explicitly reference the canonical report
   that owns that angle
+- every angle report should start from `docs/plans/audit-angle-report-template.md`
 - every report must state:
   - exact scope
   - evidence sources
@@ -120,6 +146,28 @@ Posture:
 - every cross-cutting boundary area must end this program with an explicit coverage status
 - non-critical fixes discovered during the program are deferred to post-audit meta-analysis by
   default
+- coverage status is controlled by `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
+- remediation posture is controlled later by `docs/plans/audit-meta-analysis-template.md`
+
+### Severity And Rewrite-Pressure Rubric
+
+- `critical`
+  - unsafe, invalidates audit evidence, or blocks any credible freeze path
+  - immediate correction may be justified inside the audit program
+- `high`
+  - serious correctness, trust-boundary, or architectural defect
+  - often contributes to bounded redesign or major rewrite pressure
+- `medium`
+  - real issue that matters, but not decisive on its own for rewrite
+  - normally deferred to meta-analysis
+- `low`
+  - cleanup, clarity, or polish issue
+  - never by itself a reason to break audit-only posture
+
+Rewrite-pressure interpretation:
+- isolated `medium` or `low` findings do not justify rewrite language
+- repeated `high` findings across multiple angles strongly pressure redesign
+- systemic `critical` or clustered `high` findings can justify major rewrite consideration
 
 ### Findings Ledger
 
@@ -141,9 +189,11 @@ Posture:
 ## Next Step
 
 1. freeze the exact audit coverage map and audit sequence under `no-ard`
-2. populate the working draft ledger as evidence lands
-3. record non-critical findings in this draft instead of fixing them immediately
-4. hand the completed draft to `no-mja` for meta-analysis and freeze-readiness consolidation
+2. keep `docs/plans/exhaustive-pre-freeze-audit-matrix.md` current as the hard coverage ledger
+3. write each angle report against `docs/plans/audit-angle-report-template.md`
+4. record non-critical findings in this draft instead of fixing them immediately
+5. hand the completed draft and angle reports to `no-mja` for meta-analysis and freeze-readiness
+   consolidation
 
 ## Sync Touchpoints
 

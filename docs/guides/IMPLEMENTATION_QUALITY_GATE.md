@@ -26,6 +26,10 @@ Specialized references:
   - implemented-NIP audit and robustness-specific review posture
 - `docs/plans/packet-template.md`
   - shared packet skeleton for new active slices
+- `docs/plans/audit-angle-report-template.md`
+  - required template for dedicated angle reports in high-impact audit programs
+- `docs/plans/audit-meta-analysis-template.md`
+  - required synthesis template after a completed multi-angle audit program
 
 ## Audit-Only Override
 
@@ -155,6 +159,7 @@ For high-impact audit-only programs, also require:
 - one explicit coverage statement
 - one explicit “checked vs not checked” statement
 - one explicit defer-to-meta-analysis statement for non-critical fixes
+- one matrix update if the slice participates in a multi-angle audit program
 
 ## Stop Conditions
 
