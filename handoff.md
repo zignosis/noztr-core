@@ -51,8 +51,9 @@ Current execution state for `noztr`.
     - isolate `NIP-06` backend state into one internal cell
     - accept current bounded scratch-backed public ingress in `NIP-05`, `NIP-46`, and `NIP-77`
     - accept reviewed `bool` / `?` helper boundaries as intentional
-  - accepted process correction:
-    - do not treat targeted follow-up lanes as equivalent to one exhaustive pre-freeze audit
+- accepted process correction:
+  - do not treat targeted follow-up lanes as equivalent to one exhaustive pre-freeze audit
+  - do not treat the exhaustive pre-freeze audit lane as patch-as-you-go remediation by default
 - Only expected untracked local artifact:
   - `tools/interop/rust-nostr-parity-all/target/`
 
@@ -98,6 +99,10 @@ Current execution state for `noztr`.
 - execute `docs/plans/post-audit-improvement-plan.md` in order:
   - `no-ard`
   - `no-mja` only after `no-ard`
+- keep `no-ard` evidence-first:
+  - record non-critical findings in the working draft
+  - defer routine fixes until the post-audit meta-analysis decides between targeted fixes, bounded
+    redesign, or major rewrite
 - keep the completed audit reports as reference evidence and reopen them only on new contrary
   evidence
 - if the validation finds a real non-kernel blocker, create one explicit Layer 2 adapter-boundary

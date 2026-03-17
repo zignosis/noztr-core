@@ -168,17 +168,25 @@ Goals:
 - confirm whether any libnostr-z or TigerBeetle concern still blocks RC-freeze work
 - keep the root facade protocol-only and the ownership matrix stable
 - use the exhaustive audit draft as the honesty check so this synthesis does not overstate coverage
+- decide, from the completed audit reports, whether the repo should do:
+  - targeted fixes
+  - bounded redesign
+  - major rewrite
 
 Required checks:
 - active docs reference the completed improvements rather than open audit narratives
 - no stale watchlist item is still pretending to be “under review” after acceptance
 - if a real blocker remains, open one bounded blocker lane instead of carrying vague debt forward
+- do not skip the explicit meta-analysis step just because some local fixes feel obvious
 
 Closure bar:
 - the post-audit plan becomes reference-only
 - Phase H can either:
   - move to RC-freeze preparation, or
-  - name one explicit remaining blocker packet
+  - name one explicit remediation program:
+    - targeted fixes
+    - bounded redesign
+    - major rewrite
 
 ### Slice 4: Exhaustive Pre-Freeze Audit Draft
 

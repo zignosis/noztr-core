@@ -66,6 +66,7 @@ Use this file to decide whether the full canonical decision payload is needed.
 - `D-118` require explicit example-layer contract checks for example-bearing slices
 - `D-121` codify generalized audit-hardening checks for public invalid-input paths and same-slice
   audit synchronization
+- `D-122` require audit-first separation and meta-analysis before pre-freeze remediation or rewrite
 
 ## Docs And Active-Memory Routing
 

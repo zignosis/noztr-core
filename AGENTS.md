@@ -116,6 +116,14 @@ Run tests after every code change.
   example fixture in addition to module tests so callers can see the intended failure contract.
 - Treat audit-report synchronization as same-slice work when an audit or robustness pass changes
   the accepted contract or closes live findings.
+- For high-impact multi-angle pre-freeze audits:
+  - finish the required audit angles before default remediation work begins
+  - keep one live working draft or coverage ledger
+  - separate evidence-gathering lanes from later remediation lanes
+  - allow immediate fixes during the audit only for broken builds, safety-critical defects, or
+    findings that would make the audit evidence misleading
+  - require one explicit meta-analysis before deciding on targeted fixes, bounded redesign, or a
+    major rewrite
 
 ## Coding Standards
 

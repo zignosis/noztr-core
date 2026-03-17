@@ -3063,3 +3063,51 @@ payload is needed for the current task.
 - Reversal Trigger: the generalized checks stop catching real trust-boundary or closeout drift
   issues, or they create enough routine overhead that a narrower formulation is clearly better.
 - Supersedes: none
+
+## D-122: Separate high-impact pre-freeze audits from remediation and require meta-analysis first
+
+- Date: 2026-03-17
+- Status: accepted
+- Decision: when `noztr` is running a high-impact multi-angle pre-freeze audit program, the default
+  posture is audit-first and evidence-producing rather than patch-as-you-go remediation.
+  - accepted behavior:
+    - define the required audit angles explicitly up front
+    - keep one live working draft or coverage ledger during the audit
+    - require one dedicated report per audit angle, or one explicitly cited canonical report that
+      owns that angle
+    - each angle report must state:
+      - exact scope
+      - evidence sources
+      - standards used
+      - what was checked
+      - what was not checked
+      - findings
+      - accepted exceptions
+      - residual risk
+    - do not treat targeted follow-up lanes as equivalent to one exhaustive pre-freeze audit
+    - defer non-critical fixes until after one explicit meta-analysis step
+    - the meta-analysis step must decide whether the next remediation posture is:
+      - targeted fixes
+      - bounded redesign
+      - major rewrite
+  - accepted exceptions for immediate fixes during the audit:
+    - broken builds
+    - safety-critical defects
+    - findings severe enough that leaving them unfixed would make the ongoing audit evidence false
+      or materially misleading
+  - accepted non-goals:
+    - mixing exhaustive evidence gathering with routine micro-fix churn
+    - deciding against rewrite pressure before the reports exist
+    - deciding for major rewrite before the reports show the issue pattern is systemic
+- Why: the repo reached a point where targeted follow-up audits and local fixes could easily be
+  mistaken for an exhaustive freeze-readiness program. That would overstate coverage, hide
+  cross-angle patterns, and weaken the rewrite decision. Separating audit from remediation keeps the
+  evidence honest and makes the later synthesis capable of answering whether the right next step is
+  targeted cleanup, bounded redesign, or a major rewrite.
+- Tradeoff: slower immediate patch velocity during the audit program versus a stronger basis for
+  high-impact architectural decisions and a lower risk of accidental under- or over-reaction.
+- Related Tradeoff: T-0-004.
+- Reversal Trigger: the audit-first separation causes unacceptable delay without improving rewrite
+  or remediation decisions, or the repo shows that a narrower variant catches the same class of
+  failure just as well.
+- Supersedes: none

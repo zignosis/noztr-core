@@ -188,6 +188,35 @@ Related refinement:
 - if the accepted implementation state changed, the canonical audit/report surface must change in
   the same slice or the repo starts lying about what has actually been hardened
 
+### 9. Audit and remediation should separate when rewrite pressure is the real question
+
+One failure mode in maturing repos is patching local findings so quickly that the broader pattern
+never becomes visible.
+
+What helped:
+- treat high-impact pre-freeze audits as evidence-first lanes
+- keep one live coverage ledger or working draft
+- finish the angle reports before opening broad fix execution
+- require one meta-analysis step that decides:
+  - targeted fixes
+  - bounded redesign
+  - major rewrite
+
+Why this matters:
+- some local bugs are symptoms of a systemic ownership or API-shape problem
+- fixing them too early can hide the rewrite signal
+- rewriting too early can overreact to issues that were actually isolated
+
+Important caveat:
+- this is not “never fix during an audit”
+- broken builds, safety-critical defects, and findings that invalidate the audit evidence still
+  justify immediate correction
+
+Generalization:
+- this pattern applies when the repo is deciding whether it is ready to freeze or whether its
+  public surface needs redesign
+- it is less important for small narrow slices where the failure mode is already well understood
+
 ## Useful Review Prompts
 
 These are not canonical rules here; they are the prompts that proved useful enough to move into the

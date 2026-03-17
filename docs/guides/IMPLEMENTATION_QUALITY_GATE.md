@@ -27,6 +27,21 @@ Specialized references:
 - `docs/plans/packet-template.md`
   - shared packet skeleton for new active slices
 
+## Audit-Only Override
+
+Some slices are evidence-first by design.
+
+When an active packet declares an audit-only or report-only posture:
+- use this gate to freeze scope, run reviews, and synchronize docs/reporting
+- do not treat implementation/fix steps as the default closure path
+- record findings, accepted exceptions, and blockers in the report artifact first
+- defer non-critical fixes until the declared synthesis or meta-analysis lane
+
+Only break audit-only posture early for:
+- broken builds
+- safety-critical defects
+- findings that would make the ongoing audit evidence false or materially misleading
+
 ## Gate Order
 
 1. Tracker and freeze
@@ -50,6 +65,10 @@ Specialized references:
      - canonical preimage
      - message envelope
      - checked wrapper result
+   - if the slice is audit-only, reinterpret this step as:
+     - gather evidence for the accepted audit scope
+     - update the live working draft or report artifact
+     - do not open broad remediation work inside the same lane by default
 
 3. Review A
    - validate correctness, trust-boundary behavior, and parity/evidence posture
@@ -63,6 +82,8 @@ Specialized references:
      - does the parser accept nonsense because delimiters balance
 
 4. Fix Review A findings
+   - for audit-only slices, record Review A findings and defer non-critical fixes to post-audit
+     synthesis unless the active packet explicitly allows immediate correction
 
 5. Review B
    - validate kernel-vs-SDK ownership, usability, overengineering, and final public teaching shape
@@ -75,6 +96,8 @@ Specialized references:
        preimage, message envelope, or checked wrapper semantics
 
 6. Fix Review B findings
+   - for audit-only slices, record Review B findings and defer non-critical fixes to post-audit
+     synthesis unless the active packet explicitly allows immediate correction
 
 7. Adversarial audit
    - force public error variants directly
@@ -110,8 +133,13 @@ Specialized references:
    - if tracker state changed:
      - `br ...`
      - `br sync --flush-only`
-     - `git add .beads/`
-     - `git commit -m "sync beads"`
+      - `git add .beads/`
+      - `git commit -m "sync beads"`
+
+For multi-angle pre-freeze audit programs, the scoped landing for an audit lane should usually be:
+- report or working-draft updates
+- tracker state updates
+- no code changes unless the audit-only override allowed a critical correction
 
 ## Required Outputs
 
@@ -122,6 +150,11 @@ Specialized references:
 - fresh final gate result when code changed
 - explicit docs/examples closeout
 - one scoped commit
+
+For high-impact audit-only programs, also require:
+- one explicit coverage statement
+- one explicit “checked vs not checked” statement
+- one explicit defer-to-meta-analysis statement for non-critical fixes
 
 ## Stop Conditions
 

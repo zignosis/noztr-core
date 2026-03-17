@@ -28,6 +28,13 @@ This artifact exists to keep scope, coverage, findings, fixes, accepted exceptio
 blockers explicit while the audit is in progress. It must never overstate what was actually
 reviewed.
 
+Posture:
+- audit-first and evidence-producing by default
+- no broad remediation or rewrite work lands from this lane unless a finding is:
+  - safety-critical
+  - build-breaking
+  - severe enough that leaving it unfixed would make the ongoing audit evidence misleading
+
 ## Purpose
 
 - run one deliberately exhaustive pre-freeze audit over the implemented library and its
@@ -36,6 +43,8 @@ reviewed.
   than casual
 - maintain one live draft that records what has been checked, what was fixed, what remains open,
   and what still has not been reviewed
+- separate evidence gathering from remediation so the later rewrite decision is based on the full
+  cross-angle picture instead of micro-fix churn
 
 ## Scope Delta
 
@@ -54,6 +63,7 @@ reviewed.
 - out of scope:
   - claiming RC-freeze by default before the audit draft is complete
   - speculative rewrite without evidence
+  - default code fixes for non-critical findings before cross-angle meta-analysis
   - widening the kernel into SDK workflow or transport/runtime layers
 
 ## Current Status
@@ -87,10 +97,29 @@ reviewed.
   - structural hotspot follow-up
   - explicit-state and fixed-capacity follow-up
 - still required for this exhaustive pass:
+  - explicit parity/interoperability review lane output
   - explicit performance-focused review
   - explicit crypto/backend-wrapper review
   - explicit whole-library coverage statement by implemented surface
   - explicit final residual-risk and blocker summary
+
+### Standards
+
+- every audit angle must produce a dedicated report or explicitly reference the canonical report
+  that owns that angle
+- every report must state:
+  - exact scope
+  - evidence sources
+  - standards used
+  - what was checked
+  - what was not checked
+  - findings
+  - accepted exceptions
+  - residual risk
+- every implemented surface must end this program with an explicit coverage status
+- every cross-cutting boundary area must end this program with an explicit coverage status
+- non-critical fixes discovered during the program are deferred to post-audit meta-analysis by
+  default
 
 ### Findings Ledger
 
@@ -105,12 +134,16 @@ reviewed.
 
 - none recorded yet
 
+### Deferred Remediation Candidates
+
+- none recorded yet
+
 ## Next Step
 
 1. freeze the exact audit coverage map and audit sequence under `no-ard`
 2. populate the working draft ledger as evidence lands
-3. open fix lanes only for evidence-backed issues
-4. hand the completed draft to `no-mja` for freeze-readiness consolidation
+3. record non-critical findings in this draft instead of fixing them immediately
+4. hand the completed draft to `no-mja` for meta-analysis and freeze-readiness consolidation
 
 ## Sync Touchpoints
 
@@ -127,7 +160,8 @@ reviewed.
 
 - the draft states exactly what was reviewed and what was not
 - every material finding is either:
-  - fixed,
+  - recorded as a deferred remediation candidate,
   - recorded as an explicit accepted exception, or
-  - left as one named blocker lane
-- `no-mja` can synthesize freeze-readiness without vague or overstated claims
+  - left as one named blocker lane for immediate critical action
+- `no-mja` can synthesize freeze-readiness and remediation posture without vague or overstated
+  claims

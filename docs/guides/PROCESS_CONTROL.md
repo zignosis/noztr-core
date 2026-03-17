@@ -125,6 +125,37 @@ Choose or revise postures from real repo failure modes:
 - what kind of mistake is easy to miss in normal code review?
 - what kind of pressure should shape API or workflow decisions beyond raw correctness?
 
+For high-impact pre-freeze audit programs:
+- define the required audit angles explicitly up front
+- keep one live coverage ledger that shows what is:
+  - not started
+  - in progress
+  - complete
+  - not applicable
+- require one dedicated report per angle
+- do not collapse targeted follow-up lanes into “exhaustive audit” language
+
+Minimum pre-freeze audit angles unless a packet justifies narrower scope:
+- protocol correctness
+- ecosystem parity / interoperability
+- security / misuse resistance
+- crypto/backend-wrapper quality
+- Zig engineering quality
+- performance / memory posture
+- API consistency / determinism
+- docs/examples / discoverability
+
+Each angle report must state:
+- exact scope
+- evidence sources
+- standards used
+- what was explicitly checked
+- what was explicitly not checked
+- findings
+- accepted exceptions
+- residual risk
+- proposed follow-up lanes if needed
+
 ## Stable Finding ID Rule
 
 Process and doc audits should use stable IDs.
@@ -170,6 +201,11 @@ When a phase remains active after one packet closes:
 Packets should use `docs/guides/IMPLEMENTATION_QUALITY_GATE.md` for the generic staged loop and
 reserve their own content for slice-specific deltas.
 
+For high-impact audit programs, the active packet should also make explicit:
+- whether the current lane is evidence-only or code-changing
+- which later lane owns synthesis
+- which later lane, if any, owns fixes or rewrite execution
+
 ## Process-Change Rule
 
 Do not treat a material process update as additive by default.
@@ -205,6 +241,32 @@ When the escaped bug class is pass-specific:
 - codify the generalized failure pattern, not the exact module or NIP
 - keep incident-specific details in audits, tests, or decision records instead of promoting them
   into repo-wide doctrine
+
+## Audit-Then-Fix Rule
+
+When the repo is running a high-impact multi-angle audit program:
+1. finish the required audit angles first
+2. keep the audit lanes evidence-producing by default
+3. maintain one live working draft or coverage ledger during the audit
+4. perform one explicit meta-analysis after the reports exist
+5. only then decide between:
+   - targeted fixes
+   - bounded redesign
+   - major rewrite
+
+During that kind of audit program:
+- do not land micro-fixes by default just because a local issue was found
+- allow immediate fixes only for:
+  - broken builds
+  - safety-critical defects
+  - issues that make the ongoing audit evidence invalid or misleading
+- otherwise record the issue, severity, and likely remediation in the report and defer execution
+  until after meta-analysis
+
+The point is to avoid three failure modes:
+- losing the cross-report pattern inside local patch churn
+- underestimating rewrite pressure because symptoms were patched too early
+- overcommitting to rewrite before the reports show which issues are systemic
 
 ## Micro-Freeze Rule
 
