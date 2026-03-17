@@ -101,10 +101,12 @@ Current execution state for `noztr`.
   - `no-mja` only after `no-ard`
 - keep `no-ard` evidence-first:
   - use `docs/plans/exhaustive-pre-freeze-audit-matrix.md` as the hard coverage ledger
+  - use `docs/plans/audit-angle-standards.md` as the per-angle completion bar
   - use `docs/plans/audit-angle-report-template.md` for each dedicated angle report
   - use `docs/plans/audit-meta-analysis-template.md` only after the angle reports are complete
-  - record non-critical findings in the working draft
-  - defer routine fixes until the post-audit meta-analysis decides between targeted fixes, bounded
+  - execute the angle lanes in frozen order tracked in both docs and `br`
+  - record findings in the working draft and reports instead of fixing them
+  - do not land fixes until the post-audit meta-analysis decides between targeted fixes, bounded
     redesign, or major rewrite
 - keep the completed audit reports as reference evidence and reopen them only on new contrary
   evidence

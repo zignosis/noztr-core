@@ -59,6 +59,8 @@ payload is needed for the current task.
 - Reversal Trigger: parity analysis requires upstream changes not represented in
   pinned commits.
 - Supersedes: none
+- Later refinement: `D-124` tightens this rule by forbidding all in-audit fixes and expanding the
+  required audit surface and angle split.
 
 ## D-002: Define parity as behavior, not API shape
 
@@ -75,6 +77,8 @@ payload is needed for the current task.
 - Related Tradeoff: T-0-002.
 - Reversal Trigger: explicit product requirement for source-compatible APIs.
 - Supersedes: none
+- Later refinement: `D-124` tightens the active audit program by splitting cryptographic review and
+  requiring whole-codebase coverage.
 
 ## D-003: Strict-by-default protocol policy
 
@@ -3086,15 +3090,19 @@ payload is needed for the current task.
       - residual risk
     - do not treat targeted follow-up lanes as equivalent to one exhaustive pre-freeze audit
     - defer non-critical fixes until after one explicit meta-analysis step
+    - note:
+      - this was the initial softer posture and was later tightened by `D-124`
     - the meta-analysis step must decide whether the next remediation posture is:
       - targeted fixes
       - bounded redesign
       - major rewrite
-  - accepted exceptions for immediate fixes during the audit:
+  - historical exceptions in the initial version:
     - broken builds
     - safety-critical defects
     - findings severe enough that leaving them unfixed would make the ongoing audit evidence false
       or materially misleading
+  - current rule:
+    - `D-124` removes these in-audit fix exceptions for the active pre-freeze audit program
   - accepted non-goals:
     - mixing exhaustive evidence gathering with routine micro-fix churn
     - deciding against rewrite pressure before the reports exist
@@ -3150,3 +3158,44 @@ payload is needed for the current task.
 - Reversal Trigger: the added execution framework becomes mostly ceremonial and does not materially
   improve audit thoroughness or honesty.
 - Supersedes: none
+
+## D-124: Forbid in-audit fixes, split cryptographic lanes, and require whole-codebase audit coverage
+
+- Date: 2026-03-17
+- Status: accepted
+- Decision: tighten the active pre-freeze audit program again so it is stricter and more explicit.
+  - accepted behavior:
+    - no code fixes land during the active multi-angle pre-freeze audit program
+    - all findings stay in reports, the matrix, or the working draft until the angle reports and
+      meta-analysis complete
+    - split cryptographic review into two distinct audit angles:
+      - cryptographic correctness / secret handling
+      - crypto/backend-wrapper quality
+    - the exhaustive audit must cover the entire release-relevant codebase, not only implemented
+      NIP modules
+    - the matrix must explicitly cover:
+      - build and packaging surface
+      - exported facade and shared support
+      - event/message/filter/key core
+      - implemented NIP surfaces
+      - crypto backends and derivation boundaries
+      - cryptography-bearing protocol consumers
+      - internal helpers that affect release confidence
+      - examples and discovery surface
+      - freeze-critical control and audit docs
+    - each audit angle must use the shared per-angle standards as its minimum completion bar
+  - accepted non-goals:
+    - interrupting the audit program to patch even serious local findings
+    - calling the audit exhaustive if only the implemented NIPs were reviewed
+    - collapsing cryptographic framing review and backend-wrapper review into one vague lane
+- Why: the prior audit-first structure was directionally right, but it still left room for two
+  failure modes: drifting back into patch-as-you-go behavior, and under-specifying the actual audit
+  surface. Splitting the cryptographic lanes and expanding the matrix to the whole release-relevant
+  codebase makes the audit more honest and more likely to produce a reliable rewrite decision.
+- Tradeoff: slower short-term response to discovered issues versus a cleaner global picture of
+  whether the library wants targeted fixes, bounded redesign, or a major rewrite.
+- Related Tradeoff: T-0-004.
+- Reversal Trigger: the stricter no-fix rule or expanded surface matrix proves to be overbroad and
+  does not materially improve the later remediation decision.
+- Supersedes: parts of `D-122` and `D-123` where they allowed narrower angle sets or immediate
+  in-audit fixes.

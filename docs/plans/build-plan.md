@@ -177,6 +177,9 @@ This artifact is the lean active execution baseline and is aligned to:
 - before any RC-freeze claim, complete one explicit exhaustive pre-freeze audit draft that states
   actual whole-library coverage, performance posture, crypto/backend-wrapper review, accepted
   exceptions, and remaining blockers without overstatement.
+- the exhaustive pre-freeze audit is audit-only:
+  - do not land fixes during the angle audits
+  - use the later meta-analysis to choose targeted fixes, bounded redesign, or major rewrite
 - keep the completed TigerBeetle Zig-quality report as reference evidence; the current concrete
   remaining follow-up lanes are `no-ard` for the exhaustive audit draft and `no-mja` for later
   freeze-readiness consolidation after that draft is complete.

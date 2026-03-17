@@ -71,6 +71,7 @@ plan_docs=(
     "docs/plans/post-audit-improvement-plan.md"
     "docs/plans/exhaustive-pre-freeze-audit.md"
     "docs/plans/exhaustive-pre-freeze-audit-matrix.md"
+    "docs/plans/audit-angle-standards.md"
     "handoff.md"
 )
 
@@ -146,6 +147,7 @@ printf -- '- `docs/plans/phase-h-remaining-work.md`\n'
 printf -- '- `docs/plans/post-audit-improvement-plan.md`\n'
 printf -- '- `docs/plans/exhaustive-pre-freeze-audit.md`\n'
 printf -- '- `docs/plans/exhaustive-pre-freeze-audit-matrix.md`\n'
+printf -- '- `docs/plans/audit-angle-standards.md`\n'
 printf "\n"
 
 printf "## Load On Demand\n\n"
@@ -156,6 +158,7 @@ printf -- '- Current Phase H remaining-work packet: `docs/plans/phase-h-remainin
 printf -- '- Current post-audit execution plan: `docs/plans/post-audit-improvement-plan.md`\n'
 printf -- '- Current exhaustive pre-freeze audit draft: `docs/plans/exhaustive-pre-freeze-audit.md`\n'
 printf -- '- Current exhaustive pre-freeze audit matrix: `docs/plans/exhaustive-pre-freeze-audit-matrix.md`\n'
+printf -- '- Current audit angle standards: `docs/plans/audit-angle-standards.md`\n'
 printf -- '- `docs/plans/audit-angle-report-template.md` when writing a dedicated audit-angle report\n'
 printf -- '- `docs/plans/audit-meta-analysis-template.md` when synthesizing completed audit angles\n'
 printf -- '- Completed Phase H packets for traceability: `docs/plans/phase-h-kickoff.md`, `docs/plans/phase-h-additional-nips-plan.md`, `docs/plans/phase-h-wave1-loop.md`\n'

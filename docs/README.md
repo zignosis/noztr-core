@@ -38,6 +38,8 @@ These docs control active work and should stay lean.
     synthesis
 - `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
   - hard coverage ledger for the exhaustive audit
+- `docs/plans/audit-angle-standards.md`
+  - per-angle completion standards for the exhaustive audit
 - `docs/plans/docs-surface-audit.md`
   - stable-ID audit of doc bloat, repetition, and control-surface drift
 
@@ -78,6 +80,7 @@ These are active references, not startup defaults.
 - `docs/plans/post-audit-improvement-plan.md`
 - `docs/plans/exhaustive-pre-freeze-audit.md`
 - `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
+- `docs/plans/audit-angle-standards.md`
 - `docs/plans/audit-angle-report-template.md`
 - `docs/plans/audit-meta-analysis-template.md`
 - `docs/plans/implemented-nip-review-guide.md`

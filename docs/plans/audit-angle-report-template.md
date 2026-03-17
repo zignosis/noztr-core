@@ -111,3 +111,5 @@ For each accepted exception:
 - if prior evidence is partial, say so
 - if an area is not checked, name it explicitly
 - do not blur findings with remediation execution
+- do not propose immediate fixes from the angle report; route all remediation pressure to the later
+  meta-analysis

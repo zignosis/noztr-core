@@ -208,9 +208,10 @@ Why this matters:
 - rewriting too early can overreact to issues that were actually isolated
 
 Important caveat:
-- this is not “never fix during an audit”
-- broken builds, safety-critical defects, and findings that invalidate the audit evidence still
-  justify immediate correction
+- for `noztr`'s current pre-freeze audit posture, this is now stricter:
+  - do not fix during the audit program
+  - finish the angle reports and meta-analysis first
+  - let the later remediation posture absorb even serious findings
 
 Generalization:
 - this pattern applies when the repo is deciding whether it is ready to freeze or whether its

@@ -121,13 +121,20 @@ the `OQ-E-006` usability pass.
       - `no-3jb` explicit-state and fixed-capacity Tiger follow-ups, complete
 - `OQ-BV-005`
   - can Phase H make an honest freeze-readiness claim without one explicit exhaustive audit draft
-    covering protocol surfaces, public contracts, performance posture, crypto/backend wrappers,
-    and docs/examples completeness?
+    covering protocol surfaces, public contracts, performance posture, cryptographic correctness,
+    crypto/backend wrappers, and docs/examples completeness?
   - current result:
     - no
     - active next lane:
       - `no-ard` exhaustive pre-freeze audit draft
       - `no-mja` remains deferred until `no-ard` closes
+  - execution rule:
+    - `no-ard` runs audit-only
+    - no fixes land until the angle reports and `no-mja` meta-analysis complete
+    - the frozen audit order is enforced in both the packet docs and `br` dependencies
+    - dedicated angle issues:
+      - `no-3ib`, `no-f2u`, `no-odj`, `no-dwu`, `no-ys3`, `no-5a7o`, `no-jacg`, `no-ohgb`,
+        `no-l5h7`
 
 ## Tradeoff
 

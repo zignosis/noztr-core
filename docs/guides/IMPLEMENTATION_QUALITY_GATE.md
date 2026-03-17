@@ -26,6 +26,8 @@ Specialized references:
   - implemented-NIP audit and robustness-specific review posture
 - `docs/plans/packet-template.md`
   - shared packet skeleton for new active slices
+- `docs/plans/audit-angle-standards.md`
+  - minimum completion bar for each dedicated audit angle
 - `docs/plans/audit-angle-report-template.md`
   - required template for dedicated angle reports in high-impact audit programs
 - `docs/plans/audit-meta-analysis-template.md`
@@ -39,12 +41,7 @@ When an active packet declares an audit-only or report-only posture:
 - use this gate to freeze scope, run reviews, and synchronize docs/reporting
 - do not treat implementation/fix steps as the default closure path
 - record findings, accepted exceptions, and blockers in the report artifact first
-- defer non-critical fixes until the declared synthesis or meta-analysis lane
-
-Only break audit-only posture early for:
-- broken builds
-- safety-critical defects
-- findings that would make the ongoing audit evidence false or materially misleading
+- defer all fixes until the declared synthesis or meta-analysis lane
 
 ## Gate Order
 
@@ -86,8 +83,7 @@ Only break audit-only posture early for:
      - does the parser accept nonsense because delimiters balance
 
 4. Fix Review A findings
-   - for audit-only slices, record Review A findings and defer non-critical fixes to post-audit
-     synthesis unless the active packet explicitly allows immediate correction
+   - for audit-only slices, record Review A findings and defer all fixes to post-audit synthesis
 
 5. Review B
    - validate kernel-vs-SDK ownership, usability, overengineering, and final public teaching shape
@@ -100,8 +96,7 @@ Only break audit-only posture early for:
        preimage, message envelope, or checked wrapper semantics
 
 6. Fix Review B findings
-   - for audit-only slices, record Review B findings and defer non-critical fixes to post-audit
-     synthesis unless the active packet explicitly allows immediate correction
+   - for audit-only slices, record Review B findings and defer all fixes to post-audit synthesis
 
 7. Adversarial audit
    - force public error variants directly
@@ -143,7 +138,7 @@ Only break audit-only posture early for:
 For multi-angle pre-freeze audit programs, the scoped landing for an audit lane should usually be:
 - report or working-draft updates
 - tracker state updates
-- no code changes unless the audit-only override allowed a critical correction
+- no code changes
 
 ## Required Outputs
 
@@ -158,7 +153,7 @@ For multi-angle pre-freeze audit programs, the scoped landing for an audit lane 
 For high-impact audit-only programs, also require:
 - one explicit coverage statement
 - one explicit “checked vs not checked” statement
-- one explicit defer-to-meta-analysis statement for non-critical fixes
+- one explicit defer-to-meta-analysis statement for all fixes
 - one matrix update if the slice participates in a multi-angle audit program
 
 ## Stop Conditions

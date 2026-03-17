@@ -139,6 +139,7 @@ Minimum pre-freeze audit angles unless a packet justifies narrower scope:
 - protocol correctness
 - ecosystem parity / interoperability
 - security / misuse resistance
+- cryptographic correctness / secret handling
 - crypto/backend-wrapper quality
 - Zig engineering quality
 - performance / memory posture
@@ -255,13 +256,9 @@ When the repo is running a high-impact multi-angle audit program:
    - major rewrite
 
 During that kind of audit program:
-- do not land micro-fixes by default just because a local issue was found
-- allow immediate fixes only for:
-  - broken builds
-  - safety-critical defects
-  - issues that make the ongoing audit evidence invalid or misleading
-- otherwise record the issue, severity, and likely remediation in the report and defer execution
-  until after meta-analysis
+- do not land fixes during the audit program
+- record the issue, severity, and likely remediation in the report and defer execution until after
+  meta-analysis
 
 The point is to avoid three failure modes:
 - losing the cross-report pattern inside local patch churn

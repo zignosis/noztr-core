@@ -23,6 +23,8 @@ exceptions recorded in the decision log.
 - Read `docs/plans/packet-template.md` when creating or repairing packet docs.
 - Read `docs/plans/noztr-sdk-ownership-matrix.md` when the task touches kernel-vs-SDK scope,
   deterministic protocol glue, or higher-level workflow ownership.
+- Read `docs/plans/audit-angle-standards.md` and `docs/plans/audit-angle-report-template.md` when
+  the task starts a dedicated exhaustive-audit angle.
 - Read planning prompt artifacts only when the task is phase-planning work.
 - Work in phase order. Do not skip phase gates.
 
@@ -120,8 +122,7 @@ Run tests after every code change.
   - finish the required audit angles before default remediation work begins
   - keep one live working draft or coverage ledger
   - separate evidence-gathering lanes from later remediation lanes
-  - allow immediate fixes during the audit only for broken builds, safety-critical defects, or
-    findings that would make the audit evidence misleading
+  - do not land fixes during the audit program
   - require one explicit meta-analysis before deciding on targeted fixes, bounded redesign, or a
     major rewrite
 

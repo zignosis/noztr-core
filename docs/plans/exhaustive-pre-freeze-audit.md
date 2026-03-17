@@ -12,6 +12,7 @@ depends_on:
   - docs/guides/IMPLEMENTATION_QUALITY_GATE.md
   - docs/plans/implemented-nip-audit-report.md
   - docs/plans/exhaustive-pre-freeze-audit-matrix.md
+  - docs/plans/audit-angle-standards.md
   - docs/plans/audit-angle-report-template.md
   - docs/plans/audit-meta-analysis-template.md
   - docs/research/libnostr-z-comparison-report.md
@@ -33,10 +34,9 @@ reviewed.
 
 Posture:
 - audit-first and evidence-producing by default
-- no broad remediation or rewrite work lands from this lane unless a finding is:
-  - safety-critical
-  - build-breaking
-  - severe enough that leaving it unfixed would make the ongoing audit evidence misleading
+- no code fixes land from this lane
+- all findings stay in reports, the matrix, or the working draft until every audit angle and the
+  meta-analysis complete
 
 ## Purpose
 
@@ -52,7 +52,13 @@ Posture:
 ## Scope Delta
 
 - in scope:
-  - all implemented NIP surfaces as represented by the canonical audit report
+  - the entire release-relevant codebase:
+    - all implemented NIP surfaces as represented by the canonical audit report
+    - exported facade and shared support modules
+    - crypto backends and derivation boundaries
+    - internal helpers that affect release confidence
+    - examples and discovery surface
+    - build, packaging, and freeze-critical control docs
   - cross-cutting boundary review:
     - public error contracts
     - invalid-vs-capacity behavior
@@ -61,12 +67,13 @@ Posture:
     - hostile example and teaching-surface coverage
     - ownership and memory posture
     - performance posture
+    - cryptographic correctness and secret-handling review
     - `secp256k1` / `libwally` / backend wrapper review
     - Zig-quality review informed by TigerBeetle
 - out of scope:
   - claiming RC-freeze by default before the audit draft is complete
   - speculative rewrite without evidence
-  - default code fixes for non-critical findings before cross-angle meta-analysis
+  - any code fixes before all audit angles and `no-mja` complete
   - widening the kernel into SDK workflow or transport/runtime layers
 
 ## Current Status
@@ -80,33 +87,35 @@ Posture:
 ## Audit Axes
 
 1. Protocol correctness and implemented-NIP coverage
-2. Public API consistency and trust-boundary clarity
-3. Invalid-vs-capacity and assertion-leak behavior
-4. Ownership, allocation, and memory discipline
-5. Performance posture
-6. Crypto/backend wrapper quality and boundary sharpness
-7. Zig engineering quality and anti-pattern review
-8. Examples, docs, and discovery-surface correctness
+2. Ecosystem parity / interoperability
+3. Security / misuse resistance
+4. Cryptographic correctness / secret handling
+5. Crypto/backend wrapper quality and boundary sharpness
+6. Zig engineering quality and anti-pattern review
+7. Performance posture
+8. Public API consistency / determinism
+9. Examples, docs, and discovery-surface correctness
 
 ## Frozen Execution Order
 
 Run the angle audits in this order unless the packet is explicitly revised:
 
-1. protocol correctness
-2. ecosystem parity / interoperability
-3. security / misuse resistance
-4. crypto/backend-wrapper quality
-5. Zig engineering quality
-6. performance / memory posture
-7. API consistency / determinism
-8. docs/examples / discoverability
-9. meta-analysis in `no-mja`
+1. protocol correctness: `no-3ib`
+2. ecosystem parity / interoperability: `no-f2u`
+3. security / misuse resistance: `no-odj`
+4. cryptographic correctness / secret handling: `no-dwu`
+5. crypto/backend-wrapper quality: `no-ys3`
+6. Zig engineering quality: `no-5a7o`
+7. performance / memory posture: `no-jacg`
+8. API consistency / determinism: `no-ohgb`
+9. docs/examples / discoverability: `no-l5h7`
+10. meta-analysis in `no-mja`
 
 Why this order:
 - correctness and parity establish whether the library is fundamentally right before deeper
   architecture judgments
-- security and crypto review challenge the highest-trust boundaries before performance or ergonomics
-  arguments dominate
+- security and cryptographic review challenge the highest-trust boundaries before performance or
+  ergonomics arguments dominate
 - Zig and performance review come after the trust-boundary core is understood
 - API and docs/discoverability review happen after the implementation realities are explicit
 
@@ -122,16 +131,19 @@ Why this order:
   - structural hotspot follow-up
   - explicit-state and fixed-capacity follow-up
 - still required for this exhaustive pass:
+  - explicit whole-codebase matrix coverage across source, examples, build, and control surfaces
   - explicit parity/interoperability review lane output
+  - explicit security and misuse-resistance review lane output
+  - explicit cryptographic-correctness review lane output
   - explicit performance-focused review
   - explicit crypto/backend-wrapper review
-  - explicit whole-library coverage statement by implemented surface
   - explicit final residual-risk and blocker summary
 
 ### Standards
 
 - every audit angle must produce a dedicated report or explicitly reference the canonical report
   that owns that angle
+- every angle must use `docs/plans/audit-angle-standards.md` as the minimum completion bar
 - every angle report should start from `docs/plans/audit-angle-report-template.md`
 - every report must state:
   - exact scope
@@ -144,16 +156,15 @@ Why this order:
   - residual risk
 - every implemented surface must end this program with an explicit coverage status
 - every cross-cutting boundary area must end this program with an explicit coverage status
-- non-critical fixes discovered during the program are deferred to post-audit meta-analysis by
-  default
+- no fixes discovered during the program are landed before post-audit meta-analysis
 - coverage status is controlled by `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
+- per-angle completion standards live in `docs/plans/audit-angle-standards.md`
 - remediation posture is controlled later by `docs/plans/audit-meta-analysis-template.md`
 
 ### Severity And Rewrite-Pressure Rubric
 
 - `critical`
   - unsafe, invalidates audit evidence, or blocks any credible freeze path
-  - immediate correction may be justified inside the audit program
 - `high`
   - serious correctness, trust-boundary, or architectural defect
   - often contributes to bounded redesign or major rewrite pressure
@@ -168,6 +179,29 @@ Rewrite-pressure interpretation:
 - isolated `medium` or `low` findings do not justify rewrite language
 - repeated `high` findings across multiple angles strongly pressure redesign
 - systemic `critical` or clustered `high` findings can justify major rewrite consideration
+
+### Dedicated Audit Lanes
+
+- `no-3ib`
+  - protocol correctness
+- `no-f2u`
+  - ecosystem parity / interoperability
+- `no-odj`
+  - security / misuse resistance
+- `no-dwu`
+  - cryptographic correctness / secret handling
+- `no-ys3`
+  - crypto/backend-wrapper quality
+- `no-5a7o`
+  - Zig engineering quality
+- `no-jacg`
+  - performance / memory posture
+- `no-ohgb`
+  - API consistency / determinism
+- `no-l5h7`
+  - docs/examples / discoverability
+- `no-mja`
+  - final meta-analysis and remediation-posture decision
 
 ### Findings Ledger
 
@@ -190,9 +224,10 @@ Rewrite-pressure interpretation:
 
 1. freeze the exact audit coverage map and audit sequence under `no-ard`
 2. keep `docs/plans/exhaustive-pre-freeze-audit-matrix.md` current as the hard coverage ledger
-3. write each angle report against `docs/plans/audit-angle-report-template.md`
-4. record non-critical findings in this draft instead of fixing them immediately
-5. hand the completed draft and angle reports to `no-mja` for meta-analysis and freeze-readiness
+3. use one dedicated `br` issue per audit angle in the frozen execution order
+4. write each angle report against `docs/plans/audit-angle-report-template.md`
+5. record findings in this draft instead of fixing them
+6. hand the completed draft and angle reports to `no-mja` for meta-analysis and freeze-readiness
    consolidation
 
 ## Sync Touchpoints
