@@ -149,7 +149,6 @@ pub fn draft_build_identifier_tag(
     identifier: []const u8,
 ) Nip37Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
 
     output.items[0] = "d";
     output.items[1] = parse_nonempty_utf8(identifier) catch return error.InvalidIdentifierTag;
@@ -196,7 +195,6 @@ pub fn private_relay_build_tag(
     relay_url: []const u8,
 ) Nip37Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(relay_url.len <= limits.tag_item_bytes_max);
 
     output.items[0] = "relay";
     output.items[1] = parse_relay_url(relay_url) catch return error.InvalidPrivateRelayUrl;
@@ -333,19 +331,21 @@ fn parse_single_utf8_value(tag: nip01_event.EventTag) error{InvalidTag}![]const 
 }
 
 fn parse_nonempty_utf8(text: []const u8) error{InvalidTag}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max > 0);
 
     if (text.len == 0) return error.InvalidTag;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidTag;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidTag;
     return text;
 }
 
 fn parse_decimal_u32(text: []const u8) error{InvalidDecimal}!u32 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidDecimal;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidDecimal;
     for (text) |byte| {
         if (byte < '0' or byte > '9') return error.InvalidDecimal;
     }
@@ -353,10 +353,11 @@ fn parse_decimal_u32(text: []const u8) error{InvalidDecimal}!u32 {
 }
 
 fn parse_decimal_u64(text: []const u8) error{InvalidDecimal}!u64 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidDecimal;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidDecimal;
     for (text) |byte| {
         if (byte < '0' or byte > '9') return error.InvalidDecimal;
     }
@@ -368,10 +369,11 @@ fn validate_draft_json(
     expected_kind: ?u32,
     scratch: std.mem.Allocator,
 ) Nip37Error!void {
-    std.debug.assert(input.len <= limits.content_bytes_max);
+    std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     if (input.len == 0) return error.InvalidDraftJson;
+    if (input.len > limits.content_bytes_max) return error.InvalidDraftJson;
     if (!std.unicode.utf8ValidateSlice(input)) return error.InvalidDraftJson;
     var parse_arena = std.heap.ArenaAllocator.init(scratch);
     defer parse_arena.deinit();
@@ -567,10 +569,11 @@ fn write_private_byte(writer: anytype, byte: u8) Nip37Error!void {
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidUrl;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
     const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
     if (parsed.scheme.len == 0) return error.InvalidUrl;
     if (parsed.host == null) return error.InvalidUrl;
@@ -578,9 +581,11 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
 }
 
 fn parse_relay_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len == 0) return error.InvalidUrl;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
     if (relay_origin.parse_websocket_origin(text) == null) return error.InvalidUrl;
     return text;
 }
@@ -832,6 +837,40 @@ test "private relay list rejects non-websocket relay urls" {
             "[[\"relay\",\"https://relay.example\"]]",
             relay_urls[0..],
             arena.allocator(),
+        ),
+    );
+}
+
+test "draft builders reject overlong caller input with typed errors" {
+    var built: BuiltTag = .{};
+    const overlong_identifier = "x" ** (limits.tag_item_bytes_max + 1);
+    const overlong_relay = "wss://" ++ ("a" ** 9000) ++ ".example";
+
+    try std.testing.expectError(
+        error.InvalidIdentifierTag,
+        draft_build_identifier_tag(&built, overlong_identifier[0..]),
+    );
+    try std.testing.expectError(
+        error.InvalidPrivateRelayUrl,
+        private_relay_build_tag(&built, overlong_relay),
+    );
+}
+
+test "draft wrap encrypt rejects overlong draft json with typed error" {
+    const allocator = std.testing.allocator;
+    const private_key = [_]u8{1} ** 32;
+    const public_key = [_]u8{2} ** 32;
+    var ciphertext: [limits.nip44_payload_base64_max_bytes]u8 = undefined;
+    const overlong_json = "{" ++ ("a" ** limits.content_bytes_max) ++ "}";
+
+    try std.testing.expectError(
+        error.InvalidDraftJson,
+        draft_wrap_encrypt_json(
+            ciphertext[0..],
+            &private_key,
+            &public_key,
+            overlong_json[0..],
+            allocator,
         ),
     );
 }

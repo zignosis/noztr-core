@@ -120,7 +120,6 @@ pub fn listing_build_identifier_tag(
     identifier: []const u8,
 ) Nip99Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
 
     output.items[0] = "d";
     output.items[1] = parse_scheme_less_url(identifier) catch return error.InvalidIdentifierTag;
@@ -134,7 +133,6 @@ pub fn listing_build_title_tag(
     title: []const u8,
 ) Nip99Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(title.len <= limits.tag_item_bytes_max);
 
     output.items[0] = "title";
     output.items[1] = parse_nonempty_utf8(title) catch return error.InvalidTitleTag;
@@ -148,7 +146,6 @@ pub fn listing_build_summary_tag(
     summary: []const u8,
 ) Nip99Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(summary.len <= limits.tag_item_bytes_max);
 
     output.items[0] = "summary";
     output.items[1] = parse_nonempty_utf8(summary) catch return error.InvalidSummaryTag;
@@ -178,7 +175,6 @@ pub fn listing_build_location_tag(
     location: []const u8,
 ) Nip99Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(location.len <= limits.tag_item_bytes_max);
 
     output.items[0] = "location";
     output.items[1] = parse_nonempty_utf8(location) catch return error.InvalidLocationTag;
@@ -230,7 +226,6 @@ pub fn listing_build_geohash_tag(
     geohash: []const u8,
 ) Nip99Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(geohash.len <= limits.tag_item_bytes_max);
 
     output.items[0] = "g";
     output.items[1] = parse_geohash(geohash) catch return error.InvalidGeohashTag;
@@ -245,7 +240,6 @@ pub fn listing_build_image_tag(
     dimensions: ?[]const u8,
 ) Nip99Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(image_url.len <= limits.tag_item_bytes_max);
 
     output.items[0] = "image";
     output.items[1] = parse_url(image_url) catch return error.InvalidImageTag;
@@ -263,7 +257,6 @@ pub fn listing_build_hashtag_tag(
     hashtag: []const u8,
 ) Nip99Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(hashtag.len <= limits.tag_item_bytes_max);
 
     output.items[0] = "t";
     output.items[1] = parse_hashtag_value(hashtag) catch return error.InvalidHashtagTag;
@@ -483,17 +476,18 @@ fn parse_optional_dimensions_item(
 }
 
 fn parse_nonempty_utf8(text: []const u8) error{InvalidUtf8}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidUtf8;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUtf8;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUtf8;
     return text;
 }
 
 fn parse_scheme_less_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     _ = parse_nonempty_utf8(text) catch return error.InvalidUrl;
     for (text) |byte| {
@@ -510,10 +504,11 @@ fn parse_scheme_less_url(text: []const u8) error{InvalidUrl}![]const u8 {
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidUrl;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
     const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
     if (parsed.scheme.len == 0) return error.InvalidUrl;
     if (parsed.host == null) return error.InvalidUrl;
@@ -521,9 +516,10 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
 }
 
 fn parse_dimensions(text: []const u8) error{InvalidDimensions}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidDimensions;
     const separator = std.mem.indexOfScalar(u8, text, 'x') orelse return error.InvalidDimensions;
     if (separator == 0 or separator + 1 >= text.len) return error.InvalidDimensions;
     _ = std.fmt.parseInt(u32, text[0..separator], 10) catch return error.InvalidDimensions;
@@ -532,10 +528,11 @@ fn parse_dimensions(text: []const u8) error{InvalidDimensions}![]const u8 {
 }
 
 fn parse_numeric_amount(text: []const u8) error{InvalidAmount}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidAmount;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidAmount;
     var saw_dot = false;
     for (text, 0..) |byte, index| {
         if (byte == '.') {
@@ -549,9 +546,10 @@ fn parse_numeric_amount(text: []const u8) error{InvalidAmount}![]const u8 {
 }
 
 fn parse_currency(text: []const u8) error{InvalidCurrency}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidCurrency;
     if (text.len < 3 or text.len > 8) return error.InvalidCurrency;
     for (text) |byte| {
         if (!std.ascii.isAlphanumeric(byte)) return error.InvalidCurrency;
@@ -560,10 +558,11 @@ fn parse_currency(text: []const u8) error{InvalidCurrency}![]const u8 {
 }
 
 fn parse_geohash(text: []const u8) error{InvalidGeohash}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidGeohash;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidGeohash;
     for (text) |byte| {
         if (byte >= '0' and byte <= '9') continue;
         if (byte == 'b' or byte == 'c' or byte == 'd') continue;
@@ -579,10 +578,11 @@ fn parse_geohash(text: []const u8) error{InvalidGeohash}![]const u8 {
 }
 
 fn parse_hashtag_value(text: []const u8) error{InvalidHashtag}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidHashtag;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidHashtag;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidHashtag;
     for (text) |byte| {
         if (std.ascii.isWhitespace(byte)) return error.InvalidHashtag;
@@ -689,5 +689,21 @@ test "listing builders create canonical tags" {
     try std.testing.expectError(
         error.InvalidIdentifierTag,
         listing_build_identifier_tag(&identifier_tag, "https://example.com/post"),
+    );
+}
+
+test "listing builders reject overlong caller input with typed errors" {
+    var title_tag: BuiltTag = .{};
+    var image_tag: BuiltTag = .{};
+    const overlong_text = "x" ** (limits.tag_item_bytes_max + 1);
+    const overlong_url = "https://" ++ ("a" ** limits.tag_item_bytes_max) ++ ".example";
+
+    try std.testing.expectError(
+        error.InvalidTitleTag,
+        listing_build_title_tag(&title_tag, overlong_text[0..]),
+    );
+    try std.testing.expectError(
+        error.InvalidImageTag,
+        listing_build_image_tag(&image_tag, overlong_url[0..], null),
     );
 }

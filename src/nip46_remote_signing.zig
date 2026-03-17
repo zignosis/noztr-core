@@ -402,7 +402,7 @@ pub fn request_build_sign_event(
 ) Nip46Error!Request {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
-    std.debug.assert(unsigned_event_json.len <= limits.event_json_max);
+    std.debug.assert(unsigned_event_json.len <= std.math.maxInt(usize));
 
     output.params[0] = unsigned_event_json;
     output.param_count = 1;
@@ -528,7 +528,7 @@ pub fn response_result_switch_relays(response: *const Response) Nip46Error!?[]co
 }
 
 pub fn uri_parse(input: []const u8, scratch: std.mem.Allocator) Nip46Error!ConnectionUri {
-    std.debug.assert(input.len <= limits.nip46_uri_bytes_max);
+    std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     const parts = try parse_uri_parts(input);
@@ -800,7 +800,7 @@ fn validate_nostrconnect_client_uri(
     connection_uri: []const u8,
     scratch: std.mem.Allocator,
 ) Nip46Error!void {
-    std.debug.assert(connection_uri.len <= limits.nip46_uri_bytes_max);
+    std.debug.assert(connection_uri.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     const parsed = try uri_parse(connection_uri, scratch);
@@ -1414,7 +1414,7 @@ fn parse_bunker_uri(
     query: ?[]const u8,
     scratch: std.mem.Allocator,
 ) Nip46Error!BunkerUri {
-    std.debug.assert(authority.len == limits.pubkey_hex_length);
+    std.debug.assert(authority.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     const pubkey = parse_lower_hex_32(authority) catch return error.InvalidPubkey;
@@ -1437,7 +1437,7 @@ fn parse_client_uri(
     query: ?[]const u8,
     scratch: std.mem.Allocator,
 ) Nip46Error!ClientUri {
-    std.debug.assert(authority.len == limits.pubkey_hex_length);
+    std.debug.assert(authority.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     const pubkey = parse_lower_hex_32(authority) catch return error.InvalidPubkey;
@@ -1503,7 +1503,7 @@ fn apply_query_pair(
     secret: *?[]const u8,
     metadata: ?*ClientMetadata,
 ) Nip46Error!void {
-    std.debug.assert(raw_key.len <= limits.tag_item_bytes_max);
+    std.debug.assert(raw_key.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     const key = try query_decode_component(raw_key, false, scratch);
@@ -1648,7 +1648,7 @@ fn append_query_relay(
     relay_count: *u8,
 ) Nip46Error!void {
     std.debug.assert(relay_count.* <= limits.nip46_relays_max);
-    std.debug.assert(relay.len <= limits.tag_item_bytes_max);
+    std.debug.assert(relay.len <= std.math.maxInt(usize));
 
     _ = parse_relay_url(relay) catch return error.InvalidRelayUrl;
     if (relay_count.* == limits.nip46_relays_max) {
@@ -1662,9 +1662,12 @@ fn parse_permissions_csv(
     perms_text: []const u8,
     scratch: std.mem.Allocator,
 ) Nip46Error![]const Permission {
-    std.debug.assert(perms_text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(perms_text.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
+    if (perms_text.len > limits.tag_item_bytes_max) {
+        return error.InvalidPermission;
+    }
     if (perms_text.len == 0) {
         return error.InvalidPermission;
     }
@@ -1704,9 +1707,12 @@ fn query_decode_component(
     plus_as_space: bool,
     scratch: std.mem.Allocator,
 ) Nip46Error![]const u8 {
-    std.debug.assert(text.len <= limits.nip46_uri_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
+    if (text.len > limits.nip46_uri_bytes_max) {
+        return error.InvalidUri;
+    }
     const out = scratch.alloc(u8, text.len) catch return error.OutOfMemory;
     var read_index: usize = 0;
     var write_index: usize = 0;
@@ -2021,10 +2027,13 @@ fn parse_target_pubkey(tag: nip01_event.EventTag) Nip46Error![32]u8 {
 }
 
 fn validate_secret(secret: []const u8) Nip46Error!void {
-    std.debug.assert(secret.len <= limits.tag_item_bytes_max);
+    std.debug.assert(secret.len <= std.math.maxInt(usize));
     std.debug.assert(limits.nip46_secret_bytes_max > 0);
 
     if (secret.len == 0 or secret.len > limits.nip46_secret_bytes_max) {
+        return error.InvalidSecret;
+    }
+    if (secret.len > limits.tag_item_bytes_max) {
         return error.InvalidSecret;
     }
     if (!std.unicode.utf8ValidateSlice(secret)) {
@@ -2033,10 +2042,11 @@ fn validate_secret(secret: []const u8) Nip46Error!void {
 }
 
 fn validate_name(name: []const u8) Nip46Error!void {
-    std.debug.assert(name.len <= limits.tag_item_bytes_max);
+    std.debug.assert(name.len <= std.math.maxInt(usize));
     std.debug.assert(name.len <= std.math.maxInt(usize));
 
     if (name.len == 0) return error.InvalidName;
+    if (name.len > limits.tag_item_bytes_max) return error.InvalidName;
     if (!std.unicode.utf8ValidateSlice(name)) return error.InvalidName;
 }
 
@@ -2188,10 +2198,11 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(text.len <= std.math.maxInt(usize));
 
     if (text.len == 0) return error.InvalidUrl;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
     const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
     if (parsed.scheme.len == 0) return error.InvalidUrl;
     if (parsed.host == null) return error.InvalidUrl;
@@ -2199,10 +2210,11 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
 }
 
 fn parse_relay_url(text: []const u8) error{InvalidRelayUrl}!relay_origin.WebsocketOrigin {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(relay_origin.WebsocketOrigin) > 0);
 
     if (text.len == 0) return error.InvalidRelayUrl;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidRelayUrl;
     for (text) |byte| {
         if (byte <= 0x20 or byte == '\\') return error.InvalidRelayUrl;
     }
@@ -2789,6 +2801,36 @@ test "discovery_render_nostrconnect_url rejects non-client connection uris" {
             output[0..],
             "https://bunker.example/<nostrconnect>",
             connection_uri,
+            arena.allocator(),
+        ),
+    );
+}
+
+test "nip46 public uri and builder paths reject overlong caller input with typed errors" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    var request_output: BuiltRequest = .{};
+    try std.testing.expectError(
+        error.InvalidUnsignedEvent,
+        request_build_sign_event(
+            &request_output,
+            "id",
+            "{" ++ ("a" ** 262145),
+            arena.allocator(),
+        ),
+    );
+
+    try std.testing.expectError(
+        error.InvalidUri,
+        uri_parse("nostrconnect://" ++ ("a" ** 5000), arena.allocator()),
+    );
+
+    try std.testing.expectError(
+        error.InvalidRelayUrl,
+        uri_parse(
+            "nostrconnect://0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ++
+                "?relay=" ++ ("a" ** 4097) ++ "&secret=s3cr3t",
             arena.allocator(),
         ),
     );

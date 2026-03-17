@@ -24,7 +24,9 @@ comptime {
     _ = @import("nip32_example.zig");
     _ = @import("nip36_example.zig");
     _ = @import("nip03_example.zig");
+    _ = @import("nip03_adversarial_example.zig");
     _ = @import("nip17_example.zig");
+    _ = @import("nip17_adversarial_example.zig");
     _ = @import("nip26_example.zig");
     _ = @import("nip29_example.zig");
     _ = @import("nip29_reducer_recipe.zig");
@@ -32,6 +34,7 @@ comptime {
     _ = @import("nip39_example.zig");
     _ = @import("identity_proof_adversarial_example.zig");
     _ = @import("nip37_example.zig");
+    _ = @import("nip37_adversarial_example.zig");
     _ = @import("private_lists_adversarial_example.zig");
     _ = @import("nip44_example.zig");
     _ = @import("nip46_example.zig");
@@ -47,8 +50,10 @@ comptime {
     _ = @import("nip57_example.zig");
     _ = @import("nip58_example.zig");
     _ = @import("nip59_example.zig");
+    _ = @import("nip59_adversarial_example.zig");
     _ = @import("nip40_example.zig");
     _ = @import("nip42_example.zig");
+    _ = @import("nip42_adversarial_example.zig");
     _ = @import("nip92_example.zig");
     _ = @import("nip94_example.zig");
     _ = @import("nip99_example.zig");

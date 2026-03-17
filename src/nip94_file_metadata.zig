@@ -117,7 +117,7 @@ pub fn file_metadata_build_url_tag(
     url: []const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(url.len <= limits.tag_item_bytes_max);
+    std.debug.assert(url.len <= std.math.maxInt(usize));
 
     output.items[0] = "url";
     output.items[1] = parse_url(url) catch return error.InvalidUrlTag;
@@ -131,7 +131,7 @@ pub fn file_metadata_build_mime_type_tag(
     mime_type: []const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(mime_type.len <= limits.tag_item_bytes_max);
+    std.debug.assert(mime_type.len <= std.math.maxInt(usize));
 
     output.items[0] = "m";
     output.items[1] = parse_mime_type(mime_type) catch return error.InvalidMimeTypeTag;
@@ -145,7 +145,7 @@ pub fn file_metadata_build_hash_tag(
     sha256_hex: []const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(sha256_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(sha256_hex.len <= std.math.maxInt(usize));
 
     _ = parse_lower_hex_32(sha256_hex) catch return error.InvalidHashTag;
     output.items[0] = "x";
@@ -160,7 +160,7 @@ pub fn file_metadata_build_original_hash_tag(
     sha256_hex: []const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(sha256_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(sha256_hex.len <= std.math.maxInt(usize));
 
     _ = parse_lower_hex_32(sha256_hex) catch return error.InvalidOriginalHashTag;
     output.items[0] = "ox";
@@ -191,8 +191,8 @@ pub fn file_metadata_build_dimensions_tag(
     dimensions: Dimensions,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(dimensions.width > 0);
 
+    if (dimensions.width == 0) return error.InvalidDimensionsTag;
     if (dimensions.height == 0) return error.InvalidDimensionsTag;
     output.items[0] = "dim";
     output.items[1] = std.fmt.bufPrint(
@@ -210,7 +210,7 @@ pub fn file_metadata_build_magnet_tag(
     magnet_uri: []const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(magnet_uri.len <= limits.tag_item_bytes_max);
+    std.debug.assert(magnet_uri.len <= std.math.maxInt(usize));
 
     output.items[0] = "magnet";
     output.items[1] = parse_nonempty_utf8(magnet_uri) catch return error.InvalidMagnetTag;
@@ -224,7 +224,7 @@ pub fn file_metadata_build_infohash_tag(
     infohash: []const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(infohash.len <= limits.tag_item_bytes_max);
+    std.debug.assert(infohash.len <= std.math.maxInt(usize));
 
     output.items[0] = "i";
     output.items[1] = parse_nonempty_utf8(infohash) catch return error.InvalidInfohashTag;
@@ -238,7 +238,7 @@ pub fn file_metadata_build_blurhash_tag(
     blurhash: []const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(blurhash.len <= limits.tag_item_bytes_max);
+    std.debug.assert(blurhash.len <= std.math.maxInt(usize));
 
     output.items[0] = "blurhash";
     output.items[1] = parse_nonempty_utf8(blurhash) catch return error.InvalidBlurhashTag;
@@ -253,7 +253,7 @@ pub fn file_metadata_build_thumb_tag(
     sha256_hex: ?[]const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(url.len <= limits.tag_item_bytes_max);
+    std.debug.assert(url.len <= std.math.maxInt(usize));
 
     output.items[0] = "thumb";
     output.items[1] = parse_url(url) catch return error.InvalidThumbTag;
@@ -273,7 +273,7 @@ pub fn file_metadata_build_image_tag(
     sha256_hex: ?[]const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(url.len <= limits.tag_item_bytes_max);
+    std.debug.assert(url.len <= std.math.maxInt(usize));
 
     output.items[0] = "image";
     output.items[1] = parse_url(url) catch return error.InvalidImageTag;
@@ -292,7 +292,7 @@ pub fn file_metadata_build_summary_tag(
     summary: []const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(summary.len <= limits.tag_item_bytes_max);
+    std.debug.assert(summary.len <= std.math.maxInt(usize));
 
     output.items[0] = "summary";
     output.items[1] = parse_nonempty_utf8(summary) catch return error.InvalidSummaryTag;
@@ -306,7 +306,7 @@ pub fn file_metadata_build_alt_tag(
     alt: []const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(alt.len <= limits.tag_item_bytes_max);
+    std.debug.assert(alt.len <= std.math.maxInt(usize));
 
     output.items[0] = "alt";
     output.items[1] = parse_nonempty_utf8(alt) catch return error.InvalidAltTag;
@@ -320,7 +320,7 @@ pub fn file_metadata_build_fallback_tag(
     url: []const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(url.len <= limits.tag_item_bytes_max);
+    std.debug.assert(url.len <= std.math.maxInt(usize));
 
     output.items[0] = "fallback";
     output.items[1] = parse_url(url) catch return error.InvalidFallbackTag;
@@ -334,7 +334,7 @@ pub fn file_metadata_build_service_tag(
     service: []const u8,
 ) Nip94Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(service.len <= limits.tag_item_bytes_max);
+    std.debug.assert(service.len <= std.math.maxInt(usize));
 
     output.items[0] = "service";
     output.items[1] = parse_nonempty_utf8(service) catch return error.InvalidServiceTag;
@@ -676,19 +676,21 @@ fn parse_required_mime_type_item(
 }
 
 fn parse_nonempty_utf8(text: []const u8) error{InvalidUtf8}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidUtf8;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUtf8;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUtf8;
     return text;
 }
 
 fn parse_mime_type(text: []const u8) error{InvalidMimeType}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len < 3) return error.InvalidMimeType;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidMimeType;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidMimeType;
 
     const slash = std.mem.indexOfScalar(u8, text, '/') orelse return error.InvalidMimeType;
@@ -720,16 +722,18 @@ fn is_mime_token(text: []const u8) bool {
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len == 0) return error.InvalidUrl;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
     if (!is_url_shaped(text)) return error.InvalidUrl;
     return text;
 }
 
 fn is_url_shaped(text: []const u8) bool {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return false;
     const parsed = std.Uri.parse(text) catch return false;
@@ -752,17 +756,19 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
 }
 
 fn parse_decimal_u64(text: []const u8) error{InvalidNumber}!u64 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidNumber;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidNumber;
     return std.fmt.parseInt(u64, text, 10) catch return error.InvalidNumber;
 }
 
 fn parse_dimensions(text: []const u8) error{InvalidDimensions}!Dimensions {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidDimensions;
     const separator = std.mem.indexOfScalar(u8, text, 'x') orelse return error.InvalidDimensions;
     if (separator == 0) return error.InvalidDimensions;
     if (separator + 1 >= text.len) return error.InvalidDimensions;
@@ -775,10 +781,11 @@ fn parse_dimensions(text: []const u8) error{InvalidDimensions}!Dimensions {
 }
 
 fn parse_decimal_u32(text: []const u8) error{InvalidNumber}!u32 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidNumber;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidNumber;
     return std.fmt.parseInt(u32, text, 10) catch return error.InvalidNumber;
 }
 
@@ -931,5 +938,28 @@ test "file metadata mime builder rejects non-canonical mime values" {
     try std.testing.expectError(
         error.InvalidMimeTypeTag,
         file_metadata_build_mime_type_tag(&mime_tag, "not a mime"),
+    );
+}
+
+test "file metadata builders reject overlong caller input with typed errors" {
+    var tag: BuiltTag = .{};
+    const overlong_url = "https://" ++ ("a" ** 5000) ++ ".example";
+    const overlong_text = "x" ** 5000;
+
+    try std.testing.expectError(
+        error.InvalidUrlTag,
+        file_metadata_build_url_tag(&tag, overlong_url),
+    );
+    try std.testing.expectError(
+        error.InvalidSummaryTag,
+        file_metadata_build_summary_tag(&tag, overlong_text),
+    );
+    try std.testing.expectError(
+        error.InvalidServiceTag,
+        file_metadata_build_service_tag(&tag, overlong_text),
+    );
+    try std.testing.expectError(
+        error.InvalidDimensionsTag,
+        file_metadata_build_dimensions_tag(&tag, .{ .width = 0, .height = 1 }),
     );
 }

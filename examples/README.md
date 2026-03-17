@@ -29,12 +29,15 @@ fixtures so SDK and app authors can see what `noztr` rejects and why.
   - `strict_core_recipe.zig`
   - `nip01_example.zig`
   - `nip42_example.zig`
+  - `nip42_adversarial_example.zig`
   - `nip70_example.zig`
   - `nip13_example.zig`
   - `nip09_example.zig`
 - mailbox/private-message handoff:
   - `nip17_wrap_recipe.zig`
   - `nip17_example.zig`
+  - `nip17_adversarial_example.zig`
+  - `nip59_adversarial_example.zig`
 - group-state replay handoff:
   - `nip29_reducer_recipe.zig`
   - `nip29_example.zig`
@@ -48,6 +51,7 @@ fixtures so SDK and app authors can see what `noztr` rejects and why.
 - local attestation verification:
   - `nip03_verification_recipe.zig`
   - `nip03_example.zig`
+  - `nip03_adversarial_example.zig`
 - deterministic wallet flows:
   - `wallet_recipe.zig`
   - `nip06_example.zig`
@@ -64,6 +68,7 @@ fixtures so SDK and app authors can see what `noztr` rejects and why.
   - `media_metadata_adversarial_example.zig`
 - private draft and relay-list storage:
   - `nip37_example.zig`
+  - `nip37_adversarial_example.zig`
   - `private_lists_adversarial_example.zig`
 - private list handling:
   - `private_lists_recipe.zig`
@@ -188,6 +193,16 @@ These are the first files to open when you need the failure contract for a bound
 
 - `remote_signing_adversarial_example.zig`
   - invalid `nostrconnect_url` template rendering
+- `nip42_adversarial_example.zig`
+  - mismatched relay challenge stays on typed `NIP-42` auth failures
+- `nip03_adversarial_example.zig`
+  - malformed OpenTimestamps proof payload stays on typed `InvalidBase64`
+- `nip17_adversarial_example.zig`
+  - overlong recipient and relay builder input stays on typed `NIP-17` failures
+- `nip37_adversarial_example.zig`
+  - overlong private relay builder input stays on typed `InvalidPrivateRelayUrl`
+- `nip59_adversarial_example.zig`
+  - sender/rumor mismatch on outbound wrap construction stays on typed `InvalidRumorEvent`
 - `relay_admin_adversarial_example.zig`
   - invalid control text on NIP-86 serializer paths
 - `private_lists_adversarial_example.zig`

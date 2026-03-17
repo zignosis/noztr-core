@@ -36,8 +36,9 @@ const lookup_url_validation_bytes_max: usize =
 /// Parses a NIP-05 address or bare domain into canonical local-part plus domain.
 pub fn address_parse(input: []const u8, scratch: std.mem.Allocator) Nip05Error!Address {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
-    std.debug.assert(input.len <= limits.tag_item_bytes_max);
+    std.debug.assert(input.len <= std.math.maxInt(usize));
 
+    if (input.len > limits.tag_item_bytes_max) return error.InvalidAddress;
     const separator = std.mem.indexOfScalar(u8, input, '@');
     const parts = try split_address(input, separator);
     try validate_local_part(parts.name);
@@ -147,10 +148,11 @@ const RelayMapKind = enum {
 };
 
 fn split_address(input: []const u8, separator: ?usize) Nip05Error!AddressParts {
-    std.debug.assert(input.len <= limits.tag_item_bytes_max);
+    std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max > 0);
 
     if (input.len == 0) return error.InvalidAddress;
+    if (input.len > limits.tag_item_bytes_max) return error.InvalidAddress;
     if (separator == null) {
         return .{ .name = "_", .domain = input };
     }
@@ -166,9 +168,10 @@ fn split_address(input: []const u8, separator: ?usize) Nip05Error!AddressParts {
 }
 
 fn duplicate_name(name: []const u8, scratch: std.mem.Allocator) Nip05Error![]const u8 {
-    std.debug.assert(name.len <= limits.nip05_identifier_bytes_max);
+    std.debug.assert(name.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
+    if (name.len > limits.nip05_identifier_bytes_max) return error.InvalidLocalPart;
     if (std.mem.eql(u8, name, "_")) return "_";
     const owned = scratch.alloc(u8, name.len) catch return error.OutOfMemory;
     @memcpy(owned, name);
@@ -196,9 +199,10 @@ fn parse_root_object(
 }
 
 fn parse_names_pubkey(object: std.json.ObjectMap, name: []const u8) Nip05Error![32]u8 {
-    std.debug.assert(name.len <= limits.nip05_identifier_bytes_max);
+    std.debug.assert(name.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
 
+    if (name.len > limits.nip05_identifier_bytes_max) return error.InvalidLocalPart;
     const names = object.get("names") orelse return error.MissingName;
     if (names != .object) return error.InvalidNames;
     var canonical_name_storage: [limits.nip05_identifier_bytes_max]u8 = undefined;
@@ -255,10 +259,11 @@ fn relay_map_error(kind: RelayMapKind) Nip05Error {
 }
 
 fn validate_local_part(name: []const u8) Nip05Error!void {
-    std.debug.assert(name.len <= limits.nip05_identifier_bytes_max);
+    std.debug.assert(name.len <= std.math.maxInt(usize));
     std.debug.assert(limits.nip05_identifier_bytes_max > 0);
 
     if (name.len == 0) return error.InvalidLocalPart;
+    if (name.len > limits.nip05_identifier_bytes_max) return error.InvalidLocalPart;
     for (name) |byte| {
         if (byte >= 'a' and byte <= 'z') continue;
         if (byte >= 'A' and byte <= 'Z') continue;
@@ -288,10 +293,11 @@ fn lowercase_ascii_copy(text: []const u8, output: []u8) []const u8 {
 }
 
 fn validate_domain(domain: []const u8) Nip05Error!void {
-    std.debug.assert(domain.len <= limits.nip05_identifier_bytes_max);
+    std.debug.assert(domain.len <= std.math.maxInt(usize));
     std.debug.assert(limits.nip05_identifier_bytes_max > 0);
 
     if (domain.len == 0) return error.InvalidDomain;
+    if (domain.len > limits.nip05_identifier_bytes_max) return error.InvalidDomain;
     if (!std.unicode.utf8ValidateSlice(domain)) return error.InvalidDomain;
     for (domain) |byte| {
         if (std.ascii.isWhitespace(byte)) return error.InvalidDomain;
@@ -310,16 +316,17 @@ fn validate_domain(domain: []const u8) Nip05Error!void {
 }
 
 fn validate_lookup_url(text: []const u8) Nip05Error!void {
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.content_bytes_max > 0);
 
+    if (text.len > limits.content_bytes_max) return error.InvalidUrl;
     const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
     if (!std.mem.eql(u8, parsed.scheme, "https")) return error.InvalidUrl;
     if (parsed.host == null) return error.InvalidUrl;
 }
 
 fn duplicate_relay_url(text: []const u8, scratch: std.mem.Allocator) Nip05Error![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     _ = parse_relay_url(text) catch return error.InvalidRelayUrl;
@@ -327,10 +334,11 @@ fn duplicate_relay_url(text: []const u8, scratch: std.mem.Allocator) Nip05Error!
 }
 
 fn parse_relay_url(text: []const u8) error{InvalidRelayUrl}!relay_origin.WebsocketOrigin {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(relay_origin.WebsocketOrigin) > 0);
 
     if (text.len == 0) return error.InvalidRelayUrl;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidRelayUrl;
     for (text) |byte| {
         if (byte <= 0x20 or byte == '\\') return error.InvalidRelayUrl;
     }
@@ -504,5 +512,36 @@ test "profile parse and verify reject invalid matched entries" {
     try std.testing.expectEqual(
         false,
         try profile_verify_json(&expected, &address, "{\"names\":{}}", arena.allocator()),
+    );
+}
+
+test "nip05 public paths reject overlong caller input with typed errors" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+
+    const overlong_local = ("a" ** 4097) ++ "@example.com";
+    const overlong_domain = "bob@" ++ ("a" ** 4097);
+    const overlong_relay =
+        "{\"names\":{\"_\":\"68d81165918100b7da43fc28f7d1fc12554466e1115886b9e7bb326f65ec4272\"}," ++
+        "\"relays\":{\"68d81165918100b7da43fc28f7d1fc12554466e1115886b9e7bb326f65ec4272\":[\"" ++
+        "wss://" ++ ("a" ** 5000) ++ ".example\"]}}";
+
+    try std.testing.expectError(
+        error.InvalidAddress,
+        address_parse("a" ** 5000, arena.allocator()),
+    );
+    try std.testing.expectError(
+        error.InvalidLocalPart,
+        address_parse(overlong_local, arena.allocator()),
+    );
+    try std.testing.expectError(
+        error.InvalidDomain,
+        address_parse(overlong_domain, arena.allocator()),
+    );
+
+    const address = Address{ .name = "ok", .domain = "example.com" };
+    try std.testing.expectError(
+        error.InvalidRelayUrl,
+        profile_parse_json(&address, overlong_relay, arena.allocator()),
     );
 }

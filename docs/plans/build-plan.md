@@ -109,6 +109,10 @@ This artifact is the lean active execution baseline and is aligned to:
 - Boundary-validation has already accepted two kernel-side SDK handoff corrections:
   - public signed event-object JSON serialization
   - deterministic one-recipient `NIP-59` outbound transcript construction
+- Boundary-validation has also completed a second full implemented-surface audit batch:
+  - typed invalid-input fixes across `NIP-05`, `NIP-17`, `NIP-37`, `NIP-46`, `NIP-47`, `NIP-94`,
+    and `NIP-99`
+  - hostile example backfill on `NIP-03`, `NIP-17`, `NIP-37`, `NIP-42`, and `NIP-59`
 - `docs/plans/post-kernel-requested-nips-loop.md` now remains as reference evidence for the loop
   order, closure rules, and split-surface scope calls rather than as an active execution packet.
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the
@@ -156,6 +160,8 @@ This artifact is the lean active execution baseline and is aligned to:
 ## Active Risks And Open Questions
 
 - execute the SDK-informed boundary-validation packet and make the result explicit.
+- keep the report-only `libnostr-z` comparison lane open until it produces evidence-backed
+  improvement proposals or confirms the current Zig posture.
 - RC API-freeze remains deferred until the boundary-validation slice closes.
 - Layer 2 compatibility/ergonomic adapter work remains contingent; start it only if the
   boundary-validation pass finds a real blocker that belongs outside the kernel.

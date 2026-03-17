@@ -40,6 +40,8 @@ Current execution state for `noztr`.
 - Boundary validation has already accepted:
   - public signed event-object JSON serialization
   - deterministic one-recipient `NIP-59` outbound transcript construction
+  - second implemented-surface audit batch closure with typed invalid-input fixes across
+    `NIP-05`, `NIP-17`, `NIP-37`, `NIP-46`, `NIP-47`, `NIP-94`, and `NIP-99`
 - Only expected untracked local artifact:
   - `tools/interop/rust-nostr-parity-all/target/`
 
@@ -80,6 +82,8 @@ Current execution state for `noztr`.
 ## Next Work
 
 - execute the SDK-informed boundary-validation packet in `docs/plans/phase-h-remaining-work.md`
+- keep the new `libnostr-z` comparison report lane as report-only evidence until it produces a
+  concrete proposal
 - if the validation finds a real non-kernel blocker, create one explicit Layer 2 adapter-boundary
   packet instead of widening the kernel by default
 - use `docs/plans/noztr-sdk-ownership-matrix.md` when a candidate touches kernel-vs-SDK scope

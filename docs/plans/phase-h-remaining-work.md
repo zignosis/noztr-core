@@ -61,6 +61,9 @@ the `OQ-E-006` usability pass.
   - export public signed event-object JSON serialization from `nip01_event`
   - keep deterministic one-recipient outbound `NIP-59` transcript construction in `noztr`
     while leaving recipient fanout and mailbox workflow in `nzdk`
+  - close a second implemented-surface audit batch with typed invalid-input fixes across
+    `NIP-05`, `NIP-17`, `NIP-37`, `NIP-46`, `NIP-47`, `NIP-94`, and `NIP-99`
+  - backfill hostile examples on `NIP-03`, `NIP-17`, `NIP-37`, `NIP-42`, and `NIP-59`
 
 ## Next Step
 
@@ -90,6 +93,9 @@ the `OQ-E-006` usability pass.
 - `OQ-BV-002`
   - are current examples, routing, and docs sufficient for boundary validation without reopening
     `OQ-E-006`-class teaching drift?
+- `OQ-BV-003`
+  - does a report-only comparison against `libnostr-z` surface any Zig, cryptography, memory,
+    security, or protocol-shape concerns that should change the kernel before freeze?
 
 ## Tradeoff
 

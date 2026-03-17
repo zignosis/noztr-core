@@ -316,7 +316,7 @@ pub fn connection_uri_parse(
     out_relays: [][]const u8,
     scratch: std.mem.Allocator,
 ) NwcError!ConnectionUri {
-    std.debug.assert(input.len <= limits.nip46_uri_bytes_max);
+    std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     const parsed = try parse_uri_parts(input);
@@ -604,9 +604,10 @@ const UriParts = struct {
 };
 
 fn parse_uri_parts(input: []const u8) NwcError!UriParts {
-    std.debug.assert(input.len <= limits.nip46_uri_bytes_max);
+    std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(uri_scheme.len > 0);
 
+    if (input.len == 0 or input.len > limits.nip46_uri_bytes_max) return error.InvalidUri;
     const scheme_end = std.mem.indexOf(u8, input, "://") orelse return error.InvalidUri;
     const scheme = input[0..scheme_end];
     const rest = input[scheme_end + 3 ..];
@@ -629,6 +630,7 @@ fn parse_connection_query(
     std.debug.assert(raw_query.len <= limits.nip46_uri_bytes_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
+    if (raw_query.len > limits.nip46_uri_bytes_max) return error.InvalidUri;
     var relay_count: u16 = 0;
     var client_secret: ?[32]u8 = null;
     var lud16: ?[]const u8 = null;
@@ -669,6 +671,7 @@ fn parse_info_content(content: []const u8, out_capabilities: [][]const u8) NwcEr
     std.debug.assert(content.len <= limits.content_bytes_max);
     std.debug.assert(out_capabilities.len <= std.math.maxInt(usize));
 
+    if (content.len > limits.content_bytes_max) return error.InvalidInfoContent;
     var info = InfoEventInfo{};
     var splitter = std.mem.splitScalar(u8, content, ' ');
     while (splitter.next()) |token| {
@@ -751,10 +754,11 @@ fn parse_event_id_tag(tag: nip01_event.EventTag) NwcError![32]u8 {
 }
 
 fn validate_capability_token(text: []const u8) error{InvalidValue}![]const u8 {
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(text.len <= std.math.maxInt(usize));
 
     if (text.len == 0) return error.InvalidValue;
+    if (text.len > limits.content_bytes_max) return error.InvalidValue;
     for (text) |byte| {
         const is_lower = byte >= 'a' and byte <= 'z';
         const is_digit = byte >= '0' and byte <= '9';
@@ -765,29 +769,32 @@ fn validate_capability_token(text: []const u8) error{InvalidValue}![]const u8 {
 }
 
 fn validate_encrypted_content(text: []const u8) error{InvalidValue}![]const u8 {
-    std.debug.assert(text.len <= limits.content_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(text.len <= std.math.maxInt(usize));
 
     if (text.len == 0) return error.InvalidValue;
+    if (text.len > limits.content_bytes_max) return error.InvalidValue;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidValue;
     return text;
 }
 
 fn validate_lud16(text: []const u8) NwcError!void {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(text.len <= std.math.maxInt(usize));
 
     if (text.len == 0) return error.InvalidLud16;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidLud16;
     const at_index = std.mem.indexOfScalar(u8, text, '@') orelse return error.InvalidLud16;
     if (at_index == 0 or at_index + 1 >= text.len) return error.InvalidLud16;
     if (std.mem.indexOfScalar(u8, text[at_index + 1 ..], '@') != null) return error.InvalidLud16;
 }
 
 fn parse_relay_url(text: []const u8) error{InvalidValue}!relay_origin.WebsocketOrigin {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(relay_origin.WebsocketOrigin) > 0);
 
     if (text.len == 0) return error.InvalidValue;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidValue;
     for (text) |byte| {
         if (byte <= 0x20 or byte == '\\') return error.InvalidValue;
     }
@@ -817,9 +824,10 @@ fn query_decode_component(
     plus_as_space: bool,
     scratch: std.mem.Allocator,
 ) NwcError![]const u8 {
-    std.debug.assert(text.len <= limits.nip46_uri_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
+    if (text.len > limits.nip46_uri_bytes_max) return error.InvalidUri;
     const output = scratch.alloc(u8, text.len) catch return error.OutOfMemory;
     var read_index: usize = 0;
     var write_index: usize = 0;
@@ -3191,6 +3199,32 @@ test "connection uri parse and format keep relay order and lowercase secrets" {
     try std.testing.expectEqualStrings("wss://relay.two", parsed.relays[1]);
     try std.testing.expectEqualStrings("alice@example.com", parsed.lud16.?);
     try std.testing.expect(std.mem.startsWith(u8, rendered, uri_scheme));
+}
+
+test "nwc public uri paths reject overlong caller input with typed errors" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    var relays: [2][]const u8 = undefined;
+
+    try std.testing.expectError(
+        error.InvalidUri,
+        connection_uri_parse(
+            "nostr+walletconnect://" ++ ("a" ** 5000),
+            relays[0..],
+            arena.allocator(),
+        ),
+    );
+
+    try std.testing.expectError(
+        error.InvalidRelayUrl,
+        connection_uri_parse(
+            "nostr+walletconnect://0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ++
+                "?relay=" ++ ("a" ** 4097) ++
+                "&secret=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            relays[0..],
+            arena.allocator(),
+        ),
+    );
 }
 
 test "event extractors apply default encryption and strict tag rules" {

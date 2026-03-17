@@ -225,7 +225,6 @@ pub fn nip17_build_recipient_tag(
     relay_hint: ?[]const u8,
 ) Nip17Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
 
     _ = parse_lower_hex_32(pubkey_hex) catch return error.InvalidRecipientTag;
     output.items[0] = "p";
@@ -246,7 +245,6 @@ pub fn nip17_build_relay_tag(
     relay_url: []const u8,
 ) Nip17RelayListError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(relay_url.len <= limits.tag_item_bytes_max);
 
     output.items[0] = "relay";
     output.items[1] = parse_url(relay_url) catch return error.InvalidRelayUrl;
@@ -598,19 +596,21 @@ fn parse_optional_url(text: []const u8) error{InvalidUrl}!?[]const u8 {
 }
 
 fn parse_nonempty_utf8(text: []const u8) error{InvalidText}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidText;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidText;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidText;
     return text;
 }
 
 fn parse_decimal_u64(text: []const u8) error{InvalidDecimal}!u64 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidDecimal;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidDecimal;
     for (text) |byte| {
         if (byte < '0' or byte > '9') return error.InvalidDecimal;
     }
@@ -618,9 +618,10 @@ fn parse_decimal_u64(text: []const u8) error{InvalidDecimal}!u64 {
 }
 
 fn parse_dimensions(text: []const u8) error{InvalidDimensions}!FileDimensions {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidDimensions;
     const separator = std.mem.indexOfScalar(u8, text, 'x') orelse return error.InvalidDimensions;
     if (separator == 0 or separator + 1 >= text.len) return error.InvalidDimensions;
     const width = parse_decimal_u32(text[0..separator]) catch return error.InvalidDimensions;
@@ -630,10 +631,11 @@ fn parse_dimensions(text: []const u8) error{InvalidDimensions}!FileDimensions {
 }
 
 fn parse_decimal_u32(text: []const u8) error{InvalidDecimal}!u32 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidDecimal;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidDecimal;
     for (text) |byte| {
         if (byte < '0' or byte > '9') return error.InvalidDecimal;
     }
@@ -641,10 +643,11 @@ fn parse_decimal_u32(text: []const u8) error{InvalidDecimal}!u32 {
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (text.len == 0) return error.InvalidUrl;
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
     const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
     if (parsed.scheme.len == 0) return error.InvalidUrl;
     if (parsed.host == null) return error.InvalidUrl;
@@ -652,7 +655,7 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
 }
 
 fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
-    std.debug.assert(text.len <= limits.id_hex_length);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.id_hex_length == 64);
 
     var output: [32]u8 = undefined;
@@ -663,7 +666,7 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
 }
 
 fn validate_lower_hex(text: []const u8) error{InvalidHex}!void {
-    std.debug.assert(text.len <= limits.id_hex_length);
+    std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.id_hex_length == 64);
 
     for (text) |byte| {
@@ -803,6 +806,23 @@ test "nip17 builders emit canonical recipient and relay tags" {
     try std.testing.expectEqualStrings("wss://relay.example", built_recipient.items[2]);
     try std.testing.expectEqualStrings("relay", built_relay.items[0]);
     try std.testing.expectEqualStrings("wss://relay.example", built_relay.items[1]);
+}
+
+test "nip17 builders reject overlong caller input with typed errors" {
+    var recipient_tag: BuiltTag = .{};
+    var relay_tag: BuiltTag = .{};
+    const overlong_pubkey =
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefx";
+    const overlong_relay = "wss://" ++ ("a" ** 9000) ++ ".example";
+
+    try std.testing.expectError(
+        error.InvalidRecipientTag,
+        nip17_build_recipient_tag(&recipient_tag, overlong_pubkey, null),
+    );
+    try std.testing.expectError(
+        error.InvalidRelayUrl,
+        nip17_build_relay_tag(&relay_tag, overlong_relay),
+    );
 }
 
 test "nip17 file message parse extracts required and optional metadata" {
