@@ -13,8 +13,17 @@ backend exceptions.
 
 ## Current status
 
-- Current baseline: post-Phase-H kernel expansion completion on top of a completed local-only
-  Phase G closure (`docs/plans/phase-h-kickoff.md`).
+- Current baseline: Phase H post-audit remediation on top of a completed local-only Phase G
+  closure.
+- Completed major checkpoints:
+  - requested-NIP loop complete through `NIP-B7`
+  - exhaustive pre-freeze audit and meta-analysis complete
+  - LLM structured usability supplement complete
+  - empirical benchmark supplement complete
+  - external crypto/backend assurance supplement complete
+- Current active work:
+  - post-exhaustive-audit remediation in `docs/plans/post-exhaustive-audit-remediation-plan.md`
+  - current Phase H packet in `docs/plans/phase-h-remaining-work.md`
 - Implemented NIPs from `src/root.zig` exports:
   - `NIP-01` (event, filter, message)
   - `NIP-02`, `NIP-03`, `NIP-05`, `NIP-06`, `NIP-09`, `NIP-10`, `NIP-11`, `NIP-13`
@@ -27,9 +36,11 @@ backend exceptions.
   - Optional I6 extension exports (build-flag gated): `NIP-45`, `NIP-50`, `NIP-77`
   - Non-NIP bounded wallet helpers: Nostr-relevant `BIP-85` subset for lowercase-hex entropy text
     and English BIP39 child mnemonic/entropy
-- Current prep focus: requested-NIP loop execution after the kernel-complete baseline; current
-  planning/execution state is tracked in `docs/plans/post-kernel-requested-nips-loop.md` and
-  `docs/plans/phase-h-kickoff.md`.
+- Current routing:
+  - repo docs router: [`docs/README.md`](/workspace/projects/noztr/docs/README.md)
+  - current state: [`handoff.md`](/workspace/projects/noztr/handoff.md)
+  - active baseline: [`docs/plans/build-plan.md`](/workspace/projects/noztr/docs/plans/build-plan.md)
+  - current post-core symbol map: [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md)
 
 ## Build and test
 
@@ -73,6 +84,7 @@ This repo now carries one downstream examples package and wires it into
   - scenario-oriented recipe files for `NIP-03`, `NIP-05`, `NIP-06`, `NIP-17`, `BIP-85`,
     `NIP-39`, `NIP-46`, `NIP-51`, and `NIP-86`
   - open [`examples/README.md`](/workspace/projects/noztr/examples/README.md) for the SDK job map
+  - open [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md) for a task-to-symbol route across the main post-core surfaces
   - intended as the main downstream example surface for `nzdk` and other SDK consumers
 
 ## Current Kernel Notes
@@ -96,7 +108,8 @@ This repo now carries one downstream examples package and wires it into
 ## Planning documents
 
 - Build baseline: `docs/plans/build-plan.md`
-- Phase H kickoff baseline: `docs/plans/phase-h-kickoff.md`
-- Additional NIP planning (Phase H): `docs/plans/phase-h-additional-nips-plan.md`
-- Phase H Wave 1 execution loop: `docs/plans/phase-h-wave1-loop.md`
+- Current Phase H packet: `docs/plans/phase-h-remaining-work.md`
+- Current remediation packet: `docs/plans/post-exhaustive-audit-remediation-plan.md`
+- Current docs router: `docs/README.md`
+- Current post-core symbol map: `docs/plans/post-core-contract-map.md`
 - Historical phase evidence: `docs/archive/plans/`

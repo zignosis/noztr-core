@@ -61,6 +61,7 @@ the `OQ-E-006` usability pass.
 - the external crypto/backend assurance supplement is complete
 - the first remediation lane, `no-65ev.1`, is complete
 - the second remediation lane, `no-65ev.2`, is complete
+- the third remediation lane, `no-65ev.3`, is complete
 - the next active Phase H slice is post-exhaustive-audit remediation
 - RC API-freeze remains deferred until this slice shows the current boundary is stable enough
 - accepted sub-findings from this slice so far:
@@ -92,12 +93,15 @@ the `OQ-E-006` usability pass.
   - complete the targeted hardening lane and remove the remaining `NIP-86` / `NIP-46` public
     helper assertion leaks while making the standalone `NIP-25` reaction classifier reject direct
     invalid content explicitly
+  - complete the docs/examples lane and add the structured post-core contract map, corrected
+    `NIP-59` example routing, hostile `NIP-05` example coverage, refreshed root README routing,
+    and richer downstream-brief structure
 
 ## Next Step
 
 1. execute `docs/plans/post-exhaustive-audit-remediation-plan.md`
   - immediate next lane:
-    - `no-65ev.3`
+    - `no-65ev.4`
 2. keep RC API-freeze deferred until the remediation program and one freeze recheck complete
 3. if remediation surfaces a real compatibility or ergonomics blocker that does not belong in
    Layer 1, create one explicit Layer 2 adapter-boundary packet instead of widening the kernel by

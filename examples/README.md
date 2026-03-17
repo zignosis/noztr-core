@@ -19,6 +19,20 @@ fixtures so SDK and app authors can see what `noztr` rejects and why.
 - `discovery_recipe.zig`
   - best first entry point for identity lookup and bunker discovery
 
+## Public Symbol Routing
+
+Use this when you already know the job and want the exact `noztr` symbol family before opening a
+file.
+
+| Job | Primary public symbols | Start file | Hostile / failure fixture |
+| --- | --- | --- | --- |
+| Identity lookup and bunker discovery | `address_parse`, `address_compose_well_known_url`, `profile_parse_json`, `profile_verify_json`, `discovery_parse_well_known`, `discovery_render_nostrconnect_url` | `discovery_recipe.zig` | `nip05_adversarial_example.zig` |
+| Remote-signing requests, URIs, and typed responses | `uri_parse`, `uri_serialize`, `message_parse_json`, `request_build_*`, `request_parse_typed`, `response_result_*`, `discovery_parse_*` | `remote_signing_recipe.zig` | `remote_signing_adversarial_example.zig` |
+| One-recipient gift-wrap outbound build and unwrap | `nip59_build_outbound_for_recipient`, `nip59_unwrap`, `nip17_unwrap_message`, `nip17_build_recipient_tag`, `nip17_relay_list_extract` | `nip17_wrap_recipe.zig` | `nip59_adversarial_example.zig` |
+| Wallet Connect envelope and JSON helpers | `connection_uri_parse`, `connection_uri_format`, `request_event_extract`, `response_event_extract`, `notification_event_extract`, `request_parse_json`, `response_parse_json` | `nip47_example.zig` | `wallet_connect_adversarial_example.zig` |
+| Relay-admin JSON-RPC helpers | `method_parse`, `request_parse_json`, `request_serialize_json`, `response_parse_json`, `response_serialize_json` | `relay_admin_recipe.zig` | `relay_admin_adversarial_example.zig` |
+| HTTP auth event and header helpers | `http_auth_extract`, `http_auth_validate_request`, `http_auth_verify_request`, `http_auth_parse_authorization_header`, `http_auth_verify_authorization_header`, `http_auth_build_*` | `nip98_example.zig` | `http_auth_adversarial_example.zig` |
+
 ## SDK Job Index
 
 - signer/bootstrap handoff:
@@ -35,8 +49,11 @@ fixtures so SDK and app authors can see what `noztr` rejects and why.
   - `nip09_example.zig`
 - mailbox/private-message handoff:
   - `nip17_wrap_recipe.zig`
+    - symbols: `nip59_build_outbound_for_recipient`, `nip17_unwrap_message`
   - `nip17_example.zig`
   - `nip17_adversarial_example.zig`
+  - `nip59_example.zig`
+    - typed boundary example for invalid outer-wrap shape only
   - `nip59_adversarial_example.zig`
 - group-state replay handoff:
   - `nip29_reducer_recipe.zig`
@@ -44,8 +61,11 @@ fixtures so SDK and app authors can see what `noztr` rejects and why.
   - `nip29_adversarial_example.zig`
 - identity lookup and proof flows:
   - `discovery_recipe.zig`
+    - symbols: `address_parse`, `address_compose_well_known_url`, `profile_parse_json`,
+      `profile_verify_json`, `discovery_parse_well_known`, `discovery_render_nostrconnect_url`
   - `identity_proof_recipe.zig`
   - `nip05_example.zig`
+  - `nip05_adversarial_example.zig`
   - `nip39_example.zig`
   - `identity_proof_adversarial_example.zig`
 - local attestation verification:
@@ -107,6 +127,7 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip02_example.zig`
 - `nip03_example.zig`
 - `nip05_example.zig`
+- `nip05_adversarial_example.zig`
 - `nip06_example.zig`
 - `nip09_example.zig`
 - `nip10_example.zig`
@@ -141,6 +162,7 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip58_example.zig`
 - `nip59_example.zig`
   - typed boundary example; public outbound build stays deterministic and one-recipient only
+  - successful deterministic outbound build lives in `nip17_wrap_recipe.zig`
 - `nip64_example.zig`
 - `nip88_example.zig`
 - `nostr_keys_example.zig`
@@ -203,6 +225,8 @@ These are the first files to open when you need the failure contract for a bound
   - overlong private relay builder input stays on typed `InvalidPrivateRelayUrl`
 - `nip59_adversarial_example.zig`
   - sender/rumor mismatch on outbound wrap construction stays on typed `InvalidRumorEvent`
+- `nip05_adversarial_example.zig`
+  - malformed matched pubkeys and relay maps stay on typed `NIP-05` failures
 - `relay_admin_adversarial_example.zig`
   - invalid control text on NIP-86 serializer paths
 - `private_lists_adversarial_example.zig`

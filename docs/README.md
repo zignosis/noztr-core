@@ -74,6 +74,10 @@ These docs control active work and should stay lean.
   - `docs/plans/exhaustive-pre-freeze-audit.md`
   - `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
   - `docs/plans/audit-angle-standards.md`
+- Routing post-core public surfaces:
+  - `docs/plans/post-core-contract-map.md`
+  - `examples/README.md`
+  - `docs/plans/noztr-sdk-ownership-matrix.md`
 - Reviewing the benchmark supplement:
   - `docs/plans/empirical-benchmark-supplement.md`
   - `docs/research/empirical-benchmark-supplement-report.md`
@@ -102,6 +106,7 @@ These are active references, not startup defaults.
 - `docs/plans/empirical-benchmark-supplement.md`
 - `docs/plans/external-crypto-backend-assurance-supplement.md`
 - `docs/plans/llm-structured-usability-audit.md`
+- `docs/plans/post-core-contract-map.md`
 - `docs/plans/noztr-sdk-remediation-brief.md`
 - `docs/research/llm-structured-usability-audit-report.md`
 - `docs/research/external-crypto-backend-assurance-report.md`

@@ -67,10 +67,13 @@ assurance supplement, and the revised synthesis.
       - targeted hardening of remaining public helper assertion leaks and direct-helper misuse
         across `NIP-86`, `NIP-46`, and `NIP-25`
   - `no-65ev.3`
-    - next active lane:
-      - targeted docs/examples/discovery and structured-LLM-surface cleanup
+    - complete:
+      - targeted docs/examples/discovery and structured-LLM-surface cleanup, including the
+        structured post-core contract map, stronger symbol-level example routing, refreshed root
+        README routing, hostile `NIP-05` coverage, and richer downstream brief structure
   - `no-65ev.4`
-    - targeted performance hotspot cleanup for `NIP-88` and `NIP-29`
+    - next active lane:
+      - targeted performance hotspot cleanup for `NIP-88` and `NIP-29`
   - `no-65ev.5`
     - blocked freeze recheck after the remediation lanes close
 - completed audit artifacts are now reference evidence:
@@ -85,10 +88,9 @@ assurance supplement, and the revised synthesis.
 
 ## Next Step
 
-1. execute the docs lane `no-65ev.3`
-2. then execute the performance lane `no-65ev.4`
-3. then run the blocked post-remediation freeze recheck lane
-4. only after that decide whether RC-freeze work is honestly ready
+1. execute the performance lane `no-65ev.4`
+2. then run the blocked post-remediation freeze recheck lane
+3. only after that decide whether RC-freeze work is honestly ready
 
 ## Open Questions Or Targeted Findings
 

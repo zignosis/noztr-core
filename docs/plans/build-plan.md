@@ -129,6 +129,7 @@ This artifact is the lean active execution baseline and is aligned to:
 - The external crypto/backend assurance supplement is complete.
 - The first remediation lane, `no-65ev.1`, is complete.
 - The second remediation lane, `no-65ev.2`, is complete.
+- The third remediation lane, `no-65ev.3`, is complete.
 - Current active next slice is the post-exhaustive-audit remediation program in
   `docs/plans/post-exhaustive-audit-remediation-plan.md`.
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the
@@ -219,9 +220,7 @@ This artifact is the lean active execution baseline and is aligned to:
 - the completed benchmark supplement refined the performance lane:
   - keep `NIP-29` and `NIP-88` in the targeted performance cleanup lane
   - do not treat `NIP-06` repeated scans as a standalone required performance remediation item
-- current remaining freeze blockers are:
-  - docs/examples/discovery drift on `NIP-59`, `NIP-05`, and the root `README.md`
-- current remaining remediation work that is not a freeze blocker by itself:
+- current remaining known remediation work before the freeze recheck is:
   - local performance cleanup in `NIP-88` and `NIP-29`
 - the selected remediation posture is bounded redesign first, then targeted fixes, then a
   freeze-readiness recheck.

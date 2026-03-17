@@ -44,6 +44,7 @@ Current execution state for `noztr`.
 - The external crypto/backend assurance supplement is complete.
 - The first remediation lane, `no-65ev.1`, is complete.
 - The second remediation lane, `no-65ev.2`, is complete.
+- The third remediation lane, `no-65ev.3`, is complete.
 - The next active Phase H slice is the post-exhaustive-audit remediation program.
 - Boundary validation has already accepted:
   - public signed event-object JSON serialization
@@ -112,7 +113,6 @@ Current execution state for `noztr`.
 - execute `docs/plans/post-exhaustive-audit-remediation-plan.md`
 - current remediation tracker epic and child lanes:
   - `no-65ev`
-  - `no-65ev.3`
   - `no-65ev.4`
   - `no-65ev.5`
 - keep the completed external crypto/backend assurance report as reference evidence and reopen it

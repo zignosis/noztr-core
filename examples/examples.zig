@@ -11,6 +11,7 @@ comptime {
     _ = @import("nip19_example.zig");
     _ = @import("nip21_example.zig");
     _ = @import("nip05_example.zig");
+    _ = @import("nip05_adversarial_example.zig");
     _ = @import("nip06_example.zig");
     _ = @import("bip85_example.zig");
     _ = @import("nostr_keys_example.zig");
