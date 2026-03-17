@@ -51,6 +51,8 @@ Current execution state for `noztr`.
     - isolate `NIP-06` backend state into one internal cell
     - accept current bounded scratch-backed public ingress in `NIP-05`, `NIP-46`, and `NIP-77`
     - accept reviewed `bool` / `?` helper boundaries as intentional
+  - accepted process correction:
+    - do not treat targeted follow-up lanes as equivalent to one exhaustive pre-freeze audit
 - Only expected untracked local artifact:
   - `tools/interop/rust-nostr-parity-all/target/`
 
@@ -94,7 +96,8 @@ Current execution state for `noztr`.
 
 - execute the SDK-informed boundary-validation packet in `docs/plans/phase-h-remaining-work.md`
 - execute `docs/plans/post-audit-improvement-plan.md` in order:
-  - `no-mja`
+  - `no-ard`
+  - `no-mja` only after `no-ard`
 - keep the completed audit reports as reference evidence and reopen them only on new contrary
   evidence
 - if the validation finds a real non-kernel blocker, create one explicit Layer 2 adapter-boundary

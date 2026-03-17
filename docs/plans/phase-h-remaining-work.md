@@ -78,7 +78,8 @@ the `OQ-E-006` usability pass.
 1. execute the SDK-informed boundary-validation slice through
    `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
 2. execute `docs/plans/post-audit-improvement-plan.md` in order:
-   - execute `no-mja` to complete Slice 3 freeze-readiness consolidation
+   - execute `no-ard` to complete the exhaustive pre-freeze audit draft
+   - execute `no-mja` only after `no-ard` completes
 3. if the validation finds a real compatibility or ergonomics blocker that does not belong in
    Layer 1, create one explicit Layer 2 adapter-boundary packet instead of widening the kernel by
    default
@@ -118,7 +119,15 @@ the `OQ-E-006` usability pass.
     - concrete lanes:
       - `no-ow4` structural Tiger-style hotspots, complete
       - `no-3jb` explicit-state and fixed-capacity Tiger follow-ups, complete
-      - `no-mja` freeze-readiness consolidation, next active
+- `OQ-BV-005`
+  - can Phase H make an honest freeze-readiness claim without one explicit exhaustive audit draft
+    covering protocol surfaces, public contracts, performance posture, crypto/backend wrappers,
+    and docs/examples completeness?
+  - current result:
+    - no
+    - active next lane:
+      - `no-ard` exhaustive pre-freeze audit draft
+      - `no-mja` remains deferred until `no-ard` closes
 
 ## Tradeoff
 

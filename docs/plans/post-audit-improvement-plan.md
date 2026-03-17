@@ -161,12 +161,13 @@ Tracker lane:
 - `no-mja`
 
 Status:
-- next active slice
+- deferred pending exhaustive audit draft `no-ard`
 
 Goals:
 - update the boundary-validation packet with the final post-audit result
 - confirm whether any libnostr-z or TigerBeetle concern still blocks RC-freeze work
 - keep the root facade protocol-only and the ownership matrix stable
+- use the exhaustive audit draft as the honesty check so this synthesis does not overstate coverage
 
 Required checks:
 - active docs reference the completed improvements rather than open audit narratives
@@ -178,6 +179,31 @@ Closure bar:
 - Phase H can either:
   - move to RC-freeze preparation, or
   - name one explicit remaining blocker packet
+
+### Slice 4: Exhaustive Pre-Freeze Audit Draft
+
+Tracker lane:
+- `no-ard`
+
+Status:
+- next active slice
+
+Goals:
+- run a deliberately exhaustive pre-freeze audit before any RC-freeze claim
+- maintain one live draft that records actual coverage, findings, fixes, accepted exceptions, and
+  unresolved blockers
+- add explicit performance and crypto/backend-wrapper review to the already completed protocol and
+  Zig-quality lanes
+
+Required checks:
+- do not overstate which implemented surfaces were freshly reviewed in this pass
+- distinguish targeted follow-up evidence from whole-library exhaustive coverage
+- open fix lanes only for evidence-backed issues
+- update the working draft during the pass instead of reconstructing it later
+
+Closure bar:
+- `docs/plans/exhaustive-pre-freeze-audit.md` reflects actual audit coverage and results
+- `no-mja` can use the completed draft for honest freeze-readiness consolidation
 
 ## Decision Rules
 

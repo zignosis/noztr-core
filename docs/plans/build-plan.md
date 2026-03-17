@@ -174,9 +174,12 @@ This artifact is the lean active execution baseline and is aligned to:
   engineering discipline without treating TigerBeetle as protocol authority.
 - execute `docs/plans/post-audit-improvement-plan.md` as the ordered response to the completed
   `libnostr-z` and TigerBeetle audits.
+- before any RC-freeze claim, complete one explicit exhaustive pre-freeze audit draft that states
+  actual whole-library coverage, performance posture, crypto/backend-wrapper review, accepted
+  exceptions, and remaining blockers without overstatement.
 - keep the completed TigerBeetle Zig-quality report as reference evidence; the current concrete
-  remaining follow-up lane is `no-mja` after structural-hotspot slice `no-ow4` and
-  explicit-state/fixed-capacity slice `no-3jb` closed cleanly.
+  remaining follow-up lanes are `no-ard` for the exhaustive audit draft and `no-mja` for later
+  freeze-readiness consolidation after that draft is complete.
 - RC API-freeze remains deferred until the boundary-validation slice closes.
 - Layer 2 compatibility/ergonomic adapter work remains contingent; start it only if the
   boundary-validation pass finds a real blocker that belongs outside the kernel.

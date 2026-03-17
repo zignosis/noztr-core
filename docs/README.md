@@ -33,6 +33,9 @@ These docs control active work and should stay lean.
   - current active Phase H packet and next remaining work
 - `docs/plans/post-audit-improvement-plan.md`
   - ordered execution plan for the completed `libnostr-z` and TigerBeetle audit follow-ups
+- `docs/plans/exhaustive-pre-freeze-audit.md`
+  - live working draft for the exhaustive pre-freeze audit that must precede freeze-readiness
+    synthesis
 - `docs/plans/docs-surface-audit.md`
   - stable-ID audit of doc bloat, repetition, and control-surface drift
 
@@ -71,6 +74,7 @@ These are active references, not startup defaults.
 - `docs/plans/noztr-sdk-ownership-matrix.md`
 - `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
 - `docs/plans/post-audit-improvement-plan.md`
+- `docs/plans/exhaustive-pre-freeze-audit.md`
 - `docs/plans/implemented-nip-review-guide.md`
 - `docs/plans/nostr-principles.md`
 - `docs/plans/implemented-nip-audit-report.md`
@@ -91,6 +95,7 @@ These are active references, not startup defaults.
 These are lane- or phase-specific packets. They should be read only when that lane is active.
 
 - `docs/plans/phase-h-remaining-work.md`
+- `docs/plans/exhaustive-pre-freeze-audit.md`
 - `docs/plans/prompts/`
 
 ## Archive
