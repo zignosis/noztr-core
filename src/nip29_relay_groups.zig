@@ -184,6 +184,9 @@ pub const GroupState = struct {
     }
 };
 
+const group_user_index_cache_capacity: usize = @as(usize, limits.tags_max) * 2;
+const group_user_index_cache_empty: u16 = std.math.maxInt(u16);
+
 pub const BuiltTag = struct {
     items: [limits.tag_items_max][]const u8 = undefined,
     item_count: u8 = 0,
@@ -321,13 +324,24 @@ pub fn group_state_apply_event(
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(event) != 0);
 
+    try group_state_apply_event_with_cache(state, event, null);
+}
+
+fn group_state_apply_event_with_cache(
+    state: *GroupState,
+    event: *const nip01_event.Event,
+    user_index_cache: ?*UserIndexCache,
+) Nip29Error!void {
+    std.debug.assert(@intFromPtr(state) != 0);
+    std.debug.assert(@intFromPtr(event) != 0);
+
     switch (event.kind) {
         group_metadata_kind => try reduce_metadata_event(state, event),
-        group_admins_kind => try reduce_admins_event(state, event),
-        group_members_kind => try reduce_members_event(state, event),
+        group_admins_kind => try reduce_admins_event(state, event, user_index_cache),
+        group_members_kind => try reduce_members_event(state, event, user_index_cache),
         group_roles_kind => try reduce_supported_roles_event(state, event),
-        group_put_user_kind => try reduce_put_user_event(state, event),
-        group_remove_user_kind => try reduce_remove_user_event(state, event),
+        group_put_user_kind => try reduce_put_user_event(state, event, user_index_cache),
+        group_remove_user_kind => try reduce_remove_user_event(state, event, user_index_cache),
         else => {},
     }
 }
@@ -341,8 +355,10 @@ pub fn group_state_apply_events(
     std.debug.assert(state.users.len <= state.user_storage.len);
     std.debug.assert(state.supported_roles.len <= state.supported_role_storage.len);
 
+    var user_index_cache = UserIndexCache{};
+    user_index_cache.rebuild(state);
     for (events) |*event| {
-        try group_state_apply_event(state, event);
+        try group_state_apply_event_with_cache(state, event, &user_index_cache);
     }
 }
 
@@ -1047,6 +1063,7 @@ fn reduce_supported_roles_event(
 fn reduce_admins_event(
     state: *GroupState,
     event: *const nip01_event.Event,
+    user_index_cache: ?*UserIndexCache,
 ) Nip29Error!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(event.kind == group_admins_kind);
@@ -1054,17 +1071,19 @@ fn reduce_admins_event(
     var group_id: []const u8 = "";
     clear_admin_snapshot(state);
     for (event.tags) |tag| {
-        try reduce_admin_snapshot_tag(state, tag, &group_id);
+        try reduce_admin_snapshot_tag(state, tag, &group_id, user_index_cache);
     }
     if (group_id.len == 0) return error.MissingIdentifierTag;
     try ensure_state_group_id(state, group_id);
     compact_inactive_users(state);
+    rebuild_user_index_cache(user_index_cache, state);
 }
 
 fn reduce_admin_snapshot_tag(
     state: *GroupState,
     tag: nip01_event.EventTag,
     group_id: *[]const u8,
+    user_index_cache: ?*UserIndexCache,
 ) Nip29Error!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(group_id) != 0);
@@ -1072,22 +1091,27 @@ fn reduce_admin_snapshot_tag(
     if (tag.items.len == 0) return;
     if (std.mem.eql(u8, tag.items[0], "d")) return parse_identifier_tag(tag, group_id);
     if (!std.mem.eql(u8, tag.items[0], "p")) return;
-    try apply_admin_snapshot_user(state, tag);
+    try apply_admin_snapshot_user(state, tag, user_index_cache);
 }
 
-fn apply_admin_snapshot_user(state: *GroupState, tag: nip01_event.EventTag) Nip29Error!void {
+fn apply_admin_snapshot_user(
+    state: *GroupState,
+    tag: nip01_event.EventTag,
+    user_index_cache: ?*UserIndexCache,
+) Nip29Error!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
     if (tag.items.len < 2) return error.InvalidAdminTag;
     const pubkey = parse_lower_hex_32(tag.items[1]) catch return error.InvalidAdminTag;
-    const user_index = try ensure_user_slot(state, &pubkey);
+    const user_index = try ensure_user_slot(state, &pubkey, user_index_cache);
     try set_user_roles(state, user_index, admin_permission_items(tag), error.InvalidAdminTag);
 }
 
 fn reduce_members_event(
     state: *GroupState,
     event: *const nip01_event.Event,
+    user_index_cache: ?*UserIndexCache,
 ) Nip29Error!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(event.kind == group_members_kind);
@@ -1095,17 +1119,19 @@ fn reduce_members_event(
     var group_id: []const u8 = "";
     clear_member_snapshot(state);
     for (event.tags) |tag| {
-        try reduce_member_snapshot_tag(state, tag, &group_id);
+        try reduce_member_snapshot_tag(state, tag, &group_id, user_index_cache);
     }
     if (group_id.len == 0) return error.MissingIdentifierTag;
     try ensure_state_group_id(state, group_id);
     compact_inactive_users(state);
+    rebuild_user_index_cache(user_index_cache, state);
 }
 
 fn reduce_member_snapshot_tag(
     state: *GroupState,
     tag: nip01_event.EventTag,
     group_id: *[]const u8,
+    user_index_cache: ?*UserIndexCache,
 ) Nip29Error!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(group_id) != 0);
@@ -1113,10 +1139,14 @@ fn reduce_member_snapshot_tag(
     if (tag.items.len == 0) return;
     if (std.mem.eql(u8, tag.items[0], "d")) return parse_identifier_tag(tag, group_id);
     if (!std.mem.eql(u8, tag.items[0], "p")) return;
-    try apply_member_snapshot_user(state, tag);
+    try apply_member_snapshot_user(state, tag, user_index_cache);
 }
 
-fn apply_member_snapshot_user(state: *GroupState, tag: nip01_event.EventTag) Nip29Error!void {
+fn apply_member_snapshot_user(
+    state: *GroupState,
+    tag: nip01_event.EventTag,
+    user_index_cache: ?*UserIndexCache,
+) Nip29Error!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -1128,7 +1158,7 @@ fn apply_member_snapshot_user(state: *GroupState, tag: nip01_event.EventTag) Nip
     if (tag.items.len == 3 and tag.items[2].len != 0) {
         user.label = parse_member_label(tag.items[2]) catch return error.InvalidMemberTag;
     }
-    const user_index = try ensure_user_slot(state, &user.pubkey);
+    const user_index = try ensure_user_slot(state, &user.pubkey, user_index_cache);
     state.user_storage[user_index].label = user.label;
     state.user_storage[user_index].is_member = true;
 }
@@ -1136,6 +1166,7 @@ fn apply_member_snapshot_user(state: *GroupState, tag: nip01_event.EventTag) Nip
 fn reduce_put_user_event(
     state: *GroupState,
     event: *const nip01_event.Event,
+    user_index_cache: ?*UserIndexCache,
 ) Nip29Error!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(event.kind == group_put_user_kind);
@@ -1143,7 +1174,7 @@ fn reduce_put_user_event(
     var roles: [group_state_user_roles_max][]const u8 = undefined;
     var previous: [limits.tags_max][]const u8 = undefined;
     const info = try group_put_user_extract(event, roles[0..], previous[0..]);
-    const user_index = try ensure_user_slot(state, &info.pubkey);
+    const user_index = try ensure_user_slot(state, &info.pubkey, user_index_cache);
     try ensure_state_group_id(state, info.group_id);
     try set_user_roles(state, user_index, info.roles, error.InvalidPutUserTag);
     state.user_storage[user_index].is_member = true;
@@ -1152,6 +1183,7 @@ fn reduce_put_user_event(
 fn reduce_remove_user_event(
     state: *GroupState,
     event: *const nip01_event.Event,
+    user_index_cache: ?*UserIndexCache,
 ) Nip29Error!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(event.kind == group_remove_user_kind);
@@ -1159,9 +1191,10 @@ fn reduce_remove_user_event(
     var previous: [limits.tags_max][]const u8 = undefined;
     const info = try group_remove_user_extract(event, previous[0..]);
     try ensure_state_group_id(state, info.group_id);
-    const user_index = find_user_index(state, &info.pubkey) orelse return;
+    const user_index = find_user_index_cached(state, &info.pubkey, user_index_cache) orelse return;
     clear_user(state, user_index);
     compact_inactive_users(state);
+    rebuild_user_index_cache(user_index_cache, state);
 }
 
 fn ensure_state_group_id(state: *GroupState, group_id: []const u8) Nip29Error!void {
@@ -1196,16 +1229,35 @@ fn clear_member_snapshot(state: *GroupState) void {
     }
 }
 
-fn ensure_user_slot(state: *GroupState, pubkey: *const [32]u8) Nip29Error!u16 {
+fn ensure_user_slot(
+    state: *GroupState,
+    pubkey: *const [32]u8,
+    user_index_cache: ?*UserIndexCache,
+) Nip29Error!u16 {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(pubkey) != 0);
 
-    if (find_user_index(state, pubkey)) |index| return index;
+    if (find_user_index_cached(state, pubkey, user_index_cache)) |index| return index;
     if (state.users.len == state.user_storage.len) return error.BufferTooSmall;
     const index: u16 = @intCast(state.users.len);
     state.user_storage[index] = .{ .pubkey = pubkey.* };
     state.users = state.user_storage[0 .. state.users.len + 1];
+    if (user_index_cache) |cache| cache.insert_known(state, index);
     return index;
+}
+
+fn find_user_index_cached(
+    state: *const GroupState,
+    pubkey: *const [32]u8,
+    user_index_cache: ?*const UserIndexCache,
+) ?u16 {
+    std.debug.assert(@intFromPtr(state) != 0);
+    std.debug.assert(@intFromPtr(pubkey) != 0);
+
+    if (user_index_cache) |cache| {
+        return cache.find(state, pubkey);
+    }
+    return find_user_index(state, pubkey);
 }
 
 fn find_user_index(state: *const GroupState, pubkey: *const [32]u8) ?u16 {
@@ -1216,6 +1268,64 @@ fn find_user_index(state: *const GroupState, pubkey: *const [32]u8) ?u16 {
         if (std.mem.eql(u8, user.pubkey[0..], pubkey[0..])) return @intCast(index);
     }
     return null;
+}
+
+const UserIndexCache = struct {
+    slots: [group_user_index_cache_capacity]u16 = [_]u16{group_user_index_cache_empty} **
+        group_user_index_cache_capacity,
+
+    fn rebuild(self: *UserIndexCache, state: *const GroupState) void {
+        std.debug.assert(@intFromPtr(self) != 0);
+        std.debug.assert(@intFromPtr(state) != 0);
+
+        self.* = .{};
+        for (state.users, 0..) |_, index| {
+            self.insert_known(state, @intCast(index));
+        }
+    }
+
+    fn find(self: *const UserIndexCache, state: *const GroupState, pubkey: *const [32]u8) ?u16 {
+        std.debug.assert(@intFromPtr(self) != 0);
+        std.debug.assert(@intFromPtr(pubkey) != 0);
+
+        var slot = user_index_cache_slot(pubkey[0..]);
+        var probe_count: usize = 0;
+        while (probe_count < self.slots.len) : (probe_count += 1) {
+            const index = self.slots[slot];
+            if (index == group_user_index_cache_empty) return null;
+            if (std.mem.eql(u8, state.user_storage[index].pubkey[0..], pubkey[0..])) {
+                return index;
+            }
+            slot = user_index_cache_advance(slot);
+        }
+        return null;
+    }
+
+    fn insert_known(self: *UserIndexCache, state: *const GroupState, index: u16) void {
+        std.debug.assert(@intFromPtr(self) != 0);
+        std.debug.assert(index < state.users.len);
+
+        var slot = user_index_cache_slot(state.user_storage[index].pubkey[0..]);
+        while (self.slots[slot] != group_user_index_cache_empty) {
+            slot = user_index_cache_advance(slot);
+        }
+        self.slots[slot] = index;
+    }
+};
+
+fn user_index_cache_slot(pubkey: []const u8) usize {
+    std.debug.assert(group_user_index_cache_capacity > 0);
+    std.debug.assert(std.math.isPowerOfTwo(group_user_index_cache_capacity));
+
+    const hash = std.hash.Wyhash.hash(0, pubkey);
+    return @intCast(hash & (group_user_index_cache_capacity - 1));
+}
+
+fn user_index_cache_advance(slot: usize) usize {
+    std.debug.assert(slot < group_user_index_cache_capacity);
+    std.debug.assert(std.math.isPowerOfTwo(group_user_index_cache_capacity));
+
+    return (slot + 1) & (group_user_index_cache_capacity - 1);
 }
 
 fn set_user_roles(
@@ -1251,6 +1361,13 @@ fn clear_user(state: *GroupState, user_index: u16) void {
     state.user_storage[user_index].roles = &.{};
     state.user_storage[user_index].label = null;
     state.user_storage[user_index].is_member = false;
+}
+
+fn rebuild_user_index_cache(user_index_cache: ?*UserIndexCache, state: *const GroupState) void {
+    std.debug.assert(@intFromPtr(state) != 0);
+    std.debug.assert(state.users.len <= state.user_storage.len);
+
+    if (user_index_cache) |cache| cache.rebuild(state);
 }
 
 fn compact_inactive_users(state: *GroupState) void {
@@ -1677,7 +1794,7 @@ test "group builders reject empty optional role and label output" {
             &admin_tag,
             "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
             "",
-            &.{ "put-user" },
+            &.{"put-user"},
         ),
     );
 }
@@ -1992,4 +2109,63 @@ test "group state reducer tolerates previous tags on moderation replay" {
         &test_event_with_content(group_remove_user_kind, remove_tags[0..], "remove"),
     );
     try std.testing.expectEqual(@as(usize, 0), state.users.len);
+}
+
+test "group state apply events reuses compacted user slot without duplicates" {
+    const metadata_tags = [_]nip01_event.EventTag{
+        .{ .items = &.{ "d", "pizza-lovers" } },
+    };
+    const first_put_tags = [_]nip01_event.EventTag{
+        .{ .items = &.{ "h", "pizza-lovers" } },
+        .{ .items = &.{
+            "p",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "moderator",
+        } },
+    };
+    const second_put_tags = [_]nip01_event.EventTag{
+        .{ .items = &.{ "h", "pizza-lovers" } },
+        .{ .items = &.{
+            "p",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "helper",
+        } },
+    };
+    const remove_tags = [_]nip01_event.EventTag{
+        .{ .items = &.{ "h", "pizza-lovers" } },
+        .{ .items = &.{
+            "p",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        } },
+    };
+    const update_tags = [_]nip01_event.EventTag{
+        .{ .items = &.{ "h", "pizza-lovers" } },
+        .{ .items = &.{
+            "p",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "moderator",
+        } },
+    };
+    const events = [_]nip01_event.Event{
+        test_event(group_metadata_kind, metadata_tags[0..]),
+        test_event_with_content(group_put_user_kind, first_put_tags[0..], "add first"),
+        test_event_with_content(group_put_user_kind, second_put_tags[0..], "add second"),
+        test_event_with_content(group_remove_user_kind, remove_tags[0..], "remove first"),
+        test_event_with_content(group_put_user_kind, update_tags[0..], "update second"),
+    };
+    var users: [2]GroupStateUser = undefined;
+    var roles: [0]GroupRole = .{};
+    var user_roles: [2 * group_state_user_roles_max][]const u8 = undefined;
+    var state = GroupState.init(users[0..], roles[0..], user_roles[0..]);
+
+    state.reset();
+    try group_state_apply_events(&state, events[0..]);
+
+    try std.testing.expectEqual(@as(usize, 1), state.users.len);
+    try std.testing.expect(state.users[0].is_member);
+    try std.testing.expectEqualStrings("moderator", state.users[0].roles[0]);
+    try std.testing.expectEqual(
+        [_]u8{0xbb} ** 32,
+        state.users[0].pubkey,
+    );
 }

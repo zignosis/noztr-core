@@ -72,10 +72,16 @@ assurance supplement, and the revised synthesis.
         structured post-core contract map, stronger symbol-level example routing, refreshed root
         README routing, hostile `NIP-05` coverage, and richer downstream brief structure
   - `no-65ev.4`
-    - next active lane:
+    - complete:
       - targeted performance hotspot cleanup for `NIP-88` and `NIP-29`
+      - bounded reducer-local index caches now remove the repeated linear lookup pressure on the
+        measured hot paths without widening public API scope
+      - empirical benchmark rerun reduced the named hotspots to:
+        - `NIP-88` `32 options / 1024 responses`: `321,922 ns/op -> 98,570 ns/op`
+        - `NIP-29` `1024 users snapshot replay`: `538,181 ns/op -> 110,102 ns/op`
   - `no-65ev.5`
-    - blocked freeze recheck after the remediation lanes close
+    - next active lane:
+      - blocked freeze recheck after the remediation lanes close
 - completed audit artifacts are now reference evidence:
   - `docs/plans/exhaustive-pre-freeze-audit.md`
   - `docs/plans/exhaustive-pre-freeze-audit-matrix.md`
@@ -88,9 +94,8 @@ assurance supplement, and the revised synthesis.
 
 ## Next Step
 
-1. execute the performance lane `no-65ev.4`
-2. then run the blocked post-remediation freeze recheck lane
-3. only after that decide whether RC-freeze work is honestly ready
+1. run the blocked post-remediation freeze recheck lane `no-65ev.5`
+2. then decide whether RC-freeze is honestly ready or one bounded blocker remains
 
 ## Open Questions Or Targeted Findings
 
@@ -105,13 +110,21 @@ assurance supplement, and the revised synthesis.
 - `AQ-REM-002`
   - after the targeted hardening lanes close, does any public helper family still rely on debug
     assertions or inconsistent direct-call semantics?
+  - current result:
+    - no known remaining family in the accepted remediation scope
 - `AQ-REM-003`
   - after docs/examples cleanup, does the teaching surface reflect the accepted `NIP-59`,
     `NIP-05`, Phase H routing contracts, structured post-core contract map, and downstream-agent
     handoff needs accurately enough for freeze confidence?
+  - current result:
+    - yes, subject to the freeze recheck confirming no new drift
 - `AQ-REM-004`
   - after local performance cleanup in `NIP-88` and `NIP-29`, does any remaining hotspot still
     argue for deeper redesign?
+  - current result:
+    - no
+    - the local hotspot pressure dropped materially under the rerun benchmark without changing the
+      public reducer contracts
 
 ## Sync Touchpoints
 

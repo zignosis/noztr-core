@@ -131,11 +131,16 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
   - `nip29_groups.reduce_events(...)`
   - any adjacent reducer helper touched in the same bounded slice
 - likely `nzdk` impact:
-  - no intended semantic change
+  - landed: no intended semantic change
   - only recheck if `nzdk` relies on specific complexity or local ordering assumptions
 - downstream document bundle after landing:
   - `docs/research/empirical-benchmark-supplement-report.md`
-  - any landed reducer notes in the remediation packet
+  - `docs/plans/post-exhaustive-audit-remediation-plan.md`
+- landed notes:
+  - `NIP-88` tally reduction and `NIP-29` batch replay now use bounded reducer-local index caches
+    to remove repeated linear lookup pressure
+  - no public API or happy-path semantic change is intended
+  - benchmark rerun materially lowered the named hotspots
 
 ### `no-65ev.5`
 
@@ -153,7 +158,7 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 | `no-65ev.1` | `libwally` seam, `NIP-06`, `BIP-85`, `NIP-44`, `NIP-26` backend-outage mapping, and backend provenance/build-floor reconciliation | landed: typed outage handling tightened on `NIP-44` / `NIP-26`; no intended happy-path API expansion | wallet/bootstrap, delegation, conversation-key acquisition, BIP-85 consumers | landed |
 | `no-65ev.2` | `NIP-86`, `NIP-46`, `NIP-25` public helper hardening | landed: direct helper misuse now stays on typed errors; `reaction_classify_content(...)` now returns `ReactionError!ReactionType` | admin helper wrappers, remote-signing helper tests, any direct reaction helper use | landed |
 | `no-65ev.3` | examples/docs/discovery only | landed: stronger docs/example routing, no intended runtime contract change | docs/examples references only | landed |
-| `no-65ev.4` | `NIP-88`, `NIP-29` local performance cleanup; `NIP-06` only if touched indirectly by backend redesign | no intended happy-path API change | only if `nzdk` relies on specific complexity or ordering assumptions | open |
+| `no-65ev.4` | `NIP-88`, `NIP-29` local performance cleanup; `NIP-06` only if touched indirectly by backend redesign | landed: bounded reducer-local caches, no intended happy-path API change | only if `nzdk` relies on specific complexity or ordering assumptions | landed |
 | `no-65ev.5` | freeze recheck only | no direct runtime change | none unless new blocker is found | open |
 
 ## Update Rule

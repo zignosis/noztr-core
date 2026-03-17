@@ -96,12 +96,14 @@ the `OQ-E-006` usability pass.
   - complete the docs/examples lane and add the structured post-core contract map, corrected
     `NIP-59` example routing, hostile `NIP-05` example coverage, refreshed root README routing,
     and richer downstream-brief structure
+  - complete the local performance lane with bounded reducer-local caches for `NIP-88` and
+    `NIP-29`, with the benchmark rerun showing materially lower local hotspot pressure
 
 ## Next Step
 
 1. execute `docs/plans/post-exhaustive-audit-remediation-plan.md`
   - immediate next lane:
-    - `no-65ev.4`
+    - `no-65ev.5`
 2. keep RC API-freeze deferred until the remediation program and one freeze recheck complete
 3. if remediation surfaces a real compatibility or ergonomics blocker that does not belong in
    Layer 1, create one explicit Layer 2 adapter-boundary packet instead of widening the kernel by

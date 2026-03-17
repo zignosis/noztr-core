@@ -220,8 +220,12 @@ This artifact is the lean active execution baseline and is aligned to:
 - the completed benchmark supplement refined the performance lane:
   - keep `NIP-29` and `NIP-88` in the targeted performance cleanup lane
   - do not treat `NIP-06` repeated scans as a standalone required performance remediation item
+- `no-65ev.4` is complete:
+  - bounded reducer-local caches now remove the repeated linear lookup pressure in `NIP-88` and
+    `NIP-29` without widening the public reducer contracts
+  - the empirical benchmark rerun materially lowered the named hotspots
 - current remaining known remediation work before the freeze recheck is:
-  - local performance cleanup in `NIP-88` and `NIP-29`
+  - none beyond the freeze recheck itself
 - the selected remediation posture is bounded redesign first, then targeted fixes, then a
   freeze-readiness recheck.
 - RC API-freeze remains deferred until the boundary-validation slice closes.

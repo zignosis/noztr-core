@@ -84,6 +84,9 @@ pub const PollTally = struct {
     counted_pubkey_count: u16 = 0,
 };
 
+const poll_index_cache_capacity: usize = @as(usize, limits.tags_max) * 2;
+const poll_index_cache_empty: u16 = std.math.maxInt(u16);
+
 pub const BuiltTag = struct {
     items: [3][]const u8 = undefined,
     text_storage: [limits.tag_item_bytes_max]u8 = undefined,
@@ -256,6 +259,9 @@ pub fn poll_tally_reduce(
     std.debug.assert(out_option_tallies.len <= limits.tags_max);
 
     const poll = try poll_extract_tallies(poll_event, out_option_tallies);
+    var option_index_cache = OptionIndexCache{};
+    option_index_cache.load(out_option_tallies[0..poll.option_count]);
+    var response_index_cache = ResponseIndexCache{};
     var tally = PollTally{
         .poll_type = poll.poll_type,
         .option_count = poll.option_count,
@@ -264,13 +270,18 @@ pub fn poll_tally_reduce(
         const candidate = response_candidate_for_poll(poll_event, &poll, response_event) orelse {
             continue;
         };
-        try upsert_counted_response(out_latest_responses, &tally.candidate_pubkey_count, candidate);
+        try response_index_cache.upsert(
+            out_latest_responses,
+            &tally.candidate_pubkey_count,
+            candidate,
+        );
     }
     for (out_latest_responses[0..tally.candidate_pubkey_count]) |counted| {
         const counted_vote = count_votes_for_response(
             poll.poll_type,
             counted.response_event,
             out_option_tallies[0..poll.option_count],
+            &option_index_cache,
         );
         if (counted_vote) tally.counted_pubkey_count += 1;
     }
@@ -486,28 +497,6 @@ fn response_within_poll_limits(ends_at: ?u64, created_at: u64) bool {
     return true;
 }
 
-fn upsert_counted_response(
-    out_latest_responses: []CountedResponse,
-    counted_response_count: *u16,
-    candidate: CountedResponse,
-) Nip88Error!void {
-    std.debug.assert(@intFromPtr(counted_response_count) != 0);
-    std.debug.assert(counted_response_count.* <= out_latest_responses.len);
-
-    if (find_counted_response(
-        out_latest_responses[0..counted_response_count.*],
-        &candidate.pubkey,
-    )) |index| {
-        if (counted_response_should_replace(out_latest_responses[index], candidate)) {
-            out_latest_responses[index] = candidate;
-        }
-        return;
-    }
-    if (counted_response_count.* == out_latest_responses.len) return error.BufferTooSmall;
-    out_latest_responses[counted_response_count.*] = candidate;
-    counted_response_count.* += 1;
-}
-
 fn counted_response_should_replace(existing: CountedResponse, candidate: CountedResponse) bool {
     std.debug.assert(existing.created_at <= std.math.maxInt(u64));
     std.debug.assert(candidate.created_at <= std.math.maxInt(u64));
@@ -521,28 +510,40 @@ fn count_votes_for_response(
     poll_type: PollType,
     response_event: *const nip01_event.Event,
     option_tallies: []OptionTally,
+    option_index_cache: *const OptionIndexCache,
 ) bool {
     std.debug.assert(@intFromPtr(response_event) != 0);
     std.debug.assert(option_tallies.len <= limits.tags_max);
+    std.debug.assert(@intFromPtr(option_index_cache) != 0);
 
     return switch (poll_type) {
-        .singlechoice => count_singlechoice_vote(response_event, option_tallies),
-        .multiplechoice => count_multiplechoice_votes(response_event, option_tallies),
+        .singlechoice => count_singlechoice_vote(
+            response_event,
+            option_tallies,
+            option_index_cache,
+        ),
+        .multiplechoice => count_multiplechoice_votes(
+            response_event,
+            option_tallies,
+            option_index_cache,
+        ),
     };
 }
 
 fn count_singlechoice_vote(
     response_event: *const nip01_event.Event,
     option_tallies: []OptionTally,
+    option_index_cache: *const OptionIndexCache,
 ) bool {
     std.debug.assert(@intFromPtr(response_event) != 0);
     std.debug.assert(option_tallies.len <= limits.tags_max);
+    std.debug.assert(@intFromPtr(option_index_cache) != 0);
 
     for (response_event.tags) |tag| {
         if (tag.items.len == 0) continue;
         if (!std.mem.eql(u8, tag.items[0], "response")) continue;
         const option_id = parse_response_tag(tag) catch return false;
-        const index = find_option_tally(option_tallies, option_id) orelse return false;
+        const index = option_index_cache.find(option_tallies, option_id) orelse return false;
         option_tallies[index].vote_count += 1;
         return true;
     }
@@ -552,9 +553,11 @@ fn count_singlechoice_vote(
 fn count_multiplechoice_votes(
     response_event: *const nip01_event.Event,
     option_tallies: []OptionTally,
+    option_index_cache: *const OptionIndexCache,
 ) bool {
     std.debug.assert(@intFromPtr(response_event) != 0);
     std.debug.assert(option_tallies.len <= limits.tags_max);
+    std.debug.assert(@intFromPtr(option_index_cache) != 0);
 
     var seen: [limits.tags_max]bool = [_]bool{false} ** limits.tags_max;
     var counted = false;
@@ -562,7 +565,7 @@ fn count_multiplechoice_votes(
         if (tag.items.len == 0) continue;
         if (!std.mem.eql(u8, tag.items[0], "response")) continue;
         const option_id = parse_response_tag(tag) catch return false;
-        const index = find_option_tally(option_tallies, option_id) orelse continue;
+        const index = option_index_cache.find(option_tallies, option_id) orelse continue;
         if (seen[index]) continue;
         option_tallies[index].vote_count += 1;
         seen[index] = true;
@@ -609,6 +612,111 @@ fn find_option_tally(option_tallies: []const OptionTally, option_id: []const u8)
         if (std.mem.eql(u8, option_tally.id, option_id)) return @intCast(index);
     }
     return null;
+}
+
+const ResponseIndexCache = struct {
+    slots: [poll_index_cache_capacity]u16 = [_]u16{poll_index_cache_empty} **
+        poll_index_cache_capacity,
+
+    fn upsert(
+        self: *ResponseIndexCache,
+        counted_responses: []CountedResponse,
+        counted_response_count: *u16,
+        candidate: CountedResponse,
+    ) Nip88Error!void {
+        std.debug.assert(@intFromPtr(counted_response_count) != 0);
+        std.debug.assert(@intFromPtr(self) != 0);
+
+        if (self.find(counted_responses, &candidate.pubkey)) |index| {
+            if (counted_response_should_replace(counted_responses[index], candidate)) {
+                counted_responses[index] = candidate;
+            }
+            return;
+        }
+        if (counted_response_count.* == counted_responses.len) return error.BufferTooSmall;
+        const new_index = counted_response_count.*;
+        counted_responses[new_index] = candidate;
+        counted_response_count.* += 1;
+        self.insert_known(counted_responses, new_index);
+    }
+
+    fn find(
+        self: *const ResponseIndexCache,
+        counted_responses: []const CountedResponse,
+        pubkey: *const [32]u8,
+    ) ?u16 {
+        std.debug.assert(@intFromPtr(self) != 0);
+        std.debug.assert(@intFromPtr(pubkey) != 0);
+
+        var slot = cache_slot_for_bytes(pubkey[0..]);
+        var probe_count: usize = 0;
+        while (probe_count < self.slots.len) : (probe_count += 1) {
+            const index = self.slots[slot];
+            if (index == poll_index_cache_empty) return null;
+            if (std.mem.eql(u8, &counted_responses[index].pubkey, pubkey)) return index;
+            slot = cache_slot_advance(slot);
+        }
+        return null;
+    }
+
+    fn insert_known(self: *ResponseIndexCache, counted_responses: []const CountedResponse, index: u16) void {
+        std.debug.assert(@intFromPtr(self) != 0);
+        std.debug.assert(index < counted_responses.len);
+
+        var slot = cache_slot_for_bytes(counted_responses[index].pubkey[0..]);
+        while (self.slots[slot] != poll_index_cache_empty) {
+            slot = cache_slot_advance(slot);
+        }
+        self.slots[slot] = index;
+    }
+};
+
+const OptionIndexCache = struct {
+    slots: [poll_index_cache_capacity]u16 = [_]u16{poll_index_cache_empty} **
+        poll_index_cache_capacity,
+
+    fn load(self: *OptionIndexCache, option_tallies: []const OptionTally) void {
+        std.debug.assert(@intFromPtr(self) != 0);
+        std.debug.assert(option_tallies.len <= limits.tags_max);
+
+        for (option_tallies, 0..) |option_tally, index| {
+            var slot = cache_slot_for_bytes(option_tally.id);
+            while (self.slots[slot] != poll_index_cache_empty) {
+                slot = cache_slot_advance(slot);
+            }
+            self.slots[slot] = @intCast(index);
+        }
+    }
+
+    fn find(self: *const OptionIndexCache, option_tallies: []const OptionTally, option_id: []const u8) ?u16 {
+        std.debug.assert(@intFromPtr(self) != 0);
+        std.debug.assert(option_tallies.len <= limits.tags_max);
+
+        var slot = cache_slot_for_bytes(option_id);
+        var probe_count: usize = 0;
+        while (probe_count < self.slots.len) : (probe_count += 1) {
+            const index = self.slots[slot];
+            if (index == poll_index_cache_empty) return null;
+            if (std.mem.eql(u8, option_tallies[index].id, option_id)) return index;
+            slot = cache_slot_advance(slot);
+        }
+        return null;
+    }
+};
+
+fn cache_slot_for_bytes(bytes: []const u8) usize {
+    std.debug.assert(poll_index_cache_capacity > 0);
+    std.debug.assert(std.math.isPowerOfTwo(poll_index_cache_capacity));
+
+    const hash = std.hash.Wyhash.hash(0, bytes);
+    return @intCast(hash & (poll_index_cache_capacity - 1));
+}
+
+fn cache_slot_advance(slot: usize) usize {
+    std.debug.assert(slot < poll_index_cache_capacity);
+    std.debug.assert(std.math.isPowerOfTwo(poll_index_cache_capacity));
+
+    return (slot + 1) & (poll_index_cache_capacity - 1);
 }
 
 fn parse_option_tag(tag: nip01_event.EventTag) error{InvalidValue}!PollOption {
