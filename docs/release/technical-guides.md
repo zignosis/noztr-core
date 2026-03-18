@@ -20,6 +20,13 @@ They do not try to turn every supported NIP into a long-form narrative page. Ins
 - reference pages cover the full supported surface
 - examples and hostile examples show the exact usage and failure contract
 
+Use this page when you know the job shape but not yet the exact symbol.
+
+If you already know the symbol family, use
+[api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md).
+If you want a fast task-to-symbol route, use
+[contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md).
+
 Cross-cutting public notes:
 
 - [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
@@ -49,6 +56,7 @@ Cross-cutting public notes:
 ## Signing, Wallet, And Private Material
 
 - NIP-06 mnemonics, `nostr_keys`, and bounded BIP-85 helpers
+  - route: [api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md)
   - example: [wallet_recipe.zig](/workspace/projects/noztr/examples/wallet_recipe.zig)
   - references: [nip06_example.zig](/workspace/projects/noztr/examples/nip06_example.zig), [nostr_keys_example.zig](/workspace/projects/noztr/examples/nostr_keys_example.zig), [bip85_example.zig](/workspace/projects/noztr/examples/bip85_example.zig)
 - NIP-49 private-key encryption
@@ -81,15 +89,18 @@ Cross-cutting public notes:
   - example: [nip98_example.zig](/workspace/projects/noztr/examples/nip98_example.zig)
   - hostile example: [http_auth_adversarial_example.zig](/workspace/projects/noztr/examples/http_auth_adversarial_example.zig)
 - NIP-86 relay-admin JSON-RPC helpers
+  - route: [api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md)
   - example: [relay_admin_recipe.zig](/workspace/projects/noztr/examples/relay_admin_recipe.zig)
   - hostile example: [relay_admin_adversarial_example.zig](/workspace/projects/noztr/examples/relay_admin_adversarial_example.zig)
 
 ## Reducers, Media, Listings, And Specialized Surfaces
 
 - NIP-29 reducer replay
+  - route: [api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md)
   - example: [nip29_reducer_recipe.zig](/workspace/projects/noztr/examples/nip29_reducer_recipe.zig)
   - hostile example: [nip29_adversarial_example.zig](/workspace/projects/noztr/examples/nip29_adversarial_example.zig)
 - NIP-88 poll parse/build/tally
+  - route: [api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md)
   - example: [nip88_example.zig](/workspace/projects/noztr/examples/nip88_example.zig)
   - hostile example: [polls_adversarial_example.zig](/workspace/projects/noztr/examples/polls_adversarial_example.zig)
 - media metadata, listings, Blossom helpers, code snippets, chess PGN

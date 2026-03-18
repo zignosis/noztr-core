@@ -12,15 +12,20 @@ canonical: true
 
 # Public API Reference
 
-This is the public module-level reference for the exported `noztr` surface.
+This is the public module-and-symbol reference for the exported `noztr` surface.
 
 Use it when you want to browse the library by module instead of by task.
+
+If you already know the task but not the module, start with
+[contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md) or
+[technical-guides.md](/workspace/projects/noztr/docs/release/technical-guides.md) first.
 
 Cross-cutting release notes:
 
 - [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
 - [performance.md](/workspace/projects/noztr/docs/release/performance.md)
 - [stability-and-versioning.md](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
+- [examples/README.md](/workspace/projects/noztr/examples/README.md)
 
 ## Shared Foundations
 
@@ -68,6 +73,8 @@ These are the quickest symbol-level routes into the modules most downstream user
   - [remote_signing_recipe.zig](/workspace/projects/noztr/examples/remote_signing_recipe.zig)
 - hostile example:
   - [remote_signing_adversarial_example.zig](/workspace/projects/noztr/examples/remote_signing_adversarial_example.zig)
+- broader route:
+  - [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
 
 ### `nip47_wallet_connect`
 
@@ -89,6 +96,8 @@ These are the quickest symbol-level routes into the modules most downstream user
   - [nip47_example.zig](/workspace/projects/noztr/examples/nip47_example.zig)
 - hostile example:
   - [wallet_connect_adversarial_example.zig](/workspace/projects/noztr/examples/wallet_connect_adversarial_example.zig)
+- broader route:
+  - [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
 
 ### `nip59_wrap`
 
@@ -100,6 +109,8 @@ These are the quickest symbol-level routes into the modules most downstream user
   - [nip17_wrap_recipe.zig](/workspace/projects/noztr/examples/nip17_wrap_recipe.zig)
 - hostile example:
   - [nip59_adversarial_example.zig](/workspace/projects/noztr/examples/nip59_adversarial_example.zig)
+- broader route:
+  - [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
 
 ### `nip98_http_auth`
 
@@ -119,6 +130,93 @@ These are the quickest symbol-level routes into the modules most downstream user
   - [nip98_example.zig](/workspace/projects/noztr/examples/nip98_example.zig)
 - hostile example:
   - [http_auth_adversarial_example.zig](/workspace/projects/noztr/examples/http_auth_adversarial_example.zig)
+- broader route:
+  - [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+
+### `nip05_identity`
+
+- `address_parse`
+  - parse a NIP-05 address into typed local and domain parts
+- `address_compose_well_known_url`
+  - render the canonical `nostr.json` discovery URL
+- `profile_parse_json`
+  - parse typed profile records from `nostr.json`
+- `profile_verify_json`
+  - verify a NIP-05 name against the parsed profile set
+- `discovery_parse_well_known`
+  - parse typed bunker-discovery metadata from `nostr.json`
+- `discovery_render_nostrconnect_url`
+  - render a deterministic `nostrconnect:` URL from parsed discovery data
+- start example:
+  - [discovery_recipe.zig](/workspace/projects/noztr/examples/discovery_recipe.zig)
+- hostile example:
+  - [nip05_adversarial_example.zig](/workspace/projects/noztr/examples/nip05_adversarial_example.zig)
+- broader route:
+  - [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+
+### `nip06_mnemonic` and `nostr_keys`
+
+- `mnemonic_validate`
+  - validate a mnemonic phrase before derivation
+- `derive_nostr_secret_key`
+  - derive a deterministic Nostr secret key from mnemonic material
+- `nostr_derive_public_key`
+  - derive an x-only public key from a secret key
+- `nostr_sign_event`
+  - sign a bounded event with explicit secret-key input
+- start examples:
+  - [wallet_recipe.zig](/workspace/projects/noztr/examples/wallet_recipe.zig)
+  - [nostr_keys_example.zig](/workspace/projects/noztr/examples/nostr_keys_example.zig)
+- broader route:
+  - [technical-guides.md](/workspace/projects/noztr/docs/release/technical-guides.md)
+
+### `nip42_auth` and `nip70_protected`
+
+- `auth_validate_event`
+  - verify an auth event against the expected challenge and relay
+- `auth_state_set_challenge`
+  - freeze the expected auth challenge into explicit state
+- `auth_state_accept_event`
+  - validate and accept an auth event into authenticated state
+- `auth_state_is_pubkey_authenticated`
+  - check whether one pubkey has already been authenticated
+- `protected_event_validate`
+  - validate protected-event policy expectations
+- start examples:
+  - [nip42_example.zig](/workspace/projects/noztr/examples/nip42_example.zig)
+  - [nip70_example.zig](/workspace/projects/noztr/examples/nip70_example.zig)
+- hostile example:
+  - [nip42_adversarial_example.zig](/workspace/projects/noztr/examples/nip42_adversarial_example.zig)
+- broader route:
+  - [core-api-contracts.md](/workspace/projects/noztr/docs/release/core-api-contracts.md)
+
+### `nip49_private_key_encryption`
+
+- `nip49_encrypt`
+  - encrypt a secret key into the typed NIP-49 payload form
+- `nip49_decrypt`
+  - decrypt and verify a typed NIP-49 payload
+- `nip49_parse_bytes`
+  - parse a fixed 91-byte NIP-49 payload into typed state
+- `nip49_encode_bech32` / `nip49_decode_bech32`
+  - serialize and parse the canonical `ncryptsec` bech32 form
+- start example:
+  - [nip49_example.zig](/workspace/projects/noztr/examples/nip49_example.zig)
+- hostile example:
+  - [private_key_encryption_adversarial_example.zig](/workspace/projects/noztr/examples/private_key_encryption_adversarial_example.zig)
+- broader route:
+  - [technical-guides.md](/workspace/projects/noztr/docs/release/technical-guides.md)
+
+### `nip11`
+
+- `nip11_parse_document`
+  - parse a relay information document into typed state
+- `nip11_validate_known_fields`
+  - validate parsed known fields and limitation ranges
+- start example:
+  - [nip11_example.zig](/workspace/projects/noztr/examples/nip11_example.zig)
+- broader route:
+  - [technical-guides.md](/workspace/projects/noztr/docs/release/technical-guides.md)
 
 ### `nip29_relay_groups`
 
@@ -237,3 +335,5 @@ These are the quickest symbol-level routes into the modules most downstream user
 
 For a NIP-by-NIP view of support, examples, and optional/gated surfaces, use
 [nip-coverage.md](/workspace/projects/noztr/docs/release/nip-coverage.md).
+
+For task-first routing, use [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md).

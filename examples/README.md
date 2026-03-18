@@ -15,11 +15,18 @@ Use these docs when you need routing or contract context before opening a file:
 - [core-api-contracts.md](/workspace/projects/noztr/docs/release/core-api-contracts.md)
 - [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
 - [api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md)
+- [docs-style-guide.md](/workspace/projects/noztr/docs/release/docs-style-guide.md)
 - [nip-coverage.md](/workspace/projects/noztr/docs/release/nip-coverage.md)
 - [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
 - [performance.md](/workspace/projects/noztr/docs/release/performance.md)
 - [stability-and-versioning.md](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
 - [compatibility-and-support.md](/workspace/projects/noztr/docs/release/compatibility-and-support.md)
+
+If you know the job but not the symbol, start with
+[technical-guides.md](/workspace/projects/noztr/docs/release/technical-guides.md) or
+[contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md).
+If you already know the symbol family, use
+[api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md).
 
 ## Start Here
 

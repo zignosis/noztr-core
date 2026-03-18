@@ -64,6 +64,7 @@ exe.root_module.addImport("noztr", noztr_module);
 | understand public ownership, scratch, and failure expectations | [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md) | [strict_core_recipe.zig](/workspace/projects/noztr/examples/strict_core_recipe.zig) |
 | understand current release posture and versioning | [stability-and-versioning.md](/workspace/projects/noztr/docs/release/stability-and-versioning.md) | [noztr-positioning.md](/workspace/projects/noztr/docs/release/noztr-positioning.md) |
 | understand build floor, optional modules, and split support | [compatibility-and-support.md](/workspace/projects/noztr/docs/release/compatibility-and-support.md) | [nip-coverage.md](/workspace/projects/noztr/docs/release/nip-coverage.md) |
+| contribute public docs or examples coherently | [docs-style-guide.md](/workspace/projects/noztr/docs/release/docs-style-guide.md) | [examples/README.md](/workspace/projects/noztr/examples/README.md) |
 | do core event/filter/message work | [core-api-contracts.md](/workspace/projects/noztr/docs/release/core-api-contracts.md) | [nip01_example.zig](/workspace/projects/noztr/examples/nip01_example.zig) |
 | route a post-core task to the right module | [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md) | [examples/README.md](/workspace/projects/noztr/examples/README.md) |
 | browse all public modules | [api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md) | the linked example for the module you want |
