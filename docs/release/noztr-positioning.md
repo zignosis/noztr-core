@@ -85,14 +85,6 @@ Choose `noztr` if you want:
 - good local performance for bounded protocol work
 - a library that is designed to compose into your own SDK or app architecture
 
-Do not choose `noztr` if you mainly want:
-
-- a full relay runtime
-- websocket/TLS client/server infrastructure
-- network fetch helpers and orchestration
-- wallet, mailbox, or session workflow out of the box
-- a large ecosystem of prebuilt app-facing conveniences today
-
 ## Benefits
 
 - narrow and coherent scope
@@ -120,6 +112,40 @@ Do not choose `noztr` if you mainly want:
   - `noztr` is not literally stdlib-only today
 - newer and less battle-hardened than the oldest widely used Nostr libraries
   - the scope and quality bar are strong, but ecosystem tenure still matters
+
+## Tradeoffs
+
+What you gain by choosing `noztr`:
+
+- tighter protocol-kernel scope
+- stronger typed trust-boundary behavior
+- fewer runtime and dependency assumptions
+- clearer separation between kernel logic and SDK/application workflow
+- a Zig-native foundation that is easier to embed into your own architecture
+
+What you give up:
+
+- fewer built-in workflows and conveniences
+- less permissive behavior on malformed or ambiguous input
+- a younger ecosystem and fewer long-lived downstream integrations
+- more responsibility at the SDK or application layer
+
+That trade is intentional. `noztr` is trying to be a strong substrate, not the broadest possible
+user-facing library.
+
+## When noztr is the wrong choice
+
+Do not choose `noztr` if you mainly want:
+
+- a full relay runtime
+- websocket/TLS client/server infrastructure
+- network fetch helpers and orchestration
+- wallet, mailbox, or session workflow out of the box
+- a large ecosystem of prebuilt app-facing conveniences today
+- the safest choice for “widest existing deployment” rather than “narrower, stricter kernel”
+
+If your primary goal is to move fast with a broad application-facing Nostr stack, one of the more
+mature libraries is probably the better fit.
 
 ## Comparison To Other Libraries
 
@@ -189,5 +215,6 @@ systems runtime.
 - good local performance
 - fewer runtime assumptions than the more mature, broader libraries
 
-Its main cost is that it is intentionally narrower and younger than the most widely used Nostr
-libraries. If that tradeoff matches your architecture, `noztr` is what it is trying to be.
+Its main cost is that it is intentionally narrower, stricter, and younger than the most widely
+used Nostr libraries. If that tradeoff matches your architecture, `noztr` is what it is trying to
+be.
