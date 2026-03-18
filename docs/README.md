@@ -23,6 +23,7 @@ Start here:
 - [errors and ownership](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
 - [performance](/workspace/projects/noztr/docs/release/performance.md)
 - [stability and versioning](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
+- [compatibility and support](/workspace/projects/noztr/docs/release/compatibility-and-support.md)
 - [core API contracts](/workspace/projects/noztr/docs/release/core-api-contracts.md)
 - [public contract map](/workspace/projects/noztr/docs/release/contract-map.md)
 - [API reference](/workspace/projects/noztr/docs/release/api-reference.md)

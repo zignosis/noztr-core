@@ -19,6 +19,7 @@ Use these docs when you need routing or contract context before opening a file:
 - [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
 - [performance.md](/workspace/projects/noztr/docs/release/performance.md)
 - [stability-and-versioning.md](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
+- [compatibility-and-support.md](/workspace/projects/noztr/docs/release/compatibility-and-support.md)
 
 ## Start Here
 

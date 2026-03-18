@@ -22,6 +22,7 @@ For the technical public docs set, continue with:
 - [`docs/release/errors-and-ownership.md`](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
 - [`docs/release/performance.md`](/workspace/projects/noztr/docs/release/performance.md)
 - [`docs/release/stability-and-versioning.md`](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
+- [`docs/release/compatibility-and-support.md`](/workspace/projects/noztr/docs/release/compatibility-and-support.md)
 - [`docs/release/api-reference.md`](/workspace/projects/noztr/docs/release/api-reference.md)
 - [`docs/release/nip-coverage.md`](/workspace/projects/noztr/docs/release/nip-coverage.md)
 
@@ -112,11 +113,13 @@ This repo contains both public-facing release docs and extensive internal workin
   - [`docs/release/errors-and-ownership.md`](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
   - [`docs/release/performance.md`](/workspace/projects/noztr/docs/release/performance.md)
   - [`docs/release/stability-and-versioning.md`](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
+  - [`docs/release/compatibility-and-support.md`](/workspace/projects/noztr/docs/release/compatibility-and-support.md)
   - [`docs/release/core-api-contracts.md`](/workspace/projects/noztr/docs/release/core-api-contracts.md)
   - [`docs/release/contract-map.md`](/workspace/projects/noztr/docs/release/contract-map.md)
   - [`docs/release/api-reference.md`](/workspace/projects/noztr/docs/release/api-reference.md)
   - [`docs/release/nip-coverage.md`](/workspace/projects/noztr/docs/release/nip-coverage.md)
   - [`examples/README.md`](/workspace/projects/noztr/examples/README.md)
+  - [`CONTRIBUTING.md`](/workspace/projects/noztr/CONTRIBUTING.md)
 - Internal working docs:
   - local-only `.private-docs/`
 
@@ -186,3 +189,4 @@ This repo now carries one downstream examples package and wires it into
 - `docs/nips/` - vendored NIP texts for protocol reference
 - `.private-docs/` - local-only internal planning, audit, and process material
 - `tools/interop/` - parity harnesses and interop tooling
+- `CONTRIBUTING.md` - repo contribution guide

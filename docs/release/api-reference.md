@@ -31,6 +31,115 @@ Cross-cutting release notes:
 | `nostr_keys` | bounded key derivation and event-signing helpers | [nostr_keys_example.zig](/workspace/projects/noztr/examples/nostr_keys_example.zig) |
 | `bip85_derivation` | bounded Nostr-relevant BIP-85 helpers | [bip85_example.zig](/workspace/projects/noztr/examples/bip85_example.zig) |
 
+## High-Value Symbol Starting Points
+
+These are the quickest symbol-level routes into the modules most downstream users reach for first.
+
+### `nip01_event`
+
+- `event_parse_json`
+  - parse a full event object from JSON
+- `event_serialize_json_object`
+  - serialize a full signed event object as JSON
+- `event_serialize_json_object_unsigned`
+  - serialize a full unsigned event object with `id` but without `sig`
+- `event_verify`
+  - verify event integrity and signature assumptions
+- start example:
+  - [nip01_example.zig](/workspace/projects/noztr/examples/nip01_example.zig)
+- broader route:
+  - [core-api-contracts.md](/workspace/projects/noztr/docs/release/core-api-contracts.md)
+
+### `nip46_remote_signing`
+
+- `uri_parse`
+  - parse a `nostrconnect:` URI
+- `uri_serialize`
+  - format a canonical remote-signing URI
+- `message_parse_json`
+  - parse typed remote-signing message envelopes
+- `request_build_*`
+  - build typed request payloads
+- `request_parse_typed`
+  - parse typed inbound request bodies
+- `response_result_*`
+  - build typed successful response payloads
+- start example:
+  - [remote_signing_recipe.zig](/workspace/projects/noztr/examples/remote_signing_recipe.zig)
+- hostile example:
+  - [remote_signing_adversarial_example.zig](/workspace/projects/noztr/examples/remote_signing_adversarial_example.zig)
+
+### `nip47_wallet_connect`
+
+- `connection_uri_parse`
+  - parse a Wallet Connect URI
+- `connection_uri_format`
+  - format a canonical Wallet Connect URI
+- `request_event_extract`
+  - extract typed request context from an event
+- `response_event_extract`
+  - extract typed response context from an event
+- `notification_event_extract`
+  - extract typed notification context from an event
+- `request_parse_json`
+  - parse typed request JSON content
+- `response_parse_json`
+  - parse typed response JSON content
+- start example:
+  - [nip47_example.zig](/workspace/projects/noztr/examples/nip47_example.zig)
+- hostile example:
+  - [wallet_connect_adversarial_example.zig](/workspace/projects/noztr/examples/wallet_connect_adversarial_example.zig)
+
+### `nip59_wrap`
+
+- `nip59_build_outbound_for_recipient`
+  - build one deterministic one-recipient `rumor -> seal -> wrap` transcript
+- `nip59_unwrap`
+  - unwrap an inbound wrap into the typed kernel payload
+- start example:
+  - [nip17_wrap_recipe.zig](/workspace/projects/noztr/examples/nip17_wrap_recipe.zig)
+- hostile example:
+  - [nip59_adversarial_example.zig](/workspace/projects/noztr/examples/nip59_adversarial_example.zig)
+
+### `nip98_http_auth`
+
+- `http_auth_extract`
+  - extract typed auth state from an event
+- `http_auth_validate_request`
+  - validate request fields against the auth event
+- `http_auth_verify_request`
+  - verify the full auth event and request relationship
+- `http_auth_parse_authorization_header`
+  - parse an `Authorization` header into typed auth state
+- `http_auth_verify_authorization_header`
+  - verify a full header-driven auth flow
+- `http_auth_build_*`
+  - build typed auth tags and request-facing artifacts
+- start example:
+  - [nip98_example.zig](/workspace/projects/noztr/examples/nip98_example.zig)
+- hostile example:
+  - [http_auth_adversarial_example.zig](/workspace/projects/noztr/examples/http_auth_adversarial_example.zig)
+
+### `nip29_relay_groups`
+
+- `group_state_apply_events`
+  - apply a bounded event batch into group state
+- reducer helpers around metadata, membership, moderation, and snapshot replay
+- start example:
+  - [nip29_reducer_recipe.zig](/workspace/projects/noztr/examples/nip29_reducer_recipe.zig)
+- hostile example:
+  - [nip29_adversarial_example.zig](/workspace/projects/noztr/examples/nip29_adversarial_example.zig)
+
+### `nip88_polls`
+
+- poll metadata parse/build helpers
+- response extraction helpers
+- tally reduction helpers
+- start example:
+  - [nip88_example.zig](/workspace/projects/noztr/examples/nip88_example.zig)
+- hostile example:
+  - [polls_adversarial_example.zig](/workspace/projects/noztr/examples/polls_adversarial_example.zig)
+
 ## Core Event, Filter, Message, And Boundary Helpers
 
 | Export | Purpose | Start example |

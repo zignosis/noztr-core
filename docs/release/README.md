@@ -40,6 +40,8 @@ to understand the current release-facing contract at a high level.
   - benchmark and stress evidence, with scope notes
 - `docs/release/stability-and-versioning.md`
   - public stability posture, versioning policy, and release expectations
+- `docs/release/compatibility-and-support.md`
+  - Zig floor, optional/split surfaces, backend posture, and support expectations
 - `examples/README.md`
   - task-oriented example routing
 - `docs/release/core-api-contracts.md`
