@@ -30,12 +30,20 @@ to understand the current release-facing contract at a high level.
 
 ## Public Technical Entry Points
 
+- `docs/release/getting-started.md`
+  - install/import path and first examples
+- `docs/release/technical-guides.md`
+  - narrative job-oriented routes through the library
 - `examples/README.md`
   - task-oriented example routing
 - `docs/release/core-api-contracts.md`
   - public route for events, filters, messages, auth, delete, and PoW surfaces
 - `docs/release/contract-map.md`
   - public task-to-symbol route for the main post-core public surfaces
+- `docs/release/api-reference.md`
+  - module-by-module public export reference
+- `docs/release/nip-coverage.md`
+  - public support matrix across exported NIP surfaces
 
 ## Important Note On Internal Docs
 

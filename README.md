@@ -16,6 +16,11 @@ and limitations, and how it compares to more mature libraries, start with
 [`docs/release/noztr-positioning.md`](/workspace/projects/noztr/docs/release/noztr-positioning.md).
 For the public docs route as a whole, start with
 [`docs/release/README.md`](/workspace/projects/noztr/docs/release/README.md).
+For the technical public docs set, continue with:
+- [`docs/release/getting-started.md`](/workspace/projects/noztr/docs/release/getting-started.md)
+- [`docs/release/technical-guides.md`](/workspace/projects/noztr/docs/release/technical-guides.md)
+- [`docs/release/api-reference.md`](/workspace/projects/noztr/docs/release/api-reference.md)
+- [`docs/release/nip-coverage.md`](/workspace/projects/noztr/docs/release/nip-coverage.md)
 
 ## Current status
 
@@ -93,10 +98,14 @@ This repo contains both public-facing release docs and extensive internal workin
 
 - Public-facing docs:
   - [`docs/release/README.md`](/workspace/projects/noztr/docs/release/README.md)
+  - [`docs/release/getting-started.md`](/workspace/projects/noztr/docs/release/getting-started.md)
   - [`docs/release/noztr-positioning.md`](/workspace/projects/noztr/docs/release/noztr-positioning.md)
   - [`docs/release/intentional-divergences.md`](/workspace/projects/noztr/docs/release/intentional-divergences.md)
+  - [`docs/release/technical-guides.md`](/workspace/projects/noztr/docs/release/technical-guides.md)
   - [`docs/release/core-api-contracts.md`](/workspace/projects/noztr/docs/release/core-api-contracts.md)
   - [`docs/release/contract-map.md`](/workspace/projects/noztr/docs/release/contract-map.md)
+  - [`docs/release/api-reference.md`](/workspace/projects/noztr/docs/release/api-reference.md)
+  - [`docs/release/nip-coverage.md`](/workspace/projects/noztr/docs/release/nip-coverage.md)
   - [`examples/README.md`](/workspace/projects/noztr/examples/README.md)
 - Internal working docs:
   - local-only `.private-docs/`

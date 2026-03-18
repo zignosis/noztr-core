@@ -16,10 +16,14 @@ This directory is now the public-facing docs surface for `noztr`.
 Start here:
 
 - [release docs index](/workspace/projects/noztr/docs/release/README.md)
+- [getting started](/workspace/projects/noztr/docs/release/getting-started.md)
 - [positioning](/workspace/projects/noztr/docs/release/noztr-positioning.md)
 - [intentional divergences](/workspace/projects/noztr/docs/release/intentional-divergences.md)
+- [technical guides](/workspace/projects/noztr/docs/release/technical-guides.md)
 - [core API contracts](/workspace/projects/noztr/docs/release/core-api-contracts.md)
 - [public contract map](/workspace/projects/noztr/docs/release/contract-map.md)
+- [API reference](/workspace/projects/noztr/docs/release/api-reference.md)
+- [NIP coverage](/workspace/projects/noztr/docs/release/nip-coverage.md)
 - [examples index](/workspace/projects/noztr/examples/README.md)
 
 Vendored NIP texts remain under [`docs/nips/`](/workspace/projects/noztr/docs/nips/).

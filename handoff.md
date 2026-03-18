@@ -57,6 +57,11 @@ Current execution state for `noztr`.
   - the stress harness now supports soak plus CSV/Markdown output steps
 - release-facing positioning now has one canonical explanation in:
   - `docs/release/noztr-positioning.md`
+- public technical docs now include:
+  - `docs/release/getting-started.md`
+  - `docs/release/technical-guides.md`
+  - `docs/release/api-reference.md`
+  - `docs/release/nip-coverage.md`
 - Local RC review evidence remains positive after the supplement, but final closure remains pending
   `nzdk` implementation feedback.
 - The next active Phase H slice remains the RC API-freeze review.
