@@ -23,6 +23,14 @@ if command -v zig >/dev/null 2>&1; then
     fi
 fi
 
+zig_file_count=0
+if [[ -d "${repo_root}/src" ]]; then
+    shopt -s globstar nullglob
+    zig_files=("${repo_root}"/src/**/*.zig)
+    zig_file_count="${#zig_files[@]}"
+    shopt -u globstar nullglob
+fi
+
 report_file() {
     local rel="$1"
     if [[ -f "${repo_root}/${rel}" ]]; then
@@ -30,16 +38,6 @@ report_file() {
     else
         printf -- '- [ ] `%s`\n' "${rel}"
     fi
-}
-
-report_section() {
-    local title="$1"
-    shift
-    printf "## %s\n\n" "${title}"
-    for rel in "$@"; do
-        report_file "${rel}"
-    done
-    printf "\n"
 }
 
 missing_artifacts=()
@@ -50,80 +48,36 @@ collect_missing() {
     fi
 }
 
-research_docs=(
-    ".private-docs/research/building-nostr-study.md"
-    ".private-docs/research/nostr-protocol-study.md"
-    ".private-docs/research/applesauce-study.md"
-    ".private-docs/research/rust-nostr-study.md"
-    ".private-docs/research/libnostr-z-study.md"
-    ".private-docs/guides/NOZTR_STYLE.md"
-)
-
-plan_docs=(
+startup_docs=(
     "AGENTS.md"
+    "handoff.md"
     ".private-docs/README.md"
-    ".private-docs/plans/decision-index.md"
-    ".private-docs/plans/decision-log.md"
     ".private-docs/plans/build-plan.md"
-    ".private-docs/guides/IMPLEMENTATION_QUALITY_GATE.md"
-    ".private-docs/plans/noztr-sdk-ownership-matrix.md"
+    ".private-docs/plans/decision-index.md"
     ".private-docs/plans/phase-h-remaining-work.md"
     ".private-docs/plans/phase-h-rc-api-freeze.md"
-    ".private-docs/plans/post-exhaustive-audit-remediation-plan.md"
-    "handoff.md"
 )
 
-phase_prompts=(
-    ".private-docs/plans/prompts/README.md"
-    ".private-docs/plans/prompts/phase-0-philosophy-and-principles.md"
-    ".private-docs/plans/prompts/phase-a-scope-freeze.md"
-    ".private-docs/plans/prompts/phase-b-protocol-research.md"
-    ".private-docs/plans/prompts/phase-c0-zig-language-study.md"
-    ".private-docs/plans/prompts/phase-c1-applesauce-study.md"
-    ".private-docs/plans/prompts/phase-c2-rust-nostr-study.md"
-    ".private-docs/plans/prompts/phase-c3-libnostr-z-study.md"
-    ".private-docs/plans/prompts/phase-c4-implementation-synthesis.md"
-    ".private-docs/plans/prompts/phase-d-contracts-vectors.md"
-    ".private-docs/plans/prompts/phase-e-build-plan.md"
-    ".private-docs/plans/prompts/phase-f-implementation-handoff.md"
-)
-
-roadmap_docs=(
-    ".private-docs/plans/nostr-principles.md"
-    ".private-docs/plans/v1-scope.md"
-    ".private-docs/research/v1-protocol-reference.md"
-    ".private-docs/research/v1-zig-implementation-notes.md"
-    ".private-docs/research/v1-applesauce-deep-study.md"
-    ".private-docs/research/v1-rust-nostr-deep-study.md"
-    ".private-docs/research/v1-libnostr-z-deep-study.md"
-    ".private-docs/research/v1-implementation-decisions.md"
-    ".private-docs/plans/v1-api-contracts.md"
+on_demand_docs=(
+    ".private-docs/guides/IMPLEMENTATION_QUALITY_GATE.md"
+    ".private-docs/guides/TIGER_STYLE.md"
+    ".private-docs/guides/NOZTR_STYLE.md"
+    ".private-docs/guides/zig-patterns.md"
     ".private-docs/guides/zig-anti-patterns.md"
+    ".private-docs/plans/decision-log.md"
+    ".private-docs/plans/noztr-sdk-ownership-matrix.md"
+    ".private-docs/plans/packet-template.md"
 )
 
-for rel in "${research_docs[@]}"; do
+for rel in "${startup_docs[@]}"; do
     collect_missing "${rel}"
 done
-for rel in "${plan_docs[@]}"; do
+for rel in "${on_demand_docs[@]}"; do
     collect_missing "${rel}"
 done
-for rel in "${phase_prompts[@]}"; do
-    collect_missing "${rel}"
-done
-for rel in "${roadmap_docs[@]}"; do
-    collect_missing "${rel}"
-done
-
-zig_file_count=0
-if [[ -d "${repo_root}/src" ]]; then
-    shopt -s globstar nullglob
-    zig_files=("${repo_root}"/src/**/*.zig)
-    zig_file_count="${#zig_files[@]}"
-    shopt -u globstar nullglob
-fi
 
 printf "# Agent Brief\n\n"
-printf "Live context snapshot for AI agents.\n\n"
+printf "Routing-first startup snapshot for AI agents.\n\n"
 printf "_Generated:_ %s\n\n" "${now_utc}"
 
 printf "## Repository\n\n"
@@ -132,47 +86,26 @@ printf -- '- git repo: `%s`\n' "${is_git_repo}"
 printf -- '- zig: `%s`\n' "${zig_version}"
 printf -- '- src zig files: `%s`\n\n' "${zig_file_count}"
 
-report_section "Research Artifacts" "${research_docs[@]}"
-report_section "Control Artifacts" "${plan_docs[@]}"
-
 printf "## Read Now\n\n"
-printf -- '- `AGENTS.md`\n'
-printf -- '- `handoff.md`\n'
-printf -- '- `.private-docs/README.md`\n'
-printf -- '- `.private-docs/plans/build-plan.md`\n'
-printf -- '- `.private-docs/plans/decision-index.md`\n'
-printf -- '- `.private-docs/plans/phase-h-remaining-work.md`\n'
-printf -- '- `.private-docs/plans/phase-h-rc-api-freeze.md`\n'
+for rel in "${startup_docs[@]}"; do
+    report_file "${rel}"
+done
 printf "\n"
 
 printf "## Load On Demand\n\n"
 printf -- '- `.private-docs/guides/IMPLEMENTATION_QUALITY_GATE.md` when starting or closing an implementation, audit, or robustness slice\n'
 printf -- '- `.private-docs/guides/TIGER_STYLE.md` and `.private-docs/guides/NOZTR_STYLE.md` for Zig implementation or API work\n'
 printf -- '- `.private-docs/guides/zig-patterns.md` and `.private-docs/guides/zig-anti-patterns.md` for Zig implementation or review\n'
-printf -- '- Current Phase H remaining-work packet: `.private-docs/plans/phase-h-remaining-work.md`\n'
-printf -- '- Current RC API-freeze packet: `.private-docs/plans/phase-h-rc-api-freeze.md`\n'
-printf -- '- Current local RC API-freeze review result: `.private-docs/research/rc-api-freeze-review-report.md`\n'
-printf -- '- Completed RC stress/throughput supplement packet: `.private-docs/plans/rc-stress-throughput-supplement.md`\n'
-printf -- '- Completed RC stress/throughput supplement report: `.private-docs/research/rc-stress-throughput-supplement-report.md`\n'
-printf -- '- Completed remediation packet: `.private-docs/plans/post-exhaustive-audit-remediation-plan.md`\n'
-printf -- '- Completed freeze recheck report: `.private-docs/research/post-remediation-freeze-recheck-report.md`\n'
-printf -- '- Completed benchmark supplement packet: `.private-docs/plans/empirical-benchmark-supplement.md`\n'
-printf -- '- Completed external backend assurance packet: `.private-docs/plans/external-crypto-backend-assurance-supplement.md`\n'
-printf -- '- Structured `nzdk` remediation brief: `.private-docs/plans/noztr-sdk-remediation-brief.md`\n'
-printf -- '- Completed exhaustive audit meta-analysis: `.private-docs/research/exhaustive-audit-meta-analysis-report.md`\n'
-printf -- '- Completed LLM structured usability audit: `.private-docs/research/llm-structured-usability-audit-report.md`\n'
-printf -- '- Completed empirical benchmark supplement: `.private-docs/research/empirical-benchmark-supplement-report.md`\n'
-printf -- '- Completed external backend assurance supplement: `.private-docs/research/external-crypto-backend-assurance-report.md`\n'
-printf -- '- Completed exhaustive audit draft: `.private-docs/plans/exhaustive-pre-freeze-audit.md`\n'
-printf -- '- Completed exhaustive audit matrix: `.private-docs/plans/exhaustive-pre-freeze-audit-matrix.md`\n'
-printf -- '- `.private-docs/plans/audit-angle-standards.md` when revisiting the completed audit evidence\n'
-printf -- '- `.private-docs/plans/audit-angle-report-template.md` when writing a dedicated audit-angle report\n'
-printf -- '- `.private-docs/plans/audit-meta-analysis-template.md` when synthesizing completed audit angles\n'
-printf -- '- Completed Phase H packets for traceability: `.private-docs/plans/phase-h-kickoff.md`, `.private-docs/plans/phase-h-additional-nips-plan.md`, `.private-docs/plans/phase-h-wave1-loop.md`\n'
-printf -- '- `.private-docs/plans/packet-template.md` when creating or repairing packet docs\n'
 printf -- '- `.private-docs/plans/decision-log.md` when a task cites a specific decision ID or changes policy defaults\n'
 printf -- '- `.private-docs/plans/noztr-sdk-ownership-matrix.md` for kernel-vs-SDK ownership questions\n'
-printf -- '- Relevant NIP-specific docs, tests, and source files for the current task\n\n'
+printf -- '- `.private-docs/plans/packet-template.md` when creating or repairing packet docs\n'
+printf -- '- completed packets and reports in `.private-docs/plans/` or `.private-docs/research/` only when the current task needs that exact evidence\n'
+printf -- '- relevant NIP-specific docs, tests, and source files for the current task\n\n'
+
+printf "## Current Active Lanes\n\n"
+printf -- '- active Phase H packet: `.private-docs/plans/phase-h-remaining-work.md`\n'
+printf -- '- active RC review packet: `.private-docs/plans/phase-h-rc-api-freeze.md`\n'
+printf -- '- local RC review result: `.private-docs/research/rc-api-freeze-review-report.md`\n\n'
 
 printf "## Next Missing Artifacts\n\n"
 if [[ "${#missing_artifacts[@]}" -eq 0 ]]; then
