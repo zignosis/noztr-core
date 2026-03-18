@@ -61,6 +61,8 @@ exe.root_module.addImport("noztr", noztr_module);
 | If you want to... | Open first | Then open |
 | --- | --- | --- |
 | understand what `noztr` is and whether it fits | [noztr-positioning.md](/workspace/projects/noztr/docs/release/noztr-positioning.md) | [intentional-divergences.md](/workspace/projects/noztr/docs/release/intentional-divergences.md) |
+| understand public ownership, scratch, and failure expectations | [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md) | [strict_core_recipe.zig](/workspace/projects/noztr/examples/strict_core_recipe.zig) |
+| understand current release posture and versioning | [stability-and-versioning.md](/workspace/projects/noztr/docs/release/stability-and-versioning.md) | [noztr-positioning.md](/workspace/projects/noztr/docs/release/noztr-positioning.md) |
 | do core event/filter/message work | [core-api-contracts.md](/workspace/projects/noztr/docs/release/core-api-contracts.md) | [nip01_example.zig](/workspace/projects/noztr/examples/nip01_example.zig) |
 | route a post-core task to the right module | [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md) | [examples/README.md](/workspace/projects/noztr/examples/README.md) |
 | browse all public modules | [api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md) | the linked example for the module you want |
@@ -95,5 +97,8 @@ Useful first hostile examples:
 ## Next Step
 
 - For curated narrative routes, go to [technical-guides.md](/workspace/projects/noztr/docs/release/technical-guides.md)
+- For error and ownership expectations, go to [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
+- For performance evidence and scope, go to [performance.md](/workspace/projects/noztr/docs/release/performance.md)
+- For stability and versioning posture, go to [stability-and-versioning.md](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
 - For full public surface coverage, go to [api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md)
 - For NIP-by-NIP coverage, go to [nip-coverage.md](/workspace/projects/noztr/docs/release/nip-coverage.md)

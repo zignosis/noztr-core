@@ -20,6 +20,12 @@ They do not try to turn every supported NIP into a long-form narrative page. Ins
 - reference pages cover the full supported surface
 - examples and hostile examples show the exact usage and failure contract
 
+Cross-cutting public notes:
+
+- [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
+- [performance.md](/workspace/projects/noztr/docs/release/performance.md)
+- [stability-and-versioning.md](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
+
 ## Core Protocol Flows
 
 - strict event, filter, message, transcript, and checked-wrapper flow

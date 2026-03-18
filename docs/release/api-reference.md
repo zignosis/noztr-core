@@ -16,6 +16,12 @@ This is the public module-level reference for the exported `noztr` surface.
 
 Use it when you want to browse the library by module instead of by task.
 
+Cross-cutting release notes:
+
+- [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
+- [performance.md](/workspace/projects/noztr/docs/release/performance.md)
+- [stability-and-versioning.md](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
+
 ## Shared Foundations
 
 | Export | Purpose | Start example |

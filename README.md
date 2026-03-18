@@ -19,6 +19,9 @@ For the public docs route as a whole, start with
 For the technical public docs set, continue with:
 - [`docs/release/getting-started.md`](/workspace/projects/noztr/docs/release/getting-started.md)
 - [`docs/release/technical-guides.md`](/workspace/projects/noztr/docs/release/technical-guides.md)
+- [`docs/release/errors-and-ownership.md`](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
+- [`docs/release/performance.md`](/workspace/projects/noztr/docs/release/performance.md)
+- [`docs/release/stability-and-versioning.md`](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
 - [`docs/release/api-reference.md`](/workspace/projects/noztr/docs/release/api-reference.md)
 - [`docs/release/nip-coverage.md`](/workspace/projects/noztr/docs/release/nip-coverage.md)
 
@@ -26,6 +29,10 @@ For the technical public docs set, continue with:
 
 - Current posture: the local RC-facing review is positive, but final closure remains pending
   downstream `nzdk` feedback.
+- Public versioning policy is now explicit:
+  - treat the current line as pre-release
+  - start the first intentional public release at `0.1.0`
+  - reserve `1.0.0` for the point where the RC-facing contract is no longer provisional
 - Completed major checkpoints include:
   - exhaustive audit and meta-analysis
   - LLM structured usability supplement
@@ -102,6 +109,9 @@ This repo contains both public-facing release docs and extensive internal workin
   - [`docs/release/noztr-positioning.md`](/workspace/projects/noztr/docs/release/noztr-positioning.md)
   - [`docs/release/intentional-divergences.md`](/workspace/projects/noztr/docs/release/intentional-divergences.md)
   - [`docs/release/technical-guides.md`](/workspace/projects/noztr/docs/release/technical-guides.md)
+  - [`docs/release/errors-and-ownership.md`](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
+  - [`docs/release/performance.md`](/workspace/projects/noztr/docs/release/performance.md)
+  - [`docs/release/stability-and-versioning.md`](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
   - [`docs/release/core-api-contracts.md`](/workspace/projects/noztr/docs/release/core-api-contracts.md)
   - [`docs/release/contract-map.md`](/workspace/projects/noztr/docs/release/contract-map.md)
   - [`docs/release/api-reference.md`](/workspace/projects/noztr/docs/release/api-reference.md)

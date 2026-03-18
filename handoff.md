@@ -60,6 +60,9 @@ Current execution state for `noztr`.
 - public technical docs now include:
   - `docs/release/getting-started.md`
   - `docs/release/technical-guides.md`
+  - `docs/release/errors-and-ownership.md`
+  - `docs/release/performance.md`
+  - `docs/release/stability-and-versioning.md`
   - `docs/release/api-reference.md`
   - `docs/release/nip-coverage.md`
 - Local RC review evidence remains positive after the supplement, but final closure remains pending

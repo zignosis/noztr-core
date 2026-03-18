@@ -6,6 +6,20 @@ These examples are intentionally technical and direct. They are not only "happy 
 Where a surface is trust-boundary-heavy, the example set should also grow hostile or invalid
 fixtures so SDK and app authors can see what `noztr` rejects and why.
 
+## Related Public Docs
+
+Use these docs when you need routing or contract context before opening a file:
+
+- [getting-started.md](/workspace/projects/noztr/docs/release/getting-started.md)
+- [technical-guides.md](/workspace/projects/noztr/docs/release/technical-guides.md)
+- [core-api-contracts.md](/workspace/projects/noztr/docs/release/core-api-contracts.md)
+- [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+- [api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md)
+- [nip-coverage.md](/workspace/projects/noztr/docs/release/nip-coverage.md)
+- [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
+- [performance.md](/workspace/projects/noztr/docs/release/performance.md)
+- [stability-and-versioning.md](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
+
 ## Start Here
 
 - `consumer_smoke.zig`

@@ -34,6 +34,12 @@ to understand the current release-facing contract at a high level.
   - install/import path and first examples
 - `docs/release/technical-guides.md`
   - narrative job-oriented routes through the library
+- `docs/release/errors-and-ownership.md`
+  - public memory, scratch, and typed-failure model
+- `docs/release/performance.md`
+  - benchmark and stress evidence, with scope notes
+- `docs/release/stability-and-versioning.md`
+  - public stability posture, versioning policy, and release expectations
 - `examples/README.md`
   - task-oriented example routing
 - `docs/release/core-api-contracts.md`
