@@ -11,8 +11,10 @@ depends_on:
   - docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md
   - docs/guides/PROCESS_CONTROL.md
   - docs/research/exhaustive-audit-meta-analysis-report.md
+  - docs/research/libnostr-z-comparison-report.md
   - docs/research/llm-structured-usability-audit-report.md
   - docs/research/rc-stress-throughput-supplement-report.md
+  - docs/research/tigerbeetle-zig-quality-report.md
 canonical: true
 ---
 
@@ -41,11 +43,41 @@ Minimum downstream read order:
 3. `docs/research/rc-api-freeze-review-report.md`
 4. `docs/research/exhaustive-audit-meta-analysis-report.md`
 5. `docs/research/llm-structured-usability-audit-report.md`
+6. `docs/research/tigerbeetle-zig-quality-report.md`
+7. `docs/research/libnostr-z-comparison-report.md`
 
 Load `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md` only if `nzdk` is actively editing its own
 process docs or wants the full rationale behind the guidance below.
 
 ## What `noztr` Learned That `nzdk` Should Reuse
+
+### 0. Audit types should be explicit, named, and scoped
+
+One of the biggest improvements in `noztr` was turning “do a thorough review” into named audit
+angles with explicit scope and outputs.
+
+The audit taxonomy that paid off was:
+- protocol correctness
+- ecosystem parity / interoperability
+- security / misuse resistance
+- cryptographic correctness / secret handling
+- crypto/backend-wrapper quality
+- Zig engineering quality
+- performance / memory posture
+- API consistency / determinism
+- docs/examples / discoverability
+- LLM structured usability
+- empirical benchmark evidence
+- external crypto/backend assurance
+- stress / throughput evidence
+
+`nzdk` should not copy this list unchanged, but it should use the same pattern:
+- name the angle
+- state what it is and is not checking
+- keep one report per angle
+- keep one synthesis after the angle reports
+
+That is what made the later rewrite/remediation decision honest.
 
 ### 1. Escaped bug classes are more useful than vague “be careful” rules
 
@@ -123,6 +155,48 @@ artifacts.
 - canonical example/discovery surface
 - any structured downstream or operator brief that other agents depend on
 
+## Reference Lenses `nzdk` Should Understand
+
+### TigerBeetle-style Zig-quality lens
+
+The TigerBeetle comparison was not about protocol authority. It was a language-quality lens.
+
+What it helped evaluate:
+- function shape and control-flow density
+- assertion density and invariant clarity
+- explicit state instead of hidden mutable process-global behavior
+- bounded memory and caller-owned data paths
+- whether the code “looks like strong Zig” rather than just “works”
+
+`nzdk` should reuse this lens when reviewing:
+- large coordinator functions
+- helper layering
+- implicit state
+- lifetime/ownership clarity
+- safety-oriented explicitness
+
+The important adaptation:
+- use TigerBeetle as a Zig engineering bar
+- do not use it as an SDK product-design authority
+
+### `libnostr-z`-style comparison lens
+
+The `libnostr-z` comparison was not used as architecture authority.
+It was useful for:
+- API-shape signal
+- feature/file organization
+- seeing how another Zig Nostr library exposes work to callers
+
+What `noztr` explicitly did not copy:
+- heap-first runtime posture
+- crypto/runtime coupling
+- broader runtime/service scope inside the core library
+
+`nzdk` should apply that same discipline:
+- compare against existing libraries for signal
+- do not adopt their scope, dependency, or ownership choices by default
+- ask which differences are real improvements versus just different repo goals
+
 ## What `nzdk` Should Adapt, Not Copy Blindly
 
 ### 1. Keep the audit structure, but change the angles to fit an SDK
@@ -137,6 +211,15 @@ Recommended SDK audit angles:
 - performance on real SDK flows
 - dependency and backend-wrapper quality
 - release packaging/onboarding quality
+- Zig engineering quality
+
+Suggested SDK-specific reference-lens mapping:
+- Zig engineering quality:
+  - use the TigerBeetle-style lens
+- ecosystem/API-shape comparison:
+  - use existing SDK/library comparisons the way `noztr` used `libnostr-z`
+- docs/examples/LLM routing:
+  - reuse the `noztr` LLM supplement pattern directly
 
 `nzdk` should not mirror `noztr`'s angles exactly when the pressure is different.
 
