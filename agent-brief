@@ -64,6 +64,7 @@ on_demand_docs=(
     ".private-docs/guides/NOZTR_STYLE.md"
     ".private-docs/guides/zig-patterns.md"
     ".private-docs/guides/zig-anti-patterns.md"
+    ".private-docs/guides/docs-style_guide.md"
     ".private-docs/plans/decision-log.md"
     ".private-docs/plans/noztr-sdk-ownership-matrix.md"
     ".private-docs/plans/packet-template.md"
@@ -96,6 +97,7 @@ printf "## Load On Demand\n\n"
 printf -- '- `.private-docs/guides/IMPLEMENTATION_QUALITY_GATE.md` when starting or closing an implementation, audit, or robustness slice\n'
 printf -- '- `.private-docs/guides/TIGER_STYLE.md` and `.private-docs/guides/NOZTR_STYLE.md` for Zig implementation or API work\n'
 printf -- '- `.private-docs/guides/zig-patterns.md` and `.private-docs/guides/zig-anti-patterns.md` for Zig implementation or review\n'
+printf -- '- `.private-docs/guides/docs-style_guide.md` for public docs, contributor docs, or internal docs-surface work\n'
 printf -- '- `.private-docs/plans/decision-log.md` when a task cites a specific decision ID or changes policy defaults\n'
 printf -- '- `.private-docs/plans/noztr-sdk-ownership-matrix.md` for kernel-vs-SDK ownership questions\n'
 printf -- '- `.private-docs/plans/packet-template.md` when creating or repairing packet docs\n'

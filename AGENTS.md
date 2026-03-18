@@ -23,6 +23,8 @@ exceptions recorded in the decision log.
 - Read `.private-docs/guides/TIGER_STYLE.md`, `.private-docs/guides/NOZTR_STYLE.md`,
   `.private-docs/guides/zig-patterns.md`, and `.private-docs/guides/zig-anti-patterns.md` only when the task touches
   Zig implementation, public API shape, or code review.
+- Read `.private-docs/guides/docs-style_guide.md` when the task writes, restructures, or reviews
+  public docs, contributor docs, or internal routed docs.
 - Read `.private-docs/plans/packet-template.md` when creating or repairing packet docs.
 - Read `.private-docs/plans/noztr-sdk-ownership-matrix.md` when the task touches kernel-vs-SDK scope,
   deterministic protocol glue, or higher-level workflow ownership.
@@ -189,6 +191,7 @@ critical rules:
 - `.private-docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`: shareable process lessons learned from real slices
 - `.private-docs/guides/zig-patterns.md`: approved Zig-safe patterns
 - `.private-docs/guides/zig-anti-patterns.md`: forbidden Zig footguns
+- `.private-docs/guides/docs-style_guide.md`: canonical internal docs-writing rules
 - `.private-docs/plans/packet-template.md`: packet skeleton for new or repaired active slices
 - Other guide documents are load-on-demand, not required startup context
 
