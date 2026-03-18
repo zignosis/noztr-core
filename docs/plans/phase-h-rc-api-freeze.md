@@ -1,7 +1,7 @@
 ---
 title: Phase H RC API Freeze Packet
 doc_type: packet
-status: active
+status: reference
 owner: noztr
 phase: phase-h
 read_when:
@@ -21,7 +21,8 @@ canonical: true
 
 # Phase H RC API Freeze Packet
 
-Current Phase H packet after the completed remediation program and the passing freeze recheck.
+Reference packet for the completed RC API-freeze review after the remediation program and the
+passing freeze recheck.
 
 ## Purpose
 
@@ -46,27 +47,32 @@ Current Phase H packet after the completed remediation program and the passing f
 - the exhaustive audit program and supplements are complete
 - the remediation program `no-65ev` is complete
 - the post-remediation freeze recheck `no-65ev.5` passed
-- current active Phase H slice is now the RC API-freeze review
+- the RC API-freeze review `no-6e6p` is complete
+- the current surface is accepted as the RC-facing contract
 - the completed remediation packet is now reference-only:
   - `docs/plans/post-exhaustive-audit-remediation-plan.md`
 
 ## Next Step
 
-1. execute the RC API-freeze review lane `no-6e6p`
-2. either:
-  - keep the current surface as the accepted RC-facing contract, or
-  - open one explicit remaining blocker packet
+1. use this packet as reference evidence only
+2. route current work through `docs/plans/phase-h-remaining-work.md`
 
 ## Open Questions Or Targeted Findings
 
 - `OQ-RC-001`
   - does any release-facing public API name or boundary still need correction before an RC claim?
+  - current result:
+    - no
 - `OQ-RC-002`
   - do current examples, discovery docs, and structured contract maps teach the accepted surface
     clearly enough for release-facing use?
+  - current result:
+    - yes
 - `OQ-RC-003`
   - does any final boundary ambiguity still argue for one explicit blocker packet instead of an
     RC-freeze claim?
+  - current result:
+    - no
 
 ## Sync Touchpoints
 

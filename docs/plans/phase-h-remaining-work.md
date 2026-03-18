@@ -64,8 +64,9 @@ the `OQ-E-006` usability pass.
 - the third remediation lane, `no-65ev.3`, is complete
 - the fourth remediation lane, `no-65ev.4`, is complete
 - the post-remediation freeze recheck `no-65ev.5` is complete
-- the next active Phase H slice is the RC API-freeze review
-- any actual RC claim remains deferred until the current RC API-freeze review closes
+- the RC API-freeze review `no-6e6p` is complete
+- the current surface is accepted as the RC-facing contract
+- the next active Phase H slice is post-RC packet selection
 - accepted sub-findings from this slice so far:
   - export public signed event-object JSON serialization from `nip01_event`
   - keep deterministic one-recipient outbound `NIP-59` transcript construction in `noztr`
@@ -101,18 +102,16 @@ the `OQ-E-006` usability pass.
   - complete the local performance lane with bounded reducer-local caches for `NIP-88` and
     `NIP-29`, with the benchmark rerun showing materially lower local hotspot pressure
   - pass the post-remediation freeze recheck and justify the next RC API-freeze packet
+  - close the RC API-freeze review with no remaining blocker packet required
 
 ## Next Step
 
-1. execute `docs/plans/phase-h-rc-api-freeze.md`
+1. keep `docs/plans/phase-h-rc-api-freeze.md` as reference evidence
   - immediate next lane:
-    - `no-6e6p`
-2. treat `docs/plans/post-exhaustive-audit-remediation-plan.md` as reference-only evidence
-3. if remediation surfaces a real compatibility or ergonomics blocker that does not belong in
-   Layer 1, create one explicit Layer 2 adapter-boundary packet instead of widening the kernel by
-   default
-4. after the RC API-freeze review closes, decide whether the current surface is accepted for RC
-   or one explicit remaining blocker packet is needed
+    - `no-nrzk`
+2. keep `docs/plans/post-exhaustive-audit-remediation-plan.md` as reference-only evidence
+3. if later contrary evidence appears, create one explicit blocker packet instead of silently
+   drifting the accepted RC-facing contract
 
 ## Seam Constraints
 
@@ -164,6 +163,8 @@ the `OQ-E-006` usability pass.
     - targeted hardening/docs/performance lanes are complete
     - the freeze recheck passed and justified the RC API-freeze packet:
       - `docs/plans/phase-h-rc-api-freeze.md`
+    - the RC API-freeze review is complete and accepts the current surface as the RC-facing
+      contract
 
 ## Tradeoff
 

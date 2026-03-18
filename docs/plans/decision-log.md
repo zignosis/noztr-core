@@ -3240,3 +3240,39 @@ payload is needed for the current task.
 - Reversal Trigger: the approved backend exception is removed entirely or a later bounded primitive
   library supersedes this exact seam without widening the current protocol ownership boundary.
 - Supersedes: the stale live-pin portion of `D-035`.
+
+## D-126: Accept the current surface as the RC-facing contract after remediation and freeze recheck
+
+- Date: 2026-03-18
+- Status: accepted
+- Decision: close the RC API-freeze review by accepting the current `noztr` surface as the
+  RC-facing contract.
+  - accepted behavior:
+    - treat the current root export surface in `src/root.zig` as the accepted release-facing module
+      layout for RC work
+    - carry forward the current typed public error contracts from the completed remediation and
+      freeze recheck as the accepted RC-facing boundary
+    - treat the current release-facing routing surface as the accepted teaching/discovery baseline:
+      - `README.md`
+      - `examples/README.md`
+      - `docs/plans/post-core-contract-map.md`
+      - `docs/research/rc-api-freeze-review-report.md`
+    - keep the kernel-vs-SDK ownership split unchanged from the accepted matrix in
+      `docs/plans/noztr-sdk-ownership-matrix.md`
+    - require one explicit blocker packet if later contrary evidence appears; do not silently widen
+      the contract after this acceptance
+  - accepted non-goals:
+    - treating RC-facing contract acceptance as equivalent to release engineering or publication
+      closure
+    - reopening the completed exhaustive audit without new contrary evidence
+    - broad new kernel expansion during the RC-facing contract phase
+- Why: the exhaustive audit, supplements, remediation lanes, freeze recheck, and RC-facing review
+  now line up on the same result: the prior blocker set is closed, the release-facing docs surface
+  is coherent after one final README routing fix, and no remaining ambiguity justifies another
+  blocker packet at this stage.
+- Tradeoff: freezing the current surface reduces room for casual late churn, but in exchange it
+  gives downstream work and future RC handling a stable contract to target.
+- Related Tradeoff: T-0-004, T-H-ANIP-011.
+- Reversal Trigger: later SDK or release execution surfaces contrary evidence strong enough to
+  justify one explicit remaining blocker packet.
+- Supersedes: none

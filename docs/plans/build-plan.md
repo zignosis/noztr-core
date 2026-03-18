@@ -132,8 +132,10 @@ This artifact is the lean active execution baseline and is aligned to:
 - The third remediation lane, `no-65ev.3`, is complete.
 - The fourth remediation lane, `no-65ev.4`, is complete.
 - The post-remediation freeze recheck, `no-65ev.5`, is complete and passed.
-- Current active next slice is the RC API-freeze review in
-  `docs/plans/phase-h-rc-api-freeze.md`.
+- The RC API-freeze review, `no-6e6p`, is complete.
+- The current surface is accepted as the RC-facing contract.
+- Current active next slice is post-RC packet selection under
+  `docs/plans/phase-h-remaining-work.md`.
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the
   approved pinned crypto backend policy and a narrow boundary module.
 
@@ -168,7 +170,9 @@ This artifact is the lean active execution baseline and is aligned to:
 - `docs/plans/phase-h-remaining-work.md`
   - current active Phase H packet and remaining-work routing
 - `docs/plans/phase-h-rc-api-freeze.md`
-  - current RC API-freeze review packet
+  - completed RC API-freeze review packet
+- `docs/research/rc-api-freeze-review-report.md`
+  - canonical RC-facing contract review result
 - `docs/plans/empirical-benchmark-supplement.md`
   - completed benchmark supplement reference
 - `docs/plans/external-crypto-backend-assurance-supplement.md`
@@ -198,7 +202,7 @@ This artifact is the lean active execution baseline and is aligned to:
 
 ## Active Risks And Open Questions
 
-- execute the SDK-informed boundary-validation packet and make the result explicit.
+- choose the next explicit post-RC packet after the accepted RC-facing contract review.
 - keep the completed `libnostr-z` comparison report as reference evidence; reopen only if later
   SDK or RC-freeze work surfaces a concrete contrary finding.
 - keep the TigerBeetle Zig-quality comparison lane report-only; use it to challenge Zig usage and
@@ -233,12 +237,13 @@ This artifact is the lean active execution baseline and is aligned to:
 - `no-65ev.5` is complete:
   - the post-remediation freeze recheck passed on a fresh green `HEAD`
   - the next justified packet is `docs/plans/phase-h-rc-api-freeze.md`
-- current remaining known remediation work before the freeze recheck is:
+- `no-6e6p` is complete:
+  - the RC API-freeze review accepts the current surface as the RC-facing contract
+- current remaining known remediation work is:
   - none
 - the selected remediation posture is bounded redesign first, then targeted fixes, then a
   freeze-readiness recheck.
-- RC API-freeze review is now justified and active; no additional blocker packet is currently
-  required.
+- the RC-facing contract is now accepted; no additional blocker packet is currently required.
 - Layer 2 compatibility/ergonomic adapter work remains contingent; start it only if the
   boundary-validation pass finds a real blocker that belongs outside the kernel.
 - `UT-E-003` and `UT-E-004` remain maintenance-mode items; reopen only on new behavior-class

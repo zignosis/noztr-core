@@ -42,11 +42,12 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 - `no-65ev.3` has landed
 - `no-65ev.4` has landed
 - `no-65ev.5` has landed
+- the RC API-freeze review `no-6e6p` is complete
 - the supplemental LLM structured usability audit is complete
 - the empirical benchmark supplement is complete
 - the external crypto/backend assurance supplement is complete
 - the remediation program is complete
-- the next active lane is the RC API-freeze review
+- the current surface is accepted as the RC-facing contract
 
 ## Landed Remediation Updates
 
@@ -158,8 +159,27 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
   - current handoff/build-plan state
 - landed notes:
   - the post-remediation freeze recheck passed
-  - the next justified lane is the RC API-freeze review in `no-6e6p`
+  - the freeze recheck justified the RC API-freeze review in `no-6e6p`, which has now landed
   - downstream should keep using this brief plus the freeze-recheck report instead of chat history
+
+### `no-6e6p`
+
+- landed issue:
+  - `no-6e6p`
+- affected public symbols:
+  - none; release-facing review only
+- exact public surface change:
+  - no runtime contract change
+  - the current surface is accepted as the RC-facing contract
+  - root `README.md` routing is corrected so it no longer points downstream readers at the
+    completed remediation packet as current work
+- likely `nzdk` impact:
+  - no runtime change
+  - downstream should switch from “in-flight remediation” framing to the current RC-facing
+    contract docs
+- concise downstream recheck prompt:
+  - use this brief plus `docs/research/rc-api-freeze-review-report.md` as the canonical handoff
+    surface once the downstream sync begins
 
 ## Remediation Lanes
 
@@ -170,6 +190,7 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 | `no-65ev.3` | examples/docs/discovery only | landed: stronger docs/example routing, no intended runtime contract change | docs/examples references only | landed |
 | `no-65ev.4` | `NIP-88`, `NIP-29` local performance cleanup; `NIP-06` only if touched indirectly by backend redesign | landed: bounded reducer-local caches, no intended happy-path API change | only if `nzdk` relies on specific complexity or ordering assumptions | landed |
 | `no-65ev.5` | freeze recheck only | landed: no direct runtime change, no new blocker found | none by default; follow the freeze-recheck report and RC packet | landed |
+| `no-6e6p` | RC-facing contract review only | landed: no runtime change; current surface accepted as RC-facing contract | switch downstream review to the RC-facing docs/reports, not chat history | landed |
 
 ## Update Rule
 

@@ -13,7 +13,7 @@ backend exceptions.
 
 ## Current status
 
-- Current baseline: Phase H post-audit remediation on top of a completed local-only Phase G
+- Current baseline: Phase H post-RC packet selection on top of a completed local-only Phase G
   closure.
 - Completed major checkpoints:
   - requested-NIP loop complete through `NIP-B7`
@@ -21,9 +21,12 @@ backend exceptions.
   - LLM structured usability supplement complete
   - empirical benchmark supplement complete
   - external crypto/backend assurance supplement complete
+  - post-exhaustive remediation program complete
+  - post-remediation freeze recheck complete
+  - RC API-freeze review complete
 - Current active work:
-  - post-exhaustive-audit remediation in `docs/plans/post-exhaustive-audit-remediation-plan.md`
-  - current Phase H packet in `docs/plans/phase-h-remaining-work.md`
+  - post-RC packet selection in `docs/plans/phase-h-remaining-work.md`
+  - accepted RC-facing contract review in `docs/research/rc-api-freeze-review-report.md`
 - Implemented NIPs from `src/root.zig` exports:
   - `NIP-01` (event, filter, message)
   - `NIP-02`, `NIP-03`, `NIP-05`, `NIP-06`, `NIP-09`, `NIP-10`, `NIP-11`, `NIP-13`
@@ -109,7 +112,9 @@ This repo now carries one downstream examples package and wires it into
 
 - Build baseline: `docs/plans/build-plan.md`
 - Current Phase H packet: `docs/plans/phase-h-remaining-work.md`
-- Current remediation packet: `docs/plans/post-exhaustive-audit-remediation-plan.md`
+- Current RC API-freeze packet: `docs/plans/phase-h-rc-api-freeze.md`
+- Completed remediation packet: `docs/plans/post-exhaustive-audit-remediation-plan.md`
+- Freeze-recheck decision: `docs/research/post-remediation-freeze-recheck-report.md`
 - Current docs router: `docs/README.md`
 - Current post-core symbol map: `docs/plans/post-core-contract-map.md`
 - Historical phase evidence: `docs/archive/plans/`
