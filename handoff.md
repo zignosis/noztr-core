@@ -49,6 +49,10 @@ Current execution state for `noztr`.
 - The post-remediation freeze recheck, `no-65ev.5`, is complete and passed.
 - The RC API-freeze review, `no-6e6p`, is active.
 - The RC stress/throughput supplement, `no-hd32`, is complete.
+- RC support polish is complete:
+  - root `README.md` now has a short RC quick-start route
+  - `docs/plans/post-core-contract-map.md` is easier to scan for common jobs
+  - the stress harness now supports soak plus CSV/Markdown output steps
 - Local RC review evidence remains positive after the supplement, but final closure remains pending
   `nzdk` implementation feedback.
 - The next active Phase H slice remains the RC API-freeze review.

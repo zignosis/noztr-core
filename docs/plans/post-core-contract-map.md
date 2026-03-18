@@ -21,6 +21,24 @@ older Phase D core contract document.
 Use this as the fast route from job intent to the right public function family, contract layer, and
 example file.
 
+## Quick Route
+
+- if the job is still core `NIP-01` / filter / message work, start with
+  `docs/plans/v1-api-contracts.md` instead of this document
+- if the job is post-core and user-facing, start here, then open the named example file before
+  opening source
+- when a job is boundary-heavy, open the hostile fixture immediately after the direct example so the
+  intended failure contract is visible
+
+## Fast Starting Points
+
+| If you need to... | Open first | Then open |
+| --- | --- | --- |
+| discover the right module and symbol family | this map | `examples/README.md` |
+| learn one post-core job quickly | the matching example in the routing table | the hostile fixture for the same row |
+| understand kernel-vs-SDK cutoff | `docs/plans/noztr-sdk-ownership-matrix.md` | the named recipe/example |
+| confirm older core event/filter/message contracts | `docs/plans/v1-api-contracts.md` | `examples/nip01_example.zig` |
+
 ## Routing Table
 
 | Job | Module | Primary public symbols | Contract layer | Start here | Hostile / failure fixture |

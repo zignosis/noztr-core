@@ -16,73 +16,234 @@ var benchmark_sink = std.atomic.Value(u64).init(0);
 pub fn main() !void {
     var stdout_buffer: [4096]u8 = undefined;
     var writer = std.fs.File.stdout().writer(&stdout_buffer);
+    const config = try parse_args();
     const cpu_count = std.Thread.getCpuCount() catch 0;
 
-    try writer.interface.print("noztr rc stress and throughput supplement\n", .{});
-    try writer.interface.print("mode: {s}\n", .{@tagName(builtin.mode)});
-    try writer.interface.print("zig: {s}\n", .{builtin.zig_version_string});
-    try writer.interface.print("cpu_count: {d}\n\n", .{cpu_count});
-
-    try bench_poll(&writer.interface);
-    try bench_group(&writer.interface);
-    try bench_secret_key(&writer.interface);
-    try writer.interface.print("\nbenchmark_sink: {d}\n", .{benchmark_sink.load(.seq_cst)});
+    try write_header(&writer.interface, config, cpu_count);
+    try bench_poll(&writer.interface, config);
+    try bench_group(&writer.interface, config);
+    try bench_secret_key(&writer.interface, config);
+    try write_footer(&writer.interface, config);
     try writer.interface.flush();
 }
 
-fn bench_poll(writer: *std.Io.Writer) !void {
+fn parse_args() !Config {
+    var config = Config{};
+    var args = std.process.args();
+
+    _ = args.skip();
+    while (args.next()) |arg| {
+        if (std.mem.eql(u8, arg, "--mode=standard")) {
+            config.mode = .standard;
+        } else if (std.mem.eql(u8, arg, "--mode=soak")) {
+            config.mode = .soak;
+        } else if (std.mem.eql(u8, arg, "--format=text")) {
+            config.format = .text;
+        } else if (std.mem.eql(u8, arg, "--format=csv")) {
+            config.format = .csv;
+        } else if (std.mem.eql(u8, arg, "--format=markdown")) {
+            config.format = .markdown;
+        } else {
+            return error.InvalidArguments;
+        }
+    }
+    return config;
+}
+
+fn write_header(
+    writer: *std.Io.Writer,
+    config: Config,
+    cpu_count: usize,
+) !void {
+    std.debug.assert(@intFromPtr(writer) != 0);
+    std.debug.assert(cpu_count <= std.math.maxInt(u16));
+
+    switch (config.format) {
+        .text => try write_text_header(writer, config, cpu_count),
+        .csv => try write_csv_header(writer, config, cpu_count),
+        .markdown => try write_markdown_header(writer, config, cpu_count),
+    }
+}
+
+fn write_text_header(
+    writer: *std.Io.Writer,
+    config: Config,
+    cpu_count: usize,
+) !void {
+    std.debug.assert(@intFromPtr(writer) != 0);
+    std.debug.assert(cpu_count <= std.math.maxInt(u16));
+
+    try writer.print("noztr rc stress and throughput supplement\n", .{});
+    try writer.print("mode: {s}\n", .{@tagName(builtin.mode)});
+    try writer.print("zig: {s}\n", .{builtin.zig_version_string});
+    try writer.print("profile: {s}\n", .{@tagName(config.mode)});
+    try writer.print("cpu_count: {d}\n\n", .{cpu_count});
+}
+
+fn write_csv_header(
+    writer: *std.Io.Writer,
+    config: Config,
+    cpu_count: usize,
+) !void {
+    std.debug.assert(@intFromPtr(writer) != 0);
+    std.debug.assert(cpu_count <= std.math.maxInt(u16));
+
+    try writer.print("# noztr rc stress and throughput supplement\n", .{});
+    try writer.print("# mode: {s}\n", .{@tagName(builtin.mode)});
+    try writer.print("# zig: {s}\n", .{builtin.zig_version_string});
+    try writer.print("# profile: {s}\n", .{@tagName(config.mode)});
+    try writer.print("# cpu_count: {d}\n", .{cpu_count});
+    try writer.print(
+        "workload,threads,iterations_per_thread,avg_ns_op,min_ns_op,max_ns_op,ops_per_s\n",
+        .{},
+    );
+}
+
+fn write_markdown_header(
+    writer: *std.Io.Writer,
+    config: Config,
+    cpu_count: usize,
+) !void {
+    std.debug.assert(@intFromPtr(writer) != 0);
+    std.debug.assert(cpu_count <= std.math.maxInt(u16));
+
+    try writer.print("# RC Stress And Throughput Benchmark\n\n", .{});
+    try writer.print("- mode: `{s}`\n", .{@tagName(builtin.mode)});
+    try writer.print("- zig: `{s}`\n", .{builtin.zig_version_string});
+    try writer.print("- profile: `{s}`\n", .{@tagName(config.mode)});
+    try writer.print("- cpu_count: `{d}`\n\n", .{cpu_count});
+    try writer.print(
+        "| Workload | Threads | Iterations / thread | Avg ns/op | Min ns/op | Max ns/op | Ops/s |\n",
+        .{},
+    );
+    try writer.print("| --- | ---: | ---: | ---: | ---: | ---: | ---: |\n", .{});
+}
+
+fn write_footer(writer: *std.Io.Writer, config: Config) !void {
+    std.debug.assert(@intFromPtr(writer) != 0);
+    std.debug.assert(benchmark_sink.load(.seq_cst) >= 0);
+
+    const sink = benchmark_sink.load(.seq_cst);
+    switch (config.format) {
+        .text => try writer.print("\nbenchmark_sink: {d}\n", .{sink}),
+        .csv => try writer.print("# benchmark_sink: {d}\n", .{sink}),
+        .markdown => try writer.print("\n- benchmark_sink: `{d}`\n", .{sink}),
+    }
+}
+
+fn bench_poll(writer: *std.Io.Writer, config: Config) !void {
     std.debug.assert(@intFromPtr(writer) != 0);
     std.debug.assert(!@inComptime());
 
-    try writer.print("NIP-88 poll_tally_reduce stress\n", .{});
-    try measure_poll(writer, 1, 120);
-    try measure_poll(writer, 4, 80);
-    try measure_poll(writer, 8, 60);
-    try writer.print("\n", .{});
+    if (config.format == .text) try writer.print("NIP-88 poll_tally_reduce stress\n", .{});
+    const profile = profile_for(.poll, config.mode);
+    try measure_poll(writer, config.format, profile);
+    if (config.format == .text) try writer.print("\n", .{});
 }
 
-fn bench_group(writer: *std.Io.Writer) !void {
+fn bench_group(writer: *std.Io.Writer, config: Config) !void {
     std.debug.assert(@intFromPtr(writer) != 0);
     std.debug.assert(!@inComptime());
 
-    try writer.print("NIP-29 group_state_apply_events stress\n", .{});
-    try measure_group(writer, 1, 120);
-    try measure_group(writer, 4, 80);
-    try measure_group(writer, 8, 60);
-    try writer.print("\n", .{});
+    if (config.format == .text) try writer.print("NIP-29 group_state_apply_events stress\n", .{});
+    const profile = profile_for(.group, config.mode);
+    try measure_group(writer, config.format, profile);
+    if (config.format == .text) try writer.print("\n", .{});
 }
 
-fn bench_secret_key(writer: *std.Io.Writer) !void {
+fn bench_secret_key(writer: *std.Io.Writer, config: Config) !void {
     std.debug.assert(@intFromPtr(writer) != 0);
     std.debug.assert(!@inComptime());
 
-    try writer.print("NIP-06 derive_nostr_secret_key stress\n", .{});
-    try measure_secret_key(writer, 1, 120);
-    try measure_secret_key(writer, 4, 40);
-    try measure_secret_key(writer, 8, 20);
-    try writer.print("\n", .{});
+    if (config.format == .text) try writer.print("NIP-06 derive_nostr_secret_key stress\n", .{});
+    const profile = profile_for(.secret_key, config.mode);
+    try measure_secret_key(writer, config.format, profile);
+    if (config.format == .text) try writer.print("\n", .{});
 }
 
-fn measure_poll(writer: *std.Io.Writer, thread_count: u8, iterations: u32) !void {
+fn measure_poll(
+    writer: *std.Io.Writer,
+    format: OutputFormat,
+    profile: ThreadProfile,
+) !void {
+    std.debug.assert(@intFromPtr(writer) != 0);
+    std.debug.assert(profile.thread_counts.len == profile.iterations.len);
+
     var contexts: [max_threads]poll_context_type = undefined;
-    const stats = try run_poll_series(thread_count, iterations, contexts[0..]);
-    try print_stats(writer, thread_count, iterations, stats);
+    var index: usize = 0;
+
+    while (index < profile.thread_counts.len) : (index += 1) {
+        const thread_count = profile.thread_counts[index];
+        const stats = try run_poll_series(thread_count, profile.iterations[index], contexts[0..]);
+        try print_stats(
+            writer,
+            format,
+            "NIP-88 poll_tally_reduce",
+            thread_count,
+            profile.iterations[index],
+            stats,
+        );
+    }
 }
 
-fn measure_group(writer: *std.Io.Writer, thread_count: u8, iterations: u32) !void {
+fn measure_group(
+    writer: *std.Io.Writer,
+    format: OutputFormat,
+    profile: ThreadProfile,
+) !void {
+    std.debug.assert(@intFromPtr(writer) != 0);
+    std.debug.assert(profile.thread_counts.len == profile.iterations.len);
+
     var contexts: [max_threads]group_context_type = undefined;
-    const stats = try run_group_series(thread_count, iterations, contexts[0..]);
-    try print_stats(writer, thread_count, iterations, stats);
+    var index: usize = 0;
+
+    while (index < profile.thread_counts.len) : (index += 1) {
+        const thread_count = profile.thread_counts[index];
+        const stats = try run_group_series(thread_count, profile.iterations[index], contexts[0..]);
+        try print_stats(
+            writer,
+            format,
+            "NIP-29 group_state_apply_events",
+            thread_count,
+            profile.iterations[index],
+            stats,
+        );
+    }
 }
 
-fn measure_secret_key(writer: *std.Io.Writer, thread_count: u8, iterations: u32) !void {
+fn measure_secret_key(
+    writer: *std.Io.Writer,
+    format: OutputFormat,
+    profile: ThreadProfile,
+) !void {
+    std.debug.assert(@intFromPtr(writer) != 0);
+    std.debug.assert(profile.thread_counts.len == profile.iterations.len);
+
     var contexts: [max_threads]support.Nip06Context = undefined;
-    const stats = try run_secret_key_series(thread_count, iterations, contexts[0..]);
-    try print_stats(writer, thread_count, iterations, stats);
+    var index: usize = 0;
+
+    while (index < profile.thread_counts.len) : (index += 1) {
+        const thread_count = profile.thread_counts[index];
+        const stats = try run_secret_key_series(
+            thread_count,
+            profile.iterations[index],
+            contexts[0..],
+        );
+        try print_stats(
+            writer,
+            format,
+            "NIP-06 derive_nostr_secret_key",
+            thread_count,
+            profile.iterations[index],
+            stats,
+        );
+    }
 }
 
 fn print_stats(
     writer: *std.Io.Writer,
+    format: OutputFormat,
+    workload: []const u8,
     thread_count: u8,
     iterations: u32,
     stats: WaveStats,
@@ -97,10 +258,20 @@ fn print_stats(
     const max_ns_per_op = @divTrunc(stats.max_ns, ops_per_wave);
     const ops_per_sec = @divTrunc(ops_per_wave * std.time.ns_per_s, avg_total_ns);
 
-    try writer.print(
-        "  threads={d}, iterations/thread={d}: avg={d} ns/op, min={d}, max={d}, {d} ops/s\n",
-        .{ thread_count, iterations, avg_ns_per_op, min_ns_per_op, max_ns_per_op, ops_per_sec },
-    );
+    switch (format) {
+        .text => try writer.print(
+            "  threads={d}, iterations/thread={d}: avg={d} ns/op, min={d}, max={d}, {d} ops/s\n",
+            .{ thread_count, iterations, avg_ns_per_op, min_ns_per_op, max_ns_per_op, ops_per_sec },
+        ),
+        .csv => try writer.print(
+            "{s},{d},{d},{d},{d},{d},{d}\n",
+            .{ workload, thread_count, iterations, avg_ns_per_op, min_ns_per_op, max_ns_per_op, ops_per_sec },
+        ),
+        .markdown => try writer.print(
+            "| `{s}` | `{d}` | `{d}` | `{d}` | `{d}` | `{d}` | `{d}` |\n",
+            .{ workload, thread_count, iterations, avg_ns_per_op, min_ns_per_op, max_ns_per_op, ops_per_sec },
+        ),
+    }
 }
 
 fn run_poll_series(
@@ -354,6 +525,51 @@ fn run_secret_key_once(context: *support.Nip06Context) !u64 {
     );
     return secret[0];
 }
+
+fn profile_for(workload: Workload, mode: RunMode) ThreadProfile {
+    std.debug.assert(max_threads >= 8);
+    std.debug.assert(wave_count > 0);
+
+    return switch (mode) {
+        .standard => switch (workload) {
+            .poll => .{ .thread_counts = .{ 1, 4, 8 }, .iterations = .{ 120, 80, 60 } },
+            .group => .{ .thread_counts = .{ 1, 4, 8 }, .iterations = .{ 120, 80, 60 } },
+            .secret_key => .{ .thread_counts = .{ 1, 4, 8 }, .iterations = .{ 120, 40, 20 } },
+        },
+        .soak => switch (workload) {
+            .poll => .{ .thread_counts = .{ 1, 4, 8 }, .iterations = .{ 2400, 1600, 1200 } },
+            .group => .{ .thread_counts = .{ 1, 4, 8 }, .iterations = .{ 2400, 1600, 1200 } },
+            .secret_key => .{ .thread_counts = .{ 1, 4, 8 }, .iterations = .{ 1200, 400, 200 } },
+        },
+    };
+}
+
+const Config = struct {
+    mode: RunMode = .standard,
+    format: OutputFormat = .text,
+};
+
+const OutputFormat = enum {
+    text,
+    csv,
+    markdown,
+};
+
+const RunMode = enum {
+    standard,
+    soak,
+};
+
+const Workload = enum {
+    poll,
+    group,
+    secret_key,
+};
+
+const ThreadProfile = struct {
+    thread_counts: [3]u8,
+    iterations: [3]u32,
+};
 
 const ThreadGate = struct {
     ready: std.atomic.Value(u32) = std.atomic.Value(u32).init(0),

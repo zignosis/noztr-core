@@ -52,6 +52,42 @@ zig build test --summary all
 zig build
 ```
 
+## Benchmark evidence
+
+Current local performance evidence can be rerun with:
+
+```bash
+zig build empirical-benchmark -Doptimize=ReleaseFast
+zig build rc-stress-throughput -Doptimize=ReleaseFast
+zig build rc-stress-throughput-soak -Doptimize=ReleaseFast
+zig build rc-stress-throughput-csv -Doptimize=ReleaseFast
+zig build rc-stress-throughput-markdown -Doptimize=ReleaseFast
+```
+
+## RC quick start
+
+Use this route if you want the shortest path into the current public surface.
+
+1. Add `noztr` as a Zig dependency.
+2. Pick the right symbol family:
+   - core event/filter/message work:
+     [`docs/plans/v1-api-contracts.md`](/workspace/projects/noztr/docs/plans/v1-api-contracts.md)
+   - post-core jobs like `NIP-05`, `NIP-46`, `NIP-47`, `NIP-59`, `NIP-98`, `NIP-29`, `NIP-88`:
+     [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md)
+3. Start from one direct example and, when available, one hostile example in
+   [`examples/README.md`](/workspace/projects/noztr/examples/README.md).
+
+## Common jobs
+
+| Job | Start here | Example |
+| --- | --- | --- |
+| Parse, serialize, sign, or verify events | [`docs/plans/v1-api-contracts.md`](/workspace/projects/noztr/docs/plans/v1-api-contracts.md) | [`examples/nip01_example.zig`](/workspace/projects/noztr/examples/nip01_example.zig) |
+| Identity lookup and bunker discovery | [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md) | [`examples/discovery_recipe.zig`](/workspace/projects/noztr/examples/discovery_recipe.zig) |
+| One-recipient gift wrap build and unwrap | [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md) | [`examples/nip17_wrap_recipe.zig`](/workspace/projects/noztr/examples/nip17_wrap_recipe.zig) |
+| Wallet Connect parsing and typed JSON contracts | [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md) | [`examples/nip47_example.zig`](/workspace/projects/noztr/examples/nip47_example.zig) |
+| HTTP auth event and header helpers | [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md) | [`examples/nip98_example.zig`](/workspace/projects/noztr/examples/nip98_example.zig) |
+| Group replay and poll tally reduction | [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md) | [`examples/nip29_reducer_recipe.zig`](/workspace/projects/noztr/examples/nip29_reducer_recipe.zig), [`examples/nip88_example.zig`](/workspace/projects/noztr/examples/nip88_example.zig) |
+
 ## Use as a local Zig dependency
 
 For local SDK/bootstrap work, consume `noztr` as a normal Zig package dependency.

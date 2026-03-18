@@ -134,6 +134,10 @@ This artifact is the lean active execution baseline and is aligned to:
 - The post-remediation freeze recheck, `no-65ev.5`, is complete and passed.
 - The RC API-freeze review, `no-6e6p`, is active.
 - The RC stress/throughput supplement, `no-hd32`, is complete.
+- RC support polish is complete:
+  - root `README.md` now carries a short RC quick-start route
+  - `docs/plans/post-core-contract-map.md` now has a faster common-job scan path
+  - the stress harness now has soak plus CSV/Markdown execution steps
 - Local RC review evidence remains positive after the supplement, but final closure remains pending
   `nzdk` implementation feedback.
 - Current active next slice remains the RC API-freeze review under

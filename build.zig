@@ -112,11 +112,32 @@ fn add_rc_stress_throughput_step(
         .root_module = benchmark_module,
     });
     const run_benchmark = builder.addRunArtifact(benchmark_exe);
+    const run_benchmark_soak = builder.addRunArtifact(benchmark_exe);
+    const run_benchmark_csv = builder.addRunArtifact(benchmark_exe);
+    const run_benchmark_markdown = builder.addRunArtifact(benchmark_exe);
+    run_benchmark_soak.addArg("--mode=soak");
+    run_benchmark_csv.addArg("--format=csv");
+    run_benchmark_markdown.addArg("--format=markdown");
     const benchmark_step = builder.step(
         "rc-stress-throughput",
         "Run the RC stress and throughput supplement harness",
     );
+    const benchmark_soak_step = builder.step(
+        "rc-stress-throughput-soak",
+        "Run the RC stress and throughput supplement harness in soak mode",
+    );
+    const benchmark_csv_step = builder.step(
+        "rc-stress-throughput-csv",
+        "Run the RC stress and throughput supplement harness in CSV mode",
+    );
+    const benchmark_markdown_step = builder.step(
+        "rc-stress-throughput-markdown",
+        "Run the RC stress and throughput supplement harness in Markdown mode",
+    );
     benchmark_step.dependOn(&run_benchmark.step);
+    benchmark_soak_step.dependOn(&run_benchmark_soak.step);
+    benchmark_csv_step.dependOn(&run_benchmark_csv.step);
+    benchmark_markdown_step.dependOn(&run_benchmark_markdown.step);
 }
 
 fn create_root_module(

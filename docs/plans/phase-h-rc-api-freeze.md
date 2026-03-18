@@ -50,6 +50,10 @@ freeze recheck.
 - the post-remediation freeze recheck `no-65ev.5` passed
 - the RC API-freeze review `no-6e6p` is in progress
 - the RC stress/throughput supplement `no-hd32` is complete
+- RC support polish is complete:
+  - root `README.md` now has a short RC quick-start route
+  - `docs/plans/post-core-contract-map.md` now has a faster scan path for common jobs
+  - the stress harness now has soak, CSV, and Markdown execution steps
 - local review evidence remains positive after the supplement, but final closure remains pending
   `nzdk` implementation feedback
 - the completed remediation packet is now reference-only:
