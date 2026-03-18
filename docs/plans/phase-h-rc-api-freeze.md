@@ -11,6 +11,7 @@ depends_on:
   - docs/plans/build-plan.md
   - docs/guides/IMPLEMENTATION_QUALITY_GATE.md
   - docs/research/post-remediation-freeze-recheck-report.md
+  - docs/research/rc-stress-throughput-supplement-report.md
 sync_touchpoints:
   - handoff.md
   - docs/README.md
@@ -48,10 +49,13 @@ freeze recheck.
 - the remediation program `no-65ev` is complete
 - the post-remediation freeze recheck `no-65ev.5` passed
 - the RC API-freeze review `no-6e6p` is in progress
-- local review evidence is positive so far, but final closure remains pending `nzdk`
-  implementation feedback
+- the RC stress/throughput supplement `no-hd32` is complete
+- local review evidence remains positive after the supplement, but final closure remains pending
+  `nzdk` implementation feedback
 - the completed remediation packet is now reference-only:
   - `docs/plans/post-exhaustive-audit-remediation-plan.md`
+- the completed RC stress/throughput supplement is now reference-only:
+  - `docs/plans/rc-stress-throughput-supplement.md`
 
 ## Next Step
 
@@ -75,7 +79,8 @@ freeze recheck.
   - does any final boundary ambiguity still argue for one explicit blocker packet instead of an
     RC-freeze claim?
   - current result:
-    - no local blocker found so far; pending downstream implementation feedback
+    - no local blocker found so far after the stress supplement; pending downstream implementation
+      feedback
 
 ## Sync Touchpoints
 
@@ -88,6 +93,7 @@ freeze recheck.
   - `docs/plans/phase-h-remaining-work.md`
 - release-facing evidence:
   - `docs/research/post-remediation-freeze-recheck-report.md`
+  - `docs/research/rc-stress-throughput-supplement-report.md`
   - `docs/plans/noztr-sdk-remediation-brief.md`
 
 ## Closeout Conditions

@@ -43,12 +43,13 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 - `no-65ev.4` has landed
 - `no-65ev.5` has landed
 - the RC API-freeze review `no-6e6p` is active
+- the RC stress/throughput supplement `no-hd32` is complete
 - the supplemental LLM structured usability audit is complete
 - the empirical benchmark supplement is complete
 - the external crypto/backend assurance supplement is complete
 - the remediation program is complete
-- the current surface looks acceptable locally, but final RC closure remains pending `nzdk`
-  implementation feedback
+- the current surface still looks acceptable locally after the stress supplement, but final RC
+  closure remains pending `nzdk` implementation feedback
 
 ## Downstream Read Set
 
@@ -56,6 +57,7 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
   - `docs/plans/noztr-sdk-remediation-brief.md`
   - `docs/research/post-remediation-freeze-recheck-report.md`
   - `docs/research/rc-api-freeze-review-report.md`
+  - `docs/research/rc-stress-throughput-supplement-report.md`
   - `docs/plans/post-core-contract-map.md`
   - `examples/README.md`
 - load specific `src/*` files only for the symbols touched by the lane being rechecked
@@ -81,6 +83,8 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
     - freeze recheck only
   - `no-6e6p`
     - RC-facing contract review only; no runtime change
+  - `no-hd32`
+    - stress/throughput supplement only; no runtime change
 
 ## Landed Remediation Updates
 
@@ -192,27 +196,43 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
   - current handoff/build-plan state
 - landed notes:
   - the post-remediation freeze recheck passed
-  - the freeze recheck justified the RC API-freeze review in `no-6e6p`, which has now landed
+  - the freeze recheck justified the RC API-freeze review in `no-6e6p`, which remains open
   - downstream should keep using this brief plus the freeze-recheck report instead of chat history
 
 ### `no-6e6p`
 
-- landed issue:
+- active issue:
   - `no-6e6p`
 - affected public symbols:
   - none; release-facing review only
 - exact public surface change:
   - no runtime contract change
-  - local RC review evidence is positive so far
+  - local RC review evidence remains positive so far
   - root `README.md` routing is corrected so it no longer points downstream readers at the
     completed remediation packet as current work
 - likely `nzdk` impact:
   - no runtime change
   - downstream should use this brief plus the RC review report to confirm or challenge the local RC
-    review result
+  review result
 - concise downstream recheck prompt:
   - review this brief plus `docs/research/rc-api-freeze-review-report.md`, then report any
     contrary implementation feedback before RC closure
+
+### `no-hd32`
+
+- landed issue:
+  - `no-hd32`
+- affected public symbols:
+  - none; stress/throughput evidence only
+- exact public surface change:
+  - no runtime contract change
+  - bounded repeated-run and concurrent local workloads stayed clear on the named hotspot families
+- likely `nzdk` impact:
+  - no runtime change
+  - use the supplement report only as additional local confidence evidence
+- concise downstream recheck prompt:
+  - no code change expected from this supplement by default; review only if you need the stronger
+    local throughput/stress evidence
 
 ## Remediation Lanes
 
@@ -224,6 +244,7 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 | `no-65ev.4` | `NIP-88`, `NIP-29` local performance cleanup; `NIP-06` only if touched indirectly by backend redesign | landed: bounded reducer-local caches, no intended happy-path API change | only if `nzdk` relies on specific complexity or ordering assumptions | landed |
 | `no-65ev.5` | freeze recheck only | landed: no direct runtime change, no new blocker found | none by default; follow the freeze-recheck report and RC packet | landed |
 | `no-6e6p` | RC-facing contract review only | in progress: no runtime change; local RC review is positive so far | use the brief plus RC review report to confirm or challenge closure | open |
+| `no-hd32` | stress/throughput supplement only | landed: no runtime change; local throughput/stress evidence stayed clear | none by default; use only if stronger local performance evidence is helpful | landed |
 
 ## Update Rule
 

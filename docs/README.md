@@ -33,6 +33,8 @@ These docs control active work and should stay lean.
   - current active Phase H packet and next remaining work
 - `docs/plans/phase-h-rc-api-freeze.md`
   - active RC API-freeze review packet pending downstream feedback
+- `docs/plans/rc-stress-throughput-supplement.md`
+  - completed stress/throughput supplement reference packet before RC closure
 - `docs/plans/empirical-benchmark-supplement.md`
   - completed benchmark supplement reference packet
 - `docs/plans/external-crypto-backend-assurance-supplement.md`
@@ -85,6 +87,11 @@ These docs control active work and should stay lean.
   - `docs/research/empirical-benchmark-supplement-report.md`
   - `docs/research/exhaustive-audit-angle-7-performance-memory-report.md`
   - `docs/research/exhaustive-audit-meta-analysis-report.md`
+- Reviewing the stress/throughput supplement:
+  - `docs/plans/rc-stress-throughput-supplement.md`
+  - `docs/research/rc-stress-throughput-supplement-report.md`
+  - `docs/research/empirical-benchmark-supplement-report.md`
+  - `docs/research/post-remediation-freeze-recheck-report.md`
 - Reviewing the external crypto/backend assurance supplement:
   - `docs/plans/external-crypto-backend-assurance-supplement.md`
   - `docs/research/external-crypto-backend-assurance-report.md`
@@ -111,6 +118,8 @@ These are active references, not startup defaults.
 - `docs/plans/post-core-contract-map.md`
 - `docs/plans/noztr-sdk-remediation-brief.md`
 - `docs/plans/phase-h-rc-api-freeze.md`
+- `docs/plans/rc-stress-throughput-supplement.md`
+- `docs/research/rc-stress-throughput-supplement-report.md`
 - `docs/research/rc-api-freeze-review-report.md`
 - `docs/research/llm-structured-usability-audit-report.md`
 - `docs/research/external-crypto-backend-assurance-report.md`

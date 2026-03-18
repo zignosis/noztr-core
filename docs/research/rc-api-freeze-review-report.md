@@ -10,6 +10,7 @@ read_when:
 depends_on:
   - docs/plans/phase-h-rc-api-freeze.md
   - docs/research/post-remediation-freeze-recheck-report.md
+  - docs/research/rc-stress-throughput-supplement-report.md
   - docs/plans/noztr-sdk-ownership-matrix.md
   - docs/plans/post-core-contract-map.md
 canonical: true
@@ -60,11 +61,17 @@ canonical: true
 
 - provisional
   - the local RC-facing review result is positive
+  - the stress/throughput supplement stayed clear
   - final closure remains pending `nzdk` implementation feedback
 
 ## Evidence
 
 - current `HEAD` was already green at freeze-recheck close:
+  - `zig build test --summary all`: `1116/1116`
+  - `zig build`: success
+- current `HEAD` remained green after the stress/throughput supplement:
+  - `zig build rc-stress-throughput -Doptimize=ReleaseFast`: success
+  - `zig build empirical-benchmark -Doptimize=ReleaseFast`: success
   - `zig build test --summary all`: `1116/1116`
   - `zig build`: success
 - current routing surface now aligns on the RC review state:
@@ -73,12 +80,14 @@ canonical: true
   - `handoff.md`
   - `docs/plans/phase-h-remaining-work.md`
   - `docs/plans/phase-h-rc-api-freeze.md`
+  - `docs/research/rc-stress-throughput-supplement-report.md`
   - `docs/plans/post-core-contract-map.md`
   - `examples/README.md`
 
 ## Residual Risks
 
 - this review does not replace future release engineering or publication work
+- the stress supplement is still local workload evidence, not relay or SDK end-to-end stress proof
 - if later SDK or release execution finds contrary evidence, one explicit blocker packet should be
   opened instead of informally widening scope or silently drifting the contract
 

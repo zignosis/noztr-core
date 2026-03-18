@@ -48,8 +48,9 @@ Current execution state for `noztr`.
 - The fourth remediation lane, `no-65ev.4`, is complete.
 - The post-remediation freeze recheck, `no-65ev.5`, is complete and passed.
 - The RC API-freeze review, `no-6e6p`, is active.
-- Local RC review evidence is positive so far, but final closure remains pending `nzdk`
-  implementation feedback.
+- The RC stress/throughput supplement, `no-hd32`, is complete.
+- Local RC review evidence remains positive after the supplement, but final closure remains pending
+  `nzdk` implementation feedback.
 - The next active Phase H slice remains the RC API-freeze review.
 - Boundary validation has already accepted:
   - public signed event-object JSON serialization
@@ -91,6 +92,10 @@ Current execution state for `noztr`.
   - completed remediation reference packet
 - `docs/plans/phase-h-rc-api-freeze.md`
   - active RC API-freeze review packet
+- `docs/plans/rc-stress-throughput-supplement.md`
+  - completed stress/throughput supplement reference packet
+- `docs/research/rc-stress-throughput-supplement-report.md`
+  - completed stress/throughput supplement report
 - `docs/research/post-remediation-freeze-recheck-report.md`
   - canonical freeze-recheck decision after remediation
 - `docs/research/rc-api-freeze-review-report.md`

@@ -133,8 +133,9 @@ This artifact is the lean active execution baseline and is aligned to:
 - The fourth remediation lane, `no-65ev.4`, is complete.
 - The post-remediation freeze recheck, `no-65ev.5`, is complete and passed.
 - The RC API-freeze review, `no-6e6p`, is active.
-- Local RC review evidence is positive so far, but final closure remains pending `nzdk`
-  implementation feedback.
+- The RC stress/throughput supplement, `no-hd32`, is complete.
+- Local RC review evidence remains positive after the supplement, but final closure remains pending
+  `nzdk` implementation feedback.
 - Current active next slice remains the RC API-freeze review under
   `docs/plans/phase-h-remaining-work.md`.
 - NIP-06 dependency strategy is resolved for current planning: adopt `libwally-core` behind the
@@ -172,6 +173,10 @@ This artifact is the lean active execution baseline and is aligned to:
   - current active Phase H packet and remaining-work routing
 - `docs/plans/phase-h-rc-api-freeze.md`
   - active RC API-freeze review packet
+- `docs/plans/rc-stress-throughput-supplement.md`
+  - completed final stress/throughput supplement reference packet before RC closure
+- `docs/research/rc-stress-throughput-supplement-report.md`
+  - completed final stress/throughput supplement report
 - `docs/research/rc-api-freeze-review-report.md`
   - current local RC-facing contract review result
 - `docs/plans/empirical-benchmark-supplement.md`
@@ -240,7 +245,10 @@ This artifact is the lean active execution baseline and is aligned to:
   - the next justified packet is `docs/plans/phase-h-rc-api-freeze.md`
 - `no-6e6p` is active:
   - the local RC API-freeze review is positive so far, but remains open pending downstream
-    implementation feedback
+    implementation feedback after the stress/throughput supplement stayed clear
+- `no-hd32` is complete:
+  - repeated-run and bounded concurrent local workloads stayed clear and did not reopen
+    remediation pressure
 - current remaining known remediation work is:
   - none
 - the selected remediation posture is bounded redesign first, then targeted fixes, then a

@@ -65,8 +65,9 @@ the `OQ-E-006` usability pass.
 - the fourth remediation lane, `no-65ev.4`, is complete
 - the post-remediation freeze recheck `no-65ev.5` is complete
 - the RC API-freeze review `no-6e6p` is active
-- local RC review evidence is positive, but final closure remains pending `nzdk`
-  implementation feedback
+- the RC stress/throughput supplement `no-hd32` is complete
+- local RC review evidence remains positive after the supplement, but final closure remains pending
+  `nzdk` implementation feedback
 - the next active Phase H slice remains the RC API-freeze review
 - accepted sub-findings from this slice so far:
   - export public signed event-object JSON serialization from `nip01_event`
@@ -111,7 +112,10 @@ the `OQ-E-006` usability pass.
   - immediate next lane:
     - `no-6e6p`
 2. keep `docs/plans/post-exhaustive-audit-remediation-plan.md` as reference-only evidence
-3. if downstream feedback surfaces contrary evidence, create one explicit blocker packet instead of
+3. keep `docs/plans/rc-stress-throughput-supplement.md` as reference-only evidence
+4. if downstream feedback or the completed supplement surfaces contrary evidence, create one
+   explicit blocker
+   packet instead of
    silently drifting the candidate RC-facing contract
 
 ## Seam Constraints
@@ -165,7 +169,7 @@ the `OQ-E-006` usability pass.
     - the freeze recheck passed and justified the RC API-freeze packet:
       - `docs/plans/phase-h-rc-api-freeze.md`
     - the RC API-freeze review is locally positive so far, but remains open pending downstream
-      implementation feedback
+      implementation feedback after the stress/throughput supplement stayed clear
 
 ## Tradeoff
 
@@ -187,6 +191,7 @@ the `OQ-E-006` usability pass.
   - `docs/research/exhaustive-audit-meta-analysis-report.md`
   - `docs/plans/noztr-sdk-remediation-brief.md`
   - `docs/plans/empirical-benchmark-supplement.md`
+  - `docs/research/rc-stress-throughput-supplement-report.md`
 - startup and discovery docs:
   - `handoff.md`
   - `docs/README.md`

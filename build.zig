@@ -60,6 +60,7 @@ pub fn build(builder: *std.Build) void {
     test_step.dependOn(&run_unit_tests_core_only.step);
     add_example_test_step(builder, test_step, "examples");
     add_empirical_benchmark_step(builder, target, optimize, root_module);
+    add_rc_stress_throughput_step(builder, target, optimize, root_module);
 }
 
 fn add_empirical_benchmark_step(
@@ -86,6 +87,34 @@ fn add_empirical_benchmark_step(
     const benchmark_step = builder.step(
         "empirical-benchmark",
         "Run the empirical benchmark supplement harness",
+    );
+    benchmark_step.dependOn(&run_benchmark.step);
+}
+
+fn add_rc_stress_throughput_step(
+    builder: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    root_module: *std.Build.Module,
+) void {
+    std.debug.assert(@sizeOf(std.Build.Step) > 0);
+    std.debug.assert(@sizeOf(std.Build.Module) > 0);
+
+    const benchmark_module = builder.createModule(.{
+        .root_source_file = builder.path("tools/benchmarks/rc_stress_throughput.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    benchmark_module.addImport("noztr", root_module);
+
+    const benchmark_exe = builder.addExecutable(.{
+        .name = "rc-stress-throughput",
+        .root_module = benchmark_module,
+    });
+    const run_benchmark = builder.addRunArtifact(benchmark_exe);
+    const benchmark_step = builder.step(
+        "rc-stress-throughput",
+        "Run the RC stress and throughput supplement harness",
     );
     benchmark_step.dependOn(&run_benchmark.step);
 }
