@@ -13,7 +13,7 @@ depends_on:
   - docs/plans/build-plan.md
   - docs/plans/decision-index.md
   - docs/plans/phase-h-remaining-work.md
-  - docs/research/rc-api-freeze-review-report.md
+  - docs/plans/phase-h-rc-api-freeze.md
 canonical: true
 ---
 
@@ -28,7 +28,7 @@ Current execution state for `noztr`.
 - `docs/plans/build-plan.md`
 - `docs/plans/decision-index.md`
 - `docs/plans/phase-h-remaining-work.md`
-- `docs/research/rc-api-freeze-review-report.md`
+- `docs/plans/phase-h-rc-api-freeze.md`
 
 ## Current Status
 
@@ -47,9 +47,10 @@ Current execution state for `noztr`.
 - The third remediation lane, `no-65ev.3`, is complete.
 - The fourth remediation lane, `no-65ev.4`, is complete.
 - The post-remediation freeze recheck, `no-65ev.5`, is complete and passed.
-- The RC API-freeze review, `no-6e6p`, is complete.
-- The current surface is accepted as the RC-facing contract.
-- The next active Phase H slice is post-RC packet selection.
+- The RC API-freeze review, `no-6e6p`, is active.
+- Local RC review evidence is positive so far, but final closure remains pending `nzdk`
+  implementation feedback.
+- The next active Phase H slice remains the RC API-freeze review.
 - Boundary validation has already accepted:
   - public signed event-object JSON serialization
   - deterministic one-recipient `NIP-59` outbound transcript construction
@@ -89,11 +90,11 @@ Current execution state for `noztr`.
 - `docs/plans/post-exhaustive-audit-remediation-plan.md`
   - completed remediation reference packet
 - `docs/plans/phase-h-rc-api-freeze.md`
-  - completed RC API-freeze review packet
+  - active RC API-freeze review packet
 - `docs/research/post-remediation-freeze-recheck-report.md`
   - canonical freeze-recheck decision after remediation
 - `docs/research/rc-api-freeze-review-report.md`
-  - canonical RC-facing contract review result
+  - current local RC-facing contract review result
 - `docs/plans/noztr-sdk-remediation-brief.md`
   - structured downstream brief for `nzdk` during remediation
 - `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
@@ -120,9 +121,9 @@ Current execution state for `noztr`.
 
 ## Next Work
 
-- choose the next explicit post-RC packet
+- execute `docs/plans/phase-h-rc-api-freeze.md`
 - current tracker lane:
-  - `no-nrzk`
+  - `no-6e6p`
 - keep the completed external crypto/backend assurance report as reference evidence and reopen it
   only on new contrary backend or provenance evidence
 - keep the completed exhaustive audit reports, matrix, and meta-analysis as reference evidence and

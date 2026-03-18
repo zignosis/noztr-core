@@ -1,7 +1,7 @@
 ---
 title: Phase H RC API Freeze Packet
 doc_type: packet
-status: reference
+status: active
 owner: noztr
 phase: phase-h
 read_when:
@@ -21,8 +21,8 @@ canonical: true
 
 # Phase H RC API Freeze Packet
 
-Reference packet for the completed RC API-freeze review after the remediation program and the
-passing freeze recheck.
+Current Phase H packet for the RC API-freeze review after the remediation program and the passing
+freeze recheck.
 
 ## Purpose
 
@@ -47,32 +47,35 @@ passing freeze recheck.
 - the exhaustive audit program and supplements are complete
 - the remediation program `no-65ev` is complete
 - the post-remediation freeze recheck `no-65ev.5` passed
-- the RC API-freeze review `no-6e6p` is complete
-- the current surface is accepted as the RC-facing contract
+- the RC API-freeze review `no-6e6p` is in progress
+- local review evidence is positive so far, but final closure remains pending `nzdk`
+  implementation feedback
 - the completed remediation packet is now reference-only:
   - `docs/plans/post-exhaustive-audit-remediation-plan.md`
 
 ## Next Step
 
-1. use this packet as reference evidence only
-2. route current work through `docs/plans/phase-h-remaining-work.md`
+1. keep the RC API-freeze review lane `no-6e6p` open until `nzdk` implementation feedback is in
+2. then either:
+  - accept the current surface as the RC-facing contract, or
+  - open one explicit remaining blocker packet
 
 ## Open Questions Or Targeted Findings
 
 - `OQ-RC-001`
   - does any release-facing public API name or boundary still need correction before an RC claim?
   - current result:
-    - no
+    - no local issue found so far
 - `OQ-RC-002`
   - do current examples, discovery docs, and structured contract maps teach the accepted surface
     clearly enough for release-facing use?
   - current result:
-    - yes
+    - yes locally, after the root README routing fix
 - `OQ-RC-003`
   - does any final boundary ambiguity still argue for one explicit blocker packet instead of an
     RC-freeze claim?
   - current result:
-    - no
+    - no local blocker found so far; pending downstream implementation feedback
 
 ## Sync Touchpoints
 
@@ -90,6 +93,7 @@ passing freeze recheck.
 ## Closeout Conditions
 
 - the RC API-freeze review is complete
+- downstream `nzdk` implementation feedback has been reviewed
 - the repo either:
   - records the current surface as the accepted RC-facing contract, or
   - opens one explicit remaining blocker packet

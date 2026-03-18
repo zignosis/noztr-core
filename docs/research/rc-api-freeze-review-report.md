@@ -56,6 +56,12 @@ canonical: true
   - fixed:
     - root `README.md` no longer advertises the completed remediation packet as current active work
 
+## Current Posture
+
+- provisional
+  - the local RC-facing review result is positive
+  - final closure remains pending `nzdk` implementation feedback
+
 ## Evidence
 
 - current `HEAD` was already green at freeze-recheck close:
@@ -78,5 +84,7 @@ canonical: true
 
 ## Decision
 
-- the current surface is accepted as the RC-facing contract
-- no explicit remaining blocker packet is required from this review
+- local review result:
+  - the current surface appears acceptable as the RC-facing contract
+- final closure:
+  - deferred until `nzdk` completes its implementation pass and any contrary feedback is reviewed

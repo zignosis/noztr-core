@@ -64,9 +64,10 @@ the `OQ-E-006` usability pass.
 - the third remediation lane, `no-65ev.3`, is complete
 - the fourth remediation lane, `no-65ev.4`, is complete
 - the post-remediation freeze recheck `no-65ev.5` is complete
-- the RC API-freeze review `no-6e6p` is complete
-- the current surface is accepted as the RC-facing contract
-- the next active Phase H slice is post-RC packet selection
+- the RC API-freeze review `no-6e6p` is active
+- local RC review evidence is positive, but final closure remains pending `nzdk`
+  implementation feedback
+- the next active Phase H slice remains the RC API-freeze review
 - accepted sub-findings from this slice so far:
   - export public signed event-object JSON serialization from `nip01_event`
   - keep deterministic one-recipient outbound `NIP-59` transcript construction in `noztr`
@@ -102,16 +103,16 @@ the `OQ-E-006` usability pass.
   - complete the local performance lane with bounded reducer-local caches for `NIP-88` and
     `NIP-29`, with the benchmark rerun showing materially lower local hotspot pressure
   - pass the post-remediation freeze recheck and justify the next RC API-freeze packet
-  - close the RC API-freeze review with no remaining blocker packet required
+  - keep the RC API-freeze review open until downstream implementation feedback is reviewed
 
 ## Next Step
 
-1. keep `docs/plans/phase-h-rc-api-freeze.md` as reference evidence
+1. execute `docs/plans/phase-h-rc-api-freeze.md`
   - immediate next lane:
-    - `no-nrzk`
+    - `no-6e6p`
 2. keep `docs/plans/post-exhaustive-audit-remediation-plan.md` as reference-only evidence
-3. if later contrary evidence appears, create one explicit blocker packet instead of silently
-   drifting the accepted RC-facing contract
+3. if downstream feedback surfaces contrary evidence, create one explicit blocker packet instead of
+   silently drifting the candidate RC-facing contract
 
 ## Seam Constraints
 
@@ -163,8 +164,8 @@ the `OQ-E-006` usability pass.
     - targeted hardening/docs/performance lanes are complete
     - the freeze recheck passed and justified the RC API-freeze packet:
       - `docs/plans/phase-h-rc-api-freeze.md`
-    - the RC API-freeze review is complete and accepts the current surface as the RC-facing
-      contract
+    - the RC API-freeze review is locally positive so far, but remains open pending downstream
+      implementation feedback
 
 ## Tradeoff
 

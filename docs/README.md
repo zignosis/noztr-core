@@ -31,6 +31,8 @@ These docs control active work and should stay lean.
   - repo-specific process refinement rules for keeping the control surface lean
 - `docs/plans/phase-h-remaining-work.md`
   - current active Phase H packet and next remaining work
+- `docs/plans/phase-h-rc-api-freeze.md`
+  - active RC API-freeze review packet pending downstream feedback
 - `docs/plans/empirical-benchmark-supplement.md`
   - completed benchmark supplement reference packet
 - `docs/plans/external-crypto-backend-assurance-supplement.md`
@@ -133,6 +135,7 @@ These are active references, not startup defaults.
 These are lane- or phase-specific packets. They should be read only when that lane is active.
 
 - `docs/plans/phase-h-remaining-work.md`
+- `docs/plans/phase-h-rc-api-freeze.md`
 - `docs/plans/prompts/`
 
 ## Archive

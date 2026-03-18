@@ -13,7 +13,7 @@ backend exceptions.
 
 ## Current status
 
-- Current baseline: Phase H post-RC packet selection on top of a completed local-only Phase G
+- Current baseline: Phase H RC API-freeze review on top of a completed local-only Phase G
   closure.
 - Completed major checkpoints:
   - requested-NIP loop complete through `NIP-B7`
@@ -23,10 +23,10 @@ backend exceptions.
   - external crypto/backend assurance supplement complete
   - post-exhaustive remediation program complete
   - post-remediation freeze recheck complete
-  - RC API-freeze review complete
 - Current active work:
-  - post-RC packet selection in `docs/plans/phase-h-remaining-work.md`
-  - accepted RC-facing contract review in `docs/research/rc-api-freeze-review-report.md`
+  - RC API-freeze review in `docs/plans/phase-h-rc-api-freeze.md`
+  - current Phase H packet in `docs/plans/phase-h-remaining-work.md`
+  - local RC-facing review result in `docs/research/rc-api-freeze-review-report.md`
 - Implemented NIPs from `src/root.zig` exports:
   - `NIP-01` (event, filter, message)
   - `NIP-02`, `NIP-03`, `NIP-05`, `NIP-06`, `NIP-09`, `NIP-10`, `NIP-11`, `NIP-13`

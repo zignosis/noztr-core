@@ -69,8 +69,6 @@ Use this file to decide whether the full canonical decision payload is needed.
 - `D-122` require audit-first separation and meta-analysis before pre-freeze remediation or rewrite
 - `D-123` require matrix-driven execution standards for the exhaustive pre-freeze audit
 - `D-124` forbid in-audit fixes, split cryptographic audit lanes, and require whole-codebase coverage
-- `D-126` accept the current surface as the RC-facing contract after the completed remediation and
-  freeze recheck
 
 ## Docs And Active-Memory Routing
 

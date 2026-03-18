@@ -142,6 +142,7 @@ printf -- '- `docs/README.md`\n'
 printf -- '- `docs/plans/build-plan.md`\n'
 printf -- '- `docs/plans/decision-index.md`\n'
 printf -- '- `docs/plans/phase-h-remaining-work.md`\n'
+printf -- '- `docs/plans/phase-h-rc-api-freeze.md`\n'
 printf "\n"
 
 printf "## Load On Demand\n\n"
@@ -149,8 +150,8 @@ printf -- '- `docs/guides/IMPLEMENTATION_QUALITY_GATE.md` when starting or closi
 printf -- '- `docs/guides/TIGER_STYLE.md` and `docs/guides/NOZTR_STYLE.md` for Zig implementation or API work\n'
 printf -- '- `docs/guides/zig-patterns.md` and `docs/guides/zig-anti-patterns.md` for Zig implementation or review\n'
 printf -- '- Current Phase H remaining-work packet: `docs/plans/phase-h-remaining-work.md`\n'
-printf -- '- Completed RC API-freeze packet: `docs/plans/phase-h-rc-api-freeze.md`\n'
-printf -- '- RC API-freeze review result: `docs/research/rc-api-freeze-review-report.md`\n'
+printf -- '- Current RC API-freeze packet: `docs/plans/phase-h-rc-api-freeze.md`\n'
+printf -- '- Current local RC API-freeze review result: `docs/research/rc-api-freeze-review-report.md`\n'
 printf -- '- Completed remediation packet: `docs/plans/post-exhaustive-audit-remediation-plan.md`\n'
 printf -- '- Completed freeze recheck report: `docs/research/post-remediation-freeze-recheck-report.md`\n'
 printf -- '- Completed benchmark supplement packet: `docs/plans/empirical-benchmark-supplement.md`\n'
