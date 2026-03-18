@@ -106,6 +106,8 @@ Current execution state for `noztr`.
   - current local RC-facing contract review result
 - `docs/plans/noztr-sdk-remediation-brief.md`
   - structured downstream brief for `nzdk` during remediation
+- `docs/plans/noztr-sdk-process-adaptation-brief.md`
+  - downstream process-adaptation brief for `nzdk`
 - `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
   - staged implementation and review gate for any new slice
 

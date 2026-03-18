@@ -43,6 +43,8 @@ These docs control active work and should stay lean.
   - completed remediation reference packet after the audit supplements
 - `docs/plans/noztr-sdk-remediation-brief.md`
   - structured downstream brief for `nzdk` during remediation
+- `docs/plans/noztr-sdk-process-adaptation-brief.md`
+  - downstream process-adaptation brief for `nzdk`
 - `docs/plans/docs-surface-audit.md`
   - stable-ID audit of doc bloat, repetition, and control-surface drift
 
@@ -117,6 +119,7 @@ These are active references, not startup defaults.
 - `docs/plans/llm-structured-usability-audit.md`
 - `docs/plans/post-core-contract-map.md`
 - `docs/plans/noztr-sdk-remediation-brief.md`
+- `docs/plans/noztr-sdk-process-adaptation-brief.md`
 - `docs/plans/phase-h-rc-api-freeze.md`
 - `docs/plans/rc-stress-throughput-supplement.md`
 - `docs/research/rc-stress-throughput-supplement-report.md`

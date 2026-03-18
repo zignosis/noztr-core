@@ -9,6 +9,7 @@ read_when:
   - checking_downstream_impact_of_noztr_changes
 depends_on:
   - docs/plans/post-exhaustive-audit-remediation-plan.md
+  - docs/plans/noztr-sdk-process-adaptation-brief.md
   - docs/research/exhaustive-audit-meta-analysis-report.md
   - docs/research/empirical-benchmark-supplement-report.md
   - docs/research/external-crypto-backend-assurance-report.md
@@ -34,6 +35,8 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 - do not emit standalone `nzdk` prompts from in-flight lanes by default
 - after the remediation program closes, point the downstream agent to this document and the landed
   supporting docs instead of rebuilding the history from chat state
+- when the downstream need is process adaptation rather than contract drift, point to
+  `docs/plans/noztr-sdk-process-adaptation-brief.md`
 
 ## Current State
 
@@ -55,6 +58,7 @@ Structured downstream handoff surface for `nzdk` as the post-audit remediation p
 
 - minimum current read set for `nzdk` review/update:
   - `docs/plans/noztr-sdk-remediation-brief.md`
+  - `docs/plans/noztr-sdk-process-adaptation-brief.md`
   - `docs/research/post-remediation-freeze-recheck-report.md`
   - `docs/research/rc-api-freeze-review-report.md`
   - `docs/research/rc-stress-throughput-supplement-report.md`
