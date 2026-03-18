@@ -250,4 +250,6 @@ If you are evaluating or adopting the library, use this route first:
 - `docs/release/README.md`
 - `docs/release/noztr-positioning.md`
 - `docs/release/intentional-divergences.md`
+- `docs/release/core-api-contracts.md`
+- `docs/release/contract-map.md`
 - `examples/README.md`

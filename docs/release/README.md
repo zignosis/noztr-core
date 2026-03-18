@@ -25,20 +25,21 @@ to understand the current release-facing contract at a high level.
   - what `noztr` is trying to do, why it exists, tradeoffs, limitations, and comparisons
 - `docs/release/intentional-divergences.md`
   - release-facing behavior differences that are intentional in Layer 1
+- `docs/release/noztr-process-slide.html`
+  - one-slide presentation page for the planning, execution, teaching, and audit loop
 
 ## Public Technical Entry Points
 
 - `examples/README.md`
   - task-oriented example routing
-- `docs/plans/v1-api-contracts.md`
-  - older core contract reference for events, filters, and messages
-- `docs/plans/post-core-contract-map.md`
-  - task-to-symbol route for the main post-core public surfaces
+- `docs/release/core-api-contracts.md`
+  - public route for events, filters, messages, auth, delete, and PoW surfaces
+- `docs/release/contract-map.md`
+  - public task-to-symbol route for the main post-core public surfaces
 
 ## Important Note On Internal Docs
 
-This repo also contains extensive internal working documents under `docs/plans/` and
-`docs/research/`.
+This repo also contains extensive internal working documents under local-only `.private-docs/`.
 
 Those documents are valuable for provenance and engineering rigor, but they are not the primary
 public documentation surface.
@@ -47,7 +48,6 @@ In general:
 
 - `docs/release/` is public-facing release documentation
 - `examples/` is public-facing usage material
-- `docs/plans/` is mostly internal planning, execution, and contract-routing material
-- `docs/research/` is mostly internal audit, study, and evidence material
+- `.private-docs/` is mostly internal planning, audit, process, and provenance material
 
 If you are not actively contributing to `noztr`, start with the release docs and examples first.

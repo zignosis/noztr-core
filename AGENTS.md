@@ -8,22 +8,25 @@ exceptions recorded in the decision log.
 - Run `./agent-brief` first.
 - Read `AGENTS.md` and `handoff.md` every session.
 - Then read only the current execution files called out by `./agent-brief`.
-- Use `docs/README.md` to route any further doc reads instead of scanning `docs/` blindly.
-- Treat `docs/plans/decision-index.md` as the startup route into accepted policy; load
-  `docs/plans/decision-log.md` only when the current task changes policy, cites a specific
+- Use `.private-docs/README.md` to route any further internal doc reads instead of scanning `docs/`
+  blindly.
+- Treat `docs/README.md` and `docs/release/` as the public docs surface, not the internal working
+  surface.
+- Treat `.private-docs/plans/decision-index.md` as the startup route into accepted policy; load
+  `.private-docs/plans/decision-log.md` only when the current task changes policy, cites a specific
   decision ID, or needs the exact canonical decision payload.
-- Read `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md` when the task is refining repo process,
+- Read `.private-docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md` when the task is refining repo process,
   tightening review gates after real failures, or sharing `noztr` process lessons with another
   repo or agent.
-- Read `docs/guides/IMPLEMENTATION_QUALITY_GATE.md` when the task starts or repairs an
+- Read `.private-docs/guides/IMPLEMENTATION_QUALITY_GATE.md` when the task starts or repairs an
   implementation, audit, or robustness slice.
-- Read `docs/guides/TIGER_STYLE.md`, `docs/guides/NOZTR_STYLE.md`,
-  `docs/guides/zig-patterns.md`, and `docs/guides/zig-anti-patterns.md` only when the task touches
+- Read `.private-docs/guides/TIGER_STYLE.md`, `.private-docs/guides/NOZTR_STYLE.md`,
+  `.private-docs/guides/zig-patterns.md`, and `.private-docs/guides/zig-anti-patterns.md` only when the task touches
   Zig implementation, public API shape, or code review.
-- Read `docs/plans/packet-template.md` when creating or repairing packet docs.
-- Read `docs/plans/noztr-sdk-ownership-matrix.md` when the task touches kernel-vs-SDK scope,
+- Read `.private-docs/plans/packet-template.md` when creating or repairing packet docs.
+- Read `.private-docs/plans/noztr-sdk-ownership-matrix.md` when the task touches kernel-vs-SDK scope,
   deterministic protocol glue, or higher-level workflow ownership.
-- Read `docs/plans/audit-angle-standards.md` and `docs/plans/audit-angle-report-template.md` when
+- Read `.private-docs/plans/audit-angle-standards.md` and `.private-docs/plans/audit-angle-report-template.md` when
   the task starts a dedicated exhaustive-audit angle.
 - Read planning prompt artifacts only when the task is phase-planning work.
 - Work in phase order. Do not skip phase gates.
@@ -32,11 +35,11 @@ exceptions recorded in the decision log.
 
 - Pre-v1 broad studies are reference-only inputs and do not set policy defaults.
 - v1 artifacts are canonical working outputs for downstream phases.
-- `docs/archive/` is reference-only historical material; do not load it on startup unless the task
+- `.private-docs/archive/` is reference-only historical material; do not load it on startup unless the task
   explicitly needs historical evidence or traceability.
-- `docs/plans/build-plan.md` is a working baseline until Phase E finalization.
-- Precedence on conflict: `docs/plans/nostr-principles.md` and
-  `docs/plans/decision-log.md` > v1 artifacts > pre-v1 broad studies.
+- `.private-docs/plans/build-plan.md` is a working baseline until Phase E finalization.
+- Precedence on conflict: `.private-docs/plans/nostr-principles.md` and
+  `.private-docs/plans/decision-log.md` > v1 artifacts > pre-v1 broad studies.
 
 ## Build & Test
 
@@ -54,7 +57,7 @@ Run tests after every code change.
 
 ## Phase-Gated Workflow
 
-- Use one prompt per phase from `docs/plans/prompts/`.
+- Use one prompt per phase from `.private-docs/plans/prompts/`.
 - Complete the current phase exit criteria before starting the next phase.
 - Keep outputs narrow and phase-specific.
 - Document tradeoffs for every material decision.
@@ -65,9 +68,9 @@ Run tests after every code change.
 
 - Keep project context current after meaningful progress:
   - Active phase owner updates `handoff.md` before phase closure.
-  - Ensure `docs/plans/build-plan.md` reflects accepted decisions.
-  - Ensure `docs/plans/decision-index.md` reflects active policy-routing needs.
-  - Ensure `docs/plans/decision-log.md` records accepted default changes.
+  - Ensure `.private-docs/plans/build-plan.md` reflects accepted decisions.
+  - Ensure `.private-docs/plans/decision-index.md` reflects active policy-routing needs.
+  - Ensure `.private-docs/plans/decision-log.md` records accepted default changes.
   - Ensure `./agent-brief` output reflects the current active execution path.
 - Keep the active packet surface current when a phase stays open after a slice closes.
   - Completed packets move to `reference` or archive.
@@ -128,7 +131,7 @@ Run tests after every code change.
 
 ## Coding Standards
 
-Read `docs/guides/TIGER_STYLE.md` and `docs/guides/NOZTR_STYLE.md` for code work. Tiger is the
+Read `.private-docs/guides/TIGER_STYLE.md` and `.private-docs/guides/NOZTR_STYLE.md` for code work. Tiger is the
 hard engineering baseline; NOZTR Style is the project-specific protocol-kernel profile. The
 critical rules:
 
@@ -139,7 +142,7 @@ critical rules:
 - Pair assertions: positive AND negative space
 - **Static allocation only** — no dynamic allocation after init
 - **Dependency default** — Zig stdlib only unless an approved pinned crypto backend exception is
-  recorded in `docs/plans/decision-log.md`
+  recorded in `.private-docs/plans/decision-log.md`
 - Follow KISS — prefer the simplest solution that satisfies requirements
 - Keep protocol behavior simple, bounded, and not fussy — do not add narrow helper rules, extra
   typed failures, or special-case parsing unless they materially improve trust-boundary behavior,
@@ -172,21 +175,21 @@ critical rules:
 ## What NOT To Do
 
 - Do NOT add unapproved dependencies — only `@import("std")` is allowed unless a pinned crypto
-  backend exception is accepted in `docs/plans/decision-log.md`
+  backend exception is accepted in `.private-docs/plans/decision-log.md`
 - Do NOT use `ArrayList` or unbounded dynamic allocation
 - Do NOT use recursion
 - Do NOT silently swallow errors with `try`/`catch`
 
 ## Guides
 
-- `docs/guides/TIGER_STYLE.md`: hard engineering baseline
-- `docs/guides/NOZTR_STYLE.md`: noztr protocol-kernel style profile
-- `docs/guides/PROCESS_CONTROL.md`: process-control and docs-surface refinement rules
-- `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`: canonical staged implementation/audit gate
-- `docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`: shareable process lessons learned from real slices
-- `docs/guides/zig-patterns.md`: approved Zig-safe patterns
-- `docs/guides/zig-anti-patterns.md`: forbidden Zig footguns
-- `docs/plans/packet-template.md`: packet skeleton for new or repaired active slices
+- `.private-docs/guides/TIGER_STYLE.md`: hard engineering baseline
+- `.private-docs/guides/NOZTR_STYLE.md`: noztr protocol-kernel style profile
+- `.private-docs/guides/PROCESS_CONTROL.md`: process-control and docs-surface refinement rules
+- `.private-docs/guides/IMPLEMENTATION_QUALITY_GATE.md`: canonical staged implementation/audit gate
+- `.private-docs/guides/PROCESS_REFINEMENT_PLAYBOOK.md`: shareable process lessons learned from real slices
+- `.private-docs/guides/zig-patterns.md`: approved Zig-safe patterns
+- `.private-docs/guides/zig-anti-patterns.md`: forbidden Zig footguns
+- `.private-docs/plans/packet-template.md`: packet skeleton for new or repaired active slices
 - Other guide documents are load-on-demand, not required startup context
 
 <!-- BEGIN BEADS INTEGRATION -->

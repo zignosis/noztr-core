@@ -19,20 +19,14 @@ For the public docs route as a whole, start with
 
 ## Current status
 
-- Current baseline: Phase H RC API-freeze review on top of a completed local-only Phase G
-  closure.
-- Completed major checkpoints:
-  - requested-NIP loop complete through `NIP-B7`
-  - exhaustive pre-freeze audit and meta-analysis complete
-  - LLM structured usability supplement complete
-  - empirical benchmark supplement complete
-  - external crypto/backend assurance supplement complete
-  - post-exhaustive remediation program complete
-  - post-remediation freeze recheck complete
-- Current active work:
-  - RC API-freeze review in `docs/plans/phase-h-rc-api-freeze.md`
-  - current Phase H packet in `docs/plans/phase-h-remaining-work.md`
-  - local RC-facing review result in `docs/research/rc-api-freeze-review-report.md`
+- Current posture: the local RC-facing review is positive, but final closure remains pending
+  downstream `nzdk` feedback.
+- Completed major checkpoints include:
+  - exhaustive audit and meta-analysis
+  - LLM structured usability supplement
+  - empirical benchmark supplement
+  - external crypto/backend assurance supplement
+  - remediation and freeze recheck
 - Implemented NIPs from `src/root.zig` exports:
   - `NIP-01` (event, filter, message)
   - `NIP-02`, `NIP-03`, `NIP-05`, `NIP-06`, `NIP-09`, `NIP-10`, `NIP-11`, `NIP-13`
@@ -45,11 +39,9 @@ For the public docs route as a whole, start with
   - Optional I6 extension exports (build-flag gated): `NIP-45`, `NIP-50`, `NIP-77`
   - Non-NIP bounded wallet helpers: Nostr-relevant `BIP-85` subset for lowercase-hex entropy text
     and English BIP39 child mnemonic/entropy
-- Current routing:
-  - repo docs router: [`docs/README.md`](/workspace/projects/noztr/docs/README.md)
-  - current state: [`handoff.md`](/workspace/projects/noztr/handoff.md)
-  - active baseline: [`docs/plans/build-plan.md`](/workspace/projects/noztr/docs/plans/build-plan.md)
-  - current post-core symbol map: [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md)
+- Public docs routing:
+  - docs router: [`docs/README.md`](/workspace/projects/noztr/docs/README.md)
+  - release docs router: [`docs/release/README.md`](/workspace/projects/noztr/docs/release/README.md)
 
 ## Build and test
 
@@ -89,9 +81,9 @@ Use this route if you want the shortest path into the current public surface.
 1. Add `noztr` as a Zig dependency.
 2. Pick the right symbol family:
    - core event/filter/message work:
-     [`docs/plans/v1-api-contracts.md`](/workspace/projects/noztr/docs/plans/v1-api-contracts.md)
+     [`docs/release/core-api-contracts.md`](/workspace/projects/noztr/docs/release/core-api-contracts.md)
    - post-core jobs like `NIP-05`, `NIP-46`, `NIP-47`, `NIP-59`, `NIP-98`, `NIP-29`, `NIP-88`:
-     [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md)
+     [`docs/release/contract-map.md`](/workspace/projects/noztr/docs/release/contract-map.md)
 3. Start from one direct example and, when available, one hostile example in
    [`examples/README.md`](/workspace/projects/noztr/examples/README.md).
 
@@ -103,24 +95,25 @@ This repo contains both public-facing release docs and extensive internal workin
   - [`docs/release/README.md`](/workspace/projects/noztr/docs/release/README.md)
   - [`docs/release/noztr-positioning.md`](/workspace/projects/noztr/docs/release/noztr-positioning.md)
   - [`docs/release/intentional-divergences.md`](/workspace/projects/noztr/docs/release/intentional-divergences.md)
+  - [`docs/release/core-api-contracts.md`](/workspace/projects/noztr/docs/release/core-api-contracts.md)
+  - [`docs/release/contract-map.md`](/workspace/projects/noztr/docs/release/contract-map.md)
   - [`examples/README.md`](/workspace/projects/noztr/examples/README.md)
 - Internal working docs:
-  - most of [`docs/plans/`](/workspace/projects/noztr/docs/plans/)
-  - most of [`docs/research/`](/workspace/projects/noztr/docs/research/)
+  - local-only `.private-docs/`
 
-The internal docs are kept in-repo for provenance and engineering rigor, but they are not the main
-public documentation surface.
+The internal docs are kept locally for provenance and engineering rigor, but they are not the main
+public documentation surface and are not intended for remote publication.
 
 ## Common jobs
 
 | Job | Start here | Example |
 | --- | --- | --- |
-| Parse, serialize, sign, or verify events | [`docs/plans/v1-api-contracts.md`](/workspace/projects/noztr/docs/plans/v1-api-contracts.md) | [`examples/nip01_example.zig`](/workspace/projects/noztr/examples/nip01_example.zig) |
-| Identity lookup and bunker discovery | [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md) | [`examples/discovery_recipe.zig`](/workspace/projects/noztr/examples/discovery_recipe.zig) |
-| One-recipient gift wrap build and unwrap | [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md) | [`examples/nip17_wrap_recipe.zig`](/workspace/projects/noztr/examples/nip17_wrap_recipe.zig) |
-| Wallet Connect parsing and typed JSON contracts | [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md) | [`examples/nip47_example.zig`](/workspace/projects/noztr/examples/nip47_example.zig) |
-| HTTP auth event and header helpers | [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md) | [`examples/nip98_example.zig`](/workspace/projects/noztr/examples/nip98_example.zig) |
-| Group replay and poll tally reduction | [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md) | [`examples/nip29_reducer_recipe.zig`](/workspace/projects/noztr/examples/nip29_reducer_recipe.zig), [`examples/nip88_example.zig`](/workspace/projects/noztr/examples/nip88_example.zig) |
+| Parse, serialize, sign, or verify events | [`docs/release/core-api-contracts.md`](/workspace/projects/noztr/docs/release/core-api-contracts.md) | [`examples/nip01_example.zig`](/workspace/projects/noztr/examples/nip01_example.zig) |
+| Identity lookup and bunker discovery | [`docs/release/contract-map.md`](/workspace/projects/noztr/docs/release/contract-map.md) | [`examples/discovery_recipe.zig`](/workspace/projects/noztr/examples/discovery_recipe.zig) |
+| One-recipient gift wrap build and unwrap | [`docs/release/contract-map.md`](/workspace/projects/noztr/docs/release/contract-map.md) | [`examples/nip17_wrap_recipe.zig`](/workspace/projects/noztr/examples/nip17_wrap_recipe.zig) |
+| Wallet Connect parsing and typed JSON contracts | [`docs/release/contract-map.md`](/workspace/projects/noztr/docs/release/contract-map.md) | [`examples/nip47_example.zig`](/workspace/projects/noztr/examples/nip47_example.zig) |
+| HTTP auth event and header helpers | [`docs/release/contract-map.md`](/workspace/projects/noztr/docs/release/contract-map.md) | [`examples/nip98_example.zig`](/workspace/projects/noztr/examples/nip98_example.zig) |
+| Group replay and poll tally reduction | [`docs/release/contract-map.md`](/workspace/projects/noztr/docs/release/contract-map.md) | [`examples/nip29_reducer_recipe.zig`](/workspace/projects/noztr/examples/nip29_reducer_recipe.zig), [`examples/nip88_example.zig`](/workspace/projects/noztr/examples/nip88_example.zig) |
 
 ## Use as a local Zig dependency
 
@@ -157,7 +150,7 @@ This repo now carries one downstream examples package and wires it into
   - scenario-oriented recipe files for `NIP-03`, `NIP-05`, `NIP-06`, `NIP-17`, `BIP-85`,
     `NIP-39`, `NIP-46`, `NIP-51`, and `NIP-86`
   - open [`examples/README.md`](/workspace/projects/noztr/examples/README.md) for the SDK job map
-  - open [`docs/plans/post-core-contract-map.md`](/workspace/projects/noztr/docs/plans/post-core-contract-map.md) for a task-to-symbol route across the main post-core surfaces
+  - open [`docs/release/contract-map.md`](/workspace/projects/noztr/docs/release/contract-map.md) for a task-to-symbol route across the main post-core surfaces
   - intended as the main downstream example surface for `nzdk` and other SDK consumers
 
 ## Current Kernel Notes
@@ -166,25 +159,11 @@ This repo now carries one downstream examples package and wires it into
   derivation.
 - Deprecated `NIP-04` private-list compatibility remains intentionally deferred; current private
   list support is `NIP-44`-first.
-- The crypto boundary remains inside `noztr` for now; see
-  [`docs/plans/crypto-boundary-evaluation.md`](/workspace/projects/noztr/docs/plans/crypto-boundary-evaluation.md)
-  for the current standalone-library evaluation.
 
 ## Repo layout
 
 - `src/` - protocol modules and root exports
-- `docs/plans/` - canonical planning and execution artifacts
-- `docs/guides/` - style and implementation guidance
-- `docs/research/` - study artifacts and parity references
+- `docs/release/` - public-facing release documentation
+- `docs/nips/` - vendored NIP texts for protocol reference
+- `.private-docs/` - local-only internal planning, audit, and process material
 - `tools/interop/` - parity harnesses and interop tooling
-
-## Planning documents
-
-- Build baseline: `docs/plans/build-plan.md`
-- Current Phase H packet: `docs/plans/phase-h-remaining-work.md`
-- Current RC API-freeze packet: `docs/plans/phase-h-rc-api-freeze.md`
-- Completed remediation packet: `docs/plans/post-exhaustive-audit-remediation-plan.md`
-- Freeze-recheck decision: `docs/research/post-remediation-freeze-recheck-report.md`
-- Current docs router: `docs/README.md`
-- Current post-core symbol map: `docs/plans/post-core-contract-map.md`
-- Historical phase evidence: `docs/archive/plans/`

@@ -9,11 +9,11 @@ read_when:
   - resuming_incomplete_work
   - checking_next_step
 depends_on:
-  - docs/README.md
-  - docs/plans/build-plan.md
-  - docs/plans/decision-index.md
-  - docs/plans/phase-h-remaining-work.md
-  - docs/plans/phase-h-rc-api-freeze.md
+  - .private-docs/README.md
+  - .private-docs/plans/build-plan.md
+  - .private-docs/plans/decision-index.md
+  - .private-docs/plans/phase-h-remaining-work.md
+  - .private-docs/plans/phase-h-rc-api-freeze.md
 canonical: true
 ---
 
@@ -24,16 +24,18 @@ Current execution state for `noztr`.
 ## Read First
 
 - `AGENTS.md`
-- `docs/README.md`
-- `docs/plans/build-plan.md`
-- `docs/plans/decision-index.md`
-- `docs/plans/phase-h-remaining-work.md`
-- `docs/plans/phase-h-rc-api-freeze.md`
+- `.private-docs/README.md`
+- `.private-docs/plans/build-plan.md`
+- `.private-docs/plans/decision-index.md`
+- `.private-docs/plans/phase-h-remaining-work.md`
+- `.private-docs/plans/phase-h-rc-api-freeze.md`
 
 ## Current Status
 
 - Active execution state remains Phase H on the post-Phase G local-only closure baseline.
-- Current active Phase H packet is `docs/plans/phase-h-remaining-work.md`.
+- Current active Phase H packet is `.private-docs/plans/phase-h-remaining-work.md`.
+- The internal planning, audit, and process docs now live in local-only `.private-docs/`; the
+  public tracked docs surface is `docs/release/` plus `examples/`.
 - Remote readiness remains deferred-by-operator.
 - No git remote is configured in this repo.
 - The post-kernel requested-NIP loop is complete through split-surface `NIP-B7`.
@@ -51,7 +53,7 @@ Current execution state for `noztr`.
 - The RC stress/throughput supplement, `no-hd32`, is complete.
 - RC support polish is complete:
   - root `README.md` now has a short RC quick-start route
-  - `docs/plans/post-core-contract-map.md` is easier to scan for common jobs
+  - `.private-docs/plans/post-core-contract-map.md` is easier to scan for common jobs
   - the stress harness now supports soak plus CSV/Markdown output steps
 - release-facing positioning now has one canonical explanation in:
   - `docs/release/noztr-positioning.md`
@@ -82,59 +84,59 @@ Current execution state for `noztr`.
 
 - `AGENTS.md`
   - agent operating rules and closure discipline
-- `docs/README.md`
+- `.private-docs/README.md`
   - current docs routing
-- `docs/plans/build-plan.md`
+- `.private-docs/plans/build-plan.md`
   - active execution baseline
-- `docs/plans/decision-index.md`
+- `.private-docs/plans/decision-index.md`
   - startup route into accepted policy
-- `docs/plans/phase-h-remaining-work.md`
+- `.private-docs/plans/phase-h-remaining-work.md`
   - current active Phase H packet
-- `docs/plans/empirical-benchmark-supplement.md`
+- `.private-docs/plans/empirical-benchmark-supplement.md`
   - completed benchmark supplement reference packet
-- `docs/plans/external-crypto-backend-assurance-supplement.md`
+- `.private-docs/plans/external-crypto-backend-assurance-supplement.md`
   - completed external backend assurance reference packet
-- `docs/plans/post-exhaustive-audit-remediation-plan.md`
+- `.private-docs/plans/post-exhaustive-audit-remediation-plan.md`
   - completed remediation reference packet
-- `docs/plans/phase-h-rc-api-freeze.md`
+- `.private-docs/plans/phase-h-rc-api-freeze.md`
   - active RC API-freeze review packet
-- `docs/plans/rc-stress-throughput-supplement.md`
+- `.private-docs/plans/rc-stress-throughput-supplement.md`
   - completed stress/throughput supplement reference packet
-- `docs/research/rc-stress-throughput-supplement-report.md`
+- `.private-docs/research/rc-stress-throughput-supplement-report.md`
   - completed stress/throughput supplement report
-- `docs/research/post-remediation-freeze-recheck-report.md`
+- `.private-docs/research/post-remediation-freeze-recheck-report.md`
   - canonical freeze-recheck decision after remediation
-- `docs/research/rc-api-freeze-review-report.md`
+- `.private-docs/research/rc-api-freeze-review-report.md`
   - current local RC-facing contract review result
-- `docs/plans/noztr-sdk-remediation-brief.md`
+- `.private-docs/plans/noztr-sdk-remediation-brief.md`
   - structured downstream brief for `nzdk` during remediation
-- `docs/plans/noztr-sdk-process-adaptation-brief.md`
+- `.private-docs/plans/noztr-sdk-process-adaptation-brief.md`
   - downstream process-adaptation brief for `nzdk`
-- `docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
+- `.private-docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
   - staged implementation and review gate for any new slice
 
 ## Critical Rules
 
-- use `docs/guides/IMPLEMENTATION_QUALITY_GATE.md` for any new implementation, audit, or
+- use `.private-docs/guides/IMPLEMENTATION_QUALITY_GATE.md` for any new implementation, audit, or
   robustness slice
 - treat completed Phase H packets as reference-only; keep new pending work in
-  `docs/plans/phase-h-remaining-work.md`
+  `.private-docs/plans/phase-h-remaining-work.md`
 - keep `handoff.md` state-oriented and keep `br` mutations, `br sync`, and git-writing steps
   serial-only
 
 ## Current Repo State
 
 - completed packets retained for traceability:
-  - `docs/plans/phase-h-kickoff.md`
-  - `docs/plans/phase-h-additional-nips-plan.md`
-  - `docs/plans/phase-h-wave1-loop.md`
-  - `docs/plans/post-kernel-requested-nips-loop.md`
+  - `.private-docs/plans/phase-h-kickoff.md`
+  - `.private-docs/plans/phase-h-additional-nips-plan.md`
+  - `.private-docs/plans/phase-h-wave1-loop.md`
+  - `.private-docs/plans/post-kernel-requested-nips-loop.md`
 - Only expected untracked local artifact:
   - `tools/interop/rust-nostr-parity-all/target/`
 
 ## Next Work
 
-- execute `docs/plans/phase-h-rc-api-freeze.md`
+- execute `.private-docs/plans/phase-h-rc-api-freeze.md`
 - current tracker lane:
   - `no-6e6p`
 - keep the completed external crypto/backend assurance report as reference evidence and reopen it
@@ -143,7 +145,7 @@ Current execution state for `noztr`.
   reopen them only on new contrary evidence
 - if the validation finds a real non-kernel blocker, create one explicit Layer 2 adapter-boundary
   packet instead of widening the kernel by default
-- use `docs/plans/noztr-sdk-ownership-matrix.md` when a candidate touches kernel-vs-SDK scope
+- use `.private-docs/plans/noztr-sdk-ownership-matrix.md` when a candidate touches kernel-vs-SDK scope
 
 ## Notes
 

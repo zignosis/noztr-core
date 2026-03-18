@@ -51,54 +51,54 @@ collect_missing() {
 }
 
 research_docs=(
-    "docs/research/building-nostr-study.md"
-    "docs/research/nostr-protocol-study.md"
-    "docs/research/applesauce-study.md"
-    "docs/research/rust-nostr-study.md"
-    "docs/research/libnostr-z-study.md"
-    "docs/guides/NOZTR_STYLE.md"
+    ".private-docs/research/building-nostr-study.md"
+    ".private-docs/research/nostr-protocol-study.md"
+    ".private-docs/research/applesauce-study.md"
+    ".private-docs/research/rust-nostr-study.md"
+    ".private-docs/research/libnostr-z-study.md"
+    ".private-docs/guides/NOZTR_STYLE.md"
 )
 
 plan_docs=(
     "AGENTS.md"
-    "docs/README.md"
-    "docs/plans/decision-index.md"
-    "docs/plans/decision-log.md"
-    "docs/plans/build-plan.md"
-    "docs/guides/IMPLEMENTATION_QUALITY_GATE.md"
-    "docs/plans/noztr-sdk-ownership-matrix.md"
-    "docs/plans/phase-h-remaining-work.md"
-    "docs/plans/phase-h-rc-api-freeze.md"
-    "docs/plans/post-exhaustive-audit-remediation-plan.md"
+    ".private-docs/README.md"
+    ".private-docs/plans/decision-index.md"
+    ".private-docs/plans/decision-log.md"
+    ".private-docs/plans/build-plan.md"
+    ".private-docs/guides/IMPLEMENTATION_QUALITY_GATE.md"
+    ".private-docs/plans/noztr-sdk-ownership-matrix.md"
+    ".private-docs/plans/phase-h-remaining-work.md"
+    ".private-docs/plans/phase-h-rc-api-freeze.md"
+    ".private-docs/plans/post-exhaustive-audit-remediation-plan.md"
     "handoff.md"
 )
 
 phase_prompts=(
-    "docs/plans/prompts/README.md"
-    "docs/plans/prompts/phase-0-philosophy-and-principles.md"
-    "docs/plans/prompts/phase-a-scope-freeze.md"
-    "docs/plans/prompts/phase-b-protocol-research.md"
-    "docs/plans/prompts/phase-c0-zig-language-study.md"
-    "docs/plans/prompts/phase-c1-applesauce-study.md"
-    "docs/plans/prompts/phase-c2-rust-nostr-study.md"
-    "docs/plans/prompts/phase-c3-libnostr-z-study.md"
-    "docs/plans/prompts/phase-c4-implementation-synthesis.md"
-    "docs/plans/prompts/phase-d-contracts-vectors.md"
-    "docs/plans/prompts/phase-e-build-plan.md"
-    "docs/plans/prompts/phase-f-implementation-handoff.md"
+    ".private-docs/plans/prompts/README.md"
+    ".private-docs/plans/prompts/phase-0-philosophy-and-principles.md"
+    ".private-docs/plans/prompts/phase-a-scope-freeze.md"
+    ".private-docs/plans/prompts/phase-b-protocol-research.md"
+    ".private-docs/plans/prompts/phase-c0-zig-language-study.md"
+    ".private-docs/plans/prompts/phase-c1-applesauce-study.md"
+    ".private-docs/plans/prompts/phase-c2-rust-nostr-study.md"
+    ".private-docs/plans/prompts/phase-c3-libnostr-z-study.md"
+    ".private-docs/plans/prompts/phase-c4-implementation-synthesis.md"
+    ".private-docs/plans/prompts/phase-d-contracts-vectors.md"
+    ".private-docs/plans/prompts/phase-e-build-plan.md"
+    ".private-docs/plans/prompts/phase-f-implementation-handoff.md"
 )
 
 roadmap_docs=(
-    "docs/plans/nostr-principles.md"
-    "docs/plans/v1-scope.md"
-    "docs/research/v1-protocol-reference.md"
-    "docs/research/v1-zig-implementation-notes.md"
-    "docs/research/v1-applesauce-deep-study.md"
-    "docs/research/v1-rust-nostr-deep-study.md"
-    "docs/research/v1-libnostr-z-deep-study.md"
-    "docs/research/v1-implementation-decisions.md"
-    "docs/plans/v1-api-contracts.md"
-    "docs/guides/zig-anti-patterns.md"
+    ".private-docs/plans/nostr-principles.md"
+    ".private-docs/plans/v1-scope.md"
+    ".private-docs/research/v1-protocol-reference.md"
+    ".private-docs/research/v1-zig-implementation-notes.md"
+    ".private-docs/research/v1-applesauce-deep-study.md"
+    ".private-docs/research/v1-rust-nostr-deep-study.md"
+    ".private-docs/research/v1-libnostr-z-deep-study.md"
+    ".private-docs/research/v1-implementation-decisions.md"
+    ".private-docs/plans/v1-api-contracts.md"
+    ".private-docs/guides/zig-anti-patterns.md"
 )
 
 for rel in "${research_docs[@]}"; do
@@ -138,40 +138,40 @@ report_section "Control Artifacts" "${plan_docs[@]}"
 printf "## Read Now\n\n"
 printf -- '- `AGENTS.md`\n'
 printf -- '- `handoff.md`\n'
-printf -- '- `docs/README.md`\n'
-printf -- '- `docs/plans/build-plan.md`\n'
-printf -- '- `docs/plans/decision-index.md`\n'
-printf -- '- `docs/plans/phase-h-remaining-work.md`\n'
-printf -- '- `docs/plans/phase-h-rc-api-freeze.md`\n'
+printf -- '- `.private-docs/README.md`\n'
+printf -- '- `.private-docs/plans/build-plan.md`\n'
+printf -- '- `.private-docs/plans/decision-index.md`\n'
+printf -- '- `.private-docs/plans/phase-h-remaining-work.md`\n'
+printf -- '- `.private-docs/plans/phase-h-rc-api-freeze.md`\n'
 printf "\n"
 
 printf "## Load On Demand\n\n"
-printf -- '- `docs/guides/IMPLEMENTATION_QUALITY_GATE.md` when starting or closing an implementation, audit, or robustness slice\n'
-printf -- '- `docs/guides/TIGER_STYLE.md` and `docs/guides/NOZTR_STYLE.md` for Zig implementation or API work\n'
-printf -- '- `docs/guides/zig-patterns.md` and `docs/guides/zig-anti-patterns.md` for Zig implementation or review\n'
-printf -- '- Current Phase H remaining-work packet: `docs/plans/phase-h-remaining-work.md`\n'
-printf -- '- Current RC API-freeze packet: `docs/plans/phase-h-rc-api-freeze.md`\n'
-printf -- '- Current local RC API-freeze review result: `docs/research/rc-api-freeze-review-report.md`\n'
-printf -- '- Completed RC stress/throughput supplement packet: `docs/plans/rc-stress-throughput-supplement.md`\n'
-printf -- '- Completed RC stress/throughput supplement report: `docs/research/rc-stress-throughput-supplement-report.md`\n'
-printf -- '- Completed remediation packet: `docs/plans/post-exhaustive-audit-remediation-plan.md`\n'
-printf -- '- Completed freeze recheck report: `docs/research/post-remediation-freeze-recheck-report.md`\n'
-printf -- '- Completed benchmark supplement packet: `docs/plans/empirical-benchmark-supplement.md`\n'
-printf -- '- Completed external backend assurance packet: `docs/plans/external-crypto-backend-assurance-supplement.md`\n'
-printf -- '- Structured `nzdk` remediation brief: `docs/plans/noztr-sdk-remediation-brief.md`\n'
-printf -- '- Completed exhaustive audit meta-analysis: `docs/research/exhaustive-audit-meta-analysis-report.md`\n'
-printf -- '- Completed LLM structured usability audit: `docs/research/llm-structured-usability-audit-report.md`\n'
-printf -- '- Completed empirical benchmark supplement: `docs/research/empirical-benchmark-supplement-report.md`\n'
-printf -- '- Completed external backend assurance supplement: `docs/research/external-crypto-backend-assurance-report.md`\n'
-printf -- '- Completed exhaustive audit draft: `docs/plans/exhaustive-pre-freeze-audit.md`\n'
-printf -- '- Completed exhaustive audit matrix: `docs/plans/exhaustive-pre-freeze-audit-matrix.md`\n'
-printf -- '- `docs/plans/audit-angle-standards.md` when revisiting the completed audit evidence\n'
-printf -- '- `docs/plans/audit-angle-report-template.md` when writing a dedicated audit-angle report\n'
-printf -- '- `docs/plans/audit-meta-analysis-template.md` when synthesizing completed audit angles\n'
-printf -- '- Completed Phase H packets for traceability: `docs/plans/phase-h-kickoff.md`, `docs/plans/phase-h-additional-nips-plan.md`, `docs/plans/phase-h-wave1-loop.md`\n'
-printf -- '- `docs/plans/packet-template.md` when creating or repairing packet docs\n'
-printf -- '- `docs/plans/decision-log.md` when a task cites a specific decision ID or changes policy defaults\n'
-printf -- '- `docs/plans/noztr-sdk-ownership-matrix.md` for kernel-vs-SDK ownership questions\n'
+printf -- '- `.private-docs/guides/IMPLEMENTATION_QUALITY_GATE.md` when starting or closing an implementation, audit, or robustness slice\n'
+printf -- '- `.private-docs/guides/TIGER_STYLE.md` and `.private-docs/guides/NOZTR_STYLE.md` for Zig implementation or API work\n'
+printf -- '- `.private-docs/guides/zig-patterns.md` and `.private-docs/guides/zig-anti-patterns.md` for Zig implementation or review\n'
+printf -- '- Current Phase H remaining-work packet: `.private-docs/plans/phase-h-remaining-work.md`\n'
+printf -- '- Current RC API-freeze packet: `.private-docs/plans/phase-h-rc-api-freeze.md`\n'
+printf -- '- Current local RC API-freeze review result: `.private-docs/research/rc-api-freeze-review-report.md`\n'
+printf -- '- Completed RC stress/throughput supplement packet: `.private-docs/plans/rc-stress-throughput-supplement.md`\n'
+printf -- '- Completed RC stress/throughput supplement report: `.private-docs/research/rc-stress-throughput-supplement-report.md`\n'
+printf -- '- Completed remediation packet: `.private-docs/plans/post-exhaustive-audit-remediation-plan.md`\n'
+printf -- '- Completed freeze recheck report: `.private-docs/research/post-remediation-freeze-recheck-report.md`\n'
+printf -- '- Completed benchmark supplement packet: `.private-docs/plans/empirical-benchmark-supplement.md`\n'
+printf -- '- Completed external backend assurance packet: `.private-docs/plans/external-crypto-backend-assurance-supplement.md`\n'
+printf -- '- Structured `nzdk` remediation brief: `.private-docs/plans/noztr-sdk-remediation-brief.md`\n'
+printf -- '- Completed exhaustive audit meta-analysis: `.private-docs/research/exhaustive-audit-meta-analysis-report.md`\n'
+printf -- '- Completed LLM structured usability audit: `.private-docs/research/llm-structured-usability-audit-report.md`\n'
+printf -- '- Completed empirical benchmark supplement: `.private-docs/research/empirical-benchmark-supplement-report.md`\n'
+printf -- '- Completed external backend assurance supplement: `.private-docs/research/external-crypto-backend-assurance-report.md`\n'
+printf -- '- Completed exhaustive audit draft: `.private-docs/plans/exhaustive-pre-freeze-audit.md`\n'
+printf -- '- Completed exhaustive audit matrix: `.private-docs/plans/exhaustive-pre-freeze-audit-matrix.md`\n'
+printf -- '- `.private-docs/plans/audit-angle-standards.md` when revisiting the completed audit evidence\n'
+printf -- '- `.private-docs/plans/audit-angle-report-template.md` when writing a dedicated audit-angle report\n'
+printf -- '- `.private-docs/plans/audit-meta-analysis-template.md` when synthesizing completed audit angles\n'
+printf -- '- Completed Phase H packets for traceability: `.private-docs/plans/phase-h-kickoff.md`, `.private-docs/plans/phase-h-additional-nips-plan.md`, `.private-docs/plans/phase-h-wave1-loop.md`\n'
+printf -- '- `.private-docs/plans/packet-template.md` when creating or repairing packet docs\n'
+printf -- '- `.private-docs/plans/decision-log.md` when a task cites a specific decision ID or changes policy defaults\n'
+printf -- '- `.private-docs/plans/noztr-sdk-ownership-matrix.md` for kernel-vs-SDK ownership questions\n'
 printf -- '- Relevant NIP-specific docs, tests, and source files for the current task\n\n'
 
 printf "## Next Missing Artifacts\n\n"
