@@ -97,6 +97,27 @@ Cross-cutting public notes:
   - example: [relay_admin_recipe.zig](/workspace/projects/noztr/examples/relay_admin_recipe.zig)
   - hostile example: [relay_admin_adversarial_example.zig](/workspace/projects/noztr/examples/relay_admin_adversarial_example.zig)
 
+## Structured Metadata And Coordination Surfaces
+
+- NIP-31 fallback summaries for unknown or custom kinds
+  - route: [api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md)
+  - example: [nip31_example.zig](/workspace/projects/noztr/examples/nip31_example.zig)
+- NIP-34 bounded git repository metadata and repository state
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip34_example.zig](/workspace/projects/noztr/examples/nip34_example.zig)
+- NIP-52 calendar event, calendar, and RSVP helpers
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip52_example.zig](/workspace/projects/noztr/examples/nip52_example.zig)
+- NIP-53 bounded live-activity metadata and live-chat addressing
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip53_example.zig](/workspace/projects/noztr/examples/nip53_example.zig)
+- NIP-54 wiki article, merge-request, and redirect helpers
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip54_example.zig](/workspace/projects/noztr/examples/nip54_example.zig)
+- NIP-78 narrow opaque app-data helpers
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip78_example.zig](/workspace/projects/noztr/examples/nip78_example.zig)
+
 ## Reducers, Media, Listings, And Specialized Surfaces
 
 - NIP-29 reducer replay

@@ -29,6 +29,12 @@ Use it when you know the job you want to do, but do not yet know which module or
 | HTTP auth event and header helpers | `nip98_http_auth` | `noztr.nip98_http_auth` | [nip98_example.zig](/workspace/projects/noztr/examples/nip98_example.zig) | [http_auth_adversarial_example.zig](/workspace/projects/noztr/examples/http_auth_adversarial_example.zig) |
 | Private-key encryption boundary | `nip49_private_key_encryption` | `noztr.nip49_private_key_encryption` | [nip49_example.zig](/workspace/projects/noztr/examples/nip49_example.zig) | [private_key_encryption_adversarial_example.zig](/workspace/projects/noztr/examples/private_key_encryption_adversarial_example.zig) |
 | Group replay and poll tally reduction | `nip29_relay_groups`, `nip88_polls` | `noztr.nip29_relay_groups`, `noztr.nip88_polls` | [nip29_reducer_recipe.zig](/workspace/projects/noztr/examples/nip29_reducer_recipe.zig), [nip88_example.zig](/workspace/projects/noztr/examples/nip88_example.zig) | [nip29_adversarial_example.zig](/workspace/projects/noztr/examples/nip29_adversarial_example.zig), [polls_adversarial_example.zig](/workspace/projects/noztr/examples/polls_adversarial_example.zig) |
+| Unknown/custom-kind fallback summaries | `nip31_alt_tags` | `noztr.nip31_alt_tags` | [nip31_example.zig](/workspace/projects/noztr/examples/nip31_example.zig) | none |
+| Git repository metadata and repository state | `nip34_git` | `noztr.nip34_git` | [nip34_example.zig](/workspace/projects/noztr/examples/nip34_example.zig) | none |
+| Calendar event, calendar, and RSVP helpers | `nip52_calendar_events` | `noztr.nip52_calendar_events` | [nip52_example.zig](/workspace/projects/noztr/examples/nip52_example.zig) | none |
+| Live activity metadata and live-chat addressing | `nip53_live_activities` | `noztr.nip53_live_activities` | [nip53_example.zig](/workspace/projects/noztr/examples/nip53_example.zig) | none |
+| Wiki article, merge-request, and redirect metadata | `nip54_wiki` | `noztr.nip54_wiki` | [nip54_example.zig](/workspace/projects/noztr/examples/nip54_example.zig) | none |
+| Opaque app-data `kind:30078` helpers | `nip78_app_data` | `noztr.nip78_app_data` | [nip78_example.zig](/workspace/projects/noztr/examples/nip78_example.zig) | none |
 
 ## Scope Note
 

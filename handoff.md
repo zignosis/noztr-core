@@ -35,14 +35,24 @@ Current execution state for `noztr`.
 - Active execution state remains Phase H.
 - Current active packet is `.private-docs/plans/phase-h-remaining-work.md`.
 - The exhaustive audit, supplements, remediation, freeze recheck, and local RC review are complete.
-- `no-6e6p` remains open because final RC closure still depends on downstream `nzdk` feedback.
+- The second requested-NIP loop is complete:
+  - landed:
+    - `NIP-31`
+    - bounded `NIP-34`
+    - `NIP-52`
+    - bounded `NIP-53`
+    - `NIP-54`
+    - narrow schema-agnostic `NIP-78`
+  - kept out of kernel scope:
+    - `NIP-55`
+- `no-6e6p` remains open and is again the active remaining review lane pending downstream `nzdk`
+  feedback.
 - Public tracked docs now live in `docs/release/` plus `examples/`; internal planning, audit, and
   process docs live in local-only `.private-docs/`.
 - Public contributor style guides now exist in `docs/release/` for external contributors.
-- Latest downstream feedback addressed:
-  - the public `NIP-29` contract map now matches `noztr.nip29_relay_groups`
-  - `NIP-17` now exposes deterministic file-message tag builders without widening into full
-    file-message workflow ownership
+- Ownership call now frozen:
+  - `NIP-55` stays out of `noztr`; it is Android app IPC, not protocol-kernel work
+  - `NIP-78` is accepted only as a minimal schema-agnostic addressable helper
 - Remote readiness remains deferred-by-operator, and no git remote is configured in this repo.
 - Only expected untracked local artifact:
   - `tools/interop/rust-nostr-parity-all/target/`
@@ -68,12 +78,11 @@ Current execution state for `noztr`.
 ## Next Work
 
 - execute `.private-docs/plans/phase-h-rc-api-freeze.md`
-- current tracker lane:
-  - `no-6e6p`
-- if downstream feedback finds a real non-kernel blocker, create one explicit Layer 2
-  adapter-boundary packet instead of widening the kernel by default
-- use `.private-docs/plans/noztr-sdk-ownership-matrix.md` when a candidate touches kernel-vs-SDK
-  scope
+- keep `.private-docs/plans/phase-h-remaining-work.md` as the steady-state Phase H packet
+- close `no-6e6p` only after downstream `nzdk` feedback is reviewed against the current expanded
+  surface
+- use `.private-docs/plans/noztr-sdk-ownership-matrix.md` whenever a requested surface pressures
+  kernel-vs-SDK scope
 
 ## Notes
 

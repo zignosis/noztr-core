@@ -129,11 +129,17 @@ pub const nip39_external_identities = @import("nip39_external_identities.zig");
 /// Phase H deferred-backlog concrete export for the NIP-29 relay-group module.
 pub const nip29_relay_groups = @import("nip29_relay_groups.zig");
 
+/// Phase H second requested-loop concrete export for the NIP-31 alt-tag module.
+pub const nip31_alt_tags = @import("nip31_alt_tags.zig");
+
 /// Post-Phase-H concrete export for the NIP-73 external-id module.
 pub const nip73_external_ids = @import("nip73_external_ids.zig");
 
 /// Post-Phase-H concrete export for the NIP-32 labeling module.
 pub const nip32_labeling = @import("nip32_labeling.zig");
+
+/// Phase H second requested-loop split concrete export for the NIP-34 git metadata module.
+pub const nip34_git = @import("nip34_git.zig");
 
 /// Post-Phase-H concrete export for the NIP-36 content-warning module.
 pub const nip36_content_warning = @import("nip36_content_warning.zig");
@@ -153,6 +159,15 @@ pub const nip37_drafts = @import("nip37_drafts.zig");
 /// Post-Phase-H concrete export for the NIP-58 badges module.
 pub const nip58_badges = @import("nip58_badges.zig");
 
+/// Phase H second requested-loop concrete export for the NIP-52 calendar-events module.
+pub const nip52_calendar_events = @import("nip52_calendar_events.zig");
+
+/// Phase H second requested-loop split concrete export for the NIP-53 live-activities module.
+pub const nip53_live_activities = @import("nip53_live_activities.zig");
+
+/// Phase H second requested-loop split concrete export for the NIP-54 wiki module.
+pub const nip54_wiki = @import("nip54_wiki.zig");
+
 /// Post-Phase-H concrete export for the NIP-84 highlights module.
 pub const nip84_highlights = @import("nip84_highlights.zig");
 
@@ -167,6 +182,9 @@ pub const nip44 = @import("nip44.zig");
 
 /// Phase I5 concrete export for the NIP-59 gift-wrap module.
 pub const nip59_wrap = @import("nip59_wrap.zig");
+
+/// Phase H second requested-loop concrete export for the NIP-78 app-data module.
+pub const nip78_app_data = @import("nip78_app_data.zig");
 
 /// Phase I6 concrete export for the NIP-45 count module.
 pub const nip45_count = if (i6_extensions_enabled) @import("nip45_count.zig") else struct {};
@@ -252,16 +270,22 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip17_private_messages.Nip17RelayListError) == type);
     try std.testing.expect(@TypeOf(nip39_external_identities.Nip39Error) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.Nip29Error) == type);
+    try std.testing.expect(@TypeOf(nip31_alt_tags.Nip31Error) == type);
     try std.testing.expect(@TypeOf(nip73_external_ids.Nip73Error) == type);
     try std.testing.expect(@TypeOf(nip32_labeling.Nip32Error) == type);
+    try std.testing.expect(@TypeOf(nip34_git.Nip34Error) == type);
     try std.testing.expect(@TypeOf(nip36_content_warning.Nip36Error) == type);
     try std.testing.expect(@TypeOf(nip56_reporting.Nip56Error) == type);
     try std.testing.expect(@TypeOf(nip05_identity.Nip05Error) == type);
     try std.testing.expect(@TypeOf(nip26_delegation.Nip26Error) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.Nip52Error) == type);
+    try std.testing.expect(@TypeOf(nip53_live_activities.Nip53Error) == type);
+    try std.testing.expect(@TypeOf(nip54_wiki.Nip54Error) == type);
     try std.testing.expect(@TypeOf(nip57_zaps.Nip57Error) == type);
     try std.testing.expect(@TypeOf(nip86_relay_management.Nip86Error) == type);
     try std.testing.expect(@TypeOf(nip44.Nip44Error) == type);
     try std.testing.expect(@TypeOf(nip59_wrap.WrapError) == type);
+    try std.testing.expect(@TypeOf(nip78_app_data.Nip78Error) == type);
     try std.testing.expectEqual(i6_extensions_enabled, @hasDecl(nip45_count, "CountError"));
     try std.testing.expectEqual(i6_extensions_enabled, @hasDecl(nip50_search, "SearchError"));
     try std.testing.expectEqual(
@@ -319,6 +343,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip17_private_messages.FileDimensions) == type);
     try std.testing.expect(@TypeOf(nip17_private_messages.FileMessageInfo) == type);
     try std.testing.expect(@TypeOf(nip17_private_messages.BuiltTag) == type);
+    try std.testing.expect(@TypeOf(nip31_alt_tags.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nip39_external_identities.IdentityProvider) == type);
     try std.testing.expect(@TypeOf(nip39_external_identities.IdentityClaim) == type);
     try std.testing.expect(@TypeOf(nip39_external_identities.BuiltTag) == type);
@@ -334,6 +359,11 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip32_labeling.LabelEventInfo) == type);
     try std.testing.expect(@TypeOf(nip32_labeling.SelfLabelInfo) == type);
     try std.testing.expect(@TypeOf(nip32_labeling.BuiltTag) == type);
+    try std.testing.expect(@TypeOf(nip34_git.RepositoryAnnouncementInfo) == type);
+    try std.testing.expect(@TypeOf(nip34_git.RepositoryStateRef) == type);
+    try std.testing.expect(@TypeOf(nip34_git.RepositoryStateInfo) == type);
+    try std.testing.expect(@TypeOf(nip34_git.UserGraspListInfo) == type);
+    try std.testing.expect(@TypeOf(nip34_git.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nip36_content_warning.ContentWarningInfo) == type);
     try std.testing.expect(@TypeOf(nip36_content_warning.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nip56_reporting.ReportType) == type);
@@ -368,6 +398,27 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip58_badges.ProfileBadgePair) == type);
     try std.testing.expect(@TypeOf(nip58_badges.ProfileBadgesInfo) == type);
     try std.testing.expect(@TypeOf(nip58_badges.BuiltTag) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.CalendarParticipant) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.CalendarCoordinate) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.DateCalendarEventInfo) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.TimeCalendarEventInfo) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.CalendarInfo) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.CalendarRsvpInfo) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.BuiltTag) == type);
+    try std.testing.expect(@TypeOf(nip53_live_activities.LiveActivityParticipant) == type);
+    try std.testing.expect(@TypeOf(nip53_live_activities.LiveActivityCoordinate) == type);
+    try std.testing.expect(@TypeOf(nip53_live_activities.LiveChatReply) == type);
+    try std.testing.expect(@TypeOf(nip53_live_activities.LiveActivityInfo) == type);
+    try std.testing.expect(@TypeOf(nip53_live_activities.LiveChatInfo) == type);
+    try std.testing.expect(@TypeOf(nip53_live_activities.BuiltTag) == type);
+    try std.testing.expect(@TypeOf(nip54_wiki.WikiArticleReference) == type);
+    try std.testing.expect(@TypeOf(nip54_wiki.WikiEventReference) == type);
+    try std.testing.expect(@TypeOf(nip54_wiki.WikiArticleInfo) == type);
+    try std.testing.expect(@TypeOf(nip54_wiki.WikiMergeRequestInfo) == type);
+    try std.testing.expect(@TypeOf(nip54_wiki.WikiRedirectInfo) == type);
+    try std.testing.expect(@TypeOf(nip54_wiki.BuiltTag) == type);
+    try std.testing.expect(@TypeOf(nip78_app_data.AppDataInfo) == type);
+    try std.testing.expect(@TypeOf(nip78_app_data.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nip84_highlights.EventSource) == type);
     try std.testing.expect(@TypeOf(nip84_highlights.AddressSource) == type);
     try std.testing.expect(@TypeOf(nip84_highlights.UrlReference) == type);
@@ -388,6 +439,8 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupPutUserInfo) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupRemoveUserInfo) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.BuiltTag) == type);
+    try std.testing.expect(@TypeOf(nip78_app_data.AppDataInfo) == type);
+    try std.testing.expect(@TypeOf(nip78_app_data.BuiltTag) == type);
     try std.testing.expect(
         @TypeOf(nip06_mnemonic.mnemonic_validate) ==
             fn ([]const u8) nip06_mnemonic.Nip06Error!void,

@@ -249,6 +249,15 @@ These are the quickest symbol-level routes into the modules most downstream user
 - hostile example:
   - [nip29_adversarial_example.zig](/workspace/projects/noztr/examples/nip29_adversarial_example.zig)
 
+### `nip31_alt_tags`
+
+- `alt_extract`
+  - extract the strict `alt` fallback summary from an event
+- `alt_build_tag`
+  - build the canonical fallback-summary tag for unknown or custom kinds
+- start example:
+  - [nip31_example.zig](/workspace/projects/noztr/examples/nip31_example.zig)
+
 ### `nip88_polls`
 
 - poll metadata parse/build helpers
@@ -258,6 +267,71 @@ These are the quickest symbol-level routes into the modules most downstream user
   - [nip88_example.zig](/workspace/projects/noztr/examples/nip88_example.zig)
 - hostile example:
   - [polls_adversarial_example.zig](/workspace/projects/noztr/examples/polls_adversarial_example.zig)
+
+### `nip34_git`
+
+- `repository_announcement_extract`
+  - extract bounded repository announcement metadata
+- `repository_state_extract`
+  - extract bounded repository state refs and `HEAD`
+- `user_grasp_list_extract`
+  - extract bounded grasp server URLs
+- `repository_build_*`
+  - build canonical repository announcement and state tags
+- start example:
+  - [nip34_example.zig](/workspace/projects/noztr/examples/nip34_example.zig)
+
+### `nip52_calendar_events`
+
+- `date_calendar_event_extract` / `time_calendar_event_extract`
+  - extract bounded metadata from date-based and time-based calendar events
+- `calendar_extract`
+  - extract bounded calendar collection metadata
+- `calendar_rsvp_extract`
+  - extract bounded RSVP metadata and status
+- `calendar_build_*`
+  - build canonical calendar, participant, coordinate, and status tags
+- start example:
+  - [nip52_example.zig](/workspace/projects/noztr/examples/nip52_example.zig)
+
+### `nip53_live_activities`
+
+- `live_activity_extract`
+  - extract bounded live-stream metadata and participants
+- `live_chat_extract`
+  - extract the live-activity coordinate addressed by a live-chat event
+- `live_activity_build_*`
+  - build canonical live-stream metadata tags
+- `live_chat_build_activity_tag`
+  - build the required live-chat activity reference tag
+- start example:
+  - [nip53_example.zig](/workspace/projects/noztr/examples/nip53_example.zig)
+
+### `nip54_wiki`
+
+- `wiki_article_extract`
+  - extract bounded wiki article metadata plus fork/defer references
+- `wiki_merge_request_extract`
+  - extract bounded wiki merge-request metadata
+- `wiki_redirect_extract`
+  - extract bounded redirect metadata
+- `wiki_normalize_identifier_ascii`
+  - normalize an ASCII-heavy wiki title into a `d` identifier slug
+- `wiki_build_*`
+  - build canonical wiki article, event, and destination tags
+- start example:
+  - [nip54_example.zig](/workspace/projects/noztr/examples/nip54_example.zig)
+
+### `nip78_app_data`
+
+- `app_data_is_supported`
+  - check whether an event is the narrow `kind:30078` app-data surface
+- `app_data_extract`
+  - extract the required `d` identifier and opaque content
+- `app_data_build_identifier_tag`
+  - build the required canonical identifier tag
+- start example:
+  - [nip78_example.zig](/workspace/projects/noztr/examples/nip78_example.zig)
 
 ## Core Event, Filter, Message, And Boundary Helpers
 
@@ -332,6 +406,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 | Export | Purpose | Start example |
 | --- | --- | --- |
 | `nip29_relay_groups` | pure relay-group reducer helpers | [nip29_reducer_recipe.zig](/workspace/projects/noztr/examples/nip29_reducer_recipe.zig) |
+| `nip31_alt_tags` | `alt` fallback-summary extraction and build helpers | [nip31_example.zig](/workspace/projects/noztr/examples/nip31_example.zig) |
 | `nip37_drafts` | draft and private relay helpers | [nip37_example.zig](/workspace/projects/noztr/examples/nip37_example.zig) |
 | `nip40_expire` | expiration helpers | [nip40_example.zig](/workspace/projects/noztr/examples/nip40_example.zig) |
 | `nip45_count` | optional count helpers, build-flag gated | [nip45_example.zig](/workspace/projects/noztr/examples/nip45_example.zig) |
@@ -345,6 +420,11 @@ These are the quickest symbol-level routes into the modules most downstream user
 | `nip03_opentimestamps` | bounded OpenTimestamps parsing and local verification floor | [nip03_example.zig](/workspace/projects/noztr/examples/nip03_example.zig) |
 | `nip57_zaps` | zap-related helpers | [nip57_example.zig](/workspace/projects/noztr/examples/nip57_example.zig) |
 | `nip64_chess_pgn` | chess PGN note helpers | [nip64_example.zig](/workspace/projects/noztr/examples/nip64_example.zig) |
+| `nip34_git` | bounded git repository metadata and state helpers | [nip34_example.zig](/workspace/projects/noztr/examples/nip34_example.zig) |
+| `nip52_calendar_events` | calendar event, calendar, and RSVP helpers | [nip52_example.zig](/workspace/projects/noztr/examples/nip52_example.zig) |
+| `nip53_live_activities` | bounded live-activity and live-chat helpers | [nip53_example.zig](/workspace/projects/noztr/examples/nip53_example.zig) |
+| `nip54_wiki` | wiki article, merge-request, and redirect helpers | [nip54_example.zig](/workspace/projects/noztr/examples/nip54_example.zig) |
+| `nip78_app_data` | narrow opaque app-data helpers for `kind:30078` | [nip78_example.zig](/workspace/projects/noztr/examples/nip78_example.zig) |
 | `nip88_polls` | poll parse/build/tally helpers | [nip88_example.zig](/workspace/projects/noztr/examples/nip88_example.zig) |
 | `nip92_media_attachments` | inline media metadata helpers | [nip92_example.zig](/workspace/projects/noztr/examples/nip92_example.zig) |
 | `nip94_file_metadata` | file metadata helpers | [nip94_example.zig](/workspace/projects/noztr/examples/nip94_example.zig) |

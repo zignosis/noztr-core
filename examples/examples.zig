@@ -32,6 +32,7 @@ comptime {
     _ = @import("nip29_example.zig");
     _ = @import("nip29_reducer_recipe.zig");
     _ = @import("nip29_adversarial_example.zig");
+    _ = @import("nip31_example.zig");
     _ = @import("nip39_example.zig");
     _ = @import("identity_proof_adversarial_example.zig");
     _ = @import("nip37_example.zig");
@@ -47,6 +48,9 @@ comptime {
     if (@hasDecl(noztr.nip45_count, "CountError")) _ = @import("nip45_example.zig");
     if (@hasDecl(noztr.nip50_search, "SearchError")) _ = @import("nip50_example.zig");
     _ = @import("nip51_example.zig");
+    _ = @import("nip52_example.zig");
+    _ = @import("nip53_example.zig");
+    _ = @import("nip54_example.zig");
     _ = @import("nip56_example.zig");
     _ = @import("nip57_example.zig");
     _ = @import("nip58_example.zig");
@@ -75,6 +79,7 @@ comptime {
     _ = @import("nip70_example.zig");
     _ = @import("nip73_example.zig");
     if (@hasDecl(noztr.nip77_negentropy, "NegentropyError")) _ = @import("nip77_example.zig");
+    _ = @import("nip78_example.zig");
     _ = @import("nip84_example.zig");
     _ = @import("nip86_example.zig");
     _ = @import("relay_admin_adversarial_example.zig");

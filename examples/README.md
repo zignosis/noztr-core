@@ -55,6 +55,12 @@ file.
 | Wallet Connect envelope and JSON helpers | `connection_uri_parse`, `connection_uri_format`, `request_event_extract`, `response_event_extract`, `notification_event_extract`, `request_parse_json`, `response_parse_json` | `nip47_example.zig` | `wallet_connect_adversarial_example.zig` |
 | Relay-admin JSON-RPC helpers | `method_parse`, `request_parse_json`, `request_serialize_json`, `response_parse_json`, `response_serialize_json` | `relay_admin_recipe.zig` | `relay_admin_adversarial_example.zig` |
 | HTTP auth event and header helpers | `http_auth_extract`, `http_auth_validate_request`, `http_auth_verify_request`, `http_auth_parse_authorization_header`, `http_auth_verify_authorization_header`, `http_auth_build_*` | `nip98_example.zig` | `http_auth_adversarial_example.zig` |
+| Unknown/custom-kind fallback summaries | `alt_extract`, `alt_build_tag` | `nip31_example.zig` | none |
+| Git repository metadata and state tags | `repository_announcement_extract`, `repository_state_extract`, `repository_build_*` | `nip34_example.zig` | none |
+| Calendar event, collection, and RSVP metadata | `date_calendar_event_extract`, `time_calendar_event_extract`, `calendar_rsvp_extract`, `calendar_build_*` | `nip52_example.zig` | none |
+| Live activity metadata and chat activity addressing | `live_activity_extract`, `live_chat_extract`, `live_activity_build_*`, `live_chat_build_activity_tag` | `nip53_example.zig` | none |
+| Wiki article, merge-request, and redirect metadata | `wiki_article_extract`, `wiki_merge_request_extract`, `wiki_redirect_extract`, `wiki_build_*` | `nip54_example.zig` | none |
+| Opaque app-data `kind:30078` helpers | `app_data_extract`, `app_data_build_identifier_tag` | `nip78_example.zig` | none |
 
 ## SDK Job Index
 
@@ -168,6 +174,7 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip27_example.zig`
 - `nip29_example.zig`
 - `nip29_reducer_recipe.zig`
+- `nip31_example.zig`
 - `nip32_example.zig`
 - `nip36_example.zig`
 - `nip37_example.zig`
@@ -180,6 +187,9 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip49_example.zig`
 - `nip98_example.zig`
 - `nip51_example.zig`
+- `nip52_example.zig`
+- `nip53_example.zig`
+- `nip54_example.zig`
 - `nip56_example.zig`
 - `nip57_example.zig`
 - `nip58_example.zig`
@@ -192,6 +202,7 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip65_example.zig`
 - `nip70_example.zig`
 - `nip73_example.zig`
+- `nip78_example.zig`
 - `nip84_example.zig`
 - `nip86_example.zig`
 - `nip92_example.zig`

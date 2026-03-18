@@ -105,8 +105,9 @@ printf -- '- completed packets and reports in `.private-docs/plans/` or `.privat
 printf -- '- relevant NIP-specific docs, tests, and source files for the current task\n\n'
 
 printf "## Current Active Lanes\n\n"
-printf -- '- active Phase H packet: `.private-docs/plans/phase-h-remaining-work.md`\n'
+printf -- '- active Phase H packet: `.private-docs/plans/phase-h-remaining-work.md` (post-second-loop state)\n'
 printf -- '- active RC review packet: `.private-docs/plans/phase-h-rc-api-freeze.md`\n'
+printf -- '- current remaining review lane: `no-6e6p` pending downstream `nzdk` feedback\n'
 printf -- '- local RC review result: `.private-docs/research/rc-api-freeze-review-report.md`\n\n'
 
 printf "## Next Missing Artifacts\n\n"

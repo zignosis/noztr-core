@@ -49,7 +49,9 @@ This page lists the public `noztr` support surface by NIP.
 | `NIP-26` | implemented | `nip26_delegation` | [nip26_example.zig](/workspace/projects/noztr/examples/nip26_example.zig) |
 | `NIP-27` | implemented | `nip27_references` | [nip27_example.zig](/workspace/projects/noztr/examples/nip27_example.zig) |
 | `NIP-29` | implemented | `nip29_relay_groups` | [nip29_example.zig](/workspace/projects/noztr/examples/nip29_example.zig) |
+| `NIP-31` | implemented | `nip31_alt_tags` | [nip31_example.zig](/workspace/projects/noztr/examples/nip31_example.zig) |
 | `NIP-32` | implemented | `nip32_labeling` | [nip32_example.zig](/workspace/projects/noztr/examples/nip32_example.zig) |
+| `NIP-34` | split | `nip34_git` | [nip34_example.zig](/workspace/projects/noztr/examples/nip34_example.zig) |
 | `NIP-36` | implemented | `nip36_content_warning` | [nip36_example.zig](/workspace/projects/noztr/examples/nip36_example.zig) |
 | `NIP-37` | implemented | `nip37_drafts` | [nip37_example.zig](/workspace/projects/noztr/examples/nip37_example.zig) |
 | `NIP-39` | implemented | `nip39_external_identities` | [nip39_example.zig](/workspace/projects/noztr/examples/nip39_example.zig) |
@@ -62,6 +64,9 @@ This page lists the public `noztr` support surface by NIP.
 | `NIP-49` | implemented | `nip49_private_key_encryption` | [nip49_example.zig](/workspace/projects/noztr/examples/nip49_example.zig) |
 | `NIP-50` | optional | `nip50_search` | [nip50_example.zig](/workspace/projects/noztr/examples/nip50_example.zig) |
 | `NIP-51` | implemented | `nip51_lists` | [nip51_example.zig](/workspace/projects/noztr/examples/nip51_example.zig) |
+| `NIP-52` | implemented | `nip52_calendar_events` | [nip52_example.zig](/workspace/projects/noztr/examples/nip52_example.zig) |
+| `NIP-53` | split | `nip53_live_activities` | [nip53_example.zig](/workspace/projects/noztr/examples/nip53_example.zig) |
+| `NIP-54` | implemented | `nip54_wiki` | [nip54_example.zig](/workspace/projects/noztr/examples/nip54_example.zig) |
 | `NIP-56` | implemented | `nip56_reporting` | [nip56_example.zig](/workspace/projects/noztr/examples/nip56_example.zig) |
 | `NIP-57` | split | `nip57_zaps` | [nip57_example.zig](/workspace/projects/noztr/examples/nip57_example.zig) |
 | `NIP-58` | implemented | `nip58_badges` | [nip58_example.zig](/workspace/projects/noztr/examples/nip58_example.zig) |
@@ -71,6 +76,7 @@ This page lists the public `noztr` support surface by NIP.
 | `NIP-70` | implemented | `nip70_protected` | [nip70_example.zig](/workspace/projects/noztr/examples/nip70_example.zig) |
 | `NIP-73` | implemented | `nip73_external_ids` | [nip73_example.zig](/workspace/projects/noztr/examples/nip73_example.zig) |
 | `NIP-77` | optional | `nip77_negentropy` | [nip77_example.zig](/workspace/projects/noztr/examples/nip77_example.zig) |
+| `NIP-78` | split | `nip78_app_data` | [nip78_example.zig](/workspace/projects/noztr/examples/nip78_example.zig) |
 | `NIP-84` | implemented | `nip84_highlights` | [nip84_example.zig](/workspace/projects/noztr/examples/nip84_example.zig) |
 | `NIP-86` | split | `nip86_relay_management` | [nip86_example.zig](/workspace/projects/noztr/examples/nip86_example.zig) |
 | `NIP-88` | implemented | `nip88_polls` | [nip88_example.zig](/workspace/projects/noztr/examples/nip88_example.zig) |
