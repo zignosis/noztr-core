@@ -94,9 +94,9 @@ git diff --check
 
 ## Issue Tracking
 
-This repo uses `br` for all task tracking.
+This repo encourages local `br` usage during development.
 
-Typical flow:
+Typical local flow:
 
 ```bash
 br ready --json
@@ -104,11 +104,37 @@ br update <id> --claim --json
 # do the work
 br close <id> --reason "Completed" --json
 br sync --flush-only
-git add .beads/
-git commit -m "sync beads"
 ```
 
-Do not create parallel markdown TODO systems.
+`.beads/` and `.private-docs/` are maintainer-local state. Use them locally, but do not add them
+to public commits.
+
+Local setup note:
+
+```bash
+br init
+```
+
+If your clone already has local `.beads/` state, reuse it. If you are not acting as a maintainer,
+do not commit `.beads/` or `.private-docs/` to the public repo.
+
+Do not create parallel markdown TODO systems in tracked public docs.
+
+## Commit Subjects
+
+Prefer scoped conventional subjects.
+
+- maintainer commits should use: `<type>:<issue-id>: <summary>`
+- allowed maintainer types: `feat`, `fix`, `doc`, `ref`, `chore`
+- public contributors without a maintainer-local issue id may use: `<type>: <summary>`
+
+Examples:
+
+```text
+feat:no-1chy: strip .beads from the public repo surface
+doc:no-1chy: document local-only maintainer backup rules
+ref:no-6e6p: tighten RC review routing names
+```
 
 ## Public Release Docs Contributions
 

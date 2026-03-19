@@ -87,3 +87,9 @@ Do not route public readers into `.private-docs/`.
 
 If you are working in a local maintainer clone and `.private-docs/AGENTS.md` exists, continue
 there for the internal operator workflow, current phase routing, and local execution state.
+
+If local `.beads/` state exists in that maintainer clone, use `br` for local issue tracking and
+keep `.beads/` out of public commits.
+
+If local tracker state does not exist yet, initialize it locally with `br init` and keep that
+state untracked in public git history.
