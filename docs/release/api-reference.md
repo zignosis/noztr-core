@@ -249,6 +249,39 @@ These are the quickest symbol-level routes into the modules most downstream user
 - hostile example:
   - [nip29_adversarial_example.zig](/workspace/projects/noztr/examples/nip29_adversarial_example.zig)
 
+### `nip14_subjects`
+
+- `subject_extract`
+  - extract one strict `subject` tag from a kind-1 text note
+- `subject_build_tag`
+  - build the canonical `subject` tag for a text note
+- start example:
+  - [nip14_example.zig](/workspace/projects/noztr/examples/nip14_example.zig)
+
+### `nip28_public_chat`
+
+- `channel_create_extract` / `channel_metadata_extract`
+  - extract bounded channel metadata from kinds `40` and `41`
+- `channel_message_extract`
+  - extract root/reply linkage from kind `42`
+- `hide_message_extract` / `mute_user_extract`
+  - extract bounded moderation targets from kinds `43` and `44`
+- `channel_build_*`
+  - build canonical event, pubkey, category, reason, and metadata helpers
+- start example:
+  - [nip28_example.zig](/workspace/projects/noztr/examples/nip28_example.zig)
+
+### `nip30_custom_emoji`
+
+- `emoji_shortcode_from_token`
+  - extract a shortcode from an exact `:shortcode:` token
+- `emoji_tag_extract`
+  - parse a bounded `emoji` tag
+- `emoji_build_tag`
+  - build the canonical `emoji` tag with optional set coordinate
+- start example:
+  - [nip30_example.zig](/workspace/projects/noztr/examples/nip30_example.zig)
+
 ### `nip31_alt_tags`
 
 - `alt_extract`
@@ -257,6 +290,15 @@ These are the quickest symbol-level routes into the modules most downstream user
   - build the canonical fallback-summary tag for unknown or custom kinds
 - start example:
   - [nip31_example.zig](/workspace/projects/noztr/examples/nip31_example.zig)
+
+### `nip38_user_status`
+
+- `user_status_extract`
+  - extract bounded identifier, expiration, links, and emoji references from `kind:30315`
+- `user_status_build_*`
+  - build canonical identifier, url, pubkey, event, coordinate, and expiration tags
+- start example:
+  - [nip38_example.zig](/workspace/projects/noztr/examples/nip38_example.zig)
 
 ### `nip88_polls`
 
@@ -333,6 +375,43 @@ These are the quickest symbol-level routes into the modules most downstream user
 - start example:
   - [nip78_example.zig](/workspace/projects/noztr/examples/nip78_example.zig)
 
+### `nip61_nutzaps`
+
+- `informational_extract`
+  - extract bounded relay, mint, and locking-pubkey state from `kind:10019`
+- `nutzap_extract`
+  - extract bounded proof, mint, unit, recipient, and target linkage from `kind:9321`
+- `redemption_extract`
+  - extract redeemed-event markers from `kind:7376`
+- `*_build_*`
+  - build canonical informational, nutzap, and redemption tags
+- start example:
+  - [nip61_example.zig](/workspace/projects/noztr/examples/nip61_example.zig)
+
+### `nip75_zap_goals`
+
+- `goal_extract`
+  - extract bounded goal metadata, relay list, and optional links from `kind:9041`
+- `goal_reference_extract`
+  - extract a `goal` reference tag from any event
+- `goal_build_*`
+  - build canonical goal metadata and reference tags
+- start example:
+  - [nip75_example.zig](/workspace/projects/noztr/examples/nip75_example.zig)
+
+### `nip89_handlers`
+
+- `recommendation_extract`
+  - extract recommended handler references from `kind:31989`
+- `handler_extract`
+  - extract bounded identifier, supported kinds, and endpoints from `kind:31990`
+- `client_extract`
+  - extract the optional `client` tag from arbitrary events
+- `recommendation_build_*`, `handler_build_*`, `client_build_tag`
+  - build canonical handler recommendation, handler descriptor, and client tags
+- start example:
+  - [nip89_example.zig](/workspace/projects/noztr/examples/nip89_example.zig)
+
 ## Core Event, Filter, Message, And Boundary Helpers
 
 | Export | Purpose | Start example |
@@ -406,7 +485,11 @@ These are the quickest symbol-level routes into the modules most downstream user
 | Export | Purpose | Start example |
 | --- | --- | --- |
 | `nip29_relay_groups` | pure relay-group reducer helpers | [nip29_reducer_recipe.zig](/workspace/projects/noztr/examples/nip29_reducer_recipe.zig) |
+| `nip14_subjects` | strict `subject` tag extract/build helpers | [nip14_example.zig](/workspace/projects/noztr/examples/nip14_example.zig) |
+| `nip28_public_chat` | bounded public-channel metadata, linkage, and moderation helpers | [nip28_example.zig](/workspace/projects/noztr/examples/nip28_example.zig) |
+| `nip30_custom_emoji` | strict custom-emoji shortcode and tag helpers | [nip30_example.zig](/workspace/projects/noztr/examples/nip30_example.zig) |
 | `nip31_alt_tags` | `alt` fallback-summary extraction and build helpers | [nip31_example.zig](/workspace/projects/noztr/examples/nip31_example.zig) |
+| `nip38_user_status` | bounded user-status metadata and linkage helpers | [nip38_example.zig](/workspace/projects/noztr/examples/nip38_example.zig) |
 | `nip37_drafts` | draft and private relay helpers | [nip37_example.zig](/workspace/projects/noztr/examples/nip37_example.zig) |
 | `nip40_expire` | expiration helpers | [nip40_example.zig](/workspace/projects/noztr/examples/nip40_example.zig) |
 | `nip45_count` | optional count helpers, build-flag gated | [nip45_example.zig](/workspace/projects/noztr/examples/nip45_example.zig) |
@@ -424,7 +507,10 @@ These are the quickest symbol-level routes into the modules most downstream user
 | `nip52_calendar_events` | calendar event, calendar, and RSVP helpers | [nip52_example.zig](/workspace/projects/noztr/examples/nip52_example.zig) |
 | `nip53_live_activities` | bounded live-activity and live-chat helpers | [nip53_example.zig](/workspace/projects/noztr/examples/nip53_example.zig) |
 | `nip54_wiki` | wiki article, merge-request, and redirect helpers | [nip54_example.zig](/workspace/projects/noztr/examples/nip54_example.zig) |
+| `nip61_nutzaps` | bounded nutzap informational, event, and redemption-marker contracts | [nip61_example.zig](/workspace/projects/noztr/examples/nip61_example.zig) |
+| `nip75_zap_goals` | zap-goal metadata and goal-reference tags | [nip75_example.zig](/workspace/projects/noztr/examples/nip75_example.zig) |
 | `nip78_app_data` | narrow opaque app-data helpers for `kind:30078` | [nip78_example.zig](/workspace/projects/noztr/examples/nip78_example.zig) |
+| `nip89_handlers` | bounded handler recommendations, endpoints, and client tags | [nip89_example.zig](/workspace/projects/noztr/examples/nip89_example.zig) |
 | `nip88_polls` | poll parse/build/tally helpers | [nip88_example.zig](/workspace/projects/noztr/examples/nip88_example.zig) |
 | `nip92_media_attachments` | inline media metadata helpers | [nip92_example.zig](/workspace/projects/noztr/examples/nip92_example.zig) |
 | `nip94_file_metadata` | file metadata helpers | [nip94_example.zig](/workspace/projects/noztr/examples/nip94_example.zig) |

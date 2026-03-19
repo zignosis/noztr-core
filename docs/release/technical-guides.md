@@ -99,9 +99,21 @@ Cross-cutting public notes:
 
 ## Structured Metadata And Coordination Surfaces
 
+- NIP-14 subject tags for text notes
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip14_example.zig](/workspace/projects/noztr/examples/nip14_example.zig)
+- NIP-28 bounded public-channel metadata and moderation contracts
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip28_example.zig](/workspace/projects/noztr/examples/nip28_example.zig)
+- NIP-30 custom emoji metadata tags
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip30_example.zig](/workspace/projects/noztr/examples/nip30_example.zig)
 - NIP-31 fallback summaries for unknown or custom kinds
   - route: [api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md)
   - example: [nip31_example.zig](/workspace/projects/noztr/examples/nip31_example.zig)
+- NIP-38 user-status metadata and linkage helpers
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip38_example.zig](/workspace/projects/noztr/examples/nip38_example.zig)
 - NIP-34 bounded git repository metadata and repository state
   - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
   - example: [nip34_example.zig](/workspace/projects/noztr/examples/nip34_example.zig)
@@ -114,9 +126,18 @@ Cross-cutting public notes:
 - NIP-54 wiki article, merge-request, and redirect helpers
   - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
   - example: [nip54_example.zig](/workspace/projects/noztr/examples/nip54_example.zig)
+- NIP-61 bounded nutzap informational and redemption-marker contracts
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip61_example.zig](/workspace/projects/noztr/examples/nip61_example.zig)
+- NIP-75 zap-goal metadata and goal-reference tags
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip75_example.zig](/workspace/projects/noztr/examples/nip75_example.zig)
 - NIP-78 narrow opaque app-data helpers
   - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
   - example: [nip78_example.zig](/workspace/projects/noztr/examples/nip78_example.zig)
+- NIP-89 bounded handler recommendations and client tags
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip89_example.zig](/workspace/projects/noztr/examples/nip89_example.zig)
 
 ## Reducers, Media, Listings, And Specialized Surfaces
 

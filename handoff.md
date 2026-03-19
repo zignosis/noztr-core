@@ -45,14 +45,24 @@ Current execution state for `noztr`.
     - narrow schema-agnostic `NIP-78`
   - kept out of kernel scope:
     - `NIP-55`
-- `no-6e6p` remains open and is again the active remaining review lane pending downstream `nzdk`
-  feedback.
+- The third requested-NIP loop is complete:
+  - landed:
+    - `NIP-14`
+    - bounded `NIP-28`
+    - `NIP-30`
+    - `NIP-38`
+    - bounded `NIP-61`
+    - `NIP-75`
+    - expanded bounded `NIP-89`
+- `no-6e6p` remains open pending downstream `nzdk` feedback and is now the primary live Phase H
+  lane again.
 - Public tracked docs now live in `docs/release/` plus `examples/`; internal planning, audit, and
   process docs live in local-only `.private-docs/`.
 - Public contributor style guides now exist in `docs/release/` for external contributors.
-- Ownership call now frozen:
-  - `NIP-55` stays out of `noztr`; it is Android app IPC, not protocol-kernel work
-  - `NIP-78` is accepted only as a minimal schema-agnostic addressable helper
+- frozen bounded ownership calls carried through the third loop:
+  - `NIP-28` stops at deterministic channel metadata/linkage/moderation-contract helpers
+  - `NIP-61` stops at deterministic nutzap informational/event/redemption-marker contracts and
+    stays out of wallet/mint flow
 - Remote readiness remains deferred-by-operator, and no git remote is configured in this repo.
 - Only expected untracked local artifact:
   - `tools/interop/rust-nostr-parity-all/target/`
@@ -77,11 +87,13 @@ Current execution state for `noztr`.
 
 ## Next Work
 
-- execute `.private-docs/plans/phase-h-rc-api-freeze.md`
-- keep `.private-docs/plans/phase-h-remaining-work.md` as the steady-state Phase H packet
-- close `no-6e6p` only after downstream `nzdk` feedback is reviewed against the current expanded
-  surface
-- use `.private-docs/plans/noztr-sdk-ownership-matrix.md` whenever a requested surface pressures
+- execute `.private-docs/plans/phase-h-remaining-work.md`
+- current tracker lanes:
+  - `no-6e6p`
+  - `no-nrzk`
+- keep `.private-docs/plans/phase-h-rc-api-freeze.md` open until downstream `nzdk` feedback either
+  confirms the current RC-facing surface or forces one explicit blocker packet
+- use `.private-docs/plans/noztr-sdk-ownership-matrix.md` whenever downstream feedback pressures
   kernel-vs-SDK scope
 
 ## Notes

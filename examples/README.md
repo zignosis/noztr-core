@@ -55,12 +55,19 @@ file.
 | Wallet Connect envelope and JSON helpers | `connection_uri_parse`, `connection_uri_format`, `request_event_extract`, `response_event_extract`, `notification_event_extract`, `request_parse_json`, `response_parse_json` | `nip47_example.zig` | `wallet_connect_adversarial_example.zig` |
 | Relay-admin JSON-RPC helpers | `method_parse`, `request_parse_json`, `request_serialize_json`, `response_parse_json`, `response_serialize_json` | `relay_admin_recipe.zig` | `relay_admin_adversarial_example.zig` |
 | HTTP auth event and header helpers | `http_auth_extract`, `http_auth_validate_request`, `http_auth_verify_request`, `http_auth_parse_authorization_header`, `http_auth_verify_authorization_header`, `http_auth_build_*` | `nip98_example.zig` | `http_auth_adversarial_example.zig` |
+| Subject tags for kind-1 text notes | `subject_extract`, `subject_build_tag` | `nip14_example.zig` | none |
+| Public-channel metadata, linkage, and moderation tags | `channel_*_extract`, `channel_build_*`, `channel_metadata_parse_json` | `nip28_example.zig` | none |
+| Custom emoji tag parsing and build helpers | `emoji_tag_extract`, `emoji_shortcode_from_token`, `emoji_build_tag` | `nip30_example.zig` | none |
 | Unknown/custom-kind fallback summaries | `alt_extract`, `alt_build_tag` | `nip31_example.zig` | none |
+| User-status metadata and linkage tags | `user_status_extract`, `user_status_build_*` | `nip38_example.zig` | none |
 | Git repository metadata and state tags | `repository_announcement_extract`, `repository_state_extract`, `repository_build_*` | `nip34_example.zig` | none |
 | Calendar event, collection, and RSVP metadata | `date_calendar_event_extract`, `time_calendar_event_extract`, `calendar_rsvp_extract`, `calendar_build_*` | `nip52_example.zig` | none |
 | Live activity metadata and chat activity addressing | `live_activity_extract`, `live_chat_extract`, `live_activity_build_*`, `live_chat_build_activity_tag` | `nip53_example.zig` | none |
 | Wiki article, merge-request, and redirect metadata | `wiki_article_extract`, `wiki_merge_request_extract`, `wiki_redirect_extract`, `wiki_build_*` | `nip54_example.zig` | none |
+| Nutzap informational, event, and redemption-marker contracts | `informational_extract`, `nutzap_extract`, `redemption_extract`, `*_build_*` | `nip61_example.zig` | none |
+| Zap-goal metadata and goal-reference tags | `goal_extract`, `goal_reference_extract`, `goal_build_*` | `nip75_example.zig` | none |
 | Opaque app-data `kind:30078` helpers | `app_data_extract`, `app_data_build_identifier_tag` | `nip78_example.zig` | none |
+| Handler recommendations, endpoints, and client tags | `recommendation_extract`, `handler_extract`, `client_extract`, `*_build_*` | `nip89_example.zig` | none |
 
 ## SDK Job Index
 
@@ -162,6 +169,7 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip10_example.zig`
 - `nip11_example.zig`
 - `nip13_example.zig`
+- `nip14_example.zig`
 - `nip17_example.zig`
 - `nip18_example.zig`
 - `nip19_example.zig`
@@ -172,12 +180,15 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip25_example.zig`
 - `nip26_example.zig`
 - `nip27_example.zig`
+- `nip28_example.zig`
 - `nip29_example.zig`
 - `nip29_reducer_recipe.zig`
+- `nip30_example.zig`
 - `nip31_example.zig`
 - `nip32_example.zig`
 - `nip36_example.zig`
 - `nip37_example.zig`
+- `nip38_example.zig`
 - `nip39_example.zig`
 - `nip40_example.zig`
 - `nip42_example.zig`
@@ -196,13 +207,16 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip59_example.zig`
   - typed boundary example; public outbound build stays deterministic and one-recipient only
   - successful deterministic outbound build lives in `nip17_wrap_recipe.zig`
+- `nip61_example.zig`
 - `nip64_example.zig`
 - `nip88_example.zig`
 - `nostr_keys_example.zig`
 - `nip65_example.zig`
 - `nip70_example.zig`
 - `nip73_example.zig`
+- `nip75_example.zig`
 - `nip78_example.zig`
+- `nip89_example.zig`
 - `nip84_example.zig`
 - `nip86_example.zig`
 - `nip92_example.zig`
