@@ -17,7 +17,7 @@ Read these first:
 Then choose the right public guide:
 
 - positioning and tradeoffs:
-  - `docs/positioning.md`
+  - `docs/scope-and-tradeoffs.md`
   - `docs/intentional-divergences.md`
 - getting started and public contract routing:
   - `docs/getting-started.md`

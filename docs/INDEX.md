@@ -19,7 +19,7 @@ layer built on top of it.
 Start here:
 
 - [getting started](/workspace/projects/noztr/docs/getting-started.md)
-- [positioning](/workspace/projects/noztr/docs/positioning.md)
+- [positioning](/workspace/projects/noztr/docs/scope-and-tradeoffs.md)
 - [intentional divergences](/workspace/projects/noztr/docs/intentional-divergences.md)
 - [examples index](/workspace/projects/noztr/examples/README.md)
 

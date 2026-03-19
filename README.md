@@ -17,7 +17,7 @@ The Zig package/import name in examples remains `noztr`.
 
 For the release-facing explanation of what `noztr-core` is trying to do, why it exists, its benefits
 and limitations, and how it compares to more mature libraries, start with
-[`docs/positioning.md`](/workspace/projects/noztr/docs/positioning.md).
+[`docs/scope-and-tradeoffs.md`](/workspace/projects/noztr/docs/scope-and-tradeoffs.md).
 For the public docs route as a whole, start with
 [`docs/INDEX.md`](/workspace/projects/noztr/docs/INDEX.md).
 For the technical public docs set, continue with:
@@ -97,7 +97,7 @@ Short version:
   core
 
 For the full positioning and comparison note, read
-[`docs/positioning.md`](/workspace/projects/noztr/docs/positioning.md).
+[`docs/scope-and-tradeoffs.md`](/workspace/projects/noztr/docs/scope-and-tradeoffs.md).
 
 ## RC quick start
 
@@ -123,7 +123,7 @@ This repo contains both public-facing docs and extensive internal working docs.
   - [`docs/guides/docs-style-guide.md`](/workspace/projects/noztr/docs/guides/docs-style-guide.md)
   - [`docs/guides/zig-patterns.md`](/workspace/projects/noztr/docs/guides/zig-patterns.md)
   - [`docs/guides/zig-anti-patterns.md`](/workspace/projects/noztr/docs/guides/zig-anti-patterns.md)
-  - [`docs/positioning.md`](/workspace/projects/noztr/docs/positioning.md)
+  - [`docs/scope-and-tradeoffs.md`](/workspace/projects/noztr/docs/scope-and-tradeoffs.md)
   - [`docs/intentional-divergences.md`](/workspace/projects/noztr/docs/intentional-divergences.md)
   - [`docs/guides/technical-guides.md`](/workspace/projects/noztr/docs/guides/technical-guides.md)
   - [`docs/errors-and-ownership.md`](/workspace/projects/noztr/docs/errors-and-ownership.md)

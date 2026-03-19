@@ -64,9 +64,9 @@ exe.root_module.addImport("noztr", noztr_module);
 
 | If you want to... | Open first | Then open |
 | --- | --- | --- |
-| understand what `noztr` is and whether it fits | [noztr-positioning.md](/workspace/projects/noztr/docs/positioning.md) | [intentional-divergences.md](/workspace/projects/noztr/docs/intentional-divergences.md) |
+| understand what `noztr` is and whether it fits | [scope-and-tradeoffs.md](/workspace/projects/noztr/docs/scope-and-tradeoffs.md) | [intentional-divergences.md](/workspace/projects/noztr/docs/intentional-divergences.md) |
 | understand public ownership, scratch, and failure expectations | [errors-and-ownership.md](/workspace/projects/noztr/docs/errors-and-ownership.md) | [strict_core_recipe.zig](/workspace/projects/noztr/examples/strict_core_recipe.zig) |
-| understand current release posture and versioning | [stability-and-versioning.md](/workspace/projects/noztr/docs/stability-and-versioning.md) | [noztr-positioning.md](/workspace/projects/noztr/docs/positioning.md) |
+| understand current release posture and versioning | [stability-and-versioning.md](/workspace/projects/noztr/docs/stability-and-versioning.md) | [scope-and-tradeoffs.md](/workspace/projects/noztr/docs/scope-and-tradeoffs.md) |
 | understand build floor, optional modules, and split support | [compatibility-and-support.md](/workspace/projects/noztr/docs/compatibility-and-support.md) | [nip-coverage.md](/workspace/projects/noztr/docs/reference/nip-coverage.md) |
 | contribute public docs or examples coherently | [docs-style-guide.md](/workspace/projects/noztr/docs/guides/docs-style-guide.md) | [examples/README.md](/workspace/projects/noztr/examples/README.md) |
 | do core event/filter/message work | [core-api-contracts.md](/workspace/projects/noztr/docs/reference/core-api-contracts.md) | [nip01_example.zig](/workspace/projects/noztr/examples/nip01_example.zig) |

@@ -1,5 +1,5 @@
 ---
-title: noztr Positioning
+title: Scope And Tradeoffs
 doc_type: release_note
 status: active
 owner: noztr
@@ -10,7 +10,7 @@ read_when:
 canonical: true
 ---
 
-# noztr-core Positioning
+# Scope And Tradeoffs
 
 This document answers the release-facing questions:
 
@@ -263,7 +263,7 @@ If you are evaluating or adopting the library, use this route first:
 
 - `README.md`
 - `docs/INDEX.md`
-- `docs/positioning.md`
+- `docs/scope-and-tradeoffs.md`
 - `docs/intentional-divergences.md`
 - `docs/reference/core-api-contracts.md`
 - `docs/reference/contract-map.md`
