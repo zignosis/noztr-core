@@ -58,8 +58,7 @@ Current execution state for `noztr`.
   - landed:
     - bounded `NIP-71`
     - bounded `NIP-72`
-- An operator-directed `NIP-91` implementation plan is frozen in
-  `.private-docs/plans/nip91-and-filters-plan.md`.
+- `NIP-91` is now implemented as an additive extension of the existing `nip01_filter` family.
 - The third-loop audit supplement and the targeted remediation packet are complete.
 - `no-6e6p` remains open pending downstream `nzdk` feedback.
 - Public tracked docs now live in `docs/release/` plus `examples/`; internal planning, audit, and

@@ -80,6 +80,7 @@ file.
 - strict core trust-boundary flows:
   - `strict_core_recipe.zig`
   - `nip01_example.zig`
+  - `nip01_adversarial_example.zig`
   - `nip42_example.zig`
   - `nip42_adversarial_example.zig`
   - `nip70_example.zig`
@@ -162,6 +163,7 @@ file.
 Each implemented kernel NIP now has a direct reference example.
 
 - `nip01_example.zig`
+- `nip01_adversarial_example.zig`
 - `nip02_example.zig`
 - `nip03_example.zig`
 - `nip05_example.zig`

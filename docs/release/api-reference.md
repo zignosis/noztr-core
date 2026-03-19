@@ -449,7 +449,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 | Export | Purpose | Start example |
 | --- | --- | --- |
 | `nip01_event` | event parse/serialize/verify/id helpers | [nip01_example.zig](/workspace/projects/noztr/examples/nip01_example.zig) |
-| `nip01_filter` | filter parse and event-matching helpers | [nip01_example.zig](/workspace/projects/noztr/examples/nip01_example.zig) |
+| `nip01_filter` | filter parse, `#x` OR, `&x` AND, and event-matching helpers | [nip01_example.zig](/workspace/projects/noztr/examples/nip01_example.zig) |
 | `nip01_message` | client/relay message parse and serialization helpers | [strict_core_recipe.zig](/workspace/projects/noztr/examples/strict_core_recipe.zig) |
 | `nip42_auth` | auth-event validation helpers | [nip42_example.zig](/workspace/projects/noztr/examples/nip42_example.zig) |
 | `nip70_protected` | protected-event policy helpers | [nip70_example.zig](/workspace/projects/noztr/examples/nip70_example.zig) |

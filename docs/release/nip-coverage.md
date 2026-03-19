@@ -30,6 +30,7 @@ This page lists the public `noztr` support surface by NIP.
 | `NIP-01` events | implemented | `nip01_event` | [nip01_example.zig](/workspace/projects/noztr/examples/nip01_example.zig) |
 | `NIP-01` filters | implemented | `nip01_filter` | [nip01_example.zig](/workspace/projects/noztr/examples/nip01_example.zig) |
 | `NIP-01` messages | implemented | `nip01_message` | [strict_core_recipe.zig](/workspace/projects/noztr/examples/strict_core_recipe.zig) |
+| `NIP-91` AND filters | implemented | `nip01_filter` | [nip01_example.zig](/workspace/projects/noztr/examples/nip01_example.zig) |
 | `NIP-02` | implemented | `nip02_contacts` | [nip02_example.zig](/workspace/projects/noztr/examples/nip02_example.zig) |
 | `NIP-03` | implemented | `nip03_opentimestamps` | [nip03_example.zig](/workspace/projects/noztr/examples/nip03_example.zig) |
 | `NIP-05` | implemented | `nip05_identity` | [nip05_example.zig](/workspace/projects/noztr/examples/nip05_example.zig) |

@@ -43,3 +43,7 @@ For newer or more specialized surfaces, use
 - invalid input and capacity failures are intentionally kept distinct
 - checked helpers are preferred at boundary ingress
 - examples are part of the public teaching surface
+- strict filter work now includes:
+  - `#x` OR tag conditions
+  - `&x` AND tag conditions for `NIP-91`
+  - same-key `&x` values suppress overlapping `#x` values deterministically

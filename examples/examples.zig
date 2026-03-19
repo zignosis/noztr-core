@@ -4,6 +4,7 @@ comptime {
     _ = @import("consumer_smoke.zig");
     _ = @import("common.zig");
     _ = @import("nip01_example.zig");
+    _ = @import("nip01_adversarial_example.zig");
     _ = @import("nip02_example.zig");
     _ = @import("nip09_example.zig");
     _ = @import("nip11_example.zig");

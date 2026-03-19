@@ -615,7 +615,11 @@ fn serialize_filter_tag_conditions(
     var condition_index: u32 = 0;
     while (condition_index < filter.tag_conditions.len) : (condition_index += 1) {
         const condition = filter.tag_conditions[condition_index];
-        var key: [2]u8 = .{ '#', condition.key };
+        const sigil: u8 = switch (condition.mode) {
+            .or_match => '#',
+            .and_match => '&',
+        };
+        var key: [2]u8 = .{ sigil, condition.key };
         try write_object_key(output, index, key[0..], has_field);
         try write_output_bytes(output, index, "[");
         var value_index: u32 = 0;
@@ -1611,6 +1615,39 @@ test "filter prefix roundtrip preserves odd-length ids/authors" {
     try std.testing.expect(reparsed.count.filters_count == 1);
     try std.testing.expect(reparsed.count.filters[0].ids_prefix_nibbles[0] == 3);
     try std.testing.expect(reparsed.count.filters[0].authors_prefix_nibbles[0] == 1);
+}
+
+test "same-key and filter roundtrip suppresses overlapping or values" {
+    var parse_arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer parse_arena.deinit();
+
+    const parsed = try client_message_parse_json(
+        "[\"REQ\",\"sub-1\",{\"&t\":[\"meme\",\"cat\"],\"#t\":[\"cat\",\"dog\"]}]",
+        parse_arena.allocator(),
+    );
+    try std.testing.expect(parsed == .req);
+    try std.testing.expect(parsed.req.filters_count == 1);
+    try std.testing.expect(parsed.req.filters[0].tag_conditions.len == 2);
+
+    var buffer: [512]u8 = undefined;
+    const serialized = try client_message_serialize_json(buffer[0..], &parsed);
+    try std.testing.expectEqualStrings(
+        "[\"REQ\",\"sub-1\",{\"&t\":[\"meme\",\"cat\"],\"#t\":[\"dog\"]}]",
+        serialized,
+    );
+
+    var reparsed_arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer reparsed_arena.deinit();
+
+    const reparsed = try client_message_parse_json(serialized, reparsed_arena.allocator());
+    try std.testing.expect(reparsed == .req);
+    try std.testing.expect(reparsed.req.filters[0].tag_conditions.len == 2);
+    try std.testing.expect(reparsed.req.filters[0].tag_conditions[0].mode == .and_match);
+    try std.testing.expect(reparsed.req.filters[0].tag_conditions[1].mode == .or_match);
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        reparsed.req.filters[0].tag_conditions[1].values.len,
+    );
 }
 
 test "relay serialization is deterministic" {

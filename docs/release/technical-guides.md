@@ -38,7 +38,8 @@ Cross-cutting public notes:
 - strict event, filter, message, transcript, and checked-wrapper flow
   - guide entry: [core-api-contracts.md](/workspace/projects/noztr/docs/release/core-api-contracts.md)
   - example: [strict_core_recipe.zig](/workspace/projects/noztr/examples/strict_core_recipe.zig)
-  - hostile example: [nip42_adversarial_example.zig](/workspace/projects/noztr/examples/nip42_adversarial_example.zig)
+  - references: [nip01_example.zig](/workspace/projects/noztr/examples/nip01_example.zig)
+  - hostile examples: [nip01_adversarial_example.zig](/workspace/projects/noztr/examples/nip01_adversarial_example.zig), [nip42_adversarial_example.zig](/workspace/projects/noztr/examples/nip42_adversarial_example.zig)
 
 ## Identity, Discovery, And Proofs
 
