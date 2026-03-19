@@ -103,6 +103,8 @@ Run tests after every code change.
   - do not return capacity errors for invalid input or invalid-input errors for capacity failures
   - freeze an explicit invalid-vs-capacity matrix before coding every new builder or validator
   - no user-controlled invalid input may rely on debug assertions for rejection in the public path
+  - prove one representative direct overlong-input rejection for each new public builder/parser
+    family before closure
   - run one targeted public-path assertion-leak scan on touched parser/builder/validator chains
   - ask explicitly whether any public invalid input still reaches an internal helper invariant
 - When reference libraries are `LIB_UNSUPPORTED` or only weak evidence exists, require one extra
@@ -117,6 +119,8 @@ Run tests after every code change.
 - Keep canonical audit and status artifacts current as part of closure, not as later cleanup.
 - Add at least one representative overlong-input test for each public builder/parser family touched
   by the slice.
+- Ask explicitly whether the slice introduced another local copy of a boundary helper that should
+  stay shared at least within the touched slice.
 - If the review process gets stricter mid-stream, run a short retroactive backfill pass on all
   recently closed or newly expanded NIPs before claiming the stronger standard is in force.
 - For boundary-heavy SDK-facing surfaces, require at least one consumer-facing hostile or invalid
