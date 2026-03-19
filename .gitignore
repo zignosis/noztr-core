@@ -10,6 +10,7 @@
 .logs/
 __pycache__/
 .zig-cache/
+examples/.zig-cache/
 zig-out/
 .private-docs/
 docs/private-local/
