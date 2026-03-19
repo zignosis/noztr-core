@@ -13,21 +13,16 @@ canonical: true
 # Stability And Versioning
 
 This page explains the public release posture for `noztr-core` and the versioning policy the project
-should follow as it moves from local RC review into public release.
+should follow for public releases.
 
 ## Current Stability Posture
 
 Current status is intentionally conservative:
 
-- the local RC-facing review is positive
-- major audit and remediation work is complete
-- final RC closure is still pending downstream `noztr-sdk` implementation feedback
-
-So the honest current state is:
-
-- the public contract is intentionally shaped and reviewed
-- but the project should still treat the current line as pre-release until that downstream feedback
-  closes
+- the current line should still be treated as pre-`1.0.0`
+- the public contract is intentionally shaped and documented
+- compatibility promises should remain conservative until the project is ready to defend the
+  current surface as stable by default
 
 ## Versioning Policy
 
@@ -40,8 +35,8 @@ Recommended policy:
 - release candidates use `-rc.N`
   - example: `0.1.0-rc.1`
 - `1.0.0` is reserved for the point where:
-  - downstream validation is complete
-  - the RC-facing contract is no longer provisional
+  - release-facing validation is complete
+  - the public contract is no longer provisional
   - the project is willing to defend the public surface as stable by default
 
 ## What Changes A Version
@@ -95,20 +90,17 @@ If a release changes public behavior, the docs and examples should be updated in
 
 Right now the best public reading is:
 
-- `HEAD` is a reviewed RC candidate, not a finished long-term stable line
+- the current public line should be read as a release-candidate or pre-`1.0.0` line, not a
+  finished long-term stable line
 - the project should not pretend to have a mature long-lived public compatibility promise yet
-- existing repo metadata should not be read as proof that a deliberate public release line already
-  existed
-- the right first public release should start with a clearly named `0.1.0` line rather than
-  implying a silent stable contract already existed
+- the first public release should start with a clearly named `0.1.0` line
 
 ## Recommended Path
 
-1. Keep `no-6e6p` open until `noztr-sdk` feedback closes.
-2. If that feedback does not reveal a new blocker, cut the first public release as `0.1.0-rc.1` or
-   directly as `0.1.0`, depending on release packaging needs.
-3. Treat subsequent public contract changes conservatively, even while still pre-`1.0.0`.
-4. Promote to `1.0.0` only after the project is ready to treat the current public surface as the
+1. Cut the first public release as `0.1.0-rc.1` or directly as `0.1.0`, depending on release
+   packaging needs.
+2. Treat subsequent public contract changes conservatively, even while still pre-`1.0.0`.
+3. Promote to `1.0.0` only after the project is ready to treat the current public surface as the
    default compatibility baseline.
 
 ## Related Pages

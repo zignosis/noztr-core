@@ -205,9 +205,9 @@ Before landing a change, ask:
 - does it belong in `noztr`, or in a higher layer?
 - does it keep the code simple in the Tiger sense, or does it only make it more ornate?
 
-## Audit-Learned Heuristics
+## Review Heuristics
 
-These came out of the repo’s major audit and remediation work and should guide contributor review:
+These heuristics should guide contributor review:
 
 - watch for public-path assertion leaks
 - keep invalid-input and capacity-failure handling distinct

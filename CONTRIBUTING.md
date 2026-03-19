@@ -21,7 +21,7 @@ Read these first:
 - [docs/guides/zig-anti-patterns.md](docs/guides/zig-anti-patterns.md)
 
 If you are working as a maintainer or local automation agent and `.private-docs/AGENTS.md` exists,
-continue there for the internal operator workflow. Internal working material lives in local-only
+continue there for the internal maintainer workflow. Internal working material lives in local-only
 `.private-docs/`, while `docs/` and `examples/` are the public docs surface.
 
 ## Scope
@@ -133,9 +133,9 @@ Prefer scoped conventional subjects.
 Examples:
 
 ```text
-feat:no-1chy: strip .beads from the public repo surface
-doc:no-1chy: document local-only maintainer backup rules
-ref:no-6e6p: tighten RC review routing names
+feat:<issue-id>: add a bounded helper for relay discovery parsing
+doc:<issue-id>: tighten public docs routing for examples
+ref:<issue-id>: simplify a parser without changing the public contract
 ```
 
 ## Public Release Docs Contributions
@@ -197,7 +197,7 @@ Short version:
 
 - current line is still effectively pre-release
 - first intentional public release should start at `0.1.0`
-- `1.0.0` should wait until the RC-facing contract is no longer provisional
+- `1.0.0` should wait until the project is ready to defend the public contract as stable by default
 
 ## Questions To Ask Before Landing A Change
 

@@ -88,7 +88,7 @@ Do not route public readers into `.private-docs/`.
 ## Maintainers And Local Automation
 
 If you are working in a local maintainer clone and `.private-docs/AGENTS.md` exists, continue
-there for the internal operator workflow, current phase routing, and local execution state.
+there for the internal maintainer workflow and local execution state.
 
 That maintainer-local route supersedes the public `./agent-brief` startup path for internal work.
 

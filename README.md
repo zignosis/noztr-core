@@ -35,23 +35,16 @@ For the technical public docs set, continue with:
 - [`docs/reference/api-reference.md`](docs/reference/api-reference.md)
 - [`docs/reference/nip-coverage.md`](docs/reference/nip-coverage.md)
 
-## Current status
+## Public release posture
 
-- Current posture: the local RC-facing review is positive, but final closure remains pending
-  downstream `noztr-sdk` feedback.
 - `noztr-core` and `noztr-sdk` are intended to be complementary layers:
   - `noztr-core` owns deterministic protocol-kernel work
   - `noztr-sdk` owns higher-level workflow, transport, and application-facing composition
-- Public versioning policy is now explicit:
-  - treat the current line as pre-release
+- Public versioning policy is conservative:
+  - treat the current line as pre-`1.0.0`
   - start the first intentional public release at `0.1.0`
-  - reserve `1.0.0` for the point where the RC-facing contract is no longer provisional
-- Completed major checkpoints include:
-  - exhaustive audit and meta-analysis
-  - LLM structured usability supplement
-  - empirical benchmark supplement
-  - external crypto/backend assurance supplement
-  - remediation and freeze recheck
+  - reserve `1.0.0` for the point where the project is ready to defend the public contract as
+    stable by default
 - Selected implemented surfaces:
 
 | Surface | Short scope |
@@ -83,7 +76,7 @@ zig build
 
 ## Benchmark evidence
 
-Current local performance evidence can be rerun with:
+Published performance checks can be rerun with:
 
 ```bash
 zig build empirical-benchmark -Doptimize=ReleaseFast
@@ -106,9 +99,9 @@ Short version:
 For the full positioning and comparison note, read
 [`docs/scope-and-tradeoffs.md`](docs/scope-and-tradeoffs.md).
 
-## RC quick start
+## Quick start
 
-Use this route if you want the shortest path into the current public surface.
+Use this route if you want the shortest path into the public surface.
 
 1. Add the `noztr` Zig package dependency for `noztr-core`.
 2. Pick the right symbol family:
@@ -173,7 +166,7 @@ normal dependency for `noztr-core`.
 .{
     .dependencies = .{
         .noztr = .{
-            .path = "../noztr",
+            .path = "../noztr-core",
         },
     },
 }

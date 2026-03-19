@@ -49,8 +49,7 @@ These are the main release-facing assumptions and decisions behind the library:
   it stays bounded and transport-free
 - approved crypto backend exceptions are accepted today, but kept narrow and explicit instead of
   being allowed to spread through the whole library
-- the current RC-facing posture is locally positive, but still provisional until downstream
-  `noztr-sdk` feedback is complete
+- public compatibility posture is intentionally conservative while the project remains pre-`1.0.0`
 
 These decisions explain both the strengths and the limits of `noztr-core`.
 
@@ -142,9 +141,8 @@ Choose `noztr-core` if you want:
   - `noztr` is not literally stdlib-only today
 - newer and less battle-hardened than the oldest widely used Nostr libraries
   - the scope and quality bar are strong, but ecosystem tenure still matters
-- current RC review is still provisional
-  - local review is positive, but the release-facing contract is still waiting on downstream
-    `noztr-sdk` confirmation
+- public compatibility posture is still conservative
+  - the project is intentionally pre-`1.0.0` and does not claim a long-settled stable surface yet
 
 ## Tradeoffs
 

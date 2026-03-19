@@ -46,7 +46,7 @@ zig build
 .{
     .dependencies = .{
         .noztr = .{
-            .path = "../noztr",
+            .path = "../noztr-core",
         },
     },
 }

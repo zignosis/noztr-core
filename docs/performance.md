@@ -36,10 +36,10 @@ It is not trying to measure:
 
 ## Current Measured Evidence
 
-The strongest public measurements currently come from the empirical benchmark and RC
-stress/throughput supplements.
+The strongest public measurements currently come from the empirical benchmark and throughput stress
+benchmark suites.
 
-Representative results on the audit host:
+Representative results on the reference benchmark host:
 
 | Workload | Profile | Threads | Approx. rate |
 | --- | --- | --- | --- |
