@@ -1,5 +1,5 @@
 ---
-title: Public Docs Router
+title: Public Docs Index
 doc_type: index
 status: active
 owner: noztr
@@ -9,9 +9,9 @@ read_when:
 canonical: true
 ---
 
-# Public Docs Router
+# Public Docs Index
 
-This directory is now the public-facing docs surface for `noztr-core`.
+This directory is the public-facing docs surface for `noztr-core`.
 
 `noztr-core` is the protocol-kernel layer. `noztr-sdk` is the complementary higher-level SDK
 layer built on top of it.
@@ -41,5 +41,5 @@ Start here:
 Use the official upstream NIPs repository for spec texts:
 <https://github.com/nostr-protocol/nips>
 
-The internal planning, audit, and process-control docs now live in local-only `.private-docs/` and
+The internal planning, audit, and process-control docs live in local-only `.private-docs/` and
 are not part of the public docs route.

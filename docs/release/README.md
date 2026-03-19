@@ -26,6 +26,8 @@ to understand the current release-facing contract at a high level.
 
 - `README.md`
   - short overview, status, build/test commands, and quick-start routing
+- `docs/index.md`
+  - top-level public docs router
 - `docs/release/noztr-positioning.md`
   - what `noztr` is trying to do, why it exists, tradeoffs, limitations, and comparisons
 - `docs/release/intentional-divergences.md`

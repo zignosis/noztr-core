@@ -19,7 +19,7 @@ For the release-facing explanation of what `noztr-core` is trying to do, why it 
 and limitations, and how it compares to more mature libraries, start with
 [`docs/release/noztr-positioning.md`](/workspace/projects/noztr/docs/release/noztr-positioning.md).
 For the public docs route as a whole, start with
-[`docs/release/README.md`](/workspace/projects/noztr/docs/release/README.md).
+[`docs/index.md`](/workspace/projects/noztr/docs/index.md).
 For the technical public docs set, continue with:
 - [`docs/release/getting-started.md`](/workspace/projects/noztr/docs/release/getting-started.md)
 - [`docs/release/noztr-style.md`](/workspace/projects/noztr/docs/release/noztr-style.md)
@@ -65,7 +65,7 @@ For the technical public docs set, continue with:
   - Non-NIP bounded wallet helpers: Nostr-relevant `BIP-85` subset for lowercase-hex entropy text
     and English BIP39 child mnemonic/entropy
 - Public docs routing:
-  - docs router: [`docs/README.md`](/workspace/projects/noztr/docs/README.md)
+  - docs router: [`docs/index.md`](/workspace/projects/noztr/docs/index.md)
   - release docs router: [`docs/release/README.md`](/workspace/projects/noztr/docs/release/README.md)
 
 ## Build and test
@@ -118,6 +118,7 @@ Use this route if you want the shortest path into the current public surface.
 This repo contains both public-facing release docs and extensive internal working docs.
 
 - Public-facing docs:
+  - [`docs/index.md`](/workspace/projects/noztr/docs/index.md)
   - [`docs/release/README.md`](/workspace/projects/noztr/docs/release/README.md)
   - [`docs/release/getting-started.md`](/workspace/projects/noztr/docs/release/getting-started.md)
   - [`docs/release/noztr-style.md`](/workspace/projects/noztr/docs/release/noztr-style.md)

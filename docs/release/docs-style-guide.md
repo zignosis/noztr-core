@@ -20,7 +20,7 @@ Use it when writing or restructuring:
 - `CONTRIBUTING.md`
 - `CHANGELOG.md`
 - `docs/release/`
-- `docs/README.md`
+- `docs/index.md`
 - `examples/README.md`
 
 The goal is simple:

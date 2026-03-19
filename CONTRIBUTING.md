@@ -11,16 +11,16 @@ docs, and downstream usability.
 Read these first:
 
 - [README.md](/workspace/projects/noztr/README.md)
+- [docs/index.md](/workspace/projects/noztr/docs/index.md)
 - [AGENTS.md](/workspace/projects/noztr/AGENTS.md)
-- [handoff.md](/workspace/projects/noztr/handoff.md)
 - [docs/release/noztr-style.md](/workspace/projects/noztr/docs/release/noztr-style.md)
 - [docs/release/docs-style-guide.md](/workspace/projects/noztr/docs/release/docs-style-guide.md)
 - [docs/release/zig-patterns.md](/workspace/projects/noztr/docs/release/zig-patterns.md)
 - [docs/release/zig-anti-patterns.md](/workspace/projects/noztr/docs/release/zig-anti-patterns.md)
 
-If you are working as a maintainer or automation agent, follow the startup routing in
-[AGENTS.md](/workspace/projects/noztr/AGENTS.md). Internal working material now lives in local-only
-`.private-docs/`, while `docs/release/` and `examples/` are the public docs surface.
+If you are working as a maintainer or local automation agent and `.private-docs/AGENTS.md` exists,
+continue there for the internal operator workflow. Internal working material lives in local-only
+`.private-docs/`, while `docs/` and `examples/` are the public docs surface.
 
 ## Scope
 
@@ -46,7 +46,7 @@ This repo intentionally keeps two documentation layers:
 
 - public tracked docs:
   - `README.md`
-  - `docs/release/`
+  - `docs/`
   - `examples/README.md`
 - internal local-only docs:
   - `.private-docs/`
@@ -90,7 +90,6 @@ For docs-only changes, at minimum run:
 
 ```bash
 git diff --check
-./agent-brief
 ```
 
 ## Issue Tracking
