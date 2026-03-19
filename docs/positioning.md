@@ -201,7 +201,7 @@ controlled app architecture, `noztr-core` is the better fit.
 
 See also:
 
-- `docs/release/intentional-divergences.md`
+- `docs/intentional-divergences.md`
 
 ## Against `libnostr-z`
 
@@ -259,9 +259,9 @@ They are not all meant to be read as public product documentation.
 If you are evaluating or adopting the library, use this route first:
 
 - `README.md`
-- `docs/release/README.md`
-- `docs/release/noztr-positioning.md`
-- `docs/release/intentional-divergences.md`
-- `docs/release/core-api-contracts.md`
-- `docs/release/contract-map.md`
+- `docs/index.md`
+- `docs/positioning.md`
+- `docs/intentional-divergences.md`
+- `docs/reference/core-api-contracts.md`
+- `docs/reference/contract-map.md`
 - `examples/README.md`

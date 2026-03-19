@@ -24,7 +24,7 @@ Use it for:
 - proof-of-work helpers
 
 For newer or more specialized surfaces, use
-[contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md).
+[contract-map.md](/workspace/projects/noztr/docs/reference/contract-map.md).
 
 ## Core Surface
 

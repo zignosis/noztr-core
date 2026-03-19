@@ -131,7 +131,7 @@ worth the cost.
 
 See also:
 
-- [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
+- [errors-and-ownership.md](/workspace/projects/noztr/docs/errors-and-ownership.md)
 
 One important lesson from the audit work:
 
@@ -218,6 +218,6 @@ These came out of the repo’s major audit and remediation work and should guide
 
 ## Next Pages
 
-- [zig-patterns.md](/workspace/projects/noztr/docs/release/zig-patterns.md)
-- [zig-anti-patterns.md](/workspace/projects/noztr/docs/release/zig-anti-patterns.md)
-- [compatibility-and-support.md](/workspace/projects/noztr/docs/release/compatibility-and-support.md)
+- [zig-patterns.md](/workspace/projects/noztr/docs/guides/zig-patterns.md)
+- [zig-anti-patterns.md](/workspace/projects/noztr/docs/guides/zig-anti-patterns.md)
+- [compatibility-and-support.md](/workspace/projects/noztr/docs/compatibility-and-support.md)

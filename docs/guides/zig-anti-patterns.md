@@ -185,6 +185,6 @@ Those are the kinds of shortcuts that create drift later.
 
 ## Related Pages
 
-- [NOZTR Style](/workspace/projects/noztr/docs/release/noztr-style.md)
-- [zig-patterns.md](/workspace/projects/noztr/docs/release/zig-patterns.md)
-- [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
+- [NOZTR Style](/workspace/projects/noztr/docs/guides/noztr-style.md)
+- [zig-patterns.md](/workspace/projects/noztr/docs/guides/zig-patterns.md)
+- [errors-and-ownership.md](/workspace/projects/noztr/docs/errors-and-ownership.md)

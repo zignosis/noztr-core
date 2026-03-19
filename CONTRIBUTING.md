@@ -13,10 +13,10 @@ Read these first:
 - [README.md](/workspace/projects/noztr/README.md)
 - [docs/index.md](/workspace/projects/noztr/docs/index.md)
 - [AGENTS.md](/workspace/projects/noztr/AGENTS.md)
-- [docs/release/noztr-style.md](/workspace/projects/noztr/docs/release/noztr-style.md)
-- [docs/release/docs-style-guide.md](/workspace/projects/noztr/docs/release/docs-style-guide.md)
-- [docs/release/zig-patterns.md](/workspace/projects/noztr/docs/release/zig-patterns.md)
-- [docs/release/zig-anti-patterns.md](/workspace/projects/noztr/docs/release/zig-anti-patterns.md)
+- [docs/guides/noztr-style.md](/workspace/projects/noztr/docs/guides/noztr-style.md)
+- [docs/guides/docs-style-guide.md](/workspace/projects/noztr/docs/guides/docs-style-guide.md)
+- [docs/guides/zig-patterns.md](/workspace/projects/noztr/docs/guides/zig-patterns.md)
+- [docs/guides/zig-anti-patterns.md](/workspace/projects/noztr/docs/guides/zig-anti-patterns.md)
 
 If you are working as a maintainer or local automation agent and `.private-docs/AGENTS.md` exists,
 continue there for the internal operator workflow. Internal working material lives in local-only
@@ -114,19 +114,19 @@ Do not create parallel markdown TODO systems.
 
 If you touch public docs, prefer improving:
 
-- `docs/release/getting-started.md`
-- `docs/release/noztr-style.md`
-- `docs/release/zig-patterns.md`
-- `docs/release/zig-anti-patterns.md`
-- `docs/release/technical-guides.md`
-- `docs/release/core-api-contracts.md`
-- `docs/release/contract-map.md`
-- `docs/release/api-reference.md`
-- `docs/release/nip-coverage.md`
-- `docs/release/errors-and-ownership.md`
-- `docs/release/performance.md`
-- `docs/release/stability-and-versioning.md`
-- `docs/release/compatibility-and-support.md`
+- `docs/getting-started.md`
+- `docs/guides/noztr-style.md`
+- `docs/guides/zig-patterns.md`
+- `docs/guides/zig-anti-patterns.md`
+- `docs/guides/technical-guides.md`
+- `docs/reference/core-api-contracts.md`
+- `docs/reference/contract-map.md`
+- `docs/reference/api-reference.md`
+- `docs/reference/nip-coverage.md`
+- `docs/errors-and-ownership.md`
+- `docs/performance.md`
+- `docs/stability-and-versioning.md`
+- `docs/compatibility-and-support.md`
 - `examples/README.md`
 
 Keep docs and examples linked both ways whenever it materially helps users or LLMs navigate.
@@ -143,10 +143,10 @@ For code work:
 
 Public style references:
 
-- [docs/release/noztr-style.md](/workspace/projects/noztr/docs/release/noztr-style.md)
-- [docs/release/docs-style-guide.md](/workspace/projects/noztr/docs/release/docs-style-guide.md)
-- [docs/release/zig-patterns.md](/workspace/projects/noztr/docs/release/zig-patterns.md)
-- [docs/release/zig-anti-patterns.md](/workspace/projects/noztr/docs/release/zig-anti-patterns.md)
+- [docs/guides/noztr-style.md](/workspace/projects/noztr/docs/guides/noztr-style.md)
+- [docs/guides/docs-style-guide.md](/workspace/projects/noztr/docs/guides/docs-style-guide.md)
+- [docs/guides/zig-patterns.md](/workspace/projects/noztr/docs/guides/zig-patterns.md)
+- [docs/guides/zig-anti-patterns.md](/workspace/projects/noztr/docs/guides/zig-anti-patterns.md)
 
 Before closing a protocol slice, make sure the work includes:
 
@@ -161,8 +161,8 @@ Current public versioning posture is conservative.
 
 See:
 
-- [docs/release/stability-and-versioning.md](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
-- [docs/release/release-notes-template.md](/workspace/projects/noztr/docs/release/release-notes-template.md)
+- [docs/stability-and-versioning.md](/workspace/projects/noztr/docs/stability-and-versioning.md)
+- [docs/release-notes-template.md](/workspace/projects/noztr/docs/release-notes-template.md)
 - [CHANGELOG.md](/workspace/projects/noztr/CHANGELOG.md)
 
 Short version:

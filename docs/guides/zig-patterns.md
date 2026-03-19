@@ -200,6 +200,6 @@ want.
 
 ## Related Pages
 
-- [NOZTR Style](/workspace/projects/noztr/docs/release/noztr-style.md)
-- [zig-anti-patterns.md](/workspace/projects/noztr/docs/release/zig-anti-patterns.md)
-- [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
+- [NOZTR Style](/workspace/projects/noztr/docs/guides/noztr-style.md)
+- [zig-anti-patterns.md](/workspace/projects/noztr/docs/guides/zig-anti-patterns.md)
+- [errors-and-ownership.md](/workspace/projects/noztr/docs/errors-and-ownership.md)

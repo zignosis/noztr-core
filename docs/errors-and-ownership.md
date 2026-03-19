@@ -19,8 +19,8 @@ This page explains two public contracts that matter across almost every `noztr` 
 
 Use it alongside:
 
-- [core-api-contracts.md](/workspace/projects/noztr/docs/release/core-api-contracts.md)
-- [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+- [core-api-contracts.md](/workspace/projects/noztr/docs/reference/core-api-contracts.md)
+- [contract-map.md](/workspace/projects/noztr/docs/reference/contract-map.md)
 - [examples/README.md](/workspace/projects/noztr/examples/README.md)
 
 ## Ownership Model
@@ -120,6 +120,6 @@ It does mean the library tries to preserve the same release-facing discipline:
 
 ## Next Step
 
-- for task routing, use [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
-- for module browsing, use [api-reference.md](/workspace/projects/noztr/docs/release/api-reference.md)
+- for task routing, use [contract-map.md](/workspace/projects/noztr/docs/reference/contract-map.md)
+- for module browsing, use [api-reference.md](/workspace/projects/noztr/docs/reference/api-reference.md)
 - for example routing, use [examples/README.md](/workspace/projects/noztr/examples/README.md)

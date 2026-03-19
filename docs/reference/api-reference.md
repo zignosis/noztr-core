@@ -17,14 +17,14 @@ This is the public module-and-symbol reference for the exported `noztr` surface.
 Use it when you want to browse the library by module instead of by task.
 
 If you already know the task but not the module, start with
-[contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md) or
-[technical-guides.md](/workspace/projects/noztr/docs/release/technical-guides.md) first.
+[contract-map.md](/workspace/projects/noztr/docs/reference/contract-map.md) or
+[technical-guides.md](/workspace/projects/noztr/docs/guides/technical-guides.md) first.
 
 Cross-cutting release notes:
 
-- [errors-and-ownership.md](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
-- [performance.md](/workspace/projects/noztr/docs/release/performance.md)
-- [stability-and-versioning.md](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
+- [errors-and-ownership.md](/workspace/projects/noztr/docs/errors-and-ownership.md)
+- [performance.md](/workspace/projects/noztr/docs/performance.md)
+- [stability-and-versioning.md](/workspace/projects/noztr/docs/stability-and-versioning.md)
 - [examples/README.md](/workspace/projects/noztr/examples/README.md)
 
 ## Shared Foundations
@@ -53,7 +53,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 - start example:
   - [nip01_example.zig](/workspace/projects/noztr/examples/nip01_example.zig)
 - broader route:
-  - [core-api-contracts.md](/workspace/projects/noztr/docs/release/core-api-contracts.md)
+  - [core-api-contracts.md](/workspace/projects/noztr/docs/reference/core-api-contracts.md)
 
 ### `nip46_remote_signing`
 
@@ -74,7 +74,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 - hostile example:
   - [remote_signing_adversarial_example.zig](/workspace/projects/noztr/examples/remote_signing_adversarial_example.zig)
 - broader route:
-  - [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - [contract-map.md](/workspace/projects/noztr/docs/reference/contract-map.md)
 
 ### `nip47_wallet_connect`
 
@@ -97,7 +97,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 - hostile example:
   - [wallet_connect_adversarial_example.zig](/workspace/projects/noztr/examples/wallet_connect_adversarial_example.zig)
 - broader route:
-  - [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - [contract-map.md](/workspace/projects/noztr/docs/reference/contract-map.md)
 
 ### `nip59_wrap`
 
@@ -110,7 +110,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 - hostile example:
   - [nip59_adversarial_example.zig](/workspace/projects/noztr/examples/nip59_adversarial_example.zig)
 - broader route:
-  - [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - [contract-map.md](/workspace/projects/noztr/docs/reference/contract-map.md)
 
 ### `nip17_private_messages`
 
@@ -131,7 +131,7 @@ These are the quickest symbol-level routes into the modules most downstream user
   - [nip17_adversarial_example.zig](/workspace/projects/noztr/examples/nip17_adversarial_example.zig)
   - [nip59_adversarial_example.zig](/workspace/projects/noztr/examples/nip59_adversarial_example.zig)
 - broader route:
-  - [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - [contract-map.md](/workspace/projects/noztr/docs/reference/contract-map.md)
 
 ### `nip98_http_auth`
 
@@ -152,7 +152,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 - hostile example:
   - [http_auth_adversarial_example.zig](/workspace/projects/noztr/examples/http_auth_adversarial_example.zig)
 - broader route:
-  - [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - [contract-map.md](/workspace/projects/noztr/docs/reference/contract-map.md)
 
 ### `nip05_identity`
 
@@ -173,7 +173,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 - hostile example:
   - [nip05_adversarial_example.zig](/workspace/projects/noztr/examples/nip05_adversarial_example.zig)
 - broader route:
-  - [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - [contract-map.md](/workspace/projects/noztr/docs/reference/contract-map.md)
 
 ### `nip06_mnemonic` and `nostr_keys`
 
@@ -189,7 +189,7 @@ These are the quickest symbol-level routes into the modules most downstream user
   - [wallet_recipe.zig](/workspace/projects/noztr/examples/wallet_recipe.zig)
   - [nostr_keys_example.zig](/workspace/projects/noztr/examples/nostr_keys_example.zig)
 - broader route:
-  - [technical-guides.md](/workspace/projects/noztr/docs/release/technical-guides.md)
+  - [technical-guides.md](/workspace/projects/noztr/docs/guides/technical-guides.md)
 
 ### `nip42_auth` and `nip70_protected`
 
@@ -209,7 +209,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 - hostile example:
   - [nip42_adversarial_example.zig](/workspace/projects/noztr/examples/nip42_adversarial_example.zig)
 - broader route:
-  - [core-api-contracts.md](/workspace/projects/noztr/docs/release/core-api-contracts.md)
+  - [core-api-contracts.md](/workspace/projects/noztr/docs/reference/core-api-contracts.md)
 
 ### `nip49_private_key_encryption`
 
@@ -226,7 +226,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 - hostile example:
   - [private_key_encryption_adversarial_example.zig](/workspace/projects/noztr/examples/private_key_encryption_adversarial_example.zig)
 - broader route:
-  - [technical-guides.md](/workspace/projects/noztr/docs/release/technical-guides.md)
+  - [technical-guides.md](/workspace/projects/noztr/docs/guides/technical-guides.md)
 
 ### `nip11`
 
@@ -237,7 +237,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 - start example:
   - [nip11_example.zig](/workspace/projects/noztr/examples/nip11_example.zig)
 - broader route:
-  - [technical-guides.md](/workspace/projects/noztr/docs/release/technical-guides.md)
+  - [technical-guides.md](/workspace/projects/noztr/docs/guides/technical-guides.md)
 
 ### `nip29_relay_groups`
 
@@ -573,6 +573,6 @@ These are the quickest symbol-level routes into the modules most downstream user
 ## Coverage Note
 
 For a NIP-by-NIP view of support, examples, and optional/gated surfaces, use
-[nip-coverage.md](/workspace/projects/noztr/docs/release/nip-coverage.md).
+[nip-coverage.md](/workspace/projects/noztr/docs/reference/nip-coverage.md).
 
-For task-first routing, use [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md).
+For task-first routing, use [contract-map.md](/workspace/projects/noztr/docs/reference/contract-map.md).

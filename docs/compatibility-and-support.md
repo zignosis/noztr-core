@@ -61,7 +61,7 @@ The public docs use three important support labels:
 
 See:
 
-- [nip-coverage.md](/workspace/projects/noztr/docs/release/nip-coverage.md)
+- [nip-coverage.md](/workspace/projects/noztr/docs/reference/nip-coverage.md)
 
 ## What `optional` Means
 
@@ -133,7 +133,7 @@ Those belong in higher layers or sibling repos.
 
 ## Related Pages
 
-- [noztr-positioning.md](/workspace/projects/noztr/docs/release/noztr-positioning.md)
-- [intentional-divergences.md](/workspace/projects/noztr/docs/release/intentional-divergences.md)
-- [stability-and-versioning.md](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
-- [nip-coverage.md](/workspace/projects/noztr/docs/release/nip-coverage.md)
+- [noztr-positioning.md](/workspace/projects/noztr/docs/positioning.md)
+- [intentional-divergences.md](/workspace/projects/noztr/docs/intentional-divergences.md)
+- [stability-and-versioning.md](/workspace/projects/noztr/docs/stability-and-versioning.md)
+- [nip-coverage.md](/workspace/projects/noztr/docs/reference/nip-coverage.md)

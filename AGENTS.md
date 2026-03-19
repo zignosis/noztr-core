@@ -11,31 +11,30 @@ Read these first:
 
 - `README.md`
 - `docs/index.md`
-- `docs/release/README.md`
 - `examples/README.md`
 - `CONTRIBUTING.md`
 
 Then choose the right public guide:
 
 - positioning and tradeoffs:
-  - `docs/release/noztr-positioning.md`
-  - `docs/release/intentional-divergences.md`
+  - `docs/positioning.md`
+  - `docs/intentional-divergences.md`
 - getting started and public contract routing:
-  - `docs/release/getting-started.md`
-  - `docs/release/core-api-contracts.md`
-  - `docs/release/contract-map.md`
-  - `docs/release/api-reference.md`
-  - `docs/release/nip-coverage.md`
+  - `docs/getting-started.md`
+  - `docs/reference/core-api-contracts.md`
+  - `docs/reference/contract-map.md`
+  - `docs/reference/api-reference.md`
+  - `docs/reference/nip-coverage.md`
 - public contributor style:
-  - `docs/release/noztr-style.md`
-  - `docs/release/docs-style-guide.md`
-  - `docs/release/zig-patterns.md`
-  - `docs/release/zig-anti-patterns.md`
+  - `docs/guides/noztr-style.md`
+  - `docs/guides/docs-style-guide.md`
+  - `docs/guides/zig-patterns.md`
+  - `docs/guides/zig-anti-patterns.md`
 - public contract details:
-  - `docs/release/errors-and-ownership.md`
-  - `docs/release/compatibility-and-support.md`
-  - `docs/release/stability-and-versioning.md`
-  - `docs/release/performance.md`
+  - `docs/errors-and-ownership.md`
+  - `docs/compatibility-and-support.md`
+  - `docs/stability-and-versioning.md`
+  - `docs/performance.md`
 
 ## Scope
 

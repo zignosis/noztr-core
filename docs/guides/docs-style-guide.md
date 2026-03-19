@@ -19,7 +19,7 @@ Use it when writing or restructuring:
 - `README.md`
 - `CONTRIBUTING.md`
 - `CHANGELOG.md`
-- `docs/release/`
+- `docs/`
 - `docs/index.md`
 - `examples/README.md`
 
@@ -47,18 +47,20 @@ The public docs surface is intentionally structured:
 
 - `README.md`
   - short repo entry point
-- `docs/release/README.md`
+- `docs/index.md`
   - public docs router
-- `docs/release/getting-started.md`
+- `docs/getting-started.md`
   - first-use path
-- `docs/release/technical-guides.md`
+- `docs/guides/technical-guides.md`
   - narrative guides for non-obvious jobs
-- `docs/release/api-reference.md`
+- `docs/reference/api-reference.md`
   - module and symbol reference
-- `docs/release/nip-coverage.md`
+- `docs/reference/nip-coverage.md`
   - public implementation coverage
-- `docs/release/*.md`
-  - positioning, ownership, performance, compatibility, style, versioning
+- `docs/*.md`
+  - positioning, ownership, performance, compatibility, versioning
+- `docs/guides/*.md`
+  - contributor style and narrative guides
 - `examples/README.md`
   - task-oriented example routing
 

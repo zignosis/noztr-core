@@ -93,7 +93,7 @@ zig build rc-stress-throughput-markdown -Doptimize=ReleaseFast
 If you are deciding whether `noztr` fits your system:
 
 - use this page to understand local kernel expectations
-- use [noztr-positioning.md](/workspace/projects/noztr/docs/release/noztr-positioning.md) to
+- use [noztr-positioning.md](/workspace/projects/noztr/docs/positioning.md) to
   confirm the library matches your architecture
 - use [examples/README.md](/workspace/projects/noztr/examples/README.md) to find the exact
   high-value surface you care about

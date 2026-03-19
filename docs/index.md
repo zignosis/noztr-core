@@ -18,25 +18,33 @@ layer built on top of it.
 
 Start here:
 
-- [release docs index](/workspace/projects/noztr/docs/release/README.md)
-- [getting started](/workspace/projects/noztr/docs/release/getting-started.md)
-- [NOZTR Style](/workspace/projects/noztr/docs/release/noztr-style.md)
-- [Docs style guide](/workspace/projects/noztr/docs/release/docs-style-guide.md)
-- [Zig patterns](/workspace/projects/noztr/docs/release/zig-patterns.md)
-- [Zig anti-patterns](/workspace/projects/noztr/docs/release/zig-anti-patterns.md)
-- [positioning](/workspace/projects/noztr/docs/release/noztr-positioning.md)
-- [intentional divergences](/workspace/projects/noztr/docs/release/intentional-divergences.md)
-- [technical guides](/workspace/projects/noztr/docs/release/technical-guides.md)
-- [errors and ownership](/workspace/projects/noztr/docs/release/errors-and-ownership.md)
-- [performance](/workspace/projects/noztr/docs/release/performance.md)
-- [stability and versioning](/workspace/projects/noztr/docs/release/stability-and-versioning.md)
-- [compatibility and support](/workspace/projects/noztr/docs/release/compatibility-and-support.md)
-- [release notes template](/workspace/projects/noztr/docs/release/release-notes-template.md)
-- [core API contracts](/workspace/projects/noztr/docs/release/core-api-contracts.md)
-- [public contract map](/workspace/projects/noztr/docs/release/contract-map.md)
-- [API reference](/workspace/projects/noztr/docs/release/api-reference.md)
-- [NIP coverage](/workspace/projects/noztr/docs/release/nip-coverage.md)
+- [getting started](/workspace/projects/noztr/docs/getting-started.md)
+- [positioning](/workspace/projects/noztr/docs/positioning.md)
+- [intentional divergences](/workspace/projects/noztr/docs/intentional-divergences.md)
 - [examples index](/workspace/projects/noztr/examples/README.md)
+
+Use the guides when you need narrative help:
+
+- [technical guides](/workspace/projects/noztr/docs/guides/technical-guides.md)
+- [NOZTR Style](/workspace/projects/noztr/docs/guides/noztr-style.md)
+- [Docs style guide](/workspace/projects/noztr/docs/guides/docs-style-guide.md)
+- [Zig patterns](/workspace/projects/noztr/docs/guides/zig-patterns.md)
+- [Zig anti-patterns](/workspace/projects/noztr/docs/guides/zig-anti-patterns.md)
+
+Use the reference pages when you already know the surface:
+
+- [core API contracts](/workspace/projects/noztr/docs/reference/core-api-contracts.md)
+- [public contract map](/workspace/projects/noztr/docs/reference/contract-map.md)
+- [API reference](/workspace/projects/noztr/docs/reference/api-reference.md)
+- [NIP coverage](/workspace/projects/noztr/docs/reference/nip-coverage.md)
+
+Use the support pages for cross-cutting expectations:
+
+- [errors and ownership](/workspace/projects/noztr/docs/errors-and-ownership.md)
+- [performance](/workspace/projects/noztr/docs/performance.md)
+- [stability and versioning](/workspace/projects/noztr/docs/stability-and-versioning.md)
+- [compatibility and support](/workspace/projects/noztr/docs/compatibility-and-support.md)
+- [release notes template](/workspace/projects/noztr/docs/release-notes-template.md)
 
 Use the official upstream NIPs repository for spec texts:
 <https://github.com/nostr-protocol/nips>
