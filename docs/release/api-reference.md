@@ -270,6 +270,8 @@ These are the quickest symbol-level routes into the modules most downstream user
   - build canonical event, pubkey, category, reason, and metadata helpers
 - start example:
   - [nip28_example.zig](/workspace/projects/noztr/examples/nip28_example.zig)
+- hostile example:
+  - [nip28_adversarial_example.zig](/workspace/projects/noztr/examples/nip28_adversarial_example.zig)
 
 ### `nip30_custom_emoji`
 
@@ -387,6 +389,8 @@ These are the quickest symbol-level routes into the modules most downstream user
   - build canonical informational, nutzap, and redemption tags
 - start example:
   - [nip61_example.zig](/workspace/projects/noztr/examples/nip61_example.zig)
+- hostile example:
+  - [nip61_adversarial_example.zig](/workspace/projects/noztr/examples/nip61_adversarial_example.zig)
 
 ### `nip75_zap_goals`
 
@@ -411,6 +415,8 @@ These are the quickest symbol-level routes into the modules most downstream user
   - build canonical handler recommendation, handler descriptor, and client tags
 - start example:
   - [nip89_example.zig](/workspace/projects/noztr/examples/nip89_example.zig)
+- hostile example:
+  - [nip89_adversarial_example.zig](/workspace/projects/noztr/examples/nip89_adversarial_example.zig)
 
 ## Core Event, Filter, Message, And Boundary Helpers
 

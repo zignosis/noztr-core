@@ -42,7 +42,7 @@ pub fn subject_extract(event: *const nip01_event.Event) Nip14Error!?[]const u8 {
 /// Builds a canonical `subject` tag for a kind-1 text note.
 pub fn subject_build_tag(output: *BuiltTag, subject: []const u8) Nip14Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(subject.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 2);
 
     output.items[0] = subject_tag_name;
     output.items[1] = parse_nonempty_utf8(subject) catch return error.InvalidSubjectTag;
@@ -66,9 +66,10 @@ fn parse_subject_tag(tag: nip01_event.EventTag) error{InvalidTag}![]const u8 {
 }
 
 fn parse_nonempty_utf8(text: []const u8) error{InvalidUtf8}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUtf8;
     if (text.len == 0) return error.InvalidUtf8;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUtf8;
     return text;
@@ -119,4 +120,11 @@ test "NIP-14 builds canonical subject tags" {
 
     try std.testing.expectEqualStrings("subject", tag.items[0]);
     try std.testing.expectEqualStrings("Re: Release planning", tag.items[1]);
+}
+
+test "NIP-14 rejects overlong subject builder input with typed error" {
+    var built: BuiltTag = .{};
+    const overlong = [_]u8{'a'} ** (limits.tag_item_bytes_max + 1);
+
+    try std.testing.expectError(error.InvalidSubjectTag, subject_build_tag(&built, overlong[0..]));
 }

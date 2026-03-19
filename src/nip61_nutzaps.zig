@@ -1,6 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const informational_kind: u32 = 10019;
 pub const nutzap_kind: u32 = 9321;
@@ -156,7 +157,7 @@ pub fn informational_build_relay_tag(
     relay_url: []const u8,
 ) Nip61Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(relay_url.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == limits.tag_items_max);
 
     output.items[0] = "relay";
     output.items[1] = parse_url(relay_url) catch return error.InvalidRelayTag;
@@ -189,9 +190,9 @@ pub fn informational_build_pubkey_tag(
     pubkey_hex: []const u8,
 ) Nip61Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == limits.tag_items_max);
 
-    _ = parse_lower_hex_32(pubkey_hex) catch return error.InvalidPubkeyTag;
+    _ = lower_hex_32.parse(pubkey_hex) catch return error.InvalidPubkeyTag;
     output.items[0] = "pubkey";
     output.items[1] = pubkey_hex;
     output.item_count = 2;
@@ -204,7 +205,7 @@ pub fn nutzap_build_proof_tag(
     proof_json: []const u8,
 ) Nip61Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(proof_json.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == limits.tag_items_max);
 
     output.items[0] = "proof";
     output.items[1] = parse_nonempty_utf8(proof_json) catch return error.InvalidProofTag;
@@ -218,7 +219,7 @@ pub fn nutzap_build_unit_tag(
     unit: []const u8,
 ) Nip61Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(unit.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == limits.tag_items_max);
 
     output.items[0] = "unit";
     output.items[1] = parse_unit(unit) catch return error.InvalidUnitTag;
@@ -232,7 +233,7 @@ pub fn nutzap_build_mint_url_tag(
     mint_url: []const u8,
 ) Nip61Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(mint_url.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == limits.tag_items_max);
 
     output.items[0] = "u";
     output.items[1] = parse_url(mint_url) catch return error.InvalidMintUrlTag;
@@ -246,9 +247,9 @@ pub fn nutzap_build_recipient_tag(
     pubkey_hex: []const u8,
 ) Nip61Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == limits.tag_items_max);
 
-    _ = parse_lower_hex_32(pubkey_hex) catch return error.InvalidRecipientTag;
+    _ = lower_hex_32.parse(pubkey_hex) catch return error.InvalidRecipientTag;
     output.items[0] = "p";
     output.items[1] = pubkey_hex;
     output.item_count = 2;
@@ -262,9 +263,9 @@ pub fn nutzap_build_target_event_tag(
     relay_hint: ?[]const u8,
 ) Nip61Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == limits.tag_items_max);
 
-    _ = parse_lower_hex_32(event_id_hex) catch return error.InvalidTargetEventTag;
+    _ = lower_hex_32.parse(event_id_hex) catch return error.InvalidTargetEventTag;
     output.items[0] = "e";
     output.items[1] = event_id_hex;
     output.item_count = 2;
@@ -298,9 +299,9 @@ pub fn redemption_build_redeemed_tag(
     relay_hint: ?[]const u8,
 ) Nip61Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == limits.tag_items_max);
 
-    _ = parse_lower_hex_32(event_id_hex) catch return error.InvalidRedeemedTag;
+    _ = lower_hex_32.parse(event_id_hex) catch return error.InvalidRedeemedTag;
     output.items[0] = "e";
     output.items[1] = event_id_hex;
     output.item_count = 2;
@@ -319,9 +320,9 @@ pub fn redemption_build_sender_tag(
     pubkey_hex: []const u8,
 ) Nip61Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == limits.tag_items_max);
 
-    _ = parse_lower_hex_32(pubkey_hex) catch return error.InvalidSenderTag;
+    _ = lower_hex_32.parse(pubkey_hex) catch return error.InvalidSenderTag;
     output.items[0] = "p";
     output.items[1] = pubkey_hex;
     output.item_count = 2;
@@ -390,7 +391,7 @@ fn parse_informational_pubkey(tag: nip01_event.EventTag) error{InvalidTag}![32]u
     std.debug.assert(tag.items.len != 0);
 
     if (tag.items.len != 2) return error.InvalidTag;
-    return parse_lower_hex_32(tag.items[1]) catch return error.InvalidTag;
+    return lower_hex_32.parse(tag.items[1]) catch return error.InvalidTag;
 }
 
 fn apply_nutzap_tag(
@@ -451,7 +452,7 @@ fn parse_recipient_tag(
 
     if (saw_recipient.*) return error.DuplicateRecipientTag;
     if (tag.items.len != 2) return error.InvalidRecipientTag;
-    info.recipient_pubkey = parse_lower_hex_32(tag.items[1]) catch return error.InvalidRecipientTag;
+    info.recipient_pubkey = lower_hex_32.parse(tag.items[1]) catch return error.InvalidRecipientTag;
     saw_recipient.* = true;
 }
 
@@ -462,7 +463,7 @@ fn parse_target_event_tag(tag: nip01_event.EventTag, info: *NutzapInfo) Nip61Err
     if (info.target_event != null) return error.DuplicateTargetEventTag;
     if (tag.items.len < 2 or tag.items.len > 3) return error.InvalidTargetEventTag;
     info.target_event = .{
-        .event_id = parse_lower_hex_32(tag.items[1]) catch return error.InvalidTargetEventTag,
+        .event_id = lower_hex_32.parse(tag.items[1]) catch return error.InvalidTargetEventTag,
         .relay_hint = if (tag.items.len == 3)
             parse_url(tag.items[2]) catch return error.InvalidTargetEventTag
         else
@@ -512,7 +513,7 @@ fn append_redeemed(
     const marker = if (tag.items.len == 4) tag.items[3] else tag.items[2];
     if (!std.mem.eql(u8, marker, "redeemed")) return error.InvalidRedeemedTag;
     out_redeemed[info.redeemed_count] = .{
-        .event_id = parse_lower_hex_32(tag.items[1]) catch return error.InvalidRedeemedTag,
+        .event_id = lower_hex_32.parse(tag.items[1]) catch return error.InvalidRedeemedTag,
         .relay_hint = if (relay_hint) |value|
             parse_url(value) catch return error.InvalidRedeemedTag
         else
@@ -526,22 +527,24 @@ fn parse_redemption_sender(tag: nip01_event.EventTag) error{InvalidTag}![32]u8 {
     std.debug.assert(tag.items.len != 0);
 
     if (tag.items.len != 2) return error.InvalidTag;
-    return parse_lower_hex_32(tag.items[1]) catch return error.InvalidTag;
+    return lower_hex_32.parse(tag.items[1]) catch return error.InvalidTag;
 }
 
 fn parse_nonempty_utf8(text: []const u8) error{InvalidUtf8}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUtf8;
     if (text.len == 0) return error.InvalidUtf8;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUtf8;
     return text;
 }
 
 fn parse_unit(text: []const u8) error{InvalidUnit}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUnit;
     const unit = parse_nonempty_utf8(text) catch return error.InvalidUnit;
     for (unit) |byte| {
         if (std.ascii.isWhitespace(byte)) return error.InvalidUnit;
@@ -550,31 +553,15 @@ fn parse_unit(text: []const u8) error{InvalidUnit}![]const u8 {
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
     if (text.len == 0) return error.InvalidUrl;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUrl;
     const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
     if (parsed.scheme.len == 0) return error.InvalidUrl;
     return text;
-}
-
-fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
-    std.debug.assert(text.len <= limits.pubkey_hex_length);
-    std.debug.assert(limits.pubkey_hex_length == 64);
-
-    if (text.len != limits.pubkey_hex_length) return error.InvalidHex;
-    var out: [32]u8 = undefined;
-    var index: usize = 0;
-    while (index < out.len) : (index += 1) {
-        const start = index * 2;
-        out[index] = std.fmt.parseUnsigned(u8, text[start .. start + 2], 16) catch {
-            return error.InvalidHex;
-        };
-    }
-    if (!std.mem.eql(u8, &std.fmt.bytesToHex(out, .lower), text)) return error.InvalidHex;
-    return out;
 }
 
 test "NIP-61 extracts informational metadata" {
@@ -657,4 +644,14 @@ test "NIP-61 builds canonical tags" {
         null,
     );
     try std.testing.expectEqualStrings("redeemed", redeemed.items[2]);
+}
+
+test "NIP-61 rejects overlong recipient builder input with typed error" {
+    var built: BuiltTag = .{};
+    const overlong = [_]u8{'a'} ** (limits.tag_item_bytes_max + 1);
+
+    try std.testing.expectError(
+        error.InvalidRecipientTag,
+        nutzap_build_recipient_tag(&built, overlong[0..]),
+    );
 }

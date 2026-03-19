@@ -2,6 +2,7 @@ const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
 const nip30_custom_emoji = @import("nip30_custom_emoji.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const user_status_kind: u32 = 30315;
 
@@ -81,7 +82,7 @@ pub fn user_status_build_identifier_tag(
     identifier: []const u8,
 ) Nip38Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 3);
 
     output.items[0] = "d";
     output.items[1] = parse_nonempty_utf8(identifier) catch return error.InvalidIdentifierTag;
@@ -94,7 +95,7 @@ pub fn user_status_build_url_tag(
     url: []const u8,
 ) Nip38Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(url.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 3);
 
     output.items[0] = "r";
     output.items[1] = parse_url(url) catch return error.InvalidUrlTag;
@@ -107,9 +108,9 @@ pub fn user_status_build_pubkey_tag(
     pubkey_hex: []const u8,
 ) Nip38Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 3);
 
-    _ = parse_lower_hex_32(pubkey_hex) catch return error.InvalidPubkeyTag;
+    _ = lower_hex_32.parse(pubkey_hex) catch return error.InvalidPubkeyTag;
     output.items[0] = "p";
     output.items[1] = pubkey_hex;
     output.item_count = 2;
@@ -121,9 +122,9 @@ pub fn user_status_build_event_tag(
     event_id_hex: []const u8,
 ) Nip38Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 3);
 
-    _ = parse_lower_hex_32(event_id_hex) catch return error.InvalidEventTag;
+    _ = lower_hex_32.parse(event_id_hex) catch return error.InvalidEventTag;
     output.items[0] = "e";
     output.items[1] = event_id_hex;
     output.item_count = 2;
@@ -135,7 +136,7 @@ pub fn user_status_build_coordinate_tag(
     coordinate: []const u8,
 ) Nip38Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(coordinate.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 3);
 
     _ = parse_coordinate_text(coordinate) catch return error.InvalidCoordinateTag;
     output.items[0] = "a";
@@ -226,7 +227,7 @@ fn append_pubkey(
 
     if (tag.items.len < 2 or tag.items.len > 3) return error.InvalidPubkeyTag;
     if (info.pubkey_count == out_pubkeys.len) return error.BufferTooSmall;
-    out_pubkeys[info.pubkey_count] = parse_lower_hex_32(tag.items[1]) catch {
+    out_pubkeys[info.pubkey_count] = lower_hex_32.parse(tag.items[1]) catch {
         return error.InvalidPubkeyTag;
     };
     info.pubkey_count += 1;
@@ -242,7 +243,7 @@ fn append_event(
 
     if (tag.items.len < 2 or tag.items.len > 4) return error.InvalidEventTag;
     if (info.event_count == out_event_ids.len) return error.BufferTooSmall;
-    out_event_ids[info.event_count] = parse_lower_hex_32(tag.items[1]) catch {
+    out_event_ids[info.event_count] = lower_hex_32.parse(tag.items[1]) catch {
         return error.InvalidEventTag;
     };
     info.event_count += 1;
@@ -280,18 +281,20 @@ fn append_emoji(
 }
 
 fn parse_nonempty_utf8(text: []const u8) error{InvalidUtf8}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUtf8;
     if (text.len == 0) return error.InvalidUtf8;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUtf8;
     return text;
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
     if (text.len == 0) return error.InvalidUrl;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUrl;
     const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
@@ -299,34 +302,18 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
     return text;
 }
 
-fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
-    std.debug.assert(text.len <= limits.pubkey_hex_length);
+fn parse_coordinate_text(text: []const u8) error{InvalidCoordinate}![]const u8 {
+    std.debug.assert(limits.tag_item_bytes_max > 0);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
-    if (text.len != limits.pubkey_hex_length) return error.InvalidHex;
-    var out: [32]u8 = undefined;
-    var index: usize = 0;
-    while (index < out.len) : (index += 1) {
-        const start = index * 2;
-        out[index] = std.fmt.parseUnsigned(u8, text[start .. start + 2], 16) catch {
-            return error.InvalidHex;
-        };
-    }
-    if (!std.mem.eql(u8, &std.fmt.bytesToHex(out, .lower), text)) return error.InvalidHex;
-    return out;
-}
-
-fn parse_coordinate_text(text: []const u8) error{InvalidCoordinate}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(limits.tag_item_bytes_max > 0);
-
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidCoordinate;
     var parts = std.mem.splitScalar(u8, text, ':');
     const kind_text = parts.next() orelse return error.InvalidCoordinate;
     const pubkey_text = parts.next() orelse return error.InvalidCoordinate;
     const identifier = parts.next() orelse return error.InvalidCoordinate;
     if (parts.next() != null) return error.InvalidCoordinate;
     _ = std.fmt.parseUnsigned(u32, kind_text, 10) catch return error.InvalidCoordinate;
-    _ = parse_lower_hex_32(pubkey_text) catch return error.InvalidCoordinate;
+    _ = lower_hex_32.parse(pubkey_text) catch return error.InvalidCoordinate;
     if (identifier.len == 0) return error.InvalidCoordinate;
     if (!std.unicode.utf8ValidateSlice(identifier)) return error.InvalidCoordinate;
     return text;
@@ -395,4 +382,14 @@ test "NIP-38 builds identifier and expiration tags" {
     try std.testing.expectEqualStrings("general", identifier.items[1]);
     try std.testing.expectEqualStrings("expiration", expiration.items[0]);
     try std.testing.expectEqualStrings("42", expiration.items[1]);
+}
+
+test "NIP-38 rejects overlong pubkey builder input with typed error" {
+    var built: BuiltTag = .{};
+    const overlong = [_]u8{'a'} ** (limits.tag_item_bytes_max + 1);
+
+    try std.testing.expectError(
+        error.InvalidPubkeyTag,
+        user_status_build_pubkey_tag(&built, overlong[0..]),
+    );
 }

@@ -13,7 +13,6 @@ depends_on:
   - .private-docs/plans/build-plan.md
   - .private-docs/plans/decision-index.md
   - .private-docs/plans/phase-h-remaining-work.md
-  - .private-docs/plans/third-requested-nip-remediation.md
   - .private-docs/plans/phase-h-rc-api-freeze.md
 canonical: true
 ---
@@ -29,7 +28,6 @@ Current execution state for `noztr`.
 - `.private-docs/plans/build-plan.md`
 - `.private-docs/plans/decision-index.md`
 - `.private-docs/plans/phase-h-remaining-work.md`
-- `.private-docs/plans/third-requested-nip-remediation.md`
 - `.private-docs/plans/phase-h-rc-api-freeze.md`
 
 ## Current Status
@@ -56,9 +54,8 @@ Current execution state for `noztr`.
     - bounded `NIP-61`
     - `NIP-75`
     - expanded bounded `NIP-89`
-- The third-loop audit supplement is complete and produced one targeted remediation packet.
-- `no-6e6p` remains open pending downstream `nzdk` feedback, but it is now blocked on the
-  third-loop remediation packet first.
+- The third-loop audit supplement and the targeted remediation packet are complete.
+- `no-6e6p` remains open pending downstream `nzdk` feedback.
 - Public tracked docs now live in `docs/release/` plus `examples/`; internal planning, audit, and
   process docs live in local-only `.private-docs/`.
 - Public contributor style guides now exist in `docs/release/` for external contributors.
@@ -77,7 +74,6 @@ Current execution state for `noztr`.
 - `.private-docs/plans/build-plan.md`
 - `.private-docs/plans/decision-index.md`
 - `.private-docs/plans/phase-h-remaining-work.md`
-- `.private-docs/plans/third-requested-nip-remediation.md`
 - `.private-docs/plans/phase-h-rc-api-freeze.md`
 - `.private-docs/guides/IMPLEMENTATION_QUALITY_GATE.md`
 
@@ -93,12 +89,10 @@ Current execution state for `noztr`.
 
 - execute `.private-docs/plans/phase-h-remaining-work.md`
 - current tracker lanes:
-  - `no-e6d4`
   - `no-6e6p`
   - `no-nrzk`
-- keep `.private-docs/plans/phase-h-rc-api-freeze.md` open until the third-loop remediation packet
-  and downstream `nzdk` feedback either confirm the current RC-facing surface or force one
-  explicit blocker packet
+- keep `.private-docs/plans/phase-h-rc-api-freeze.md` open until downstream `nzdk` feedback
+  either confirms the current RC-facing surface or forces one explicit blocker packet
 - use `.private-docs/plans/noztr-sdk-ownership-matrix.md` whenever downstream feedback pressures
   kernel-vs-SDK scope
 

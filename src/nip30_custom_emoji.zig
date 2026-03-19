@@ -1,6 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const emoji_tag_name: []const u8 = "emoji";
 pub const emoji_set_kind: u32 = 30030;
@@ -32,9 +33,10 @@ pub const BuiltTag = struct {
 
 /// Returns whether a shortcode matches the NIP-30 alphanumeric-or-underscore rule.
 pub fn emoji_shortcode_is_valid(shortcode: []const u8) bool {
-    std.debug.assert(shortcode.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (shortcode.len > limits.tag_item_bytes_max) return false;
     if (shortcode.len == 0) return false;
     for (shortcode) |byte| {
         if (std.ascii.isAlphanumeric(byte) or byte == '_') continue;
@@ -45,9 +47,10 @@ pub fn emoji_shortcode_is_valid(shortcode: []const u8) bool {
 
 /// Extracts a shortcode from an exact `:shortcode:` token.
 pub fn emoji_shortcode_from_token(token: []const u8) Nip30Error![]const u8 {
-    std.debug.assert(token.len <= limits.content_bytes_max);
     std.debug.assert(limits.content_bytes_max > 0);
+    std.debug.assert(limits.content_bytes_max >= 3);
 
+    if (token.len > limits.content_bytes_max) return error.InvalidShortcode;
     if (token.len < 3) return error.InvalidShortcode;
     if (token[0] != ':' or token[token.len - 1] != ':') return error.InvalidShortcode;
     const shortcode = token[1 .. token.len - 1];
@@ -80,7 +83,7 @@ pub fn emoji_build_tag(
     emoji_set_address: ?[]const u8,
 ) Nip30Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(shortcode.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 4);
 
     output.items[0] = emoji_tag_name;
     output.items[1] = parse_shortcode(shortcode) catch return error.InvalidShortcode;
@@ -96,17 +99,18 @@ pub fn emoji_build_tag(
 }
 
 fn parse_shortcode(shortcode: []const u8) error{InvalidText}![]const u8 {
-    std.debug.assert(shortcode.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (!emoji_shortcode_is_valid(shortcode)) return error.InvalidText;
     return shortcode;
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
     if (text.len == 0) return error.InvalidUrl;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUrl;
     const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
@@ -115,9 +119,10 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
 }
 
 fn parse_emoji_set_address(text: []const u8) error{InvalidAddress}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.pubkey_hex_length == 64);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidAddress;
     var parts = std.mem.splitScalar(u8, text, ':');
     const kind_text = parts.next() orelse return error.InvalidAddress;
     const pubkey_text = parts.next() orelse return error.InvalidAddress;
@@ -127,27 +132,10 @@ fn parse_emoji_set_address(text: []const u8) error{InvalidAddress}![]const u8 {
     if (kind != emoji_set_kind) {
         return error.InvalidAddress;
     }
-    _ = parse_lower_hex_32(pubkey_text) catch return error.InvalidAddress;
+    _ = lower_hex_32.parse(pubkey_text) catch return error.InvalidAddress;
     if (identifier.len == 0) return error.InvalidAddress;
     if (!std.unicode.utf8ValidateSlice(identifier)) return error.InvalidAddress;
     return text;
-}
-
-fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
-    std.debug.assert(text.len <= limits.pubkey_hex_length);
-    std.debug.assert(limits.pubkey_hex_length == 64);
-
-    if (text.len != limits.pubkey_hex_length) return error.InvalidHex;
-    var out: [32]u8 = undefined;
-    var index: usize = 0;
-    while (index < out.len) : (index += 1) {
-        const start = index * 2;
-        out[index] = std.fmt.parseUnsigned(u8, text[start .. start + 2], 16) catch {
-            return error.InvalidHex;
-        };
-    }
-    if (!std.mem.eql(u8, &std.fmt.bytesToHex(out, .lower), text)) return error.InvalidHex;
-    return out;
 }
 
 test "NIP-30 extracts emoji tags with optional set coordinates" {
@@ -181,4 +169,14 @@ test "NIP-30 builds canonical emoji tags" {
     try std.testing.expectEqualStrings("emoji", tag.items[0]);
     try std.testing.expectEqualStrings("wave", tag.items[1]);
     try std.testing.expectEqualStrings("https://cdn.example/wave.png", tag.items[2]);
+}
+
+test "NIP-30 rejects overlong shortcode builder input with typed error" {
+    var built: BuiltTag = .{};
+    const overlong = [_]u8{'a'} ** (limits.tag_item_bytes_max + 1);
+
+    try std.testing.expectError(
+        error.InvalidShortcode,
+        emoji_build_tag(&built, overlong[0..], "https://cdn.example/wave.png", null),
+    );
 }

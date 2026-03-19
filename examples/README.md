@@ -56,7 +56,7 @@ file.
 | Relay-admin JSON-RPC helpers | `method_parse`, `request_parse_json`, `request_serialize_json`, `response_parse_json`, `response_serialize_json` | `relay_admin_recipe.zig` | `relay_admin_adversarial_example.zig` |
 | HTTP auth event and header helpers | `http_auth_extract`, `http_auth_validate_request`, `http_auth_verify_request`, `http_auth_parse_authorization_header`, `http_auth_verify_authorization_header`, `http_auth_build_*` | `nip98_example.zig` | `http_auth_adversarial_example.zig` |
 | Subject tags for kind-1 text notes | `subject_extract`, `subject_build_tag` | `nip14_example.zig` | none |
-| Public-channel metadata, linkage, and moderation tags | `channel_*_extract`, `channel_build_*`, `channel_metadata_parse_json` | `nip28_example.zig` | none |
+| Public-channel metadata, linkage, and moderation tags | `channel_*_extract`, `channel_build_*`, `channel_metadata_parse_json` | `nip28_example.zig` | `nip28_adversarial_example.zig` |
 | Custom emoji tag parsing and build helpers | `emoji_tag_extract`, `emoji_shortcode_from_token`, `emoji_build_tag` | `nip30_example.zig` | none |
 | Unknown/custom-kind fallback summaries | `alt_extract`, `alt_build_tag` | `nip31_example.zig` | none |
 | User-status metadata and linkage tags | `user_status_extract`, `user_status_build_*` | `nip38_example.zig` | none |
@@ -64,10 +64,10 @@ file.
 | Calendar event, collection, and RSVP metadata | `date_calendar_event_extract`, `time_calendar_event_extract`, `calendar_rsvp_extract`, `calendar_build_*` | `nip52_example.zig` | none |
 | Live activity metadata and chat activity addressing | `live_activity_extract`, `live_chat_extract`, `live_activity_build_*`, `live_chat_build_activity_tag` | `nip53_example.zig` | none |
 | Wiki article, merge-request, and redirect metadata | `wiki_article_extract`, `wiki_merge_request_extract`, `wiki_redirect_extract`, `wiki_build_*` | `nip54_example.zig` | none |
-| Nutzap informational, event, and redemption-marker contracts | `informational_extract`, `nutzap_extract`, `redemption_extract`, `*_build_*` | `nip61_example.zig` | none |
+| Nutzap informational, event, and redemption-marker contracts | `informational_extract`, `nutzap_extract`, `redemption_extract`, `*_build_*` | `nip61_example.zig` | `nip61_adversarial_example.zig` |
 | Zap-goal metadata and goal-reference tags | `goal_extract`, `goal_reference_extract`, `goal_build_*` | `nip75_example.zig` | none |
 | Opaque app-data `kind:30078` helpers | `app_data_extract`, `app_data_build_identifier_tag` | `nip78_example.zig` | none |
-| Handler recommendations, endpoints, and client tags | `recommendation_extract`, `handler_extract`, `client_extract`, `*_build_*` | `nip89_example.zig` | none |
+| Handler recommendations, endpoints, and client tags | `recommendation_extract`, `handler_extract`, `client_extract`, `*_build_*` | `nip89_example.zig` | `nip89_adversarial_example.zig` |
 
 ## SDK Job Index
 
@@ -297,6 +297,12 @@ These are the first files to open when you need the failure contract for a bound
   - malformed NWC request bodies and mismatched notification shapes stay on typed failures
 - `http_auth_adversarial_example.zig`
   - malformed `Authorization` values and noncanonical payload hashes stay on typed failures
+- `nip28_adversarial_example.zig`
+  - overlong channel reference builder input stays on typed `InvalidChannelTag`
+- `nip61_adversarial_example.zig`
+  - target kind without a target event stays on typed `TargetKindWithoutEvent`
+- `nip89_adversarial_example.zig`
+  - malformed client handler coordinates stay on typed `InvalidClientTag`
 - `blossom_adversarial_example.zig`
   - malformed server URLs and query-bearing blob URLs stay on typed `NIP-B7` failures
 - `nip29_adversarial_example.zig`

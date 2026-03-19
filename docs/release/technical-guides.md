@@ -105,6 +105,7 @@ Cross-cutting public notes:
 - NIP-28 bounded public-channel metadata and moderation contracts
   - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
   - example: [nip28_example.zig](/workspace/projects/noztr/examples/nip28_example.zig)
+  - hostile example: [nip28_adversarial_example.zig](/workspace/projects/noztr/examples/nip28_adversarial_example.zig)
 - NIP-30 custom emoji metadata tags
   - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
   - example: [nip30_example.zig](/workspace/projects/noztr/examples/nip30_example.zig)
@@ -129,6 +130,7 @@ Cross-cutting public notes:
 - NIP-61 bounded nutzap informational and redemption-marker contracts
   - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
   - example: [nip61_example.zig](/workspace/projects/noztr/examples/nip61_example.zig)
+  - hostile example: [nip61_adversarial_example.zig](/workspace/projects/noztr/examples/nip61_adversarial_example.zig)
 - NIP-75 zap-goal metadata and goal-reference tags
   - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
   - example: [nip75_example.zig](/workspace/projects/noztr/examples/nip75_example.zig)
@@ -138,6 +140,7 @@ Cross-cutting public notes:
 - NIP-89 bounded handler recommendations and client tags
   - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
   - example: [nip89_example.zig](/workspace/projects/noztr/examples/nip89_example.zig)
+  - hostile example: [nip89_adversarial_example.zig](/workspace/projects/noztr/examples/nip89_adversarial_example.zig)
 
 ## Reducers, Media, Listings, And Specialized Surfaces
 

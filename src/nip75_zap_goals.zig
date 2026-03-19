@@ -1,6 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const goal_kind: u32 = 9041;
 
@@ -20,6 +21,7 @@ pub const Nip75Error = error{
     InvalidSummaryTag,
     DuplicateUrlTag,
     InvalidUrlTag,
+    DuplicateGoalTag,
     DuplicateCoordinateTag,
     InvalidCoordinateTag,
     InvalidGoalTag,
@@ -82,7 +84,7 @@ pub fn goal_reference_extract(event: *const nip01_event.Event) Nip75Error!?GoalR
     for (event.tags) |tag| {
         if (tag.items.len == 0) continue;
         if (!std.mem.eql(u8, tag.items[0], "goal")) continue;
-        if (reference != null) return error.DuplicateCoordinateTag;
+        if (reference != null) return error.DuplicateGoalTag;
         reference = parse_goal_reference_tag(tag) catch return error.InvalidGoalTag;
     }
     return reference;
@@ -140,7 +142,7 @@ pub fn goal_build_image_tag(
     image_url: []const u8,
 ) Nip75Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(image_url.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == limits.tag_items_max);
 
     output.items[0] = "image";
     output.items[1] = parse_url(image_url) catch return error.InvalidImageTag;
@@ -153,7 +155,7 @@ pub fn goal_build_summary_tag(
     summary: []const u8,
 ) Nip75Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(summary.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == limits.tag_items_max);
 
     output.items[0] = "summary";
     output.items[1] = parse_nonempty_utf8(summary) catch return error.InvalidSummaryTag;
@@ -167,9 +169,9 @@ pub fn goal_build_reference_tag(
     relay_hint: ?[]const u8,
 ) Nip75Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == limits.tag_items_max);
 
-    _ = parse_lower_hex_32(event_id_hex) catch return error.InvalidGoalTag;
+    _ = lower_hex_32.parse(event_id_hex) catch return error.InvalidGoalTag;
     output.items[0] = "goal";
     output.items[1] = event_id_hex;
     output.item_count = 2;
@@ -289,7 +291,7 @@ fn parse_goal_reference_tag(tag: nip01_event.EventTag) error{InvalidTag}!GoalRef
 
     if (tag.items.len < 2 or tag.items.len > 3) return error.InvalidTag;
     return .{
-        .event_id = parse_lower_hex_32(tag.items[1]) catch return error.InvalidTag,
+        .event_id = lower_hex_32.parse(tag.items[1]) catch return error.InvalidTag,
         .relay_hint = if (tag.items.len == 3)
             parse_url(tag.items[2]) catch return error.InvalidTag
         else
@@ -298,18 +300,20 @@ fn parse_goal_reference_tag(tag: nip01_event.EventTag) error{InvalidTag}!GoalRef
 }
 
 fn parse_nonempty_utf8(text: []const u8) error{InvalidUtf8}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUtf8;
     if (text.len == 0) return error.InvalidUtf8;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUtf8;
     return text;
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
     if (text.len == 0) return error.InvalidUrl;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUrl;
     const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
@@ -318,36 +322,20 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
 }
 
 fn parse_coordinate_text(text: []const u8) error{InvalidCoordinate}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.pubkey_hex_length == 64);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidCoordinate;
     var parts = std.mem.splitScalar(u8, text, ':');
     const kind_text = parts.next() orelse return error.InvalidCoordinate;
     const pubkey_text = parts.next() orelse return error.InvalidCoordinate;
     const identifier = parts.next() orelse return error.InvalidCoordinate;
     if (parts.next() != null) return error.InvalidCoordinate;
     _ = std.fmt.parseUnsigned(u32, kind_text, 10) catch return error.InvalidCoordinate;
-    _ = parse_lower_hex_32(pubkey_text) catch return error.InvalidCoordinate;
+    _ = lower_hex_32.parse(pubkey_text) catch return error.InvalidCoordinate;
     if (identifier.len == 0) return error.InvalidCoordinate;
     if (!std.unicode.utf8ValidateSlice(identifier)) return error.InvalidCoordinate;
     return text;
-}
-
-fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
-    std.debug.assert(text.len <= limits.pubkey_hex_length);
-    std.debug.assert(limits.pubkey_hex_length == 64);
-
-    if (text.len != limits.pubkey_hex_length) return error.InvalidHex;
-    var out: [32]u8 = undefined;
-    var index: usize = 0;
-    while (index < out.len) : (index += 1) {
-        const start = index * 2;
-        out[index] = std.fmt.parseUnsigned(u8, text[start .. start + 2], 16) catch {
-            return error.InvalidHex;
-        };
-    }
-    if (!std.mem.eql(u8, &std.fmt.bytesToHex(out, .lower), text)) return error.InvalidHex;
-    return out;
 }
 
 test "NIP-75 extracts goal metadata and relays" {
@@ -400,6 +388,24 @@ test "NIP-75 extracts goal references from other events" {
     try std.testing.expectEqualStrings("wss://relay.example.com", reference.?.relay_hint.?);
 }
 
+test "NIP-75 rejects duplicate goal references with typed goal error" {
+    const tags = [_]nip01_event.EventTag{
+        .{ .items = &.{ "goal", "1111111111111111111111111111111111111111111111111111111111111111" } },
+        .{ .items = &.{ "goal", "2222222222222222222222222222222222222222222222222222222222222222" } },
+    };
+    const event = nip01_event.Event{
+        .id = [_]u8{0x77} ** 32,
+        .pubkey = [_]u8{0x13} ** 32,
+        .created_at = 3,
+        .kind = 1,
+        .tags = tags[0..],
+        .content = "",
+        .sig = [_]u8{0x24} ** 64,
+    };
+
+    try std.testing.expectError(error.DuplicateGoalTag, goal_reference_extract(&event));
+}
+
 test "NIP-75 builds canonical goal tags" {
     var relays_built: BuiltTag = .{};
     var amount_built: BuiltTag = .{};
@@ -411,4 +417,14 @@ test "NIP-75 builds canonical goal tags" {
     try std.testing.expectEqualStrings("wss://relay.one", relays.items[1]);
     try std.testing.expectEqualStrings("amount", amount.items[0]);
     try std.testing.expectEqualStrings("210000", amount.items[1]);
+}
+
+test "NIP-75 rejects overlong goal reference builder input with typed error" {
+    var built: BuiltTag = .{};
+    const overlong = [_]u8{'a'} ** (limits.tag_item_bytes_max + 1);
+
+    try std.testing.expectError(
+        error.InvalidGoalTag,
+        goal_build_reference_tag(&built, overlong[0..], null),
+    );
 }

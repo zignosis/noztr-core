@@ -1,6 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const recommendation_kind: u32 = 31989;
 pub const handler_kind: u32 = 31990;
@@ -142,7 +143,7 @@ pub fn recommendation_build_handler_tag(
     platform: ?[]const u8,
 ) Nip89Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(coordinate_text.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 4);
 
     _ = parse_handler_coordinate(coordinate_text) catch return error.InvalidHandlerReferenceTag;
     output.items[0] = "a";
@@ -167,7 +168,7 @@ pub fn handler_build_identifier_tag(
     identifier: []const u8,
 ) Nip89Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 4);
 
     output.items[0] = "d";
     output.items[1] = parse_nonempty_utf8(identifier) catch return error.InvalidIdentifierTag;
@@ -199,7 +200,7 @@ pub fn handler_build_endpoint_tag(
     entity_name: ?[]const u8,
 ) Nip89Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(platform.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 4);
 
     output.items[0] = parse_platform(platform) catch return error.InvalidEndpointTag;
     output.items[1] = parse_url(url_template) catch return error.InvalidEndpointTag;
@@ -219,7 +220,7 @@ pub fn client_build_tag(
     relay_hint: ?[]const u8,
 ) Nip89Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(name.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 4);
 
     output.items[0] = "client";
     output.items[1] = parse_nonempty_utf8(name) catch return error.InvalidClientTag;
@@ -360,9 +361,10 @@ fn parse_client_tag(tag: nip01_event.EventTag) error{InvalidTag}!ClientTagInfo {
 }
 
 fn parse_handler_coordinate(text: []const u8) error{InvalidCoordinate}!HandlerReference {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidCoordinate;
     const first_colon = std.mem.indexOfScalar(u8, text, ':') orelse return error.InvalidCoordinate;
     const second_rel = std.mem.indexOfScalar(u8, text[first_colon + 1 ..], ':') orelse {
         return error.InvalidCoordinate;
@@ -376,7 +378,7 @@ fn parse_handler_coordinate(text: []const u8) error{InvalidCoordinate}!HandlerRe
     if (kind != handler_kind) return error.InvalidCoordinate;
 
     return .{
-        .pubkey = parse_lower_hex_32(text[first_colon + 1 .. second_colon]) catch {
+        .pubkey = lower_hex_32.parse(text[first_colon + 1 .. second_colon]) catch {
             return error.InvalidCoordinate;
         },
         .identifier = parse_nonempty_utf8(text[second_colon + 1 ..]) catch {
@@ -386,9 +388,10 @@ fn parse_handler_coordinate(text: []const u8) error{InvalidCoordinate}!HandlerRe
 }
 
 fn parse_platform(text: []const u8) error{InvalidPlatform}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidPlatform;
     const platform = parse_nonempty_utf8(text) catch return error.InvalidPlatform;
     for (platform) |byte| {
         if (std.ascii.isWhitespace(byte) or byte == ':') return error.InvalidPlatform;
@@ -397,40 +400,25 @@ fn parse_platform(text: []const u8) error{InvalidPlatform}![]const u8 {
 }
 
 fn parse_nonempty_utf8(text: []const u8) error{InvalidUtf8}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUtf8;
     if (text.len == 0) return error.InvalidUtf8;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUtf8;
     return text;
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
+    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
+    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
     if (text.len == 0) return error.InvalidUrl;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUrl;
     const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
     if (parsed.scheme.len == 0) return error.InvalidUrl;
     return text;
-}
-
-fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
-    std.debug.assert(text.len <= limits.pubkey_hex_length);
-    std.debug.assert(limits.pubkey_hex_length == 64);
-
-    if (text.len != limits.pubkey_hex_length) return error.InvalidHex;
-    var out: [32]u8 = undefined;
-    var index: usize = 0;
-    while (index < out.len) : (index += 1) {
-        const start = index * 2;
-        out[index] = std.fmt.parseUnsigned(u8, text[start .. start + 2], 16) catch {
-            return error.InvalidHex;
-        };
-    }
-    if (!std.mem.eql(u8, &std.fmt.bytesToHex(out, .lower), text)) return error.InvalidHex;
-    return out;
 }
 
 test "NIP-89 extracts recommendations and handlers" {
@@ -497,4 +485,14 @@ test "NIP-89 extracts and builds client tags" {
         null,
     );
     try std.testing.expectEqualStrings("client", tag.items[0]);
+}
+
+test "NIP-89 rejects overlong client coordinate input with typed error" {
+    var built: BuiltTag = .{};
+    const overlong = [_]u8{'a'} ** (limits.tag_item_bytes_max + 1);
+
+    try std.testing.expectError(
+        error.InvalidClientTag,
+        client_build_tag(&built, "My Client", overlong[0..], null),
+    );
 }

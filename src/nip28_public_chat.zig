@@ -1,6 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const channel_create_kind: u32 = 40;
 pub const channel_metadata_kind: u32 = 41;
@@ -94,9 +95,10 @@ pub fn channel_metadata_parse_json(
     out_relays: [][]const u8,
     scratch: std.mem.Allocator,
 ) Nip28Error!ChannelMetadata {
-    std.debug.assert(content.len <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
+    std.debug.assert(limits.content_bytes_max > 0);
 
+    if (content.len > limits.content_bytes_max) return error.InvalidMetadataJson;
     const value = std.json.parseFromSliceLeaky(std.json.Value, scratch, content, .{}) catch {
         return error.InvalidMetadataJson;
     };
@@ -232,9 +234,9 @@ pub fn channel_build_event_tag(
     marker: EventMarker,
 ) Nip28Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 4);
 
-    _ = parse_lower_hex_32(event_id_hex) catch return error.InvalidChannelTag;
+    _ = lower_hex_32.parse(event_id_hex) catch return error.InvalidChannelTag;
     output.items[0] = "e";
     output.items[1] = event_id_hex;
     output.item_count = 2;
@@ -257,9 +259,9 @@ pub fn channel_build_pubkey_tag(
     relay_hint: ?[]const u8,
 ) Nip28Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 4);
 
-    _ = parse_lower_hex_32(pubkey_hex) catch return error.InvalidPubkeyTag;
+    _ = lower_hex_32.parse(pubkey_hex) catch return error.InvalidPubkeyTag;
     output.items[0] = "p";
     output.items[1] = pubkey_hex;
     output.item_count = 2;
@@ -276,7 +278,7 @@ pub fn channel_build_category_tag(
     category: []const u8,
 ) Nip28Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(category.len <= limits.tag_item_bytes_max);
+    std.debug.assert(output.items.len == 4);
 
     output.items[0] = "t";
     output.items[1] = parse_nonempty_utf8(category) catch return error.InvalidCategoryTag;
@@ -290,8 +292,9 @@ pub fn channel_build_reason_json(
     reason: []const u8,
 ) Nip28Error![]const u8 {
     std.debug.assert(@intFromPtr(output) != 0);
-    std.debug.assert(reason.len <= limits.content_bytes_max);
+    std.debug.assert(output.storage.len == limits.content_bytes_max);
 
+    if (reason.len > limits.content_bytes_max) return error.InvalidReasonJson;
     _ = parse_nonempty_utf8(reason) catch return error.InvalidReasonJson;
     var stream = std.io.fixedBufferStream(output.storage[0..]);
     var writer = stream.writer();
@@ -453,7 +456,7 @@ fn append_reply_pubkey(
 
     if (tag.items.len < 2 or tag.items.len > 3) return error.InvalidPubkeyTag;
     if (info.reply_pubkey_count == out_reply_pubkeys.len) return error.BufferTooSmall;
-    out_reply_pubkeys[info.reply_pubkey_count] = parse_lower_hex_32(tag.items[1]) catch {
+    out_reply_pubkeys[info.reply_pubkey_count] = lower_hex_32.parse(tag.items[1]) catch {
         return error.InvalidPubkeyTag;
     };
     info.reply_pubkey_count += 1;
@@ -570,7 +573,7 @@ fn parse_channel_root_tag(tag: nip01_event.EventTag) error{InvalidTag}!ChannelRe
     if (tag.items.len < 4 or tag.items.len > 4) return error.InvalidTag;
     if (!std.mem.eql(u8, tag.items[3], "root")) return error.InvalidTag;
     return .{
-        .event_id = parse_lower_hex_32(tag.items[1]) catch return error.InvalidTag,
+        .event_id = lower_hex_32.parse(tag.items[1]) catch return error.InvalidTag,
         .relay_hint = parse_optional_url_slot(tag, 2) catch return error.InvalidTag,
     };
 }
@@ -582,7 +585,7 @@ fn parse_reply_tag(tag: nip01_event.EventTag) error{InvalidTag}!ChannelReference
     if (tag.items.len < 4 or tag.items.len > 4) return error.InvalidTag;
     if (!std.mem.eql(u8, tag.items[3], "reply")) return error.InvalidTag;
     return .{
-        .event_id = parse_lower_hex_32(tag.items[1]) catch return error.InvalidTag,
+        .event_id = lower_hex_32.parse(tag.items[1]) catch return error.InvalidTag,
         .relay_hint = parse_optional_url_slot(tag, 2) catch return error.InvalidTag,
     };
 }
@@ -592,7 +595,7 @@ fn parse_event_id_tag(tag: nip01_event.EventTag) error{InvalidTag}![32]u8 {
     std.debug.assert(tag.items.len != 0);
 
     if (tag.items.len != 2) return error.InvalidTag;
-    return parse_lower_hex_32(tag.items[1]) catch return error.InvalidTag;
+    return lower_hex_32.parse(tag.items[1]) catch return error.InvalidTag;
 }
 
 fn parse_pubkey_tag(tag: nip01_event.EventTag) error{InvalidTag}![32]u8 {
@@ -600,7 +603,7 @@ fn parse_pubkey_tag(tag: nip01_event.EventTag) error{InvalidTag}![32]u8 {
     std.debug.assert(tag.items.len != 0);
 
     if (tag.items.len != 2) return error.InvalidTag;
-    return parse_lower_hex_32(tag.items[1]) catch return error.InvalidTag;
+    return lower_hex_32.parse(tag.items[1]) catch return error.InvalidTag;
 }
 
 fn parse_optional_url_slot(
@@ -615,40 +618,25 @@ fn parse_optional_url_slot(
 }
 
 fn parse_nonempty_utf8(text: []const u8) error{InvalidUtf8}![]const u8 {
-    std.debug.assert(text.len <= limits.content_bytes_max);
     std.debug.assert(limits.content_bytes_max > 0);
+    std.debug.assert(limits.content_bytes_max >= limits.tag_item_bytes_max);
 
+    if (text.len > limits.content_bytes_max) return error.InvalidUtf8;
     if (text.len == 0) return error.InvalidUtf8;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUtf8;
     return text;
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
-    std.debug.assert(text.len <= limits.content_bytes_max);
     std.debug.assert(limits.content_bytes_max > 0);
+    std.debug.assert(limits.content_bytes_max >= limits.tag_item_bytes_max);
 
+    if (text.len > limits.content_bytes_max) return error.InvalidUrl;
     if (text.len == 0) return error.InvalidUrl;
     if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUrl;
     const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
     if (parsed.scheme.len == 0) return error.InvalidUrl;
     return text;
-}
-
-fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
-    std.debug.assert(text.len <= limits.pubkey_hex_length);
-    std.debug.assert(limits.pubkey_hex_length == 64);
-
-    if (text.len != limits.pubkey_hex_length) return error.InvalidHex;
-    var out: [32]u8 = undefined;
-    var index: usize = 0;
-    while (index < out.len) : (index += 1) {
-        const start = index * 2;
-        out[index] = std.fmt.parseUnsigned(u8, text[start .. start + 2], 16) catch {
-            return error.InvalidHex;
-        };
-    }
-    if (!std.mem.eql(u8, &std.fmt.bytesToHex(out, .lower), text)) return error.InvalidHex;
-    return out;
 }
 
 test "NIP-28 extracts channel create metadata" {
@@ -754,4 +742,14 @@ test "NIP-28 extracts moderation targets and builds canonical helpers" {
         .root,
     );
     try std.testing.expectEqualStrings("root", built.items[3]);
+}
+
+test "NIP-28 rejects overlong event-tag builder input with typed error" {
+    var built: BuiltTag = .{};
+    const overlong = [_]u8{'a'} ** (limits.tag_item_bytes_max + 1);
+
+    try std.testing.expectError(
+        error.InvalidChannelTag,
+        channel_build_event_tag(&built, overlong[0..], null, .root),
+    );
 }
