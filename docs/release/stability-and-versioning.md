@@ -12,7 +12,7 @@ canonical: true
 
 # Stability And Versioning
 
-This page explains the public release posture for `noztr` and the versioning policy the project
+This page explains the public release posture for `noztr-core` and the versioning policy the project
 should follow as it moves from local RC review into public release.
 
 ## Current Stability Posture
@@ -21,7 +21,7 @@ Current status is intentionally conservative:
 
 - the local RC-facing review is positive
 - major audit and remediation work is complete
-- final RC closure is still pending downstream `nzdk` implementation feedback
+- final RC closure is still pending downstream `noztr-sdk` implementation feedback
 
 So the honest current state is:
 
@@ -31,7 +31,7 @@ So the honest current state is:
 
 ## Versioning Policy
 
-`noztr` should use SemVer-style release numbering with a strict pre-`1.0.0` posture.
+`noztr-core` should use SemVer-style release numbering with a strict pre-`1.0.0` posture.
 
 Recommended policy:
 
@@ -64,7 +64,7 @@ and treated as notable release events.
 
 ## What Counts As A Breaking Change
 
-For `noztr`, breaking change means more than renaming a symbol.
+For `noztr-core`, breaking change means more than renaming a symbol.
 
 It includes:
 
@@ -104,7 +104,7 @@ Right now the best public reading is:
 
 ## Recommended Path
 
-1. Keep `no-6e6p` open until `nzdk` feedback closes.
+1. Keep `no-6e6p` open until `noztr-sdk` feedback closes.
 2. If that feedback does not reveal a new blocker, cut the first public release as `0.1.0-rc.1` or
    directly as `0.1.0`, depending on release packaging needs.
 3. Treat subsequent public contract changes conservatively, even while still pre-`1.0.0`.

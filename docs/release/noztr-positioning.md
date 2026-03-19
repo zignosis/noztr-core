@@ -10,19 +10,19 @@ read_when:
 canonical: true
 ---
 
-# noztr Positioning
+# noztr-core Positioning
 
 This document answers the release-facing questions:
 
-- what `noztr` is trying to do
+- what `noztr-core` is trying to do
 - how it does it
 - why someone would choose it
 - its main benefits and limitations
 - how it compares to more mature libraries
 
-## What noztr is trying to do
+## What noztr-core is trying to do
 
-`noztr` is trying to be a strong Layer 1 Nostr protocol library for Zig.
+`noztr-core` is trying to be a strong Layer 1 Nostr protocol library for Zig.
 
 That means:
 
@@ -33,14 +33,14 @@ That means:
 - a library that is simple for SDKs and applications to build on without inheriting runtime or
   orchestration assumptions
 
-`noztr` is not trying to be an all-in-one Nostr application stack, relay runtime, or opinionated
-client SDK.
+`noztr-core` is not trying to be an all-in-one Nostr application stack, relay runtime, or
+opinionated client SDK.
 
 ## Key assumptions and decisions
 
 These are the main release-facing assumptions and decisions behind the library:
 
-- `noztr` assumes the right job for this repo is a protocol kernel, not a full SDK or runtime
+- `noztr-core` assumes the right job for this repo is a protocol kernel, not a full SDK or runtime
 - Layer 1 is intentionally deterministic-and-compatible at the trust boundary, not maximally
   permissive
 - workflow, transport, storage, retries, UI policy, and orchestration are intentionally kept out of
@@ -49,14 +49,14 @@ These are the main release-facing assumptions and decisions behind the library:
   it stays bounded and transport-free
 - approved crypto backend exceptions are accepted today, but kept narrow and explicit instead of
   being allowed to spread through the whole library
-- the current RC-facing posture is locally positive, but still provisional until downstream `nzdk`
-  feedback is complete
+- the current RC-facing posture is locally positive, but still provisional until downstream
+  `noztr-sdk` feedback is complete
 
-These decisions explain both the strengths and the limits of `noztr`.
+These decisions explain both the strengths and the limits of `noztr-core`.
 
-## How noztr does it
+## How noztr-core does it
 
-`noztr` takes a protocol-kernel approach.
+`noztr-core` takes a protocol-kernel approach.
 
 - One module per NIP or feature in `src/`
 - Bounded, caller-owned, or fixed-capacity data handling by default
@@ -71,12 +71,24 @@ The design rule is simple:
 - if the logic is pure, deterministic, bounded, and reusable across many callers, it is a kernel
   candidate
 - if it needs networking, workflow orchestration, retries, storage, UI policy, or app-level
-  convenience, it belongs outside `noztr`
+  convenience, it belongs outside `noztr-core`
+
+## Relationship To `noztr-sdk`
+
+`noztr-core` and `noztr-sdk` are designed to be complementary, not competing.
+
+- `noztr-core` owns the deterministic protocol-kernel layer
+- `noztr-sdk` owns higher-level workflow, transport, session, and application-facing composition
+- some split surfaces are intentionally designed so `noztr-core` provides the bounded contract and
+  `noztr-sdk` provides the broader ergonomic flow
+
+If you want the lowest stable protocol layer, start with `noztr-core`.
+If you want the coupled higher-level Zig SDK built on top of that layer, use `noztr-sdk`.
 
 ## Why this library exists
 
-There are already mature Nostr libraries. `noztr` exists because those libraries usually optimize
-for a different center of gravity:
+There are already mature Nostr libraries. `noztr-core` exists because those libraries usually
+optimize for a different center of gravity:
 
 - broader SDK/runtime surfaces
 - more permissive parser defaults
@@ -84,7 +96,7 @@ for a different center of gravity:
 - dependency and runtime choices that are reasonable for apps, but not ideal for a small Zig
   protocol kernel
 
-`noztr` exists to provide a different option:
+`noztr-core` exists to provide a different option:
 
 - Zig-first
 - protocol-kernel scoped
@@ -92,7 +104,7 @@ for a different center of gravity:
 - bounded
 - explicit about what it accepts, rejects, and intentionally leaves to higher layers
 
-## Why choose noztr
+## Why choose noztr-core
 
 Choose `noztr` if you want:
 
@@ -101,7 +113,7 @@ Choose `noztr` if you want:
 - strict typed trust-boundary behavior
 - explicit kernel-vs-SDK boundaries
 - good local performance for bounded protocol work
-- a library that is designed to compose into your own SDK or app architecture
+- a library that is designed to compose into `noztr-sdk` or your own SDK/app architecture
 
 ## Benefits
 
@@ -148,12 +160,12 @@ What you give up:
 - a younger ecosystem and fewer long-lived downstream integrations
 - more responsibility at the SDK or application layer
 
-That trade is intentional. `noztr` is trying to be a strong substrate, not the broadest possible
-user-facing library.
+That trade is intentional. `noztr-core` is trying to be a strong substrate, not the broadest
+possible user-facing library.
 
 ## When noztr is the wrong choice
 
-Do not choose `noztr` if you mainly want:
+Do not choose `noztr-core` if you mainly want:
 
 - a full relay runtime
 - websocket/TLS client/server infrastructure
@@ -172,7 +184,7 @@ mature libraries is probably the better fit.
 Those libraries are stronger ecosystem references for active interoperability and broad deployed
 usage.
 
-Relative to them, `noztr` is:
+Relative to them, `noztr-core` is:
 
 - narrower
 - more kernel-oriented
@@ -184,8 +196,8 @@ That is a tradeoff, not a universal win.
 If you want mature, broad, batteries-included application ecosystems, those libraries remain
 stronger choices.
 
-If you want a smaller Zig protocol kernel that can sit underneath your own SDK or controlled app
-architecture, `noztr` is the better fit.
+If you want a smaller Zig protocol kernel that can sit underneath `noztr-sdk` or your own
+controlled app architecture, `noztr-core` is the better fit.
 
 See also:
 
@@ -196,7 +208,7 @@ See also:
 `libnostr-z` is the most relevant Zig comparison, but it is not trying to be exactly the same kind
 of library.
 
-Relative to `libnostr-z`, `noztr` is intentionally:
+Relative to `libnostr-z`, `noztr-core` is intentionally:
 
 - narrower in scope
 - stricter at trust boundaries
@@ -205,14 +217,14 @@ Relative to `libnostr-z`, `noztr` is intentionally:
 - more disciplined about keeping websocket, TLS, and service layers out of the protocol kernel
 
 `libnostr-z` remains useful as a packaging and behavior reference, but it is not the memory,
-runtime, or dependency model `noztr` is aiming for.
+runtime, or dependency model `noztr-core` is aiming for.
 
 ## Against TigerBeetle
 
 TigerBeetle is not a Nostr library and not a feature comparison target. It is an engineering
 quality reference for Zig.
 
-`noztr` uses TigerBeetle mainly as a pressure test for:
+`noztr-core` uses TigerBeetle mainly as a pressure test for:
 
 - function shape
 - assertion density
@@ -220,12 +232,12 @@ quality reference for Zig.
 - bounded memory
 - strong systems-style Zig discipline
 
-That lens helped tighten `noztr`, but `noztr` remains a protocol library, not a database or
-systems runtime.
+That lens helped tighten `noztr-core`, but `noztr-core` remains a protocol library, not a database
+or systems runtime.
 
 ## Bottom Line
 
-`noztr` is for people who want a Zig-native Nostr protocol kernel with:
+`noztr-core` is for people who want a Zig-native Nostr protocol kernel with:
 
 - deterministic behavior
 - bounded and explicit trust-boundary surfaces
@@ -234,12 +246,12 @@ systems runtime.
 - fewer runtime assumptions than the more mature, broader libraries
 
 Its main cost is that it is intentionally narrower, stricter, and younger than the most widely
-used Nostr libraries. If that tradeoff matches your architecture, `noztr` is what it is trying to
-be.
+used Nostr libraries. If that tradeoff matches your architecture, `noztr-core` is what it is
+trying to be.
 
 ## Documentation note
 
-`noztr` has extensive internal engineering docs. They exist for auditability, planning, and
+`noztr-core` has extensive internal engineering docs. They exist for auditability, planning, and
 release rigor.
 
 They are not all meant to be read as public product documentation.

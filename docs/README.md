@@ -11,7 +11,10 @@ canonical: true
 
 # Public Docs Router
 
-This directory is now the public-facing docs surface for `noztr`.
+This directory is now the public-facing docs surface for `noztr-core`.
+
+`noztr-core` is the protocol-kernel layer. `noztr-sdk` is the complementary higher-level SDK
+layer built on top of it.
 
 Start here:
 

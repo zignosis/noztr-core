@@ -12,7 +12,7 @@ canonical: true
 
 # Release Notes Template
 
-Use this when cutting a public `noztr` release.
+Use this when cutting a public `noztr-core` release.
 
 This template is intentionally short and release-facing. It should summarize the public contract
 change, not internal implementation history.
@@ -20,7 +20,7 @@ change, not internal implementation history.
 ## Template
 
 ```md
-# noztr <version>
+# noztr-core <version>
 
 Date: <YYYY-MM-DD>
 Release type: <rc | additive | corrective | breaking>
@@ -63,7 +63,7 @@ Release type: <rc | additive | corrective | breaking>
 ## Upgrade Guidance
 
 - <what downstream users should recheck>
-- <what nzdk or other consumers should update>
+- <what noztr-sdk or other consumers should update>
 ```
 
 ## Required Points

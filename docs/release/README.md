@@ -12,10 +12,15 @@ canonical: true
 
 # Release Docs Index
 
-This is the public-facing documentation route for `noztr`.
+This is the public-facing documentation route for `noztr-core`.
 
 Use these docs if you are evaluating the library, comparing it to other Nostr libraries, or trying
 to understand the current release-facing contract at a high level.
+
+`noztr-core` and `noztr-sdk` are complementary layers:
+
+- `noztr-core` owns the deterministic protocol-kernel surface
+- `noztr-sdk` builds higher-level workflow, transport, and application-facing composition on top
 
 ## Start Here
 

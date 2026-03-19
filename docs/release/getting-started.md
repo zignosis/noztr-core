@@ -12,11 +12,12 @@ canonical: true
 
 # Getting Started
 
-This is the shortest public path from "I want to try `noztr`" to the right module and example.
+This is the shortest public path from "I want to try `noztr-core`" to the right module and
+example.
 
 ## What You Get
 
-`noztr` is a Zig-native Nostr protocol kernel.
+`noztr-core` is a Zig-native Nostr protocol kernel.
 
 It gives you:
 
@@ -24,6 +25,9 @@ It gives you:
 - typed trust-boundary helpers
 - deterministic reducers and fixed-purpose helpers
 - a narrow surface meant to sit under your SDK or app
+
+In the `noztr` ecosystem, `noztr-core` is the lower layer and `noztr-sdk` is the higher-level SDK
+layer built on top of it.
 
 It does not try to be a full relay runtime, websocket client, or application workflow framework.
 

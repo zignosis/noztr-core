@@ -1,10 +1,10 @@
-# noztr Examples
+# noztr-core Examples
 
-Downstream consumption examples for SDK and application authors.
+Downstream consumption examples for `noztr-sdk`, other SDKs, and application authors.
 
 These examples are intentionally technical and direct. They are not only "happy path" demos.
 Where a surface is trust-boundary-heavy, the example set should also grow hostile or invalid
-fixtures so SDK and app authors can see what `noztr` rejects and why.
+fixtures so SDK and app authors can see what `noztr-core` rejects and why.
 
 ## Related Public Docs
 
@@ -35,7 +35,7 @@ If you already know the symbol family, use
 - `strict_core_recipe.zig`
   - best first entry point for strict event, message, transcript, and wrapper flows
 - `remote_signing_recipe.zig`
-  - best first entry point for `nzdk` signer/session work
+  - best first entry point for `noztr-sdk` signer/session work
 - `wallet_recipe.zig`
   - best first entry point for deterministic wallet flows
 - `discovery_recipe.zig`
@@ -43,8 +43,8 @@ If you already know the symbol family, use
 
 ## Public Symbol Routing
 
-Use this when you already know the job and want the exact `noztr` symbol family before opening a
-file.
+Use this when you already know the job and want the exact `noztr-core` symbol family before
+opening a file.
 
 | Job | Primary public symbols | Start file | Hostile / failure fixture |
 | --- | --- | --- | --- |
@@ -331,7 +331,7 @@ They intentionally do not show:
 - storage/state sync
 - UI or session orchestration
 
-That work belongs in `nzdk` or above it.
+That work belongs in `noztr-sdk` or above it.
 
 ## Example Quality Rule
 

@@ -19,7 +19,7 @@ canonical: true
 
 # Handoff
 
-Current execution state for `noztr`.
+Current execution state for `noztr-core`.
 
 ## Read First
 
@@ -61,7 +61,7 @@ Current execution state for `noztr`.
 - `NIP-66` is now implemented as a split relay-discovery slice only.
 - `NIP-91` is now implemented as an additive extension of the existing `nip01_filter` family.
 - The third-loop audit supplement and the targeted remediation packet are complete.
-- `no-6e6p` remains open pending downstream `nzdk` feedback.
+- `no-6e6p` remains open pending downstream `noztr-sdk` feedback.
 - Public tracked docs now live in `docs/release/` plus `examples/`; internal planning, audit, and
   process docs live in local-only `.private-docs/`.
 - `noztr` no longer carries a vendored `docs/nips` checkout; use the official upstream NIPs repo
@@ -106,7 +106,7 @@ Current execution state for `noztr`.
 - current tracker lanes:
   - `no-6e6p`
   - `no-nrzk`
-- keep `.private-docs/plans/phase-h-rc-api-freeze.md` open until downstream `nzdk` feedback
+- keep `.private-docs/plans/phase-h-rc-api-freeze.md` open until downstream `noztr-sdk` feedback
   either confirms the current RC-facing surface or forces one explicit blocker packet
 - if `NIP-91` implementation is selected next, start from `.private-docs/plans/nip91-and-filters-plan.md`
 - use `.private-docs/plans/noztr-sdk-ownership-matrix.md` whenever downstream feedback pressures

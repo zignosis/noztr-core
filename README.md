@@ -1,9 +1,13 @@
-# noztr
+# noztr-core
 
 Pure Zig Nostr protocol library with a stdlib-first dependency policy and approved pinned crypto
 backend exceptions.
 
-## What noztr is
+## What noztr-core is
+
+`noztr-core` is the public library name for this protocol-kernel layer.
+
+The Zig package/import name in examples remains `noztr`.
 
 - A deterministic, bounded, compatibility-aware protocol-kernel implementation for Nostr.
 - Built as a static library with deterministic, bounded behavior targets.
@@ -11,7 +15,7 @@ backend exceptions.
 - Keeps non-crypto surfaces stdlib-first and isolates approved crypto backends behind narrow boundary
   modules.
 
-For the release-facing explanation of what `noztr` is trying to do, why it exists, its benefits
+For the release-facing explanation of what `noztr-core` is trying to do, why it exists, its benefits
 and limitations, and how it compares to more mature libraries, start with
 [`docs/release/noztr-positioning.md`](/workspace/projects/noztr/docs/release/noztr-positioning.md).
 For the public docs route as a whole, start with
@@ -34,7 +38,10 @@ For the technical public docs set, continue with:
 ## Current status
 
 - Current posture: the local RC-facing review is positive, but final closure remains pending
-  downstream `nzdk` feedback.
+  downstream `noztr-sdk` feedback.
+- `noztr-core` and `noztr-sdk` are intended to be complementary layers:
+  - `noztr-core` owns deterministic protocol-kernel work
+  - `noztr-sdk` owns higher-level workflow, transport, and application-facing composition
 - Public versioning policy is now explicit:
   - treat the current line as pre-release
   - start the first intentional public release at `0.1.0`
@@ -80,11 +87,12 @@ zig build rc-stress-throughput-csv -Doptimize=ReleaseFast
 zig build rc-stress-throughput-markdown -Doptimize=ReleaseFast
 ```
 
-## Why noztr
+## Why noztr-core
 
 Short version:
 
-- `noztr` is trying to be a Zig-native protocol kernel, not a batteries-included Nostr app stack
+- `noztr-core` is trying to be a Zig-native protocol kernel, not a batteries-included Nostr app
+  stack
 - it favors deterministic, bounded, typed trust-boundary behavior over permissive convenience
 - it is a better fit when you want to build your own SDK or app architecture on top of a narrow
   core
@@ -96,7 +104,7 @@ For the full positioning and comparison note, read
 
 Use this route if you want the shortest path into the current public surface.
 
-1. Add `noztr` as a Zig dependency.
+1. Add the `noztr` Zig package dependency for `noztr-core`.
 2. Pick the right symbol family:
    - core event/filter/message work:
      [`docs/release/core-api-contracts.md`](/workspace/projects/noztr/docs/release/core-api-contracts.md)
@@ -150,7 +158,8 @@ public documentation surface and are not intended for remote publication.
 
 ## Use as a local Zig dependency
 
-For local SDK/bootstrap work, consume `noztr` as a normal Zig package dependency.
+For local `noztr-sdk` or other downstream bootstrap work, consume the `noztr` Zig package as the
+normal dependency for `noztr-core`.
 
 `build.zig.zon`:
 
@@ -184,7 +193,7 @@ This repo now carries one downstream examples package and wires it into
     `NIP-39`, `NIP-46`, `NIP-51`, and `NIP-86`
   - open [`examples/README.md`](/workspace/projects/noztr/examples/README.md) for the SDK job map
   - open [`docs/release/contract-map.md`](/workspace/projects/noztr/docs/release/contract-map.md) for a task-to-symbol route across the main post-core surfaces
-  - intended as the main downstream example surface for `nzdk` and other SDK consumers
+  - intended as the main downstream example surface for `noztr-sdk` and other SDK consumers
 
 ## Current Kernel Notes
 
