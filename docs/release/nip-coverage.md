@@ -79,6 +79,8 @@ This page lists the public `noztr` support surface by NIP.
 | `NIP-64` | implemented | `nip64_chess_pgn` | [nip64_example.zig](/workspace/projects/noztr/examples/nip64_example.zig) |
 | `NIP-65` | implemented | `nip65_relays` | [nip65_example.zig](/workspace/projects/noztr/examples/nip65_example.zig) |
 | `NIP-70` | implemented | `nip70_protected` | [nip70_example.zig](/workspace/projects/noztr/examples/nip70_example.zig) |
+| `NIP-71` | split | `nip71_video_events` | [nip71_example.zig](/workspace/projects/noztr/examples/nip71_example.zig) |
+| `NIP-72` | split | `nip72_moderated_communities` | [nip72_example.zig](/workspace/projects/noztr/examples/nip72_example.zig) |
 | `NIP-73` | implemented | `nip73_external_ids` | [nip73_example.zig](/workspace/projects/noztr/examples/nip73_example.zig) |
 | `NIP-75` | implemented | `nip75_zap_goals` | [nip75_example.zig](/workspace/projects/noztr/examples/nip75_example.zig) |
 | `NIP-77` | optional | `nip77_negentropy` | [nip77_example.zig](/workspace/projects/noztr/examples/nip77_example.zig) |

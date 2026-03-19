@@ -115,6 +115,13 @@ Cross-cutting public notes:
 - NIP-38 user-status metadata and linkage helpers
   - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
   - example: [nip38_example.zig](/workspace/projects/noztr/examples/nip38_example.zig)
+- NIP-71 bounded video-event metadata and imported-origin helpers
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip71_example.zig](/workspace/projects/noztr/examples/nip71_example.zig)
+- NIP-72 bounded moderated-community definitions, post linkage, and approval contracts
+  - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
+  - example: [nip72_example.zig](/workspace/projects/noztr/examples/nip72_example.zig)
+  - hostile example: [nip72_adversarial_example.zig](/workspace/projects/noztr/examples/nip72_adversarial_example.zig)
 - NIP-34 bounded git repository metadata and repository state
   - route: [contract-map.md](/workspace/projects/noztr/docs/release/contract-map.md)
   - example: [nip34_example.zig](/workspace/projects/noztr/examples/nip34_example.zig)

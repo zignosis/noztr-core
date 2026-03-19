@@ -60,6 +60,8 @@ file.
 | Custom emoji tag parsing and build helpers | `emoji_tag_extract`, `emoji_shortcode_from_token`, `emoji_build_tag` | `nip30_example.zig` | none |
 | Unknown/custom-kind fallback summaries | `alt_extract`, `alt_build_tag` | `nip31_example.zig` | none |
 | User-status metadata and linkage tags | `user_status_extract`, `user_status_build_*` | `nip38_example.zig` | none |
+| Video-event metadata, variant fields, and imported-origin tags | `video_extract`, `video_build_*`, `video_build_duration_field`, `video_build_bitrate_field` | `nip71_example.zig` | none |
+| Moderated-community definitions, post linkage, and approval contracts | `community_extract`, `community_post_extract`, `community_approval_extract`, `community_*_build_*` | `nip72_example.zig` | `nip72_adversarial_example.zig` |
 | Git repository metadata and state tags | `repository_announcement_extract`, `repository_state_extract`, `repository_build_*` | `nip34_example.zig` | none |
 | Calendar event, collection, and RSVP metadata | `date_calendar_event_extract`, `time_calendar_event_extract`, `calendar_rsvp_extract`, `calendar_build_*` | `nip52_example.zig` | none |
 | Live activity metadata and chat activity addressing | `live_activity_extract`, `live_chat_extract`, `live_activity_build_*`, `live_chat_build_activity_tag` | `nip53_example.zig` | none |
@@ -213,6 +215,8 @@ Each implemented kernel NIP now has a direct reference example.
 - `nostr_keys_example.zig`
 - `nip65_example.zig`
 - `nip70_example.zig`
+- `nip71_example.zig`
+- `nip72_example.zig`
 - `nip73_example.zig`
 - `nip75_example.zig`
 - `nip78_example.zig`
@@ -276,6 +280,7 @@ These are the first files to open when you need the failure contract for a bound
 - `nip05_adversarial_example.zig`
   - malformed matched pubkeys and relay maps stay on typed `NIP-05` failures
 - `relay_admin_adversarial_example.zig`
+- `nip72_adversarial_example.zig`
   - invalid control text on NIP-86 serializer paths
 - `private_lists_adversarial_example.zig`
   - deprecated NIP-04 private content and non-websocket private relays

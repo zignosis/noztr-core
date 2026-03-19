@@ -82,6 +82,9 @@ comptime {
     _ = @import("blossom_adversarial_example.zig");
     _ = @import("nip65_example.zig");
     _ = @import("nip70_example.zig");
+    _ = @import("nip71_example.zig");
+    _ = @import("nip72_example.zig");
+    _ = @import("nip72_adversarial_example.zig");
     _ = @import("nip73_example.zig");
     _ = @import("nip75_example.zig");
     if (@hasDecl(noztr.nip77_negentropy, "NegentropyError")) _ = @import("nip77_example.zig");

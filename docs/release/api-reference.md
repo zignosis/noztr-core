@@ -338,6 +338,32 @@ These are the quickest symbol-level routes into the modules most downstream user
 - start example:
   - [nip52_example.zig](/workspace/projects/noztr/examples/nip52_example.zig)
 
+### `nip71_video_events`
+
+- `video_extract`
+  - extract bounded regular, short, and addressable video metadata from supported video-event kinds
+- `video_build_*`
+  - build canonical identifier, title, published-at, text-track, segment, participant, and origin tags
+- `video_build_duration_field` / `video_build_bitrate_field`
+  - build the NIP-71-specific `imeta` field items for video duration and bitrate
+- start example:
+  - [nip71_example.zig](/workspace/projects/noztr/examples/nip71_example.zig)
+
+### `nip72_moderated_communities`
+
+- `community_extract`
+  - extract bounded community-definition metadata, moderators, and relay tags from `kind:34550`
+- `community_post_extract`
+  - extract bounded community linkage and parent-target contracts from `kind:1111` community posts
+- `community_approval_extract`
+  - extract bounded approval contracts from `kind:4550` moderator approval events
+- `community_*_build_*`
+  - build canonical definition, post-linkage, and approval tags for the bounded kernel slice
+- start example:
+  - [nip72_example.zig](/workspace/projects/noztr/examples/nip72_example.zig)
+- hostile example:
+  - [nip72_adversarial_example.zig](/workspace/projects/noztr/examples/nip72_adversarial_example.zig)
+
 ### `nip53_live_activities`
 
 - `live_activity_extract`
@@ -496,6 +522,8 @@ These are the quickest symbol-level routes into the modules most downstream user
 | `nip30_custom_emoji` | strict custom-emoji shortcode and tag helpers | [nip30_example.zig](/workspace/projects/noztr/examples/nip30_example.zig) |
 | `nip31_alt_tags` | `alt` fallback-summary extraction and build helpers | [nip31_example.zig](/workspace/projects/noztr/examples/nip31_example.zig) |
 | `nip38_user_status` | bounded user-status metadata and linkage helpers | [nip38_example.zig](/workspace/projects/noztr/examples/nip38_example.zig) |
+| `nip71_video_events` | bounded video-event metadata and imported-origin helpers | [nip71_example.zig](/workspace/projects/noztr/examples/nip71_example.zig) |
+| `nip72_moderated_communities` | bounded moderated-community definitions, post linkage, and approval contracts | [nip72_example.zig](/workspace/projects/noztr/examples/nip72_example.zig) |
 | `nip37_drafts` | draft and private relay helpers | [nip37_example.zig](/workspace/projects/noztr/examples/nip37_example.zig) |
 | `nip40_expire` | expiration helpers | [nip40_example.zig](/workspace/projects/noztr/examples/nip40_example.zig) |
 | `nip45_count` | optional count helpers, build-flag gated | [nip45_example.zig](/workspace/projects/noztr/examples/nip45_example.zig) |

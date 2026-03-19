@@ -54,6 +54,10 @@ Current execution state for `noztr`.
     - bounded `NIP-61`
     - `NIP-75`
     - expanded bounded `NIP-89`
+- The fourth requested-NIP loop is complete:
+  - landed:
+    - bounded `NIP-71`
+    - bounded `NIP-72`
 - The third-loop audit supplement and the targeted remediation packet are complete.
 - `no-6e6p` remains open pending downstream `nzdk` feedback.
 - Public tracked docs now live in `docs/release/` plus `examples/`; internal planning, audit, and
@@ -63,6 +67,10 @@ Current execution state for `noztr`.
   - `NIP-28` stops at deterministic channel metadata/linkage/moderation-contract helpers
   - `NIP-61` stops at deterministic nutzap informational/event/redemption-marker contracts and
     stays out of wallet/mint flow
+- frozen bounded ownership calls carried through the fourth loop:
+  - `NIP-71` stops at deterministic video metadata, `imeta` field, and tag-contract helpers
+  - `NIP-72` stops at deterministic community definition, post-linkage, and approval-contract
+    helpers
 - Remote readiness remains deferred-by-operator, and no git remote is configured in this repo.
 - Only expected untracked local artifact:
   - `tools/interop/rust-nostr-parity-all/target/`

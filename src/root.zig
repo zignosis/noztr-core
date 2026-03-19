@@ -24,6 +24,12 @@ pub const nip42_auth = @import("nip42_auth.zig");
 /// Phase I2 concrete export for the NIP-70 protected-event module.
 pub const nip70_protected = @import("nip70_protected.zig");
 
+/// Phase H fourth requested-loop split concrete export for the NIP-71 video-events module.
+pub const nip71_video_events = @import("nip71_video_events.zig");
+
+/// Phase H fourth requested-loop split concrete export for the NIP-72 moderated-communities module.
+pub const nip72_moderated_communities = @import("nip72_moderated_communities.zig");
+
 /// Phase I2 concrete export for the NIP-11 relay information module.
 pub const nip11 = @import("nip11.zig");
 
