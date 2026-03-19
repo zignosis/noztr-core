@@ -59,6 +59,10 @@ Current execution state for `noztr-core`.
     - bounded `NIP-71`
     - bounded `NIP-72`
 - `NIP-66` is now implemented as a split relay-discovery slice only.
+- `NIP-66` timeout-ordering interoperability research is complete:
+  - keep the canonical builder shape aligned with the live example
+  - keep the parser tolerant of the two obvious ambiguous three-item orders until upstream or
+    ecosystem behavior converges more clearly
 - `NIP-91` is now implemented as an additive extension of the existing `nip01_filter` family.
 - The third-loop audit supplement and the targeted remediation packet are complete.
 - `no-6e6p` remains open pending downstream `noztr-sdk` feedback.

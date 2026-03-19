@@ -452,6 +452,10 @@ These are the quickest symbol-level routes into the modules most downstream user
   - extract bounded kind-`10166` relay monitor announcement metadata
 - `relay_discovery_build_*` / `relay_monitor_build_*`
   - build canonical relay discovery and monitor tags without relay policy
+- `relay_monitor_build_timeout_tag`
+  - emits the canonical example form `["timeout", "<check>", "<milliseconds>"]`
+  - the parser also accepts `["timeout", "<milliseconds>", "<check>"]` because the current `NIP-66`
+    prose and example disagree on ordering
 - start example:
   - [nip66_example.zig](/workspace/projects/noztr/examples/nip66_example.zig)
 - hostile example:
