@@ -60,6 +60,15 @@ zig build test --summary all
 zig build
 ```
 
+`zig build test` currently exercises three suites:
+
+- the full root-module suite
+- a core-only root-module suite with optional I6 exports disabled
+- the downstream `examples/` suite
+
+Those counts overlap across configurations, so treat them as execution totals rather than unique
+logical test cases.
+
 For docs-only changes, at minimum run:
 
 ```bash

@@ -63,6 +63,10 @@ zig build test --summary all
 zig build
 ```
 
+The test gate currently includes the full root-module suite, a core-only root-module suite, and
+the downstream `examples/` suite. Those counts overlap across configurations, so they should be
+read as execution totals rather than unique logical test cases.
+
 ## Benchmark evidence
 
 Published performance checks can be rerun with:
