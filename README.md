@@ -20,20 +20,11 @@ and limitations, and how it compares to more mature libraries, start with
 [`docs/scope-and-tradeoffs.md`](docs/scope-and-tradeoffs.md).
 For the public docs route as a whole, start with
 [`docs/INDEX.md`](docs/INDEX.md).
-For the technical public docs set, continue with:
+Key public entry points:
 - [`docs/getting-started.md`](docs/getting-started.md)
-- [`docs/guides/noztr-style.md`](docs/guides/noztr-style.md)
-- [`docs/guides/docs-style-guide.md`](docs/guides/docs-style-guide.md)
-- [`docs/guides/zig-patterns.md`](docs/guides/zig-patterns.md)
-- [`docs/guides/zig-anti-patterns.md`](docs/guides/zig-anti-patterns.md)
-- [`docs/guides/technical-guides.md`](docs/guides/technical-guides.md)
-- [`docs/errors-and-ownership.md`](docs/errors-and-ownership.md)
-- [`docs/performance.md`](docs/performance.md)
-- [`docs/stability-and-versioning.md`](docs/stability-and-versioning.md)
-- [`docs/compatibility-and-support.md`](docs/compatibility-and-support.md)
-- [`docs/release-notes-template.md`](docs/release-notes-template.md)
+- [`docs/reference/contract-map.md`](docs/reference/contract-map.md)
 - [`docs/reference/api-reference.md`](docs/reference/api-reference.md)
-- [`docs/reference/nip-coverage.md`](docs/reference/nip-coverage.md)
+- [`examples/README.md`](examples/README.md)
 
 ## Public release posture
 
@@ -64,8 +55,6 @@ For the full implemented surface, including narrower and optional/gated modules,
 - Optional I6 extension exports (build-flag gated): `NIP-45`, `NIP-50`, `NIP-77`
 - Non-NIP bounded wallet helpers: Nostr-relevant `BIP-85` subset for lowercase-hex entropy text
   and English BIP39 child mnemonic/entropy
-- Public docs routing:
-  - docs router: [`docs/INDEX.md`](docs/INDEX.md)
 
 ## Build and test
 
@@ -114,35 +103,9 @@ Use this route if you want the shortest path into the public surface.
 
 ## Public docs vs internal docs
 
-This repo contains both public-facing docs and extensive internal working docs.
-
-- Public-facing docs:
-  - [`docs/INDEX.md`](docs/INDEX.md)
-  - [`docs/getting-started.md`](docs/getting-started.md)
-  - [`docs/guides/noztr-style.md`](docs/guides/noztr-style.md)
-  - [`docs/guides/docs-style-guide.md`](docs/guides/docs-style-guide.md)
-  - [`docs/guides/zig-patterns.md`](docs/guides/zig-patterns.md)
-  - [`docs/guides/zig-anti-patterns.md`](docs/guides/zig-anti-patterns.md)
-  - [`docs/scope-and-tradeoffs.md`](docs/scope-and-tradeoffs.md)
-  - [`docs/intentional-divergences.md`](docs/intentional-divergences.md)
-  - [`docs/guides/technical-guides.md`](docs/guides/technical-guides.md)
-  - [`docs/errors-and-ownership.md`](docs/errors-and-ownership.md)
-  - [`docs/performance.md`](docs/performance.md)
-  - [`docs/stability-and-versioning.md`](docs/stability-and-versioning.md)
-  - [`docs/compatibility-and-support.md`](docs/compatibility-and-support.md)
-  - [`docs/release-notes-template.md`](docs/release-notes-template.md)
-  - [`docs/reference/core-api-contracts.md`](docs/reference/core-api-contracts.md)
-  - [`docs/reference/contract-map.md`](docs/reference/contract-map.md)
-  - [`docs/reference/api-reference.md`](docs/reference/api-reference.md)
-  - [`docs/reference/nip-coverage.md`](docs/reference/nip-coverage.md)
-  - [`examples/README.md`](examples/README.md)
-  - [`CONTRIBUTING.md`](CONTRIBUTING.md)
-  - [`CHANGELOG.md`](CHANGELOG.md)
-- Internal working docs:
-  - local-only `.private-docs/`
-
-The internal docs are kept locally for provenance and engineering rigor, but they are not the main
-public documentation surface and are not intended for remote publication.
+Public-facing docs live in [`docs/INDEX.md`](docs/INDEX.md), [`docs/`](docs), and
+[`examples/README.md`](examples/README.md). Internal working material lives in local-only
+`.private-docs/` and is not part of the public documentation route.
 
 ## Common jobs
 
@@ -185,13 +148,14 @@ This repo now carries one downstream examples package and wires it into
 
 - [`examples`](examples)
   - `consumer_smoke.zig` for the minimal dependency/import path
-  - direct per-NIP reference examples across all implemented kernel NIPs
+  - reference examples covering the implemented kernel NIP surface
   - dedicated adversarial examples for the highest-risk SDK-facing boundaries
   - a small public `nostr_keys` helper surface for x-only pubkey derivation and event signing
   - scenario-oriented recipe files for `NIP-03`, `NIP-05`, `NIP-06`, `NIP-17`, `BIP-85`,
     `NIP-39`, `NIP-46`, `NIP-51`, and `NIP-86`
   - open [`examples/README.md`](examples/README.md) for the SDK job map
-  - open [`docs/reference/contract-map.md`](docs/reference/contract-map.md) for a task-to-symbol route across the main post-core surfaces
+  - open [`docs/reference/contract-map.md`](docs/reference/contract-map.md) for a task-to-symbol
+    route across the main post-core surfaces
   - intended as the main downstream example surface for `noztr-sdk` and other SDK consumers
 
 ## Current Kernel Notes

@@ -163,6 +163,9 @@ opening a file.
 
 Each implemented kernel NIP now has a direct reference example.
 
+`NIP-91` is covered through the `NIP-01` filter example family, so its reference route is
+`nip01_example.zig` rather than a separate dedicated `nip91_example.zig`.
+
 - `nip01_example.zig`
 - `nip01_adversarial_example.zig`
 - `nip02_example.zig`

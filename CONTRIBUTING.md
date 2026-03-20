@@ -15,10 +15,13 @@ Read these first:
 - [README.md](README.md)
 - [docs/INDEX.md](docs/INDEX.md)
 - [AGENTS.md](AGENTS.md)
-- [docs/guides/noztr-style.md](docs/guides/noztr-style.md)
-- [docs/guides/docs-style-guide.md](docs/guides/docs-style-guide.md)
-- [docs/guides/zig-patterns.md](docs/guides/zig-patterns.md)
-- [docs/guides/zig-anti-patterns.md](docs/guides/zig-anti-patterns.md)
+
+Then load role-specific guides as needed:
+
+- for public docs work: [docs/guides/docs-style-guide.md](docs/guides/docs-style-guide.md)
+- for code work: [docs/guides/noztr-style.md](docs/guides/noztr-style.md),
+  [docs/guides/zig-patterns.md](docs/guides/zig-patterns.md), and
+  [docs/guides/zig-anti-patterns.md](docs/guides/zig-anti-patterns.md)
 
 If you are working as a maintainer or local automation agent and `.private-docs/AGENTS.md` exists,
 continue there for the internal maintainer workflow. Internal working material lives in local-only
@@ -44,40 +47,9 @@ scope first.
 
 ## Public Docs Versus Internal Docs
 
-This repo intentionally keeps two documentation layers:
-
-- public tracked docs:
-  - `README.md`
-  - `docs/`
-  - `examples/README.md`
-- internal local-only docs:
-  - `.private-docs/`
-
 Public docs should stay suitable for users, downstream SDKs, and future website publication.
-
-Internal docs are for:
-
-- planning
-- audit history
-- process control
-- provenance
-
+Internal planning, audit, and process material belongs in local-only `.private-docs/`.
 Do not route external readers into `.private-docs/`.
-
-## Website Note
-
-The future website will live in a different repo.
-
-That means docs in this repo should be:
-
-- technically accurate
-- self-contained enough to publish later
-- written so they can be imported or adapted into the website without depending on internal docs
-
-When in doubt:
-
-- keep canonical technical content here
-- keep website presentation concerns out of this repo
 
 ## Build And Test
 
