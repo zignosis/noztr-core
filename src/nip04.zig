@@ -428,15 +428,32 @@ fn parse_recipient_tag(
 
 fn parse_reply_tag(tag: nip01_event.EventTag, info: *Nip04MessageInfo) Nip04Error!void {
     if (info.reply_to != null) return error.DuplicateReplyTag;
-    if (tag.items.len != 2 and tag.items.len != 3) return error.InvalidReplyTag;
+    if (tag.items.len < 2 or tag.items.len > 5) return error.InvalidReplyTag;
 
     var reply = Nip04ReplyRef{
         .event_id = parse_lower_hex_32(tag.items[1]) catch return error.InvalidReplyTag,
     };
-    if (tag.items.len == 3) {
+    if (tag.items.len >= 3) {
+        if (std.mem.eql(u8, tag.items[2], "reply")) {
+            if (tag.items.len != 3) return error.InvalidReplyTag;
+            info.reply_to = reply;
+            return;
+        }
         reply.relay_hint = parse_optional_url(tag.items[2]) catch return error.InvalidReplyTag;
     }
+    if (tag.items.len == 4) {
+        try validate_reply_suffix(tag.items[3]);
+    }
+    if (tag.items.len == 5) {
+        if (!std.mem.eql(u8, tag.items[3], "reply")) return error.InvalidReplyTag;
+        _ = parse_lower_hex_32(tag.items[4]) catch return error.InvalidReplyTag;
+    }
     info.reply_to = reply;
+}
+
+fn validate_reply_suffix(text: []const u8) Nip04Error!void {
+    if (std.mem.eql(u8, text, "reply")) return;
+    return error.InvalidReplyTag;
 }
 
 fn parse_optional_url(text: []const u8) error{InvalidUrl}!?[]const u8 {
@@ -552,6 +569,50 @@ test "nip04 message parse extracts strict recipient and reply tags" {
     try std.testing.expect(parsed.reply_to != null);
     try std.testing.expectEqualStrings(event.content, parsed.content);
     try std.testing.expectEqualStrings("wss://relay.example", parsed.reply_to.?.relay_hint.?);
+}
+
+test "nip04 message parse accepts short and long standard reply tags" {
+    const short_reply_tags = [_]nip01_event.EventTag{
+        .{ .items = &.{
+            "p",
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        } },
+        .{ .items = &.{
+            "e",
+            "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+            "reply",
+        } },
+    };
+    const short_reply_event = event_for_tags(
+        4,
+        short_reply_tags[0..],
+        "AAAAAAAAAAAAAAAAAAAAAA==?iv=AAAAAAAAAAAAAAAAAAAAAA==",
+    );
+    const short_reply = try nip04_message_parse(&short_reply_event);
+    try std.testing.expect(short_reply.reply_to != null);
+    try std.testing.expect(short_reply.reply_to.?.relay_hint == null);
+
+    const long_reply_tags = [_]nip01_event.EventTag{
+        .{ .items = &.{
+            "p",
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        } },
+        .{ .items = &.{
+            "e",
+            "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+            "wss://relay.example",
+            "reply",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        } },
+    };
+    const long_reply_event = event_for_tags(
+        4,
+        long_reply_tags[0..],
+        "AAAAAAAAAAAAAAAAAAAAAA==?iv=AAAAAAAAAAAAAAAAAAAAAA==",
+    );
+    const long_reply = try nip04_message_parse(&long_reply_event);
+    try std.testing.expect(long_reply.reply_to != null);
+    try std.testing.expectEqualStrings("wss://relay.example", long_reply.reply_to.?.relay_hint.?);
 }
 
 test "nip04 message parse rejects malformed payloads and duplicate recipients" {
