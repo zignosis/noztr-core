@@ -2,6 +2,7 @@ const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
 const relay_origin = @import("internal/relay_origin.zig");
+const websocket_relay_url = @import("internal/websocket_relay_url.zig");
 
 pub const RelaysError = error{
     InvalidEventKind,
@@ -179,35 +180,7 @@ fn relay_url_validate(url: []const u8) RelaysError!relay_origin.WebsocketOrigin 
     std.debug.assert(url.len <= limits.nip65_relay_url_bytes_max);
     std.debug.assert(@sizeOf(relay_origin.WebsocketOrigin) > 0);
 
-    if (url.len == 0) {
-        return error.InvalidRelayUrl;
-    }
-    if (has_forbidden_url_byte(url)) {
-        return error.InvalidRelayUrl;
-    }
-
-    const origin = relay_origin.parse_websocket_origin(url) orelse {
-        return error.InvalidRelayUrl;
-    };
-    if (origin.port == 0) {
-        return error.InvalidRelayUrl;
-    }
-    return origin;
-}
-
-fn has_forbidden_url_byte(url: []const u8) bool {
-    std.debug.assert(url.len <= limits.nip65_relay_url_bytes_max);
-    std.debug.assert(url.len >= 0);
-
-    for (url) |byte| {
-        if (byte <= 0x20) {
-            return true;
-        }
-        if (byte == '\\') {
-            return true;
-        }
-    }
-    return false;
+    return websocket_relay_url.parse_origin(url, limits.nip65_relay_url_bytes_max);
 }
 
 fn build_event(kind: u32, tags: []const nip01_event.EventTag) nip01_event.Event {

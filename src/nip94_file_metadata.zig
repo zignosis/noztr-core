@@ -1,6 +1,8 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
+const url_with_host = @import("internal/url_with_host.zig");
 
 pub const file_metadata_kind: u32 = 1063;
 
@@ -725,34 +727,14 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
-    if (text.len == 0) return error.InvalidUrl;
-    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
-    if (!is_url_shaped(text)) return error.InvalidUrl;
-    return text;
-}
-
-fn is_url_shaped(text: []const u8) bool {
-    std.debug.assert(text.len <= std.math.maxInt(usize));
-    std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
-
-    if (text.len == 0) return false;
-    const parsed = std.Uri.parse(text) catch return false;
-    if (parsed.scheme.len == 0) return false;
-    return parsed.host != null;
+    return url_with_host.parse(text, limits.tag_item_bytes_max);
 }
 
 fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     std.debug.assert(limits.id_hex_length == 64);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
-    var output: [32]u8 = undefined;
-    if (text.len != 64) return error.InvalidHex;
-    _ = std.fmt.hexToBytes(output[0..], text) catch return error.InvalidHex;
-    for (text) |byte| {
-        if (!std.ascii.isHex(byte)) return error.InvalidHex;
-        if (std.ascii.isUpper(byte)) return error.InvalidHex;
-    }
-    return output;
+    return lower_hex_32.parse(text);
 }
 
 fn parse_decimal_u64(text: []const u8) error{InvalidNumber}!u64 {

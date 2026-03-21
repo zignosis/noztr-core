@@ -1,8 +1,12 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const json_string_writer = @import("internal/json_string_writer.zig");
 const nip44 = @import("nip44.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 const relay_origin = @import("internal/relay_origin.zig");
+const url_with_host = @import("internal/url_with_host.zig");
+const websocket_relay_url = @import("internal/websocket_relay_url.zig");
 
 pub const ListError = error{
     UnsupportedListKind,
@@ -501,59 +505,39 @@ fn write_private_string_json(writer: anytype, value: []const u8) PrivateListErro
     std.debug.assert(value.len <= std.math.maxInt(usize));
     std.debug.assert(@TypeOf(writer) != void);
 
-    try write_private_byte(writer, '"');
-    for (value) |byte| {
-        if (byte == '"' or byte == '\\') {
-            try write_private_escape(writer, byte);
-            continue;
-        }
-        if (byte == '\n') {
-            try write_private_escape(writer, 'n');
-            continue;
-        }
-        if (byte == '\r') {
-            try write_private_escape(writer, 'r');
-            continue;
-        }
-        if (byte == '\t') {
-            try write_private_escape(writer, 't');
-            continue;
-        }
-        if (byte < 0x20) {
-            try write_private_control_escape(writer, byte);
-            continue;
-        }
-        try write_private_byte(writer, byte);
-    }
-    try write_private_byte(writer, '"');
+    json_string_writer.write_string_json(writer, value, .escape) catch |err| switch (err) {
+        error.BufferTooSmall => return error.BufferTooSmall,
+        error.InvalidControlByte => unreachable,
+    };
 }
 
 fn write_private_escape(writer: anytype, escape_byte: u8) PrivateListError!void {
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(escape_byte > 0);
 
-    try write_private_byte(writer, '\\');
-    try write_private_byte(writer, escape_byte);
+    try json_string_writer.write_escape(writer, escape_byte);
 }
 
 fn write_private_control_escape(writer: anytype, byte: u8) PrivateListError!void {
-    const hex = "0123456789abcdef";
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(byte < 0x20);
 
-    try write_private_byte(writer, '\\');
-    try write_private_byte(writer, 'u');
-    try write_private_byte(writer, '0');
-    try write_private_byte(writer, '0');
-    try write_private_byte(writer, hex[byte >> 4]);
-    try write_private_byte(writer, hex[byte & 0x0f]);
+    try json_string_writer.write_control_escape(writer, byte);
 }
 
 fn write_private_byte(writer: anytype, byte: u8) PrivateListError!void {
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(byte <= 255);
 
-    writer.writeByte(byte) catch return error.BufferTooSmall;
+    try json_string_writer.write_byte(writer, byte);
+}
+
+test "private list JSON escapes control bytes in tag items" {
+    var buffer: [32]u8 = undefined;
+    var stream = std.io.fixedBufferStream(&buffer);
+
+    try write_private_string_json(stream.writer(), &[_]u8{ 0x01 });
+    try std.testing.expectEqualStrings("\"\\u0001\"", buffer[0..stream.pos]);
 }
 
 fn private_content_is_nip04_legacy(content: []const u8) bool {
@@ -948,29 +932,7 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.id_hex_length == 64);
 
-    var output: [32]u8 = undefined;
-    if (text.len != limits.id_hex_length) {
-        return error.InvalidHex;
-    }
-    try validate_lower_hex(text);
-    _ = std.fmt.hexToBytes(&output, text) catch return error.InvalidHex;
-    return output;
-}
-
-fn validate_lower_hex(text: []const u8) error{InvalidHex}!void {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(limits.id_hex_length == 64);
-
-    for (text) |byte| {
-        const is_digit = byte >= '0' and byte <= '9';
-        if (is_digit) {
-            continue;
-        }
-        const is_hex = byte >= 'a' and byte <= 'f';
-        if (!is_hex) {
-            return error.InvalidHex;
-        }
-    }
+    return lower_hex_32.parse(text);
 }
 
 fn parse_address_coordinate(text: []const u8) error{InvalidCoordinate}!ListCoordinate {
@@ -1042,51 +1004,14 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(text.len >= 0);
 
-    if (text.len == 0) {
-        return error.InvalidUrl;
-    }
-    const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
-    if (parsed.scheme.len == 0) {
-        return error.InvalidUrl;
-    }
-    if (parsed.host == null) {
-        return error.InvalidUrl;
-    }
-    return text;
+    return url_with_host.parse(text, limits.tag_item_bytes_max);
 }
 
 fn parse_relay_url(text: []const u8) error{InvalidRelayUrl}!relay_origin.WebsocketOrigin {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(text.len >= 0);
 
-    if (text.len == 0) {
-        return error.InvalidRelayUrl;
-    }
-    if (has_forbidden_url_byte(text)) {
-        return error.InvalidRelayUrl;
-    }
-    const origin = relay_origin.parse_websocket_origin(text) orelse {
-        return error.InvalidRelayUrl;
-    };
-    if (origin.port == 0) {
-        return error.InvalidRelayUrl;
-    }
-    return origin;
-}
-
-fn has_forbidden_url_byte(text: []const u8) bool {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(text.len >= 0);
-
-    for (text) |byte| {
-        if (byte <= 0x20) {
-            return true;
-        }
-        if (byte == '\\') {
-            return true;
-        }
-    }
-    return false;
+    return websocket_relay_url.parse_origin(text, limits.tag_item_bytes_max);
 }
 
 fn shortcode_is_valid(shortcode: []const u8) bool {

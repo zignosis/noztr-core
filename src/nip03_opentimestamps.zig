@@ -1,6 +1,8 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
+const url_with_host = @import("internal/url_with_host.zig");
 
 pub const opentimestamps_kind: u32 = 1040;
 
@@ -383,33 +385,14 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     std.debug.assert(text.len <= limits.id_hex_length);
     std.debug.assert(limits.id_hex_length == 64);
 
-    var output: [32]u8 = undefined;
-    if (text.len != limits.id_hex_length) return error.InvalidHex;
-    try validate_lower_hex(text);
-    _ = std.fmt.hexToBytes(&output, text) catch return error.InvalidHex;
-    return output;
-}
-
-fn validate_lower_hex(text: []const u8) error{InvalidHex}!void {
-    std.debug.assert(text.len <= limits.id_hex_length);
-    std.debug.assert(limits.id_hex_length == 64);
-
-    for (text) |byte| {
-        if (byte >= '0' and byte <= '9') continue;
-        if (byte >= 'a' and byte <= 'f') continue;
-        return error.InvalidHex;
-    }
+    return lower_hex_32.parse(text);
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
-    if (text.len == 0) return error.InvalidUrl;
-    const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
-    if (parsed.scheme.len == 0) return error.InvalidUrl;
-    if (parsed.host == null) return error.InvalidUrl;
-    return text;
+    return url_with_host.parse(text, limits.tag_item_bytes_max);
 }
 
 fn parse_optional_url(text: []const u8) error{InvalidUrl}!?[]const u8 {

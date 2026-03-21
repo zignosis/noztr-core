@@ -1,6 +1,8 @@
 const std = @import("std");
 const limits = @import("limits.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 const relay_origin = @import("internal/relay_origin.zig");
+const websocket_relay_url = @import("internal/websocket_relay_url.zig");
 
 pub const Nip05Error = error{
     OutOfMemory,
@@ -337,27 +339,14 @@ fn parse_relay_url(text: []const u8) error{InvalidRelayUrl}!relay_origin.Websock
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(relay_origin.WebsocketOrigin) > 0);
 
-    if (text.len == 0) return error.InvalidRelayUrl;
-    if (text.len > limits.tag_item_bytes_max) return error.InvalidRelayUrl;
-    for (text) |byte| {
-        if (byte <= 0x20 or byte == '\\') return error.InvalidRelayUrl;
-    }
-    const origin = relay_origin.parse_websocket_origin(text) orelse return error.InvalidRelayUrl;
-    if (origin.port == 0) return error.InvalidRelayUrl;
-    return origin;
+    return websocket_relay_url.parse_origin(text, limits.tag_item_bytes_max);
 }
 
 fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     std.debug.assert(text.len <= limits.pubkey_hex_length);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
-    var output: [32]u8 = undefined;
-    if (text.len != limits.pubkey_hex_length) return error.InvalidHex;
-    for (text) |byte| {
-        if (!std.ascii.isHex(byte) or std.ascii.isUpper(byte)) return error.InvalidHex;
-    }
-    _ = std.fmt.hexToBytes(output[0..], text) catch return error.InvalidHex;
-    return output;
+    return lower_hex_32.parse(text);
 }
 
 fn map_json_parse_error(parse_error: anyerror) Nip05Error {

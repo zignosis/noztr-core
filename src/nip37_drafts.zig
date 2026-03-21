@@ -1,5 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
+const json_string_writer = @import("internal/json_string_writer.zig");
+const url_with_host = @import("internal/url_with_host.zig");
 const relay_origin = @import("internal/relay_origin.zig");
 const nip01_event = @import("nip01_event.zig");
 const nip44 = @import("nip44.zig");
@@ -527,57 +529,41 @@ fn write_private_string_json(writer: anytype, value: []const u8) Nip37Error!void
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
-    try write_private_byte(writer, '"');
-    for (value) |byte| {
-        if (byte == '"' or byte == '\\') {
-            try write_private_escape(writer, byte);
-            continue;
-        }
-        if (byte == '\n') {
-            try write_private_escape(writer, 'n');
-            continue;
-        }
-        if (byte == '\r') {
-            try write_private_escape(writer, 'r');
-            continue;
-        }
-        if (byte == '\t') {
-            try write_private_escape(writer, 't');
-            continue;
-        }
-        if (byte < 0x20) {
-            return error.InvalidPrivateTagArray;
-        }
-        try write_private_byte(writer, byte);
-    }
-    try write_private_byte(writer, '"');
+    json_string_writer.write_string_json(writer, value, .reject) catch |err| switch (err) {
+        error.BufferTooSmall => return error.BufferTooSmall,
+        error.InvalidControlByte => return error.InvalidPrivateTagArray,
+    };
 }
 
 fn write_private_escape(writer: anytype, suffix: u8) Nip37Error!void {
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(suffix <= 255);
 
-    try write_private_byte(writer, '\\');
-    try write_private_byte(writer, suffix);
+    try json_string_writer.write_escape(writer, suffix);
 }
 
 fn write_private_byte(writer: anytype, byte: u8) Nip37Error!void {
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(byte <= 255);
 
-    writer.writeByte(byte) catch return error.BufferTooSmall;
+    try json_string_writer.write_byte(writer, byte);
+}
+
+test "draft private JSON rejects control bytes in tag items" {
+    var buffer: [32]u8 = undefined;
+    var stream = std.io.fixedBufferStream(&buffer);
+
+    try std.testing.expectError(
+        error.InvalidPrivateTagArray,
+        write_private_string_json(stream.writer(), &[_]u8{ 0x01 }),
+    );
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
-    if (text.len == 0) return error.InvalidUrl;
-    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
-    const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
-    if (parsed.scheme.len == 0) return error.InvalidUrl;
-    if (parsed.host == null) return error.InvalidUrl;
-    return text;
+    return url_with_host.parse(text, limits.tag_item_bytes_max);
 }
 
 fn parse_relay_url(text: []const u8) error{InvalidUrl}![]const u8 {

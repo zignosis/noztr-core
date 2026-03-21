@@ -1,6 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const url_with_host = @import("internal/url_with_host.zig");
 
 pub const Nip73Error = error{
     InvalidKind,
@@ -256,11 +257,7 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(text.len <= limits.content_bytes_max);
 
-    if (text.len == 0) return error.InvalidUrl;
-    const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
-    if (parsed.scheme.len == 0) return error.InvalidUrl;
-    if (parsed.host == null) return error.InvalidUrl;
-    return text;
+    return url_with_host.parse(text, limits.tag_item_bytes_max);
 }
 
 fn is_url_shaped(text: []const u8) bool {

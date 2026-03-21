@@ -3,6 +3,7 @@ const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
 const nip30_custom_emoji = @import("nip30_custom_emoji.zig");
 const lower_hex_32 = @import("internal/lower_hex_32.zig");
+const url_with_scheme = @import("internal/url_with_scheme.zig");
 
 pub const user_status_kind: u32 = 30315;
 
@@ -294,12 +295,7 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
     std.debug.assert(limits.tag_item_bytes_max > 0);
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
-    if (text.len > limits.tag_item_bytes_max) return error.InvalidUrl;
-    if (text.len == 0) return error.InvalidUrl;
-    if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidUrl;
-    const parsed = std.Uri.parse(text) catch return error.InvalidUrl;
-    if (parsed.scheme.len == 0) return error.InvalidUrl;
-    return text;
+    return url_with_scheme.parse_utf8(text, limits.tag_item_bytes_max);
 }
 
 fn parse_coordinate_text(text: []const u8) error{InvalidCoordinate}![]const u8 {

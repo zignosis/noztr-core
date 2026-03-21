@@ -2,7 +2,9 @@ const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
 const nip44 = @import("nip44.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 const relay_origin = @import("internal/relay_origin.zig");
+const websocket_relay_url = @import("internal/websocket_relay_url.zig");
 
 pub const remote_signing_event_kind: u32 = 24_133;
 
@@ -2221,20 +2223,7 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
-    var output: [32]u8 = undefined;
-    if (text.len != limits.pubkey_hex_length) {
-        return error.InvalidHex;
-    }
-    for (text) |byte| {
-        const is_digit = byte >= '0' and byte <= '9';
-        const is_hex = byte >= 'a' and byte <= 'f';
-        if (is_digit or is_hex) {
-            continue;
-        }
-        return error.InvalidHex;
-    }
-    _ = std.fmt.hexToBytes(&output, text) catch return error.InvalidHex;
-    return output;
+    return lower_hex_32.parse(text);
 }
 
 fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
@@ -2253,16 +2242,7 @@ fn parse_relay_url(text: []const u8) error{InvalidRelayUrl}!relay_origin.Websock
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(relay_origin.WebsocketOrigin) > 0);
 
-    if (text.len == 0) return error.InvalidRelayUrl;
-    if (text.len > limits.tag_item_bytes_max) return error.InvalidRelayUrl;
-    for (text) |byte| {
-        if (byte <= 0x20 or byte == '\\') return error.InvalidRelayUrl;
-    }
-    const origin = relay_origin.parse_websocket_origin(text) orelse {
-        return error.InvalidRelayUrl;
-    };
-    if (origin.port == 0) return error.InvalidRelayUrl;
-    return origin;
+    return websocket_relay_url.parse_origin(text, limits.tag_item_bytes_max);
 }
 
 test "method and permission parsing cover current command set" {

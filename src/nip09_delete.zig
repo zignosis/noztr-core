@@ -1,6 +1,7 @@
 const std = @import("std");
 const nip01_event = @import("nip01_event.zig");
 const limits = @import("limits.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const delete_event_kind: u32 = 5;
 
@@ -232,40 +233,14 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     std.debug.assert(limits.id_hex_length == 64);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
-    var output: [32]u8 = undefined;
-    try parse_lower_hex_into_32(text, &output);
-    return output;
+    return lower_hex_32.parse(text);
 }
 
 fn parse_lower_hex_into_32(text: []const u8, output: *[32]u8) error{InvalidHex}!void {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(@intFromPtr(output) != 0);
 
-    if (text.len != limits.id_hex_length) {
-        return error.InvalidHex;
-    }
-    try validate_lower_hex(text);
-    _ = std.fmt.hexToBytes(output, text) catch {
-        return error.InvalidHex;
-    };
-}
-
-fn validate_lower_hex(text: []const u8) error{InvalidHex}!void {
-    std.debug.assert(limits.id_hex_length == 64);
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-
-    var index: usize = 0;
-    while (index < text.len) : (index += 1) {
-        const byte = text[index];
-        const is_digit = byte >= '0' and byte <= '9';
-        if (is_digit) {
-            continue;
-        }
-        const is_lower_hex = byte >= 'a' and byte <= 'f';
-        if (!is_lower_hex) {
-            return error.InvalidHex;
-        }
-    }
+    output.* = try lower_hex_32.parse(text);
 }
 
 fn delete_target_matches_event(

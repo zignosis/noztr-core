@@ -1,6 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const url_with_scheme = @import("internal/url_with_scheme.zig");
 
 pub const repository_announcement_kind: u32 = 30617;
 pub const repository_state_kind: u32 = 30618;
@@ -490,10 +491,7 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
 
-    _ = parse_nonempty_utf8(text) catch return error.InvalidUrl;
-    const uri = std.Uri.parse(text) catch return error.InvalidUrl;
-    if (uri.scheme.len == 0) return error.InvalidUrl;
-    return text;
+    return url_with_scheme.parse_utf8(text, limits.tag_item_bytes_max);
 }
 
 fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {

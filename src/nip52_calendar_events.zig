@@ -1,6 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const date_calendar_event_kind: u32 = 31922;
 pub const time_calendar_event_kind: u32 = 31923;
@@ -824,10 +825,7 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
-    if (text.len != limits.pubkey_hex_length) return error.InvalidHex;
-    var out: [32]u8 = undefined;
-    _ = std.fmt.hexToBytes(&out, text) catch return error.InvalidHex;
-    return out;
+    return lower_hex_32.parse(text);
 }
 
 test "NIP-52 extracts date-based calendar metadata" {

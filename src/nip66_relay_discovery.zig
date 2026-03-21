@@ -3,6 +3,7 @@ const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
 const relay_origin = @import("internal/relay_origin.zig");
 const lower_hex_32 = @import("internal/lower_hex_32.zig");
+const websocket_relay_url = @import("internal/websocket_relay_url.zig");
 
 pub const discovery_kind: u32 = 30166;
 pub const monitor_kind: u32 = 10166;
@@ -813,22 +814,7 @@ fn relay_url_validate(url: []const u8) error{InvalidUrl}!relay_origin.WebsocketO
     std.debug.assert(url.len <= limits.tag_item_bytes_max);
     std.debug.assert(@sizeOf(relay_origin.WebsocketOrigin) > 0);
 
-    if (url.len == 0 or url.len > limits.tag_item_bytes_max) return error.InvalidUrl;
-    if (has_forbidden_url_byte(url)) return error.InvalidUrl;
-    const origin = relay_origin.parse_websocket_origin(url) orelse return error.InvalidUrl;
-    if (origin.port == 0) return error.InvalidUrl;
-    return origin;
-}
-
-fn has_forbidden_url_byte(url: []const u8) bool {
-    std.debug.assert(url.len <= limits.tag_item_bytes_max);
-    std.debug.assert(url.len >= 0);
-
-    for (url) |byte| {
-        if (byte <= 0x20) return true;
-        if (byte == '\\') return true;
-    }
-    return false;
+    return websocket_relay_url.parse_origin(url, limits.tag_item_bytes_max) catch return error.InvalidUrl;
 }
 
 fn render_normalized_origin(

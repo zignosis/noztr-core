@@ -1,6 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const code_snippet_kind: u32 = 1337;
 pub const repo_announcement_kind: u32 = 30617;
@@ -471,14 +472,7 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     std.debug.assert(limits.id_hex_length == 64);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
-    var output: [32]u8 = undefined;
-    if (text.len != 64) return error.InvalidHex;
-    _ = std.fmt.hexToBytes(output[0..], text) catch return error.InvalidHex;
-    for (text) |byte| {
-        if (!std.ascii.isHex(byte)) return error.InvalidHex;
-        if (std.ascii.isUpper(byte)) return error.InvalidHex;
-    }
-    return output;
+    return lower_hex_32.parse(text);
 }
 
 fn test_event(

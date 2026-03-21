@@ -1,6 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const report_event_kind: u32 = 1984;
 
@@ -121,7 +122,7 @@ pub fn build_pubkey_report_tag(
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
 
-    _ = parse_lower_hex_32(pubkey_hex) catch return error.InvalidPubkeyReportTag;
+    _ = parse_nostr_hex_32(pubkey_hex) catch return error.InvalidPubkeyReportTag;
     output.items[0] = "p";
     output.items[1] = pubkey_hex;
     output.item_count = 2;
@@ -141,7 +142,7 @@ pub fn build_event_report_tag(
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
 
-    _ = parse_lower_hex_32(event_id_hex) catch return error.InvalidEventReportTag;
+    _ = parse_nostr_hex_32(event_id_hex) catch return error.InvalidEventReportTag;
     output.items[0] = "e";
     output.items[1] = event_id_hex;
     output.items[2] = report_type.text();
@@ -158,7 +159,7 @@ pub fn build_blob_report_tag(
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(hash_hex.len <= limits.tag_item_bytes_max);
 
-    _ = parse_lower_hex_32(hash_hex) catch return error.InvalidBlobReportTag;
+    _ = parse_compat_hex_32(hash_hex) catch return error.InvalidBlobReportTag;
     output.items[0] = "x";
     output.items[1] = hash_hex;
     output.items[2] = report_type.text();
@@ -211,7 +212,7 @@ fn parse_pubkey_tag(
     if (target.* != null) return;
     const report_type = try parse_optional_pubkey_report_type(tag);
     target.* = .{
-        .pubkey = parse_lower_hex_32(tag.items[1]) catch return error.InvalidPubkeyReportTag,
+        .pubkey = parse_nostr_hex_32(tag.items[1]) catch return error.InvalidPubkeyReportTag,
         .report_type = report_type,
     };
 }
@@ -231,7 +232,7 @@ fn parse_event_tag(
         return error.InvalidEventReportTag;
     };
     target.* = .{
-        .event_id = parse_lower_hex_32(tag.items[1]) catch return error.InvalidEventReportTag,
+        .event_id = parse_nostr_hex_32(tag.items[1]) catch return error.InvalidEventReportTag,
         .report_type = report_type,
     };
 }
@@ -246,7 +247,7 @@ fn parse_blob_tag(
     if (tag.items.len < 3) return error.InvalidBlobReportTag;
     if (target.* != null) return;
     target.* = .{
-        .hash = parse_lower_hex_32(tag.items[1]) catch return error.InvalidBlobReportTag,
+        .hash = parse_compat_hex_32(tag.items[1]) catch return error.InvalidBlobReportTag,
         .report_type = parse_report_type(tag.items[2]) catch return error.InvalidBlobReportTag,
     };
 }
@@ -319,7 +320,11 @@ fn is_url_shaped(text: []const u8) bool {
     return parsed.scheme.len != 0 and parsed.host != null;
 }
 
-fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
+fn parse_nostr_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
+    return lower_hex_32.parse(text);
+}
+
+fn parse_compat_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     std.debug.assert(limits.id_hex_length == 64);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -327,7 +332,7 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     if (text.len != 64) return error.InvalidHex;
     _ = std.fmt.hexToBytes(output[0..], text) catch return error.InvalidHex;
     for (text) |byte| {
-        if (!std.ascii.isHex(byte) or std.ascii.isUpper(byte)) return error.InvalidHex;
+        if (!std.ascii.isHex(byte)) return error.InvalidHex;
     }
     return output;
 }
@@ -401,6 +406,27 @@ test "report extract rejects malformed required report state" {
     try std.testing.expectError(error.MissingReportType, report_extract(&test_event(missing_type[0..]), servers[0..]));
     try std.testing.expectError(error.InvalidPubkeyReportTag, report_extract(&test_event(invalid_pubkey_type[0..]), servers[0..]));
     try std.testing.expectError(error.InvalidBlobReportTag, report_extract(&test_event(invalid_blob[0..]), servers[0..]));
+}
+
+test "report hex policy keeps nostr ids strict and blob hashes compatible" {
+    var built: BuiltTag = .{};
+
+    try std.testing.expectError(
+        error.InvalidPubkeyReportTag,
+        build_pubkey_report_tag(
+            &built,
+            "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            .spam,
+        ),
+    );
+    try std.testing.expectEqualStrings(
+        "x",
+        (try build_blob_report_tag(
+            &built,
+            "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+            .malware,
+        )).items[0],
+    );
 }
 
 test "report builders emit canonical tags" {

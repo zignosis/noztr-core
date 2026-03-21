@@ -2,6 +2,7 @@ const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
 const nip73_external_ids = @import("nip73_external_ids.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const comment_event_kind: u32 = 1111;
 
@@ -805,31 +806,7 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.id_hex_length == 64);
 
-    var output: [32]u8 = undefined;
-    if (text.len != limits.id_hex_length) {
-        return error.InvalidHex;
-    }
-    try validate_lower_hex(text);
-    _ = std.fmt.hexToBytes(&output, text) catch {
-        return error.InvalidHex;
-    };
-    return output;
-}
-
-fn validate_lower_hex(text: []const u8) error{InvalidHex}!void {
-    std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(limits.id_hex_length == 64);
-
-    for (text) |byte| {
-        const is_digit = byte >= '0' and byte <= '9';
-        if (is_digit) {
-            continue;
-        }
-        const is_hex = byte >= 'a' and byte <= 'f';
-        if (!is_hex) {
-            return error.InvalidHex;
-        }
-    }
+    return lower_hex_32.parse(text);
 }
 
 fn comment_event(tags: []const nip01_event.EventTag) nip01_event.Event {

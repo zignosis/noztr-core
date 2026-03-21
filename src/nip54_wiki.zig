@@ -1,6 +1,8 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
+const lower_hex_32 = @import("internal/lower_hex_32.zig");
+const url_with_scheme = @import("internal/url_with_scheme.zig");
 
 pub const wiki_article_kind: u32 = 30818;
 pub const wiki_merge_request_kind: u32 = 818;
@@ -496,20 +498,14 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
 
-    _ = parse_nonempty_utf8(text) catch return error.InvalidUrl;
-    const uri = std.Uri.parse(text) catch return error.InvalidUrl;
-    if (uri.scheme.len == 0) return error.InvalidUrl;
-    return text;
+    return url_with_scheme.parse_utf8(text, limits.tag_item_bytes_max);
 }
 
 fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
-    if (text.len != limits.pubkey_hex_length) return error.InvalidHex;
-    var out: [32]u8 = undefined;
-    _ = std.fmt.hexToBytes(&out, text) catch return error.InvalidHex;
-    return out;
+    return lower_hex_32.parse(text);
 }
 
 test "NIP-54 extracts wiki article metadata and fork reference" {
