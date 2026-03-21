@@ -45,6 +45,7 @@ Use the support pages for cross-cutting expectations:
 - [stability and versioning](stability-and-versioning.md)
 - [compatibility and support](compatibility-and-support.md)
 - [release notes template](release-notes-template.md)
+- [releases/0.1.0-rc.1](releases/0.1.0-rc.1.md)
 
 Use the official upstream NIPs repository for spec texts:
 <https://github.com/nostr-protocol/nips>
