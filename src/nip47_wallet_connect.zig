@@ -330,7 +330,10 @@ pub fn connection_uri_parse(
     return parse_connection_query(raw_query, wallet_service_pubkey, out_relays, scratch);
 }
 
-pub fn connection_uri_format(output: []u8, connection_uri: ConnectionUri) NwcError![]const u8 {
+pub fn connection_uri_serialize(
+    output: []u8,
+    connection_uri: ConnectionUri,
+) NwcError![]const u8 {
     std.debug.assert(output.len <= limits.nip46_uri_bytes_max);
     std.debug.assert(connection_uri.relays.len <= std.math.maxInt(usize));
 
@@ -359,6 +362,9 @@ pub fn connection_uri_format(output: []u8, connection_uri: ConnectionUri) NwcErr
     }
     return output[0..@intCast(index)];
 }
+
+/// Compatibility alias for older Wallet Connect URI formatter naming.
+pub const connection_uri_format = connection_uri_serialize;
 
 pub fn info_event_extract(
     event: *const nip01_event.Event,
@@ -3222,7 +3228,7 @@ test "connection uri parse and format keep relay order and lowercase secrets" {
         relays[0..],
         arena.allocator(),
     );
-    const rendered = try connection_uri_format(output[0..], parsed);
+    const rendered = try connection_uri_serialize(output[0..], parsed);
 
     try std.testing.expectEqualStrings("wss://relay.one", parsed.relays[0]);
     try std.testing.expectEqualStrings("wss://relay.two", parsed.relays[1]);

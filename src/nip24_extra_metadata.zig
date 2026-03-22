@@ -148,7 +148,7 @@ pub fn common_tags_extract_with_external_ids(
 }
 
 /// Builds a generic NIP-24 `r` tag.
-pub fn build_reference_tag(
+pub fn common_tags_build_reference_tag(
     output: *BuiltTag,
     reference_url: []const u8,
 ) Nip24Error!nip01_event.EventTag {
@@ -162,7 +162,7 @@ pub fn build_reference_tag(
 }
 
 /// Builds a generic NIP-24 `title` tag.
-pub fn build_title_tag(
+pub fn common_tags_build_title_tag(
     output: *BuiltTag,
     title: []const u8,
 ) Nip24Error!nip01_event.EventTag {
@@ -176,7 +176,7 @@ pub fn build_title_tag(
 }
 
 /// Builds a generic NIP-24 lowercase `t` hashtag tag.
-pub fn build_hashtag_tag(
+pub fn common_tags_build_hashtag_tag(
     output: *BuiltTag,
     hashtag: []const u8,
 ) Nip24Error!nip01_event.EventTag {
@@ -188,6 +188,15 @@ pub fn build_hashtag_tag(
     output.item_count = 2;
     return output.as_event_tag();
 }
+
+/// Compatibility alias for older generic NIP-24 `r` tag builder naming.
+pub const build_reference_tag = common_tags_build_reference_tag;
+
+/// Compatibility alias for older generic NIP-24 `title` tag builder naming.
+pub const build_title_tag = common_tags_build_title_tag;
+
+/// Compatibility alias for older generic NIP-24 `t` hashtag tag builder naming.
+pub const build_hashtag_tag = common_tags_build_hashtag_tag;
 
 fn parse_known_extra_field(
     extras: *MetadataExtras,
@@ -750,17 +759,17 @@ test "builders emit canonical generic tags" {
 
     try std.testing.expectEqualStrings(
         "r",
-        (try build_reference_tag(&reference_tag, "https://example.com/post")).items[0],
+        (try common_tags_build_reference_tag(&reference_tag, "https://example.com/post")).items[0],
     );
     try std.testing.expectEqualStrings(
         "title",
-        (try build_title_tag(&title_tag, "Title")).items[0],
+        (try common_tags_build_title_tag(&title_tag, "Title")).items[0],
     );
-    const built_hashtag = try build_hashtag_tag(&hashtag_tag, "nostr");
+    const built_hashtag = try common_tags_build_hashtag_tag(&hashtag_tag, "nostr");
     try std.testing.expectEqualStrings("t", built_hashtag.items[0]);
 
     try std.testing.expectError(
         error.InvalidHashtagTag,
-        build_hashtag_tag(&hashtag_tag, "Nostr"),
+        common_tags_build_hashtag_tag(&hashtag_tag, "Nostr"),
     );
 }

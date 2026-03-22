@@ -262,7 +262,7 @@ pub fn request_build_lnurl_tag(
 }
 
 /// Builds a bounded target `p` tag for NIP-57 requests and receipts.
-pub fn build_pubkey_tag(
+pub fn zap_build_pubkey_tag(
     output: *BuiltTag,
     tag_name: []const u8,
     pubkey_hex: []const u8,
@@ -278,7 +278,10 @@ pub fn build_pubkey_tag(
 }
 
 /// Builds a bounded target `e` tag for NIP-57 requests and receipts.
-pub fn build_event_tag(output: *BuiltTag, event_id_hex: []const u8) Nip57Error!nip01_event.EventTag {
+pub fn zap_build_event_tag(
+    output: *BuiltTag,
+    event_id_hex: []const u8,
+) Nip57Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
 
@@ -290,7 +293,7 @@ pub fn build_event_tag(output: *BuiltTag, event_id_hex: []const u8) Nip57Error!n
 }
 
 /// Builds a bounded target `a` tag for NIP-57 requests and receipts.
-pub fn build_coordinate_tag(
+pub fn zap_build_coordinate_tag(
     output: *BuiltTag,
     coordinate_text: []const u8,
 ) Nip57Error!nip01_event.EventTag {
@@ -305,7 +308,10 @@ pub fn build_coordinate_tag(
 }
 
 /// Builds a bounded target `k` tag for NIP-57 requests and receipts.
-pub fn build_kind_tag(output: *BuiltTag, kind: u32) Nip57Error!nip01_event.EventTag {
+pub fn zap_build_kind_tag(
+    output: *BuiltTag,
+    kind: u32,
+) Nip57Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(kind <= limits.kind_max);
 
@@ -316,6 +322,18 @@ pub fn build_kind_tag(output: *BuiltTag, kind: u32) Nip57Error!nip01_event.Event
     output.item_count = 2;
     return output.as_event_tag();
 }
+
+/// Compatibility alias for older NIP-57 target `p` tag builder naming.
+pub const build_pubkey_tag = zap_build_pubkey_tag;
+
+/// Compatibility alias for older NIP-57 target `e` tag builder naming.
+pub const build_event_tag = zap_build_event_tag;
+
+/// Compatibility alias for older NIP-57 target `a` tag builder naming.
+pub const build_coordinate_tag = zap_build_coordinate_tag;
+
+/// Compatibility alias for older NIP-57 target `k` tag builder naming.
+pub const build_kind_tag = zap_build_kind_tag;
 
 /// Builds a bounded `bolt11` tag for NIP-57 receipts.
 pub fn receipt_build_bolt11_tag(

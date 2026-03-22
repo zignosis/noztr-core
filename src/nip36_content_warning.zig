@@ -43,7 +43,7 @@ pub fn content_warning_extract(
 }
 
 /// Builds a canonical NIP-36 `content-warning` tag.
-pub fn build_content_warning_tag(
+pub fn content_warning_build_tag(
     output: *BuiltTag,
     reason: ?[]const u8,
 ) Nip36Error!nip01_event.EventTag {
@@ -62,7 +62,7 @@ pub fn build_content_warning_tag(
 }
 
 /// Builds the canonical NIP-32 `L` namespace tag for content-warning labels.
-pub fn build_content_warning_namespace_tag(
+pub fn content_warning_build_namespace_tag(
     output: *nip32_labeling.BuiltTag,
 ) Nip36Error!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
@@ -74,7 +74,7 @@ pub fn build_content_warning_namespace_tag(
 }
 
 /// Builds the canonical NIP-32 `l` tag for content-warning labels.
-pub fn build_content_warning_label_tag(
+pub fn content_warning_build_label_tag(
     output: *nip32_labeling.BuiltTag,
     label: []const u8,
 ) Nip36Error!nip01_event.EventTag {
@@ -85,6 +85,15 @@ pub fn build_content_warning_label_tag(
         return error.InvalidContentWarningLabel;
     };
 }
+
+/// Compatibility alias for older NIP-36 content-warning tag builder naming.
+pub const build_content_warning_tag = content_warning_build_tag;
+
+/// Compatibility alias for older NIP-36 namespace tag builder naming.
+pub const build_content_warning_namespace_tag = content_warning_build_namespace_tag;
+
+/// Compatibility alias for older NIP-36 label tag builder naming.
+pub const build_content_warning_label_tag = content_warning_build_label_tag;
 
 /// Returns whether a parsed NIP-32 namespace is the NIP-36 content-warning namespace.
 pub fn namespace_is_content_warning(namespace: nip32_labeling.LabelNamespace) bool {
@@ -178,18 +187,18 @@ test "content warning builders emit canonical tags" {
     var namespace_tag: nip32_labeling.BuiltTag = .{};
     var label_tag: nip32_labeling.BuiltTag = .{};
 
-    const built_warning = try build_content_warning_tag(&warning_tag, "reason");
+    const built_warning = try content_warning_build_tag(&warning_tag, "reason");
     try std.testing.expectEqualStrings(tag_name, built_warning.items[0]);
     try std.testing.expectEqualStrings("reason", built_warning.items[1]);
-    const built_empty_warning = try build_content_warning_tag(&empty_warning_tag, "");
+    const built_empty_warning = try content_warning_build_tag(&empty_warning_tag, "");
     try std.testing.expectEqual(@as(usize, 1), built_empty_warning.items.len);
     try std.testing.expectEqualStrings(tag_name, built_empty_warning.items[0]);
 
-    const built_namespace = try build_content_warning_namespace_tag(&namespace_tag);
+    const built_namespace = try content_warning_build_namespace_tag(&namespace_tag);
     try std.testing.expectEqualStrings("L", built_namespace.items[0]);
     try std.testing.expectEqualStrings(label_namespace, built_namespace.items[1]);
 
-    const built_label = try build_content_warning_label_tag(&label_tag, "nudity");
+    const built_label = try content_warning_build_label_tag(&label_tag, "nudity");
     try std.testing.expectEqualStrings("l", built_label.items[0]);
     try std.testing.expectEqualStrings("nudity", built_label.items[1]);
     try std.testing.expectEqualStrings(label_namespace, built_label.items[2]);

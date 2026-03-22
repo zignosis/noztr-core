@@ -17,7 +17,7 @@ pub const Nip21Reference = struct {
 ///   (for example `nprofile.relays`, `nevent.relays`, `naddr.identifier`,
 ///   `naddr.relays`, `nrelay.relay`).
 /// - Keep both `input` and `tlv_scratch` alive and unmodified while using borrowed fields.
-pub fn nip21_parse(input: []const u8, tlv_scratch: []u8) Nip21Error!Nip21Reference {
+pub fn uri_parse(input: []const u8, tlv_scratch: []u8) Nip21Error!Nip21Reference {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(tlv_scratch.len <= limits.nip19_tlv_scratch_bytes_max);
 
@@ -68,15 +68,21 @@ fn map_nip19_decode_error(decode_error: nip19_bech32.Nip19Error) Nip21Error {
 }
 
 /// Returns true only when `input` is a strict and allowed NIP-21 URI.
-pub fn nip21_is_valid(input: []const u8, tlv_scratch: []u8) bool {
+pub fn uri_is_valid(input: []const u8, tlv_scratch: []u8) bool {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(tlv_scratch.len <= limits.nip19_tlv_scratch_bytes_max);
 
-    _ = nip21_parse(input, tlv_scratch) catch {
+    _ = uri_parse(input, tlv_scratch) catch {
         return false;
     };
     return true;
 }
+
+/// Compatibility alias for older NIP-21 parser naming.
+pub const nip21_parse = uri_parse;
+
+/// Compatibility alias for older NIP-21 validator naming.
+pub const nip21_is_valid = uri_is_valid;
 
 fn has_forbidden_separator(identifier: []const u8) bool {
     std.debug.assert(identifier.len <= limits.nip19_bech32_identifier_bytes_max);
@@ -115,7 +121,7 @@ test "nip21 valid vectors parse strict nostr entities" {
         .{ .npub = [_]u8{0x11} ** 32 },
     );
     const npub_uri = try to_nostr_uri(uri_output[0..], npub_identifier);
-    const npub_reference = try nip21_parse(npub_uri, tlv_scratch[0..]);
+    const npub_reference = try uri_parse(npub_uri, tlv_scratch[0..]);
     try std.testing.expect(npub_reference.entity == .npub);
     try std.testing.expectEqualStrings(npub_identifier, npub_reference.identifier);
 
@@ -124,7 +130,7 @@ test "nip21 valid vectors parse strict nostr entities" {
         .{ .note = [_]u8{0x22} ** 32 },
     );
     const note_uri = try to_nostr_uri(uri_output[0..], note_identifier);
-    const note_reference = try nip21_parse(note_uri, tlv_scratch[0..]);
+    const note_reference = try uri_parse(note_uri, tlv_scratch[0..]);
     try std.testing.expect(note_reference.entity == .note);
     try std.testing.expectEqualStrings(note_identifier, note_reference.identifier);
 
@@ -138,7 +144,7 @@ test "nip21 valid vectors parse strict nostr entities" {
         },
     );
     const nprofile_uri = try to_nostr_uri(uri_output[0..], nprofile_identifier);
-    const nprofile_reference = try nip21_parse(nprofile_uri, tlv_scratch[0..]);
+    const nprofile_reference = try uri_parse(nprofile_uri, tlv_scratch[0..]);
     try std.testing.expect(nprofile_reference.entity == .nprofile);
     try std.testing.expectEqualStrings(nprofile_identifier, nprofile_reference.identifier);
 
@@ -153,7 +159,7 @@ test "nip21 valid vectors parse strict nostr entities" {
         },
     );
     const naddr_uri = try to_nostr_uri(uri_output[0..], naddr_identifier);
-    const naddr_reference = try nip21_parse(naddr_uri, tlv_scratch[0..]);
+    const naddr_reference = try uri_parse(naddr_uri, tlv_scratch[0..]);
     try std.testing.expect(naddr_reference.entity == .naddr);
     try std.testing.expectEqualStrings("", naddr_reference.entity.naddr.identifier);
     try std.testing.expectEqualStrings(naddr_identifier, naddr_reference.identifier);
@@ -166,7 +172,7 @@ test "nip21 invalid vectors reject scheme forbidden entity and malformed encodin
 
     try std.testing.expectError(
         error.InvalidScheme,
-        nip21_parse("http://example.com/nostr:npub1test", tlv_scratch[0..]),
+        uri_parse("http://example.com/nostr:npub1test", tlv_scratch[0..]),
     );
 
     const nsec_identifier = try nip19_bech32.nip19_encode(
@@ -174,26 +180,26 @@ test "nip21 invalid vectors reject scheme forbidden entity and malformed encodin
         .{ .nsec = [_]u8{0x44} ** 32 },
     );
     const nsec_uri = try to_nostr_uri(uri_output[0..], nsec_identifier);
-    try std.testing.expectError(error.ForbiddenEntity, nip21_parse(nsec_uri, tlv_scratch[0..]));
+    try std.testing.expectError(error.ForbiddenEntity, uri_parse(nsec_uri, tlv_scratch[0..]));
 
     try std.testing.expectError(
         error.InvalidEntityEncoding,
-        nip21_parse("nostr:npub1notvalidchecksum", tlv_scratch[0..]),
+        uri_parse("nostr:npub1notvalidchecksum", tlv_scratch[0..]),
     );
     try std.testing.expectError(
         error.InvalidEntityEncoding,
-        nip21_parse("nostr:Npub1notvalidchecksum", tlv_scratch[0..]),
+        uri_parse("nostr:Npub1notvalidchecksum", tlv_scratch[0..]),
     );
     try std.testing.expectError(
         error.InvalidEntityEncoding,
-        nip21_parse("nostr:npub", tlv_scratch[0..]),
+        uri_parse("nostr:npub", tlv_scratch[0..]),
     );
 
-    try std.testing.expectError(error.InvalidUri, nip21_parse("nostr:", tlv_scratch[0..]));
+    try std.testing.expectError(error.InvalidUri, uri_parse("nostr:", tlv_scratch[0..]));
     const two_entities_uri =
         "nostr:npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq" ++
         "/note";
-    try std.testing.expectError(error.InvalidUri, nip21_parse(two_entities_uri, tlv_scratch[0..]));
+    try std.testing.expectError(error.InvalidUri, uri_parse(two_entities_uri, tlv_scratch[0..]));
 }
 
 test "nip21 maps nip19 decode failure classes deterministically" {
@@ -207,7 +213,7 @@ test "nip21 maps nip19 decode failure classes deterministically" {
     );
 }
 
-test "nip21_is_valid returns deterministic true and false" {
+test "uri_is_valid returns deterministic true and false" {
     var bech32_output: [limits.nip19_bech32_identifier_bytes_max]u8 = undefined;
     var uri_output: [limits.nip21_uri_bytes_max]u8 = undefined;
     var tlv_scratch: [limits.nip19_tlv_scratch_bytes_max]u8 = undefined;
@@ -217,8 +223,8 @@ test "nip21_is_valid returns deterministic true and false" {
         .{ .npub = [_]u8{0x55} ** 32 },
     );
     const valid_uri = try to_nostr_uri(uri_output[0..], npub_identifier);
-    try std.testing.expect(nip21_is_valid(valid_uri, tlv_scratch[0..]));
-    try std.testing.expect(!nip21_is_valid("http://example.com", tlv_scratch[0..]));
-    try std.testing.expect(!nip21_is_valid("nostr:npub1broken", tlv_scratch[0..]));
-    try std.testing.expect(!nip21_is_valid("nostr:", tlv_scratch[0..]));
+    try std.testing.expect(uri_is_valid(valid_uri, tlv_scratch[0..]));
+    try std.testing.expect(!uri_is_valid("http://example.com", tlv_scratch[0..]));
+    try std.testing.expect(!uri_is_valid("nostr:npub1broken", tlv_scratch[0..]));
+    try std.testing.expect(!uri_is_valid("nostr:", tlv_scratch[0..]));
 }

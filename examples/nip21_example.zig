@@ -11,7 +11,7 @@ test "NIP-21 example: parse strict nostr URIs on top of NIP-19" {
     var uri_buffer: [160]u8 = undefined;
     const uri = try std.fmt.bufPrint(uri_buffer[0..], "nostr:{s}", .{encoded});
 
-    const reference = try noztr.nip21_uri.nip21_parse(uri, scratch[0..]);
+    const reference = try noztr.nip21_uri.uri_parse(uri, scratch[0..]);
 
     try std.testing.expect(reference.entity == .npub);
     try std.testing.expectEqualStrings(encoded, reference.identifier);

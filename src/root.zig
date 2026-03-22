@@ -757,10 +757,10 @@ test "root exports limits and error namespaces" {
             fn ([]const u8, []u8) nip19_bech32.Nip19Error!nip19_bech32.Nip19Entity,
     );
     try std.testing.expect(
-        @TypeOf(nip21_uri.nip21_parse) ==
+        @TypeOf(nip21_uri.uri_parse) ==
             fn ([]const u8, []u8) nip21_uri.Nip21Error!nip21_uri.Nip21Reference,
     );
-    try std.testing.expect(@TypeOf(nip21_uri.nip21_is_valid) == fn ([]const u8, []u8) bool);
+    try std.testing.expect(@TypeOf(nip21_uri.uri_is_valid) == fn ([]const u8, []u8) bool);
     try std.testing.expect(
         @TypeOf(nip02_contacts.contacts_extract) ==
             fn (
@@ -1341,7 +1341,7 @@ test "I4 optional paths do not interfere with strict core defaults" {
     try std.testing.expect(decoded_npub == .npub);
 
     const npub_uri = try std.fmt.bufPrint(uri_buffer[0..], "nostr:{s}", .{npub_identifier});
-    const parsed_uri = try nip21_uri.nip21_parse(npub_uri, tlv_scratch[0..]);
+    const parsed_uri = try nip21_uri.uri_parse(npub_uri, tlv_scratch[0..]);
     try std.testing.expect(parsed_uri.entity == .npub);
 
     const contact_tag_items = [_][]const u8{

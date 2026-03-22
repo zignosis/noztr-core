@@ -80,7 +80,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 
 - `connection_uri_parse`
   - parse a Wallet Connect URI
-- `connection_uri_format`
+- `connection_uri_serialize`
   - format a canonical Wallet Connect URI
 - `request_event_extract`
   - extract typed request context from an event

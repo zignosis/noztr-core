@@ -114,7 +114,7 @@ pub fn report_extract(
 }
 
 /// Builds a NIP-56 `p` tag with optional report type.
-pub fn build_pubkey_report_tag(
+pub fn report_build_pubkey_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
     report_type: ?ReportType,
@@ -134,7 +134,7 @@ pub fn build_pubkey_report_tag(
 }
 
 /// Builds a NIP-56 `e` report tag.
-pub fn build_event_report_tag(
+pub fn report_build_event_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
     report_type: ReportType,
@@ -151,7 +151,7 @@ pub fn build_event_report_tag(
 }
 
 /// Builds a NIP-56 `x` blob report tag.
-pub fn build_blob_report_tag(
+pub fn report_build_blob_tag(
     output: *BuiltTag,
     hash_hex: []const u8,
     report_type: ReportType,
@@ -168,7 +168,7 @@ pub fn build_blob_report_tag(
 }
 
 /// Builds a NIP-56 `server` tag.
-pub fn build_server_tag(
+pub fn report_build_server_tag(
     output: *BuiltTag,
     server_url: []const u8,
 ) Nip56Error!nip01_event.EventTag {
@@ -180,6 +180,18 @@ pub fn build_server_tag(
     output.item_count = 2;
     return output.as_event_tag();
 }
+
+/// Compatibility alias for older NIP-56 `p` report tag builder naming.
+pub const build_pubkey_report_tag = report_build_pubkey_tag;
+
+/// Compatibility alias for older NIP-56 `e` report tag builder naming.
+pub const build_event_report_tag = report_build_event_tag;
+
+/// Compatibility alias for older NIP-56 `x` report tag builder naming.
+pub const build_blob_report_tag = report_build_blob_tag;
+
+/// Compatibility alias for older NIP-56 `server` tag builder naming.
+pub const build_server_tag = report_build_server_tag;
 
 fn apply_report_tag(
     tag: nip01_event.EventTag,
@@ -413,7 +425,7 @@ test "report hex policy keeps nostr ids strict and blob hashes compatible" {
 
     try std.testing.expectError(
         error.InvalidPubkeyReportTag,
-        build_pubkey_report_tag(
+        report_build_pubkey_tag(
             &built,
             "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
             .spam,
@@ -421,7 +433,7 @@ test "report hex policy keeps nostr ids strict and blob hashes compatible" {
     );
     try std.testing.expectEqualStrings(
         "x",
-        (try build_blob_report_tag(
+        (try report_build_blob_tag(
             &built,
             "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
             .malware,
@@ -437,7 +449,7 @@ test "report builders emit canonical tags" {
 
     try std.testing.expectEqualStrings(
         "p",
-        (try build_pubkey_report_tag(
+        (try report_build_pubkey_tag(
             &pubkey_tag,
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             .spam,
@@ -445,7 +457,7 @@ test "report builders emit canonical tags" {
     );
     try std.testing.expectEqualStrings(
         "e",
-        (try build_event_report_tag(
+        (try report_build_event_tag(
             &event_tag,
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             .illegal,
@@ -453,7 +465,7 @@ test "report builders emit canonical tags" {
     );
     try std.testing.expectEqualStrings(
         "x",
-        (try build_blob_report_tag(
+        (try report_build_blob_tag(
             &blob_tag,
             "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             .malware,
@@ -461,6 +473,6 @@ test "report builders emit canonical tags" {
     );
     try std.testing.expectEqualStrings(
         "server",
-        (try build_server_tag(&server_tag, "https://blob.example/file")).items[0],
+        (try report_build_server_tag(&server_tag, "https://blob.example/file")).items[0],
     );
 }
