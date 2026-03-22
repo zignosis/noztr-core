@@ -6,7 +6,7 @@ pub const http_auth_kind: u32 = 27235;
 pub const authorization_scheme = "Nostr ";
 pub const payload_hash_hex_length: u8 = 64;
 
-pub const Nip98Error = nip01_event.EventParseError || nip01_event.EventShapeError ||
+pub const HttpAuthError = nip01_event.EventParseError || nip01_event.EventShapeError ||
     nip01_event.EventVerifyError || error{
     UnsupportedKind,
     MissingUrlTag,
@@ -63,7 +63,7 @@ pub fn http_auth_is_supported(event: *const nip01_event.Event) bool {
 }
 
 /// Extracts the bounded NIP-98 request metadata from one event.
-pub fn http_auth_extract(event: *const nip01_event.Event) Nip98Error!HttpAuthInfo {
+pub fn http_auth_extract(event: *const nip01_event.Event) HttpAuthError!HttpAuthInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -92,7 +92,7 @@ pub fn http_auth_validate_request(
     now: u64,
     max_past_seconds: u64,
     max_future_seconds: u64,
-) Nip98Error!HttpAuthInfo {
+) HttpAuthError!HttpAuthInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(now <= std.math.maxInt(u64));
 
@@ -119,7 +119,7 @@ pub fn http_auth_verify_request(
     now: u64,
     max_past_seconds: u64,
     max_future_seconds: u64,
-) Nip98Error!HttpAuthInfo {
+) HttpAuthError!HttpAuthInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(now <= std.math.maxInt(u64));
 
@@ -136,7 +136,7 @@ pub fn http_auth_verify_request(
 }
 
 /// Extracts the base64 event token from one strict `Authorization` header value.
-pub fn http_auth_parse_authorization_header(header: []const u8) Nip98Error![]const u8 {
+pub fn http_auth_parse_authorization_header(header: []const u8) HttpAuthError![]const u8 {
     std.debug.assert(header.len <= std.math.maxInt(usize));
     std.debug.assert(authorization_scheme.len > 0);
 
@@ -156,7 +156,7 @@ pub fn http_auth_parse_authorization_header(header: []const u8) Nip98Error![]con
 pub fn http_auth_decode_authorization_header(
     output: []u8,
     header: []const u8,
-) Nip98Error![]const u8 {
+) HttpAuthError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(header.len <= std.math.maxInt(usize));
 
@@ -165,7 +165,7 @@ pub fn http_auth_decode_authorization_header(
 }
 
 /// Decodes one base64 event JSON token into caller-owned output.
-pub fn http_auth_decode_base64_event_json(output: []u8, input: []const u8) Nip98Error![]const u8 {
+pub fn http_auth_decode_base64_event_json(output: []u8, input: []const u8) HttpAuthError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(input.len <= std.math.maxInt(usize));
 
@@ -187,7 +187,7 @@ pub fn http_auth_parse_authorization_header_event(
     decoded_json_output: []u8,
     header: []const u8,
     scratch: std.mem.Allocator,
-) Nip98Error!nip01_event.Event {
+) HttpAuthError!nip01_event.Event {
     std.debug.assert(decoded_json_output.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -206,7 +206,7 @@ pub fn http_auth_verify_authorization_header(
     max_past_seconds: u64,
     max_future_seconds: u64,
     scratch: std.mem.Allocator,
-) Nip98Error!VerifiedAuthorization {
+) HttpAuthError!VerifiedAuthorization {
     std.debug.assert(decoded_json_output.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -231,7 +231,7 @@ pub fn http_auth_verify_authorization_header(
 pub fn http_auth_build_url_tag(
     output: *BuiltTag,
     url: []const u8,
-) Nip98Error!nip01_event.EventTag {
+) HttpAuthError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(url.len <= std.math.maxInt(usize));
 
@@ -245,7 +245,7 @@ pub fn http_auth_build_url_tag(
 pub fn http_auth_build_method_tag(
     output: *BuiltTag,
     method: []const u8,
-) Nip98Error!nip01_event.EventTag {
+) HttpAuthError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(method.len <= std.math.maxInt(usize));
 
@@ -259,7 +259,7 @@ pub fn http_auth_build_method_tag(
 pub fn http_auth_build_payload_tag(
     output: *BuiltTag,
     payload_hex: []const u8,
-) Nip98Error!nip01_event.EventTag {
+) HttpAuthError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(payload_hex.len <= std.math.maxInt(usize));
 
@@ -270,7 +270,7 @@ pub fn http_auth_build_payload_tag(
 }
 
 /// Computes one lowercase SHA-256 hex digest for a request body.
-pub fn http_auth_payload_sha256_hex(output: []u8, payload: []const u8) Nip98Error![]const u8 {
+pub fn http_auth_payload_sha256_hex(output: []u8, payload: []const u8) HttpAuthError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(payload.len <= std.math.maxInt(usize));
 
@@ -287,7 +287,7 @@ pub fn http_auth_encode_event_json_base64(
     output: []u8,
     event: *const nip01_event.Event,
     json_scratch: []u8,
-) Nip98Error![]const u8 {
+) HttpAuthError![]const u8 {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(json_scratch.len <= std.math.maxInt(usize));
 
@@ -303,7 +303,7 @@ pub fn http_auth_encode_event_json_base64(
 pub fn http_auth_format_authorization_header(
     output: []u8,
     base64_event_json: []const u8,
-) Nip98Error![]const u8 {
+) HttpAuthError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(base64_event_json.len <= std.math.maxInt(usize));
 
@@ -327,7 +327,7 @@ pub fn http_auth_encode_authorization_header(
     output: []u8,
     event: *const nip01_event.Event,
     json_scratch: []u8,
-) Nip98Error![]const u8 {
+) HttpAuthError![]const u8 {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(json_scratch.len <= std.math.maxInt(usize));
 
@@ -347,7 +347,7 @@ fn apply_tag(
     url: *?[]const u8,
     method: *?[]const u8,
     payload_hex: *?[]const u8,
-) Nip98Error!void {
+) HttpAuthError!void {
     std.debug.assert(@intFromPtr(url) != 0);
     std.debug.assert(@intFromPtr(method) != 0);
 
@@ -358,7 +358,7 @@ fn apply_tag(
     if (std.mem.eql(u8, name, "payload")) return apply_payload_tag(tag, payload_hex);
 }
 
-fn apply_url_tag(tag: nip01_event.EventTag, url: *?[]const u8) Nip98Error!void {
+fn apply_url_tag(tag: nip01_event.EventTag, url: *?[]const u8) HttpAuthError!void {
     std.debug.assert(@intFromPtr(url) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -366,7 +366,7 @@ fn apply_url_tag(tag: nip01_event.EventTag, url: *?[]const u8) Nip98Error!void {
     url.* = parse_url_tag(tag) catch return error.InvalidUrlTag;
 }
 
-fn apply_method_tag(tag: nip01_event.EventTag, method: *?[]const u8) Nip98Error!void {
+fn apply_method_tag(tag: nip01_event.EventTag, method: *?[]const u8) HttpAuthError!void {
     std.debug.assert(@intFromPtr(method) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -374,7 +374,7 @@ fn apply_method_tag(tag: nip01_event.EventTag, method: *?[]const u8) Nip98Error!
     method.* = parse_method_tag(tag) catch return error.InvalidMethodTag;
 }
 
-fn apply_payload_tag(tag: nip01_event.EventTag, payload_hex: *?[]const u8) Nip98Error!void {
+fn apply_payload_tag(tag: nip01_event.EventTag, payload_hex: *?[]const u8) HttpAuthError!void {
     std.debug.assert(@intFromPtr(payload_hex) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -411,7 +411,7 @@ fn validate_timestamp(
     now: u64,
     max_past_seconds: u64,
     max_future_seconds: u64,
-) Nip98Error!void {
+) HttpAuthError!void {
     std.debug.assert(now <= std.math.maxInt(u64));
     std.debug.assert(created_at <= std.math.maxInt(u64));
 
@@ -428,7 +428,7 @@ fn validate_timestamp(
 fn validate_expected_payload(
     actual_payload_hex: ?[]const u8,
     expected_payload_hex: ?[]const u8,
-) Nip98Error!void {
+) HttpAuthError!void {
     std.debug.assert(@intFromBool(actual_payload_hex != null) <= 1);
     std.debug.assert(@intFromBool(expected_payload_hex != null) <= 1);
 
@@ -512,7 +512,7 @@ fn write_lower_hex(output: []u8, input: []const u8) void {
     }
 }
 
-fn validate_base64_token(input: []const u8) Nip98Error!void {
+fn validate_base64_token(input: []const u8) HttpAuthError!void {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(authorization_scheme.len > 0);
 

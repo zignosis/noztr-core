@@ -5,7 +5,7 @@ const nip19_bech32 = @import("nip19_bech32.zig");
 
 pub const identity_kind: u32 = 10011;
 
-pub const Nip39Error = error{
+pub const ExternalIdentityError = error{
     InvalidIdentityKind,
     InvalidIdentityTag,
     InvalidProvider,
@@ -56,7 +56,7 @@ pub const BuiltTag = struct {
 pub fn identity_claims_extract(
     event: *const nip01_event.Event,
     out: []IdentityClaim,
-) Nip39Error!u16 {
+) ExternalIdentityError!u16 {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out.len <= limits.tags_max);
 
@@ -76,7 +76,7 @@ pub fn identity_claims_extract(
 pub fn identity_claim_build_tag(
     output: *BuiltTag,
     claim: *const IdentityClaim,
-) Nip39Error!nip01_event.EventTag {
+) ExternalIdentityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(claim) != 0);
 
@@ -93,7 +93,7 @@ pub fn identity_claim_build_tag(
 pub fn identity_claim_build_proof_url(
     output: []u8,
     claim: *const IdentityClaim,
-) Nip39Error![]const u8 {
+) ExternalIdentityError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(claim) != 0);
 
@@ -115,7 +115,7 @@ pub fn identity_claim_build_expected_text(
     output: []u8,
     claim: *const IdentityClaim,
     pubkey: *const [32]u8,
-) Nip39Error![]const u8 {
+) ExternalIdentityError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(claim) != 0);
     std.debug.assert(@intFromPtr(pubkey) != 0);
@@ -135,7 +135,7 @@ fn is_identity_tag(tag: nip01_event.EventTag) bool {
     return tag.items.len > 0 and std.mem.eql(u8, tag.items[0], "i");
 }
 
-fn parse_identity_tag(tag: nip01_event.EventTag) Nip39Error!IdentityClaim {
+fn parse_identity_tag(tag: nip01_event.EventTag) ExternalIdentityError!IdentityClaim {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.tag_items_max >= 3);
 
@@ -143,7 +143,7 @@ fn parse_identity_tag(tag: nip01_event.EventTag) Nip39Error!IdentityClaim {
     return parse_platform_identity(tag.items[1], tag.items[2]);
 }
 
-fn parse_platform_identity(platform_identity: []const u8, proof: []const u8) Nip39Error!IdentityClaim {
+fn parse_platform_identity(platform_identity: []const u8, proof: []const u8) ExternalIdentityError!IdentityClaim {
     std.debug.assert(platform_identity.len <= limits.tag_item_bytes_max);
     std.debug.assert(proof.len <= limits.tag_item_bytes_max);
 
@@ -163,7 +163,7 @@ fn parse_platform_identity(platform_identity: []const u8, proof: []const u8) Nip
     return claim;
 }
 
-fn parse_provider(text: []const u8) Nip39Error!IdentityProvider {
+fn parse_provider(text: []const u8) ExternalIdentityError!IdentityProvider {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
@@ -174,7 +174,7 @@ fn parse_provider(text: []const u8) Nip39Error!IdentityProvider {
     return error.InvalidProvider;
 }
 
-fn validate_claim(claim: *const IdentityClaim) Nip39Error!void {
+fn validate_claim(claim: *const IdentityClaim) ExternalIdentityError!void {
     std.debug.assert(@intFromPtr(claim) != 0);
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
@@ -182,7 +182,7 @@ fn validate_claim(claim: *const IdentityClaim) Nip39Error!void {
     try validate_proof(claim.provider, claim.proof);
 }
 
-fn validate_identity(provider: IdentityProvider, identity: []const u8) Nip39Error!void {
+fn validate_identity(provider: IdentityProvider, identity: []const u8) ExternalIdentityError!void {
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (identity.len > limits.tag_item_bytes_max) return error.InvalidIdentity;
@@ -197,7 +197,7 @@ fn validate_identity(provider: IdentityProvider, identity: []const u8) Nip39Erro
     }
 }
 
-fn validate_proof(provider: IdentityProvider, proof: []const u8) Nip39Error!void {
+fn validate_proof(provider: IdentityProvider, proof: []const u8) ExternalIdentityError!void {
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
     if (proof.len > limits.tag_item_bytes_max) return error.InvalidProof;
@@ -212,7 +212,7 @@ fn validate_proof(provider: IdentityProvider, proof: []const u8) Nip39Error!void
     }
 }
 
-fn validate_mastodon_identity(identity: []const u8) Nip39Error!void {
+fn validate_mastodon_identity(identity: []const u8) ExternalIdentityError!void {
     std.debug.assert(identity.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
@@ -221,7 +221,7 @@ fn validate_mastodon_identity(identity: []const u8) Nip39Error!void {
     if (marker + 2 >= identity.len) return error.InvalidIdentity;
 }
 
-fn validate_telegram_proof(proof: []const u8) Nip39Error!void {
+fn validate_telegram_proof(proof: []const u8) ExternalIdentityError!void {
     std.debug.assert(proof.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
@@ -233,7 +233,7 @@ fn validate_telegram_proof(proof: []const u8) Nip39Error!void {
     if (!is_decimal(proof[separator + 1 ..])) return error.InvalidProof;
 }
 
-fn build_platform_identity(output: []u8, claim: *const IdentityClaim) Nip39Error![]const u8 {
+fn build_platform_identity(output: []u8, claim: *const IdentityClaim) ExternalIdentityError![]const u8 {
     std.debug.assert(output.len <= limits.tag_item_bytes_max);
     std.debug.assert(@intFromPtr(claim) != 0);
 
@@ -253,7 +253,7 @@ fn build_expected_text(
     output: []u8,
     provider: IdentityProvider,
     npub: []const u8,
-) Nip39Error![]const u8 {
+) ExternalIdentityError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(npub.len <= limits.nip19_bech32_identifier_bytes_max);
 
@@ -276,7 +276,7 @@ fn build_expected_text(
     };
 }
 
-fn write_github_url(writer: anytype, claim: *const IdentityClaim) Nip39Error!void {
+fn write_github_url(writer: anytype, claim: *const IdentityClaim) ExternalIdentityError!void {
     std.debug.assert(@intFromPtr(claim) != 0);
     std.debug.assert(claim.identity.len > 0);
 
@@ -285,7 +285,7 @@ fn write_github_url(writer: anytype, claim: *const IdentityClaim) Nip39Error!voi
     };
 }
 
-fn write_twitter_url(writer: anytype, claim: *const IdentityClaim) Nip39Error!void {
+fn write_twitter_url(writer: anytype, claim: *const IdentityClaim) ExternalIdentityError!void {
     std.debug.assert(@intFromPtr(claim) != 0);
     std.debug.assert(claim.proof.len > 0);
 
@@ -294,7 +294,7 @@ fn write_twitter_url(writer: anytype, claim: *const IdentityClaim) Nip39Error!vo
     };
 }
 
-fn write_mastodon_url(writer: anytype, claim: *const IdentityClaim) Nip39Error!void {
+fn write_mastodon_url(writer: anytype, claim: *const IdentityClaim) ExternalIdentityError!void {
     std.debug.assert(@intFromPtr(claim) != 0);
     std.debug.assert(claim.identity.len > 0);
 
@@ -303,7 +303,7 @@ fn write_mastodon_url(writer: anytype, claim: *const IdentityClaim) Nip39Error!v
     };
 }
 
-fn write_telegram_url(writer: anytype, claim: *const IdentityClaim) Nip39Error!void {
+fn write_telegram_url(writer: anytype, claim: *const IdentityClaim) ExternalIdentityError!void {
     std.debug.assert(@intFromPtr(claim) != 0);
     std.debug.assert(claim.proof.len > 0);
 

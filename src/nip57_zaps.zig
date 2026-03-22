@@ -6,7 +6,7 @@ pub const zap_request_kind: u32 = 9_734;
 pub const zap_receipt_kind: u32 = 9_735;
 pub const relays_tag_values_max: u8 = limits.tag_items_max - 1;
 
-pub const Nip57Error = error{
+pub const ZapError = error{
     InvalidRequestKind,
     InvalidReceiptKind,
     MissingRecipientPubkeyTag,
@@ -85,7 +85,7 @@ pub const BuiltTag = struct {
 pub fn zap_request_extract(
     event: *const nip01_event.Event,
     out_relays: [][]const u8,
-) Nip57Error!ZapRequest {
+) ZapError!ZapRequest {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_relays.len <= limits.tag_items_max);
 
@@ -121,7 +121,7 @@ pub fn zap_request_validate(
     expected_amount_msats: ?u64,
     expected_receipt_signer_pubkey: ?[32]u8,
     out_relays: [][]const u8,
-) Nip57Error!ZapRequest {
+) ZapError!ZapRequest {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_relays.len <= limits.tag_items_max);
 
@@ -148,7 +148,7 @@ pub fn zap_receipt_extract(
     event: *const nip01_event.Event,
     out_request_relays: [][]const u8,
     scratch: std.mem.Allocator,
-) Nip57Error!ZapReceipt {
+) ZapError!ZapReceipt {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -197,7 +197,7 @@ pub fn zap_receipt_validate(
     expected_receipt_signer_pubkey: [32]u8,
     out_request_relays: [][]const u8,
     scratch: std.mem.Allocator,
-) Nip57Error!ZapReceipt {
+) ZapError!ZapReceipt {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -212,7 +212,7 @@ pub fn zap_receipt_validate(
 pub fn request_build_relays_tag(
     output: *BuiltTag,
     relays: []const []const u8,
-) Nip57Error!nip01_event.EventTag {
+) ZapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(relays.len <= limits.tag_items_max);
 
@@ -235,7 +235,7 @@ pub fn request_build_relays_tag(
 pub fn request_build_amount_tag(
     output: *BuiltTag,
     amount_msats: u64,
-) Nip57Error!nip01_event.EventTag {
+) ZapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(amount_msats <= std.math.maxInt(u64));
 
@@ -251,7 +251,7 @@ pub fn request_build_amount_tag(
 pub fn request_build_lnurl_tag(
     output: *BuiltTag,
     lnurl: []const u8,
-) Nip57Error!nip01_event.EventTag {
+) ZapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(lnurl.len <= limits.tag_item_bytes_max);
 
@@ -266,7 +266,7 @@ pub fn zap_build_pubkey_tag(
     output: *BuiltTag,
     tag_name: []const u8,
     pubkey_hex: []const u8,
-) Nip57Error!nip01_event.EventTag {
+) ZapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(tag_name.len <= 1);
 
@@ -281,7 +281,7 @@ pub fn zap_build_pubkey_tag(
 pub fn zap_build_event_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
-) Nip57Error!nip01_event.EventTag {
+) ZapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
 
@@ -296,7 +296,7 @@ pub fn zap_build_event_tag(
 pub fn zap_build_coordinate_tag(
     output: *BuiltTag,
     coordinate_text: []const u8,
-) Nip57Error!nip01_event.EventTag {
+) ZapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(coordinate_text.len <= limits.tag_item_bytes_max);
 
@@ -311,7 +311,7 @@ pub fn zap_build_coordinate_tag(
 pub fn zap_build_kind_tag(
     output: *BuiltTag,
     kind: u32,
-) Nip57Error!nip01_event.EventTag {
+) ZapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(kind <= limits.kind_max);
 
@@ -327,7 +327,7 @@ pub fn zap_build_kind_tag(
 pub fn receipt_build_bolt11_tag(
     output: *BuiltTag,
     bolt11: []const u8,
-) Nip57Error!nip01_event.EventTag {
+) ZapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(bolt11.len <= limits.tag_item_bytes_max);
 
@@ -342,7 +342,7 @@ pub fn receipt_build_description_tag(
     output: *BuiltTag,
     zap_request_json: []const u8,
     scratch: std.mem.Allocator,
-) Nip57Error!nip01_event.EventTag {
+) ZapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -363,7 +363,7 @@ pub fn receipt_build_description_tag(
 pub fn receipt_build_preimage_tag(
     output: *BuiltTag,
     preimage_hex: []const u8,
-) Nip57Error!nip01_event.EventTag {
+) ZapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(preimage_hex.len <= limits.tag_item_bytes_max);
 
@@ -381,7 +381,7 @@ fn apply_request_tag(
     out_relays: [][]const u8,
     relay_count: *u8,
     has_relays: *bool,
-) Nip57Error!void {
+) ZapError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(@intFromPtr(relay_count) != 0);
 
@@ -402,7 +402,7 @@ fn parse_request_p_tag(
     tag: nip01_event.EventTag,
     parsed: *ZapRequest,
     has_recipient: *bool,
-) Nip57Error!void {
+) ZapError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(@intFromPtr(has_recipient) != 0);
 
@@ -417,7 +417,7 @@ fn parse_request_relays_tag(
     out_relays: [][]const u8,
     relay_count: *u8,
     has_relays: *bool,
-) Nip57Error!void {
+) ZapError!void {
     std.debug.assert(@intFromPtr(relay_count) != 0);
     std.debug.assert(@intFromPtr(has_relays) != 0);
 
@@ -436,7 +436,7 @@ fn parse_request_relays_tag(
     has_relays.* = true;
 }
 
-fn parse_request_amount_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) Nip57Error!void {
+fn parse_request_amount_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) ZapError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -445,7 +445,7 @@ fn parse_request_amount_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) Nip5
     parsed.amount_msats = parse_decimal_u64(tag.items[1]) catch return error.InvalidAmountTag;
 }
 
-fn parse_request_lnurl_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) Nip57Error!void {
+fn parse_request_lnurl_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) ZapError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -454,7 +454,7 @@ fn parse_request_lnurl_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) Nip57
     parsed.lnurl = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidLnurlTag;
 }
 
-fn parse_request_e_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) Nip57Error!void {
+fn parse_request_e_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) ZapError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -463,7 +463,7 @@ fn parse_request_e_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) Nip57Erro
     parsed.event_id = parse_hex_32(tag.items[1]) catch return error.InvalidEventTag;
 }
 
-fn parse_request_a_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) Nip57Error!void {
+fn parse_request_a_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) ZapError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -473,7 +473,7 @@ fn parse_request_a_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) Nip57Erro
     parsed.coordinate = tag.items[1];
 }
 
-fn parse_request_k_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) Nip57Error!void {
+fn parse_request_k_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) ZapError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -482,7 +482,7 @@ fn parse_request_k_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) Nip57Erro
     parsed.target_kind = parse_decimal_u32(tag.items[1]) catch return error.InvalidKindTag;
 }
 
-fn parse_request_P_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) Nip57Error!void {
+fn parse_request_P_tag(tag: nip01_event.EventTag, parsed: *ZapRequest) ZapError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -503,7 +503,7 @@ fn apply_receipt_tag(
     bolt11: *?[]const u8,
     description_json: *?[]const u8,
     preimage: *?[]const u8,
-) Nip57Error!void {
+) ZapError!void {
     std.debug.assert(@intFromPtr(recipient_pubkey) != 0);
     std.debug.assert(@intFromPtr(description_json) != 0);
 
@@ -527,8 +527,8 @@ fn apply_receipt_tag(
 fn parse_receipt_pubkey(
     tag: nip01_event.EventTag,
     output: *?[32]u8,
-    invalid: Nip57Error,
-) Nip57Error!void {
+    invalid: ZapError,
+) ZapError!void {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -543,7 +543,7 @@ fn parse_receipt_pubkey(
     output.* = parse_hex_32(tag.items[1]) catch return invalid;
 }
 
-fn parse_receipt_event(tag: nip01_event.EventTag, event_id: *?[32]u8) Nip57Error!void {
+fn parse_receipt_event(tag: nip01_event.EventTag, event_id: *?[32]u8) ZapError!void {
     std.debug.assert(@intFromPtr(event_id) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -552,7 +552,7 @@ fn parse_receipt_event(tag: nip01_event.EventTag, event_id: *?[32]u8) Nip57Error
     event_id.* = parse_hex_32(tag.items[1]) catch return error.InvalidEventTag;
 }
 
-fn parse_receipt_coordinate(tag: nip01_event.EventTag, coordinate: *?[]const u8) Nip57Error!void {
+fn parse_receipt_coordinate(tag: nip01_event.EventTag, coordinate: *?[]const u8) ZapError!void {
     std.debug.assert(@intFromPtr(coordinate) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -562,7 +562,7 @@ fn parse_receipt_coordinate(tag: nip01_event.EventTag, coordinate: *?[]const u8)
     coordinate.* = tag.items[1];
 }
 
-fn parse_receipt_kind(tag: nip01_event.EventTag, target_kind: *?u32) Nip57Error!void {
+fn parse_receipt_kind(tag: nip01_event.EventTag, target_kind: *?u32) ZapError!void {
     std.debug.assert(@intFromPtr(target_kind) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -571,7 +571,7 @@ fn parse_receipt_kind(tag: nip01_event.EventTag, target_kind: *?u32) Nip57Error!
     target_kind.* = parse_decimal_u32(tag.items[1]) catch return error.InvalidKindTag;
 }
 
-fn parse_receipt_bolt11(tag: nip01_event.EventTag, bolt11: *?[]const u8) Nip57Error!void {
+fn parse_receipt_bolt11(tag: nip01_event.EventTag, bolt11: *?[]const u8) ZapError!void {
     std.debug.assert(@intFromPtr(bolt11) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -583,7 +583,7 @@ fn parse_receipt_bolt11(tag: nip01_event.EventTag, bolt11: *?[]const u8) Nip57Er
 fn parse_receipt_description(
     tag: nip01_event.EventTag,
     description_json: *?[]const u8,
-) Nip57Error!void {
+) ZapError!void {
     std.debug.assert(@intFromPtr(description_json) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -592,7 +592,7 @@ fn parse_receipt_description(
     description_json.* = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidDescriptionTag;
 }
 
-fn parse_receipt_preimage(tag: nip01_event.EventTag, preimage: *?[]const u8) Nip57Error!void {
+fn parse_receipt_preimage(tag: nip01_event.EventTag, preimage: *?[]const u8) ZapError!void {
     std.debug.assert(@intFromPtr(preimage) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -614,7 +614,7 @@ fn finalize_receipt(
     preimage: ?[]const u8,
     out_request_relays: [][]const u8,
     scratch: std.mem.Allocator,
-) Nip57Error!ZapReceipt {
+) ZapError!ZapReceipt {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -656,7 +656,7 @@ fn validate_receipt_match(
     target_kind: ?u32,
     request_pubkey: [32]u8,
     request: *const ZapRequest,
-) Nip57Error!void {
+) ZapError!void {
     std.debug.assert(@intFromPtr(receipt_event) != 0);
     std.debug.assert(@intFromPtr(request) != 0);
 
@@ -673,7 +673,7 @@ fn validate_receipt_match(
     }
 }
 
-fn validate_optional_match(receipt_value: ?[32]u8, request_value: ?[32]u8) Nip57Error!void {
+fn validate_optional_match(receipt_value: ?[32]u8, request_value: ?[32]u8) ZapError!void {
     std.debug.assert(@sizeOf(?[32]u8) > 0);
     std.debug.assert(@sizeOf(?[32]u8) > 0);
 
@@ -682,7 +682,7 @@ fn validate_optional_match(receipt_value: ?[32]u8, request_value: ?[32]u8) Nip57
     if (!std.mem.eql(u8, &receipt_value.?, &request_value.?)) return error.EmbeddedRequestMismatch;
 }
 
-fn validate_optional_text_match(receipt_value: ?[]const u8, request_value: ?[]const u8) Nip57Error!void {
+fn validate_optional_text_match(receipt_value: ?[]const u8, request_value: ?[]const u8) ZapError!void {
     std.debug.assert(@sizeOf(?[]const u8) > 0);
     std.debug.assert(@sizeOf(?[]const u8) > 0);
 

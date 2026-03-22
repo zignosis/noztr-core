@@ -4,7 +4,7 @@ const lower_hex_32 = @import("internal/lower_hex_32.zig");
 const relay_origin = @import("internal/relay_origin.zig");
 const websocket_relay_url = @import("internal/websocket_relay_url.zig");
 
-pub const Nip05Error = error{
+pub const IdentityError = error{
     OutOfMemory,
     InvalidAddress,
     InvalidLocalPart,
@@ -36,7 +36,7 @@ const lookup_url_validation_bytes_max: usize =
     @as(usize, limits.nip05_identifier_bytes_max) + 40;
 
 /// Parses a NIP-05 address or bare domain into canonical local-part plus domain.
-pub fn address_parse(input: []const u8, scratch: std.mem.Allocator) Nip05Error!Address {
+pub fn address_parse(input: []const u8, scratch: std.mem.Allocator) IdentityError!Address {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(input.len <= std.math.maxInt(usize));
 
@@ -53,7 +53,7 @@ pub fn address_parse(input: []const u8, scratch: std.mem.Allocator) Nip05Error!A
 }
 
 /// Formats a canonical NIP-05 address as `<local>@<domain>`.
-pub fn address_format(output: []u8, address: *const Address) Nip05Error![]const u8 {
+pub fn address_format(output: []u8, address: *const Address) IdentityError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(address) != 0);
 
@@ -70,7 +70,7 @@ pub fn address_format(output: []u8, address: *const Address) Nip05Error![]const 
 pub fn address_compose_well_known_url(
     output: []u8,
     address: *const Address,
-) Nip05Error![]const u8 {
+) IdentityError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(address) != 0);
 
@@ -92,7 +92,7 @@ pub fn profile_parse_json(
     address: *const Address,
     input: []const u8,
     scratch: std.mem.Allocator,
-) Nip05Error!Profile {
+) IdentityError!Profile {
     std.debug.assert(@intFromPtr(address) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -123,7 +123,7 @@ pub fn profile_verify_json(
     address: *const Address,
     input: []const u8,
     scratch: std.mem.Allocator,
-) Nip05Error!bool {
+) IdentityError!bool {
     std.debug.assert(@intFromPtr(expected_pubkey) != 0);
     std.debug.assert(@intFromPtr(address) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
@@ -149,7 +149,7 @@ const RelayMapKind = enum {
     nip46,
 };
 
-fn split_address(input: []const u8, separator: ?usize) Nip05Error!AddressParts {
+fn split_address(input: []const u8, separator: ?usize) IdentityError!AddressParts {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max > 0);
 
@@ -169,7 +169,7 @@ fn split_address(input: []const u8, separator: ?usize) Nip05Error!AddressParts {
     };
 }
 
-fn duplicate_name(name: []const u8, scratch: std.mem.Allocator) Nip05Error![]const u8 {
+fn duplicate_name(name: []const u8, scratch: std.mem.Allocator) IdentityError![]const u8 {
     std.debug.assert(name.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -184,7 +184,7 @@ fn duplicate_name(name: []const u8, scratch: std.mem.Allocator) Nip05Error![]con
 fn parse_root_object(
     input: []const u8,
     parse_allocator: std.mem.Allocator,
-) Nip05Error!std.json.Value {
+) IdentityError!std.json.Value {
     std.debug.assert(input.len <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(parse_allocator.ptr) != 0);
 
@@ -200,7 +200,7 @@ fn parse_root_object(
     return root;
 }
 
-fn parse_names_pubkey(object: std.json.ObjectMap, name: []const u8) Nip05Error![32]u8 {
+fn parse_names_pubkey(object: std.json.ObjectMap, name: []const u8) IdentityError![32]u8 {
     std.debug.assert(name.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
 
@@ -219,7 +219,7 @@ fn parse_optional_relay_map(
     pubkey: [32]u8,
     scratch: std.mem.Allocator,
     kind: RelayMapKind,
-) Nip05Error![]const []const u8 {
+) IdentityError![]const []const u8 {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.nip05_relays_max > 0);
 
@@ -235,7 +235,7 @@ fn parse_relay_array(
     value: std.json.Value,
     scratch: std.mem.Allocator,
     kind: RelayMapKind,
-) Nip05Error![]const []const u8 {
+) IdentityError![]const []const u8 {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.nip05_relays_max <= limits.nip46_relays_max);
 
@@ -250,9 +250,9 @@ fn parse_relay_array(
     return output;
 }
 
-fn relay_map_error(kind: RelayMapKind) Nip05Error {
+fn relay_map_error(kind: RelayMapKind) IdentityError {
     std.debug.assert(@typeInfo(RelayMapKind) == .@"enum");
-    std.debug.assert(@typeInfo(Nip05Error) == .error_set);
+    std.debug.assert(@typeInfo(IdentityError) == .error_set);
 
     return switch (kind) {
         .relays => error.InvalidRelays,
@@ -260,7 +260,7 @@ fn relay_map_error(kind: RelayMapKind) Nip05Error {
     };
 }
 
-fn validate_local_part(name: []const u8) Nip05Error!void {
+fn validate_local_part(name: []const u8) IdentityError!void {
     std.debug.assert(name.len <= std.math.maxInt(usize));
     std.debug.assert(limits.nip05_identifier_bytes_max > 0);
 
@@ -294,7 +294,7 @@ fn lowercase_ascii_copy(text: []const u8, output: []u8) []const u8 {
     return output[0..text.len];
 }
 
-fn validate_domain(domain: []const u8) Nip05Error!void {
+fn validate_domain(domain: []const u8) IdentityError!void {
     std.debug.assert(domain.len <= std.math.maxInt(usize));
     std.debug.assert(limits.nip05_identifier_bytes_max > 0);
 
@@ -317,7 +317,7 @@ fn validate_domain(domain: []const u8) Nip05Error!void {
     try validate_lookup_url(rendered);
 }
 
-fn validate_lookup_url(text: []const u8) Nip05Error!void {
+fn validate_lookup_url(text: []const u8) IdentityError!void {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(limits.content_bytes_max > 0);
 
@@ -327,7 +327,7 @@ fn validate_lookup_url(text: []const u8) Nip05Error!void {
     if (parsed.host == null) return error.InvalidUrl;
 }
 
-fn duplicate_relay_url(text: []const u8, scratch: std.mem.Allocator) Nip05Error![]const u8 {
+fn duplicate_relay_url(text: []const u8, scratch: std.mem.Allocator) IdentityError![]const u8 {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -349,9 +349,9 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     return lower_hex_32.parse(text);
 }
 
-fn map_json_parse_error(parse_error: anyerror) Nip05Error {
+fn map_json_parse_error(parse_error: anyerror) IdentityError {
     std.debug.assert(@typeInfo(@TypeOf(parse_error)) == .error_set);
-    std.debug.assert(@typeInfo(Nip05Error) == .error_set);
+    std.debug.assert(@typeInfo(IdentityError) == .error_set);
 
     return switch (parse_error) {
         error.OutOfMemory => error.OutOfMemory,

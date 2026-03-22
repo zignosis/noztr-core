@@ -4,7 +4,7 @@ const nip01_event = @import("nip01_event.zig");
 const relay_origin = @import("internal/relay_origin.zig");
 const websocket_relay_url = @import("internal/websocket_relay_url.zig");
 
-pub const Nip65Error = error{
+pub const RelaysError = error{
     InvalidEventKind,
     InvalidRelayTag,
     InvalidRelayUrl,
@@ -53,7 +53,7 @@ pub fn relay_marker_parse(marker: []const u8) error{InvalidMarker}!RelayMarker {
 pub fn relay_list_extract(
     event: *const nip01_event.Event,
     out: []RelayPermission,
-) Nip65Error!u16 {
+) RelaysError!u16 {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out.len <= std.math.maxInt(u16));
 
@@ -102,7 +102,7 @@ const ParsedRelayTag = struct {
     origin: relay_origin.WebsocketOrigin,
 };
 
-fn parse_relay_tag(tag: nip01_event.EventTag) Nip65Error!ParsedRelayTag {
+fn parse_relay_tag(tag: nip01_event.EventTag) RelaysError!ParsedRelayTag {
     std.debug.assert(limits.nip65_relay_tag_items_max == 3);
     std.debug.assert(@sizeOf(nip01_event.EventTag) > 0);
 
@@ -176,7 +176,7 @@ fn merge_relay_marker(current: RelayMarker, incoming: RelayMarker) RelayMarker {
     return .both;
 }
 
-fn relay_url_validate(url: []const u8) Nip65Error!relay_origin.WebsocketOrigin {
+fn relay_url_validate(url: []const u8) RelaysError!relay_origin.WebsocketOrigin {
     std.debug.assert(url.len <= limits.nip65_relay_url_bytes_max);
     std.debug.assert(@sizeOf(relay_origin.WebsocketOrigin) > 0);
 

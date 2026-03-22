@@ -6,7 +6,7 @@ const url_with_scheme = @import("internal/url_with_scheme.zig");
 
 pub const goal_kind: u32 = 9041;
 
-pub const Nip75Error = error{
+pub const ZapGoalError = error{
     InvalidGoalKind,
     MissingRelaysTag,
     DuplicateRelaysTag,
@@ -59,7 +59,7 @@ pub const BuiltTag = struct {
 };
 
 /// Extracts bounded zap-goal metadata from a kind-9041 goal event.
-pub fn goal_extract(event: *const nip01_event.Event, out_relays: [][]const u8) Nip75Error!GoalInfo {
+pub fn goal_extract(event: *const nip01_event.Event, out_relays: [][]const u8) ZapGoalError!GoalInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_relays.len <= limits.tag_items_max);
 
@@ -77,7 +77,7 @@ pub fn goal_extract(event: *const nip01_event.Event, out_relays: [][]const u8) N
 }
 
 /// Extracts a `goal` reference tag from any event, or `null` when absent.
-pub fn goal_reference_extract(event: *const nip01_event.Event) Nip75Error!?GoalReference {
+pub fn goal_reference_extract(event: *const nip01_event.Event) ZapGoalError!?GoalReference {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -94,7 +94,7 @@ pub fn goal_reference_extract(event: *const nip01_event.Event) Nip75Error!?GoalR
 pub fn goal_build_relays_tag(
     output: *BuiltTag,
     relays: []const []const u8,
-) Nip75Error!nip01_event.EventTag {
+) ZapGoalError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(relays.len <= limits.tag_items_max);
 
@@ -111,7 +111,7 @@ pub fn goal_build_relays_tag(
 pub fn goal_build_amount_tag(
     output: *BuiltTag,
     amount_msats: u64,
-) Nip75Error!nip01_event.EventTag {
+) ZapGoalError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(amount_msats <= std.math.maxInt(u64));
 
@@ -126,7 +126,7 @@ pub fn goal_build_amount_tag(
 pub fn goal_build_closed_at_tag(
     output: *BuiltTag,
     unix_seconds: u64,
-) Nip75Error!nip01_event.EventTag {
+) ZapGoalError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(unix_seconds <= std.math.maxInt(u64));
 
@@ -141,7 +141,7 @@ pub fn goal_build_closed_at_tag(
 pub fn goal_build_image_tag(
     output: *BuiltTag,
     image_url: []const u8,
-) Nip75Error!nip01_event.EventTag {
+) ZapGoalError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == limits.tag_items_max);
 
@@ -154,7 +154,7 @@ pub fn goal_build_image_tag(
 pub fn goal_build_summary_tag(
     output: *BuiltTag,
     summary: []const u8,
-) Nip75Error!nip01_event.EventTag {
+) ZapGoalError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == limits.tag_items_max);
 
@@ -168,7 +168,7 @@ pub fn goal_build_reference_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip75Error!nip01_event.EventTag {
+) ZapGoalError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == limits.tag_items_max);
 
@@ -189,7 +189,7 @@ fn apply_goal_tag(
     out_relays: [][]const u8,
     saw_relays: *bool,
     saw_amount: *bool,
-) Nip75Error!void {
+) ZapGoalError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_relays) != 0);
 
@@ -208,7 +208,7 @@ fn apply_relays_tag(
     info: *GoalInfo,
     out_relays: [][]const u8,
     saw_relays: *bool,
-) Nip75Error!void {
+) ZapGoalError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_relays) != 0);
 
@@ -223,7 +223,7 @@ fn apply_relays_tag(
     saw_relays.* = true;
 }
 
-fn apply_amount_tag(tag: nip01_event.EventTag, info: *GoalInfo, saw_amount: *bool) Nip75Error!void {
+fn apply_amount_tag(tag: nip01_event.EventTag, info: *GoalInfo, saw_amount: *bool) ZapGoalError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_amount) != 0);
 
@@ -238,9 +238,9 @@ fn apply_amount_tag(tag: nip01_event.EventTag, info: *GoalInfo, saw_amount: *boo
 fn apply_timestamp_tag(
     tag: nip01_event.EventTag,
     field: *?u64,
-    duplicate_error: Nip75Error,
-    invalid_error: Nip75Error,
-) Nip75Error!void {
+    duplicate_error: ZapGoalError,
+    invalid_error: ZapGoalError,
+) ZapGoalError!void {
     std.debug.assert(@intFromPtr(field) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -252,9 +252,9 @@ fn apply_timestamp_tag(
 fn apply_url_field(
     tag: nip01_event.EventTag,
     field: *?[]const u8,
-    duplicate_error: Nip75Error,
-    invalid_error: Nip75Error,
-) Nip75Error!void {
+    duplicate_error: ZapGoalError,
+    invalid_error: ZapGoalError,
+) ZapGoalError!void {
     std.debug.assert(@intFromPtr(field) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -266,9 +266,9 @@ fn apply_url_field(
 fn apply_text_field(
     tag: nip01_event.EventTag,
     field: *?[]const u8,
-    duplicate_error: Nip75Error,
-    invalid_error: Nip75Error,
-) Nip75Error!void {
+    duplicate_error: ZapGoalError,
+    invalid_error: ZapGoalError,
+) ZapGoalError!void {
     std.debug.assert(@intFromPtr(field) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -277,7 +277,7 @@ fn apply_text_field(
     field.* = parse_nonempty_utf8(tag.items[1]) catch return invalid_error;
 }
 
-fn apply_coordinate_field(tag: nip01_event.EventTag, field: *?[]const u8) Nip75Error!void {
+fn apply_coordinate_field(tag: nip01_event.EventTag, field: *?[]const u8) ZapGoalError!void {
     std.debug.assert(@intFromPtr(field) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 

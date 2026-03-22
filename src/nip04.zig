@@ -11,7 +11,7 @@ const base64_standard = std.base64.standard;
 pub const dm_kind: u32 = 4;
 
 /// Typed failures for strict NIP-04 encrypt/decrypt and event-shape boundaries.
-pub const Nip04Error = error{
+pub const LegacyDmError = error{
     InvalidPrivateKey,
     InvalidPublicKey,
     InvalidPlaintextLength,
@@ -35,7 +35,7 @@ pub const Nip04Error = error{
 pub const Nip04IvProvider = *const fn (
     ctx: ?*anyopaque,
     out_iv: *[limits.nip04_iv_bytes]u8,
-) Nip04Error!void;
+) LegacyDmError!void;
 
 /// Parsed legacy NIP-04 wire payload slices.
 pub const Nip04Payload = struct {
@@ -69,7 +69,7 @@ pub const BuiltTag = struct {
 pub fn nip04_get_shared_secret(
     private_key: *const [32]u8,
     public_key: *const [32]u8,
-) Nip04Error![32]u8 {
+) LegacyDmError![32]u8 {
     std.debug.assert(@intFromPtr(private_key) != 0);
     std.debug.assert(@intFromPtr(public_key) != 0);
 
@@ -88,7 +88,7 @@ pub fn nip04_encrypt(
     plaintext: []const u8,
     iv_ctx: ?*anyopaque,
     iv_provider: Nip04IvProvider,
-) Nip04Error![]const u8 {
+) LegacyDmError![]const u8 {
     std.debug.assert(@intFromPtr(iv_provider) != 0);
 
     var iv: [limits.nip04_iv_bytes]u8 = undefined;
@@ -104,7 +104,7 @@ pub fn nip04_encrypt_with_iv(
     public_key: *const [32]u8,
     plaintext: []const u8,
     iv: *const [limits.nip04_iv_bytes]u8,
-) Nip04Error![]const u8 {
+) LegacyDmError![]const u8 {
     var shared_secret = try nip04_get_shared_secret(private_key, public_key);
     defer wipe_bytes(shared_secret[0..]);
     return nip04_encrypt_with_shared_secret_and_iv(output, &shared_secret, plaintext, iv);
@@ -116,7 +116,7 @@ pub fn nip04_encrypt_with_shared_secret_and_iv(
     shared_secret: *const [32]u8,
     plaintext: []const u8,
     iv: *const [limits.nip04_iv_bytes]u8,
-) Nip04Error![]const u8 {
+) LegacyDmError![]const u8 {
     std.debug.assert(@intFromPtr(shared_secret) != 0);
     std.debug.assert(@intFromPtr(iv) != 0);
 
@@ -148,7 +148,7 @@ pub fn nip04_encrypt_with_shared_secret_and_iv(
 }
 
 /// Parse and validate the legacy NIP-04 `ciphertext?iv=...` wire format.
-pub fn nip04_payload_parse(payload: []const u8) Nip04Error!Nip04Payload {
+pub fn nip04_payload_parse(payload: []const u8) LegacyDmError!Nip04Payload {
     if (payload.len < limits.nip04_payload_min_bytes) return error.InvalidPayloadFormat;
     if (payload.len > limits.nip04_payload_max_bytes) return error.InvalidPayloadFormat;
 
@@ -170,7 +170,7 @@ pub fn nip04_payload_serialize(
     output: []u8,
     ciphertext_base64: []const u8,
     iv_base64: []const u8,
-) Nip04Error![]const u8 {
+) LegacyDmError![]const u8 {
     try validate_base64_and_lengths(ciphertext_base64, iv_base64);
 
     const total_len = ciphertext_base64.len + "?iv=".len + iv_base64.len;
@@ -192,7 +192,7 @@ pub fn nip04_decrypt(
     private_key: *const [32]u8,
     public_key: *const [32]u8,
     payload: []const u8,
-) Nip04Error![]const u8 {
+) LegacyDmError![]const u8 {
     var shared_secret = try nip04_get_shared_secret(private_key, public_key);
     defer wipe_bytes(shared_secret[0..]);
     return nip04_decrypt_with_shared_secret(output_plaintext, &shared_secret, payload);
@@ -203,7 +203,7 @@ pub fn nip04_decrypt_with_shared_secret(
     output_plaintext: []u8,
     shared_secret: *const [32]u8,
     payload: []const u8,
-) Nip04Error![]const u8 {
+) LegacyDmError![]const u8 {
     std.debug.assert(@intFromPtr(shared_secret) != 0);
 
     var ciphertext: [limits.nip04_ciphertext_max_bytes]u8 = undefined;
@@ -225,7 +225,7 @@ pub fn nip04_decrypt_with_shared_secret(
 }
 
 /// Parse a strict `kind:4` DM event shape.
-pub fn nip04_message_parse(event: *const nip01_event.Event) Nip04Error!Nip04MessageInfo {
+pub fn nip04_message_parse(event: *const nip01_event.Event) LegacyDmError!Nip04MessageInfo {
     std.debug.assert(@intFromPtr(event) != 0);
 
     if (event.kind != dm_kind) return error.InvalidMessageKind;
@@ -247,7 +247,7 @@ pub fn nip04_message_parse(event: *const nip01_event.Event) Nip04Error!Nip04Mess
 pub fn nip04_build_recipient_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
-) Nip04Error!nip01_event.EventTag {
+) LegacyDmError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     _ = parse_lower_hex_32(pubkey_hex) catch return error.InvalidRecipientTag;
@@ -258,7 +258,7 @@ pub fn nip04_build_recipient_tag(
 }
 
 /// Compute the AES-CBC ciphertext length after PKCS#7 padding.
-pub fn nip04_calc_ciphertext_len(plaintext_len: usize) Nip04Error!usize {
+pub fn nip04_calc_ciphertext_len(plaintext_len: usize) LegacyDmError!usize {
     if (plaintext_len > limits.nip04_plaintext_max_bytes) return error.InvalidPlaintextLength;
     const blocks = @divFloor(plaintext_len, limits.nip04_iv_bytes) + 1;
     return blocks * limits.nip04_iv_bytes;
@@ -268,7 +268,7 @@ fn decode_payload(
     ciphertext_output: []u8,
     out_iv: *[limits.nip04_iv_bytes]u8,
     payload: []const u8,
-) Nip04Error![]const u8 {
+) LegacyDmError![]const u8 {
     const parsed = try nip04_payload_parse(payload);
     const ciphertext_len = try decode_base64_into(ciphertext_output, parsed.ciphertext_base64);
     if (ciphertext_len == 0 or ciphertext_len % limits.nip04_iv_bytes != 0) {
@@ -278,7 +278,7 @@ fn decode_payload(
     return ciphertext_output[0..ciphertext_len];
 }
 
-fn validate_base64_and_lengths(ciphertext_base64: []const u8, iv_base64: []const u8) Nip04Error!void {
+fn validate_base64_and_lengths(ciphertext_base64: []const u8, iv_base64: []const u8) LegacyDmError!void {
     if (iv_base64.len != limits.nip04_iv_base64_bytes) return error.InvalidIvLength;
 
     var iv: [limits.nip04_iv_bytes]u8 = undefined;
@@ -301,15 +301,15 @@ fn validate_base64_and_lengths(ciphertext_base64: []const u8, iv_base64: []const
 fn decode_base64_fixed(
     output: []u8,
     input: []const u8,
-    invalid_length_error: Nip04Error,
-) Nip04Error![]const u8 {
+    invalid_length_error: LegacyDmError,
+) LegacyDmError![]const u8 {
     const decoded_len = base64_standard.Decoder.calcSizeForSlice(input) catch return error.InvalidBase64;
     if (decoded_len != output.len) return invalid_length_error;
     base64_standard.Decoder.decode(output, input) catch return error.InvalidBase64;
     return output;
 }
 
-fn decode_base64_into(output: []u8, input: []const u8) Nip04Error!usize {
+fn decode_base64_into(output: []u8, input: []const u8) LegacyDmError!usize {
     const decoded_len = base64_standard.Decoder.calcSizeForSlice(input) catch return error.InvalidBase64;
     if (decoded_len > output.len) return error.BufferTooSmall;
     base64_standard.Decoder.decode(output[0..decoded_len], input) catch return error.InvalidBase64;
@@ -383,7 +383,7 @@ fn write_pkcs7_padded_plaintext(output: []u8, plaintext: []const u8) void {
     @memset(output[plaintext.len..], pad_len);
 }
 
-fn remove_pkcs7_padding(output: []u8, padded_plaintext: []const u8) Nip04Error![]const u8 {
+fn remove_pkcs7_padding(output: []u8, padded_plaintext: []const u8) LegacyDmError![]const u8 {
     std.debug.assert(padded_plaintext.len % limits.nip04_iv_bytes == 0);
 
     if (padded_plaintext.len == 0) return error.InvalidPadding;
@@ -404,7 +404,7 @@ fn parse_message_tag(
     tag: nip01_event.EventTag,
     info: *Nip04MessageInfo,
     saw_recipient: *bool,
-) Nip04Error!void {
+) LegacyDmError!void {
     if (tag.items.len == 0) return;
     if (std.mem.eql(u8, tag.items[0], "p")) return parse_recipient_tag(tag, info, saw_recipient);
     if (std.mem.eql(u8, tag.items[0], "e")) return parse_reply_tag(tag, info);
@@ -414,7 +414,7 @@ fn parse_recipient_tag(
     tag: nip01_event.EventTag,
     info: *Nip04MessageInfo,
     saw_recipient: *bool,
-) Nip04Error!void {
+) LegacyDmError!void {
     if (saw_recipient.*) return error.DuplicateRecipientTag;
     if (tag.items.len != 2 and tag.items.len != 3) return error.InvalidRecipientTag;
 
@@ -426,7 +426,7 @@ fn parse_recipient_tag(
     saw_recipient.* = true;
 }
 
-fn parse_reply_tag(tag: nip01_event.EventTag, info: *Nip04MessageInfo) Nip04Error!void {
+fn parse_reply_tag(tag: nip01_event.EventTag, info: *Nip04MessageInfo) LegacyDmError!void {
     if (info.reply_to != null) return error.DuplicateReplyTag;
     if (tag.items.len < 2 or tag.items.len > 5) return error.InvalidReplyTag;
 
@@ -451,7 +451,7 @@ fn parse_reply_tag(tag: nip01_event.EventTag, info: *Nip04MessageInfo) Nip04Erro
     info.reply_to = reply;
 }
 
-fn validate_reply_suffix(text: []const u8) Nip04Error!void {
+fn validate_reply_suffix(text: []const u8) LegacyDmError!void {
     if (std.mem.eql(u8, text, "reply")) return;
     return error.InvalidReplyTag;
 }
@@ -484,7 +484,7 @@ fn wipe_bytes(buffer: []u8) void {
 
 fn map_shared_secret_error(
     err: secp256k1_backend.BackendSharedSecretError,
-) Nip04Error {
+) LegacyDmError {
     return switch (err) {
         error.InvalidPrivateKey => error.InvalidPrivateKey,
         error.InvalidPublicKey => error.InvalidPublicKey,
@@ -492,7 +492,7 @@ fn map_shared_secret_error(
     };
 }
 
-fn test_iv_provider(_: ?*anyopaque, out_iv: *[limits.nip04_iv_bytes]u8) Nip04Error!void {
+fn test_iv_provider(_: ?*anyopaque, out_iv: *[limits.nip04_iv_bytes]u8) LegacyDmError!void {
     out_iv.* = [_]u8{0x44} ** limits.nip04_iv_bytes;
 }
 

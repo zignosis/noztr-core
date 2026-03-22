@@ -76,6 +76,8 @@ It should avoid:
 - prefer explicit state over hidden mutable state
 - prefer simple branch structure over clever compactness
 - make invariants obvious in code, not only in comments
+- inside module namespaces, prefer descriptive public names over repeating numeric NIP ids
+- apply consistency in the direction of clarity, not in the direction of mechanical numbering
 
 ## Tiger-Style Engineering Defaults
 

@@ -9,7 +9,7 @@ const nip44 = @import("nip44.zig");
 pub const draft_wrap_kind: u32 = 31234;
 pub const private_relay_list_kind: u32 = 10013;
 
-pub const Nip37Error = nip44.Nip44Error || error{
+pub const DraftError = nip44.ConversationEncryptionError || error{
     OutOfMemory,
     InvalidDraftWrapKind,
     MissingIdentifierTag,
@@ -67,7 +67,7 @@ pub const BuiltTag = struct {
 };
 
 /// Parses bounded NIP-37 draft-wrap metadata from a kind-31234 event.
-pub fn draft_wrap_parse(event: *const nip01_event.Event) Nip37Error!DraftWrapInfo {
+pub fn draft_wrap_parse(event: *const nip01_event.Event) DraftError!DraftWrapInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.kind <= limits.kind_max);
 
@@ -96,7 +96,7 @@ pub fn draft_wrap_decrypt_json(
     event: *const nip01_event.Event,
     author_private_key: *const [32]u8,
     scratch: std.mem.Allocator,
-) Nip37Error!DraftWrapPlaintextInfo {
+) DraftError!DraftWrapPlaintextInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(author_private_key) != 0);
 
@@ -137,7 +137,7 @@ pub fn draft_wrap_encrypt_json(
     author_pubkey: *const [32]u8,
     draft_json: []const u8,
     scratch: std.mem.Allocator,
-) Nip37Error![]const u8 {
+) DraftError![]const u8 {
     std.debug.assert(@intFromPtr(author_private_key) != 0);
     std.debug.assert(@intFromPtr(author_pubkey) != 0);
 
@@ -149,7 +149,7 @@ pub fn draft_wrap_encrypt_json(
 pub fn draft_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip37Error!nip01_event.EventTag {
+) DraftError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     output.items[0] = "d";
@@ -162,7 +162,7 @@ pub fn draft_build_identifier_tag(
 pub fn draft_build_kind_tag(
     output: *BuiltTag,
     kind: u32,
-) Nip37Error!nip01_event.EventTag {
+) DraftError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(kind <= limits.kind_max);
 
@@ -179,7 +179,7 @@ pub fn draft_build_kind_tag(
 pub fn draft_build_expiration_tag(
     output: *BuiltTag,
     unix_seconds: u64,
-) Nip37Error!nip01_event.EventTag {
+) DraftError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(unix_seconds <= std.math.maxInt(u64));
 
@@ -195,7 +195,7 @@ pub fn draft_build_expiration_tag(
 pub fn private_relay_build_tag(
     output: *BuiltTag,
     relay_url: []const u8,
-) Nip37Error!nip01_event.EventTag {
+) DraftError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     output.items[0] = "relay";
@@ -208,7 +208,7 @@ pub fn private_relay_build_tag(
 pub fn private_relay_list_serialize_json(
     output: []u8,
     tags: []const nip01_event.EventTag,
-) Nip37Error![]const u8 {
+) DraftError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(tags.len <= limits.tags_max);
 
@@ -230,7 +230,7 @@ pub fn private_relay_list_extract_json(
     input_json: []const u8,
     out: [][]const u8,
     scratch: std.mem.Allocator,
-) Nip37Error!PrivateRelayListInfo {
+) DraftError!PrivateRelayListInfo {
     std.debug.assert(out.len <= limits.tags_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -258,7 +258,7 @@ pub fn private_relay_list_extract_nip44(
     author_private_key: *const [32]u8,
     out: [][]const u8,
     scratch: std.mem.Allocator,
-) Nip37Error!PrivateRelayListInfo {
+) DraftError!PrivateRelayListInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(author_private_key) != 0);
 
@@ -284,7 +284,7 @@ fn apply_draft_tag(
     identifier: *?[]const u8,
     draft_kind: *?u32,
     expiration: *?u64,
-) Nip37Error!void {
+) DraftError!void {
     std.debug.assert(@intFromPtr(identifier) != 0);
     std.debug.assert(@intFromPtr(draft_kind) != 0);
 
@@ -296,7 +296,7 @@ fn apply_draft_tag(
     }
 }
 
-fn parse_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip37Error!void {
+fn parse_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) DraftError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(identifier) != 0);
 
@@ -304,7 +304,7 @@ fn parse_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip
     identifier.* = parse_single_utf8_value(tag) catch return error.InvalidIdentifierTag;
 }
 
-fn parse_kind_tag(tag: nip01_event.EventTag, draft_kind: *?u32) Nip37Error!void {
+fn parse_kind_tag(tag: nip01_event.EventTag, draft_kind: *?u32) DraftError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(draft_kind) != 0);
 
@@ -315,7 +315,7 @@ fn parse_kind_tag(tag: nip01_event.EventTag, draft_kind: *?u32) Nip37Error!void 
     draft_kind.* = kind;
 }
 
-fn parse_expiration_tag(tag: nip01_event.EventTag, expiration: *?u64) Nip37Error!void {
+fn parse_expiration_tag(tag: nip01_event.EventTag, expiration: *?u64) DraftError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(expiration) != 0);
 
@@ -370,7 +370,7 @@ fn validate_draft_json(
     input: []const u8,
     expected_kind: ?u32,
     scratch: std.mem.Allocator,
-) Nip37Error!void {
+) DraftError!void {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -393,7 +393,7 @@ fn validate_draft_json(
     }
 }
 
-fn validate_draft_event_shape(object: std.json.ObjectMap) Nip37Error!void {
+fn validate_draft_event_shape(object: std.json.ObjectMap) DraftError!void {
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
     std.debug.assert(limits.kind_max > 0);
 
@@ -409,7 +409,7 @@ fn validate_draft_event_shape(object: std.json.ObjectMap) Nip37Error!void {
     if (content_value != .string) return error.InvalidDraftJson;
 }
 
-fn validate_draft_kind_match(object: std.json.ObjectMap, expected_kind: u32) Nip37Error!void {
+fn validate_draft_kind_match(object: std.json.ObjectMap, expected_kind: u32) DraftError!void {
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
     std.debug.assert(expected_kind <= limits.kind_max);
 
@@ -427,7 +427,7 @@ fn decrypt_private_content(
     author_private_key: *const [32]u8,
     author_pubkey: *const [32]u8,
     ciphertext: []const u8,
-) Nip37Error![]const u8 {
+) DraftError![]const u8 {
     std.debug.assert(@intFromPtr(author_private_key) != 0);
     std.debug.assert(@intFromPtr(author_pubkey) != 0);
 
@@ -441,7 +441,7 @@ fn encrypt_private_content(
     author_private_key: *const [32]u8,
     author_pubkey: *const [32]u8,
     plaintext: []const u8,
-) Nip37Error![]const u8 {
+) DraftError![]const u8 {
     std.debug.assert(@intFromPtr(author_private_key) != 0);
     std.debug.assert(@intFromPtr(author_pubkey) != 0);
 
@@ -459,7 +459,7 @@ fn encrypt_private_content(
 fn parse_private_json_root(
     input_json: []const u8,
     parse_allocator: std.mem.Allocator,
-) Nip37Error!std.json.Value {
+) DraftError!std.json.Value {
     std.debug.assert(input_json.len <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(parse_allocator.ptr) != 0);
 
@@ -511,7 +511,7 @@ fn validate_private_tag_item(text: []const u8) error{InvalidPrivateTagArray}![]c
     return text;
 }
 
-fn write_private_relay_tag_json(writer: anytype, tag: nip01_event.EventTag) Nip37Error!void {
+fn write_private_relay_tag_json(writer: anytype, tag: nip01_event.EventTag) DraftError!void {
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -525,7 +525,7 @@ fn write_private_relay_tag_json(writer: anytype, tag: nip01_event.EventTag) Nip3
     try write_private_byte(writer, ']');
 }
 
-fn write_private_string_json(writer: anytype, value: []const u8) Nip37Error!void {
+fn write_private_string_json(writer: anytype, value: []const u8) DraftError!void {
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -535,14 +535,14 @@ fn write_private_string_json(writer: anytype, value: []const u8) Nip37Error!void
     };
 }
 
-fn write_private_escape(writer: anytype, suffix: u8) Nip37Error!void {
+fn write_private_escape(writer: anytype, suffix: u8) DraftError!void {
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(suffix <= 255);
 
     try json_string_writer.write_escape(writer, suffix);
 }
 
-fn write_private_byte(writer: anytype, byte: u8) Nip37Error!void {
+fn write_private_byte(writer: anytype, byte: u8) DraftError!void {
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(byte <= 255);
 
@@ -583,7 +583,7 @@ fn private_content_is_nip04_legacy(content: []const u8) bool {
     return std.mem.indexOf(u8, content, "?iv=") != null;
 }
 
-fn random_nonce_provider(_: ?*anyopaque, nonce_output: *[32]u8) nip44.Nip44Error!void {
+fn random_nonce_provider(_: ?*anyopaque, nonce_output: *[32]u8) nip44.ConversationEncryptionError!void {
     std.debug.assert(@intFromPtr(nonce_output) != 0);
     std.debug.assert(nonce_output.len == limits.nip44_nonce_bytes);
 
@@ -592,9 +592,9 @@ fn random_nonce_provider(_: ?*anyopaque, nonce_output: *[32]u8) nip44.Nip44Error
 
 fn map_json_parse_error(
     parse_error: anyerror,
-    fallback: Nip37Error,
-) Nip37Error {
-    std.debug.assert(@typeInfo(Nip37Error) == .error_set);
+    fallback: DraftError,
+) DraftError {
+    std.debug.assert(@typeInfo(DraftError) == .error_set);
     std.debug.assert(@typeInfo(@TypeOf(parse_error)) == .error_set);
 
     return switch (parse_error) {

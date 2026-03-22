@@ -1,7 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 
-pub const Nip86Error = error{
+pub const RelayManagementError = error{
     InvalidRequest,
     InvalidResponse,
     InvalidMethod,
@@ -92,7 +92,7 @@ pub const Response = struct {
     error_text: ?[]const u8 = null,
 };
 
-pub fn method_parse(text: []const u8) Nip86Error!RelayManagementMethod {
+pub fn method_parse(text: []const u8) RelayManagementError!RelayManagementMethod {
     std.debug.assert(@sizeOf(RelayManagementMethod) > 0);
     std.debug.assert(limits.tag_item_bytes_max > 0);
 
@@ -151,7 +151,7 @@ pub fn method_text(method: RelayManagementMethod) []const u8 {
 
 /// Parse a bounded NIP-86 JSON-RPC request.
 /// See `examples/nip86_example.zig` and `examples/relay_admin_recipe.zig`.
-pub fn request_parse_json(input: []const u8, scratch: std.mem.Allocator) Nip86Error!Request {
+pub fn request_parse_json(input: []const u8, scratch: std.mem.Allocator) RelayManagementError!Request {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.relay_message_bytes_max > 0);
 
@@ -166,7 +166,7 @@ pub fn request_parse_json(input: []const u8, scratch: std.mem.Allocator) Nip86Er
 }
 
 /// Serialize a bounded NIP-86 JSON-RPC request.
-pub fn request_serialize_json(output: []u8, request: Request) Nip86Error![]const u8 {
+pub fn request_serialize_json(output: []u8, request: Request) RelayManagementError![]const u8 {
     std.debug.assert(output.len <= limits.relay_message_bytes_max);
     std.debug.assert(@sizeOf(Request) > 0);
 
@@ -190,7 +190,7 @@ pub fn response_parse_json(
     out_kinds: []u32,
     out_ips: []IpReason,
     scratch: std.mem.Allocator,
-) Nip86Error!Response {
+) RelayManagementError!Response {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.relay_message_bytes_max > 0);
 
@@ -214,7 +214,7 @@ pub fn response_parse_json(
 }
 
 /// Serialize a bounded NIP-86 JSON-RPC response.
-pub fn response_serialize_json(output: []u8, response: Response) Nip86Error![]const u8 {
+pub fn response_serialize_json(output: []u8, response: Response) RelayManagementError![]const u8 {
     std.debug.assert(output.len <= limits.relay_message_bytes_max);
     std.debug.assert(@sizeOf(Response) > 0);
 
@@ -248,7 +248,7 @@ fn parse_json_root(
 fn parse_request_object(
     object: std.json.ObjectMap,
     scratch: std.mem.Allocator,
-) Nip86Error!Request {
+) RelayManagementError!Request {
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -265,7 +265,7 @@ fn parse_request_object(
     return parse_request_params(method orelse return error.InvalidRequest, params orelse return error.InvalidRequest, scratch);
 }
 
-fn parse_method_value(value: std.json.Value) Nip86Error!RelayManagementMethod {
+fn parse_method_value(value: std.json.Value) RelayManagementError!RelayManagementMethod {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(RelayManagementMethod) > 0);
 
@@ -273,7 +273,7 @@ fn parse_method_value(value: std.json.Value) Nip86Error!RelayManagementMethod {
     return method_parse(value.string);
 }
 
-fn parse_params_array(value: std.json.Value) Nip86Error![]const std.json.Value {
+fn parse_params_array(value: std.json.Value) RelayManagementError![]const std.json.Value {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(limits.tag_items_max > 0);
 
@@ -286,7 +286,7 @@ fn parse_request_params(
     method: RelayManagementMethod,
     params: []const std.json.Value,
     scratch: std.mem.Allocator,
-) Nip86Error!Request {
+) RelayManagementError!Request {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(params.len <= 2);
 
@@ -314,7 +314,7 @@ fn parse_request_params(
     };
 }
 
-fn parse_zero_param_request(params: []const std.json.Value, request: Request) Nip86Error!Request {
+fn parse_zero_param_request(params: []const std.json.Value, request: Request) RelayManagementError!Request {
     std.debug.assert(params.len <= 2);
     std.debug.assert(@sizeOf(Request) > 0);
 
@@ -325,7 +325,7 @@ fn parse_zero_param_request(params: []const std.json.Value, request: Request) Ni
 fn parse_pubkey_reason(
     params: []const std.json.Value,
     scratch: std.mem.Allocator,
-) Nip86Error!PubkeyReason {
+) RelayManagementError!PubkeyReason {
     std.debug.assert(params.len <= 2);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -339,7 +339,7 @@ fn parse_pubkey_reason(
 fn parse_event_reason(
     params: []const std.json.Value,
     scratch: std.mem.Allocator,
-) Nip86Error!EventIdReason {
+) RelayManagementError!EventIdReason {
     std.debug.assert(params.len <= 2);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -350,7 +350,7 @@ fn parse_event_reason(
     };
 }
 
-fn parse_ip_reason(params: []const std.json.Value, scratch: std.mem.Allocator) Nip86Error!IpReason {
+fn parse_ip_reason(params: []const std.json.Value, scratch: std.mem.Allocator) RelayManagementError!IpReason {
     std.debug.assert(params.len <= 2);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -364,7 +364,7 @@ fn parse_ip_reason(params: []const std.json.Value, scratch: std.mem.Allocator) N
 fn parse_optional_reason(
     params: []const std.json.Value,
     scratch: std.mem.Allocator,
-) Nip86Error!?[]const u8 {
+) RelayManagementError!?[]const u8 {
     std.debug.assert(params.len <= 2);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -373,7 +373,7 @@ fn parse_optional_reason(
     return parsed;
 }
 
-fn parse_one_text_param(params: []const std.json.Value, scratch: std.mem.Allocator) Nip86Error![]const u8 {
+fn parse_one_text_param(params: []const std.json.Value, scratch: std.mem.Allocator) RelayManagementError![]const u8 {
     std.debug.assert(params.len <= 2);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -381,7 +381,7 @@ fn parse_one_text_param(params: []const std.json.Value, scratch: std.mem.Allocat
     return parse_text_value(params[0], scratch);
 }
 
-fn parse_one_url_param(params: []const std.json.Value, scratch: std.mem.Allocator) Nip86Error![]const u8 {
+fn parse_one_url_param(params: []const std.json.Value, scratch: std.mem.Allocator) RelayManagementError![]const u8 {
     std.debug.assert(params.len <= 2);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -389,7 +389,7 @@ fn parse_one_url_param(params: []const std.json.Value, scratch: std.mem.Allocato
     return parse_url_value(params[0], scratch);
 }
 
-fn parse_one_kind_param(params: []const std.json.Value) Nip86Error!u32 {
+fn parse_one_kind_param(params: []const std.json.Value) RelayManagementError!u32 {
     std.debug.assert(params.len <= 2);
     std.debug.assert(@sizeOf(u32) == 4);
 
@@ -397,7 +397,7 @@ fn parse_one_kind_param(params: []const std.json.Value) Nip86Error!u32 {
     return parse_kind_value(params[0]);
 }
 
-fn parse_one_ip_param(params: []const std.json.Value, scratch: std.mem.Allocator) Nip86Error![]const u8 {
+fn parse_one_ip_param(params: []const std.json.Value, scratch: std.mem.Allocator) RelayManagementError![]const u8 {
     std.debug.assert(params.len <= 2);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -405,7 +405,7 @@ fn parse_one_ip_param(params: []const std.json.Value, scratch: std.mem.Allocator
     return parse_ip_value(params[0], scratch);
 }
 
-fn parse_hex_field(value: std.json.Value, invalid: Nip86Error) Nip86Error![32]u8 {
+fn parse_hex_field(value: std.json.Value, invalid: RelayManagementError) RelayManagementError![32]u8 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -416,7 +416,7 @@ fn parse_hex_field(value: std.json.Value, invalid: Nip86Error) Nip86Error![32]u8
     return out;
 }
 
-fn parse_text_value(value: std.json.Value, scratch: std.mem.Allocator) Nip86Error![]const u8 {
+fn parse_text_value(value: std.json.Value, scratch: std.mem.Allocator) RelayManagementError![]const u8 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -425,7 +425,7 @@ fn parse_text_value(value: std.json.Value, scratch: std.mem.Allocator) Nip86Erro
     return scratch.dupe(u8, value.string) catch return error.InvalidRequest;
 }
 
-fn parse_url_value(value: std.json.Value, scratch: std.mem.Allocator) Nip86Error![]const u8 {
+fn parse_url_value(value: std.json.Value, scratch: std.mem.Allocator) RelayManagementError![]const u8 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -435,7 +435,7 @@ fn parse_url_value(value: std.json.Value, scratch: std.mem.Allocator) Nip86Error
     return text;
 }
 
-fn parse_kind_value(value: std.json.Value) Nip86Error!u32 {
+fn parse_kind_value(value: std.json.Value) RelayManagementError!u32 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(limits.kind_max == std.math.maxInt(u16));
 
@@ -444,7 +444,7 @@ fn parse_kind_value(value: std.json.Value) Nip86Error!u32 {
     return std.math.cast(u32, value.integer) orelse error.InvalidKind;
 }
 
-fn parse_ip_value(value: std.json.Value, scratch: std.mem.Allocator) Nip86Error![]const u8 {
+fn parse_ip_value(value: std.json.Value, scratch: std.mem.Allocator) RelayManagementError![]const u8 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -462,7 +462,7 @@ fn parse_response_object(
     out_kinds: []u32,
     out_ips: []IpReason,
     scratch: std.mem.Allocator,
-) Nip86Error!Response {
+) RelayManagementError!Response {
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -491,7 +491,7 @@ fn parse_response_object(
     };
 }
 
-fn parse_optional_error(value: std.json.Value, scratch: std.mem.Allocator) Nip86Error!?[]const u8 {
+fn parse_optional_error(value: std.json.Value, scratch: std.mem.Allocator) RelayManagementError!?[]const u8 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -509,7 +509,7 @@ fn parse_response_payload(
     out_kinds: []u32,
     out_ips: []IpReason,
     scratch: std.mem.Allocator,
-) Nip86Error!ResponsePayload {
+) RelayManagementError!ResponsePayload {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(@sizeOf(ResponsePayload) > 0);
 
@@ -527,7 +527,7 @@ fn parse_response_payload(
     };
 }
 
-fn parse_ack_result(value: std.json.Value) Nip86Error!ResponsePayload {
+fn parse_ack_result(value: std.json.Value) RelayManagementError!ResponsePayload {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(ResponsePayload) > 0);
 
@@ -540,7 +540,7 @@ fn parse_string_array(
     value: std.json.Value,
     out: [][]const u8,
     scratch: std.mem.Allocator,
-) Nip86Error![]const []const u8 {
+) RelayManagementError![]const []const u8 {
     std.debug.assert(out.len <= limits.tags_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -557,7 +557,7 @@ fn parse_pubkey_entries(
     value: std.json.Value,
     out: []PubkeyReason,
     scratch: std.mem.Allocator,
-) Nip86Error![]const PubkeyReason {
+) RelayManagementError![]const PubkeyReason {
     std.debug.assert(out.len <= limits.tags_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -570,7 +570,7 @@ fn parse_pubkey_entries(
     return out[0..index];
 }
 
-fn parse_pubkey_entry(value: std.json.Value, scratch: std.mem.Allocator) Nip86Error!PubkeyReason {
+fn parse_pubkey_entry(value: std.json.Value, scratch: std.mem.Allocator) RelayManagementError!PubkeyReason {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -592,7 +592,7 @@ fn parse_event_entries(
     value: std.json.Value,
     out: []EventIdReason,
     scratch: std.mem.Allocator,
-) Nip86Error![]const EventIdReason {
+) RelayManagementError![]const EventIdReason {
     std.debug.assert(out.len <= limits.tags_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -605,7 +605,7 @@ fn parse_event_entries(
     return out[0..index];
 }
 
-fn parse_event_entry(value: std.json.Value, scratch: std.mem.Allocator) Nip86Error!EventIdReason {
+fn parse_event_entry(value: std.json.Value, scratch: std.mem.Allocator) RelayManagementError!EventIdReason {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -623,7 +623,7 @@ fn parse_event_entry(value: std.json.Value, scratch: std.mem.Allocator) Nip86Err
     return .{ .id = id orelse return error.InvalidResponse, .reason = reason };
 }
 
-fn parse_kind_array(value: std.json.Value, out: []u32) Nip86Error![]const u32 {
+fn parse_kind_array(value: std.json.Value, out: []u32) RelayManagementError![]const u32 {
     std.debug.assert(out.len <= limits.tags_max);
     std.debug.assert(@sizeOf(u32) == 4);
 
@@ -640,7 +640,7 @@ fn parse_ip_entries(
     value: std.json.Value,
     out: []IpReason,
     scratch: std.mem.Allocator,
-) Nip86Error![]const IpReason {
+) RelayManagementError![]const IpReason {
     std.debug.assert(out.len <= limits.tags_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -653,7 +653,7 @@ fn parse_ip_entries(
     return out[0..index];
 }
 
-fn parse_ip_entry(value: std.json.Value, scratch: std.mem.Allocator) Nip86Error!IpReason {
+fn parse_ip_entry(value: std.json.Value, scratch: std.mem.Allocator) RelayManagementError!IpReason {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -699,7 +699,7 @@ fn request_method(request: Request) RelayManagementMethod {
     };
 }
 
-fn serialize_request_params(output: []u8, index: *u32, request: Request) Nip86Error!void {
+fn serialize_request_params(output: []u8, index: *u32, request: Request) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(output.len <= limits.relay_message_bytes_max);
 
@@ -725,7 +725,7 @@ fn serialize_pubkey_reason_params(
     output: []u8,
     index: *u32,
     entry: PubkeyReason,
-) Nip86Error!void {
+) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(entry.pubkey[0] <= 255);
 
@@ -741,7 +741,7 @@ fn serialize_event_reason_params(
     output: []u8,
     index: *u32,
     entry: EventIdReason,
-) Nip86Error!void {
+) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(entry.id[0] <= 255);
 
@@ -753,7 +753,7 @@ fn serialize_event_reason_params(
     }
 }
 
-fn serialize_ip_reason_params(output: []u8, index: *u32, entry: IpReason) Nip86Error!void {
+fn serialize_ip_reason_params(output: []u8, index: *u32, entry: IpReason) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(entry.ip.len <= limits.tag_item_bytes_max);
 
@@ -768,7 +768,7 @@ fn serialize_response_result(
     output: []u8,
     index: *u32,
     result: ResponsePayload,
-) Nip86Error!void {
+) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(ResponsePayload) > 0);
 
@@ -783,7 +783,7 @@ fn serialize_response_result(
     }
 }
 
-fn serialize_string_array(output: []u8, index: *u32, items: []const []const u8) Nip86Error!void {
+fn serialize_string_array(output: []u8, index: *u32, items: []const []const u8) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(items.len <= limits.tags_max);
 
@@ -799,7 +799,7 @@ fn serialize_pubkey_entries(
     output: []u8,
     index: *u32,
     items: []const PubkeyReason,
-) Nip86Error!void {
+) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(items.len <= limits.tags_max);
 
@@ -822,7 +822,7 @@ fn serialize_event_entries(
     output: []u8,
     index: *u32,
     items: []const EventIdReason,
-) Nip86Error!void {
+) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(items.len <= limits.tags_max);
 
@@ -841,7 +841,7 @@ fn serialize_event_entries(
     try write_bytes(output, index, "]");
 }
 
-fn serialize_kind_array(output: []u8, index: *u32, items: []const u32) Nip86Error!void {
+fn serialize_kind_array(output: []u8, index: *u32, items: []const u32) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(items.len <= limits.tags_max);
 
@@ -853,7 +853,7 @@ fn serialize_kind_array(output: []u8, index: *u32, items: []const u32) Nip86Erro
     try write_bytes(output, index, "]");
 }
 
-fn serialize_ip_entries(output: []u8, index: *u32, items: []const IpReason) Nip86Error!void {
+fn serialize_ip_entries(output: []u8, index: *u32, items: []const IpReason) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(items.len <= limits.tags_max);
 
@@ -871,7 +871,7 @@ fn serialize_ip_entries(output: []u8, index: *u32, items: []const IpReason) Nip8
     try write_bytes(output, index, "]");
 }
 
-fn write_json_string(output: []u8, index: *u32, text: []const u8) Nip86Error!void {
+fn write_json_string(output: []u8, index: *u32, text: []const u8) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(text.len <= limits.relay_message_bytes_max);
 
@@ -893,7 +893,7 @@ fn write_json_string(output: []u8, index: *u32, text: []const u8) Nip86Error!voi
     try write_bytes(output, index, "\"");
 }
 
-fn write_u32(output: []u8, index: *u32, value: u32) Nip86Error!void {
+fn write_u32(output: []u8, index: *u32, value: u32) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(value <= limits.kind_max);
 
@@ -904,7 +904,7 @@ fn write_u32(output: []u8, index: *u32, value: u32) Nip86Error!void {
     try write_bytes(output, index, rendered);
 }
 
-fn write_bytes(output: []u8, index: *u32, text: []const u8) Nip86Error!void {
+fn write_bytes(output: []u8, index: *u32, text: []const u8) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(text.len <= limits.relay_message_bytes_max);
 
@@ -913,7 +913,7 @@ fn write_bytes(output: []u8, index: *u32, text: []const u8) Nip86Error!void {
     index.* += @intCast(text.len);
 }
 
-fn write_byte(output: []u8, index: *u32, byte: u8) Nip86Error!void {
+fn write_byte(output: []u8, index: *u32, byte: u8) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(byte <= 0xff);
 

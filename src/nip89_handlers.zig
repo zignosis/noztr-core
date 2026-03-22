@@ -7,7 +7,7 @@ const url_with_scheme = @import("internal/url_with_scheme.zig");
 pub const recommendation_kind: u32 = 31989;
 pub const handler_kind: u32 = 31990;
 
-pub const Nip89Error = error{
+pub const HandlerError = error{
     InvalidRecommendationKind,
     InvalidHandlerKind,
     MissingSupportedKindTag,
@@ -72,7 +72,7 @@ pub const BuiltTag = struct {
 pub fn recommendation_extract(
     event: *const nip01_event.Event,
     out_handlers: []HandlerReference,
-) Nip89Error!RecommendationInfo {
+) HandlerError!RecommendationInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_handlers.len <= limits.tags_max);
 
@@ -90,7 +90,7 @@ pub fn handler_extract(
     event: *const nip01_event.Event,
     out_supported_kinds: []u32,
     out_endpoints: []HandlerEndpoint,
-) Nip89Error!HandlerInfo {
+) HandlerError!HandlerInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_supported_kinds.len <= limits.tags_max);
 
@@ -107,7 +107,7 @@ pub fn handler_extract(
 }
 
 /// Extracts the optional `client` tag from an arbitrary event.
-pub fn client_extract(event: *const nip01_event.Event) Nip89Error!?ClientTagInfo {
+pub fn client_extract(event: *const nip01_event.Event) HandlerError!?ClientTagInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -124,7 +124,7 @@ pub fn client_extract(event: *const nip01_event.Event) Nip89Error!?ClientTagInfo
 pub fn recommendation_build_supported_kind_tag(
     output: *BuiltTag,
     supported_kind: u32,
-) Nip89Error!nip01_event.EventTag {
+) HandlerError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(supported_kind <= limits.kind_max);
 
@@ -142,7 +142,7 @@ pub fn recommendation_build_handler_tag(
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
     platform: ?[]const u8,
-) Nip89Error!nip01_event.EventTag {
+) HandlerError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 4);
 
@@ -167,7 +167,7 @@ pub fn recommendation_build_handler_tag(
 pub fn handler_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip89Error!nip01_event.EventTag {
+) HandlerError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 4);
 
@@ -181,7 +181,7 @@ pub fn handler_build_identifier_tag(
 pub fn handler_build_supported_kind_tag(
     output: *BuiltTag,
     supported_kind: u32,
-) Nip89Error!nip01_event.EventTag {
+) HandlerError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(supported_kind <= limits.kind_max);
 
@@ -199,7 +199,7 @@ pub fn handler_build_endpoint_tag(
     platform: []const u8,
     url_template: []const u8,
     entity_name: ?[]const u8,
-) Nip89Error!nip01_event.EventTag {
+) HandlerError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 4);
 
@@ -219,7 +219,7 @@ pub fn client_build_tag(
     name: []const u8,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
-) Nip89Error!nip01_event.EventTag {
+) HandlerError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 4);
 
@@ -240,7 +240,7 @@ fn apply_recommendation_tag(
     info: *RecommendationInfo,
     saw_kind: *bool,
     out_handlers: []HandlerReference,
-) Nip89Error!void {
+) HandlerError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_kind) != 0);
 
@@ -266,7 +266,7 @@ fn apply_handler_tag(
     info: *HandlerInfo,
     out_supported_kinds: []u32,
     out_endpoints: []HandlerEndpoint,
-) Nip89Error!void {
+) HandlerError!void {
     std.debug.assert(@intFromPtr(identifier) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
 

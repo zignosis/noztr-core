@@ -9,7 +9,7 @@ pub const profile_badges_kind: u32 = 30008;
 pub const badge_definition_kind: u32 = 30009;
 pub const profile_badges_identifier: []const u8 = "profile_badges";
 
-pub const Nip58Error = error{
+pub const BadgeError = error{
     InvalidBadgeDefinitionKind,
     MissingIdentifierTag,
     DuplicateIdentifierTag,
@@ -99,7 +99,7 @@ pub const BuiltTag = struct {
 pub fn badge_definition_extract(
     event: *const nip01_event.Event,
     out_thumbs: []ImageInfo,
-) Nip58Error!BadgeDefinitionInfo {
+) BadgeError!BadgeDefinitionInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_thumbs.len <= limits.tags_max);
 
@@ -118,7 +118,7 @@ pub fn badge_definition_extract(
 pub fn badge_award_extract(
     event: *const nip01_event.Event,
     out_recipients: []BadgeAwardRecipient,
-) Nip58Error!BadgeAwardInfo {
+) BadgeError!BadgeAwardInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_recipients.len <= limits.tags_max);
 
@@ -142,7 +142,7 @@ pub fn badge_award_extract(
 pub fn profile_badges_extract(
     event: *const nip01_event.Event,
     out_pairs: []ProfileBadgePair,
-) Nip58Error!ProfileBadgesInfo {
+) BadgeError!ProfileBadgesInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_pairs.len <= limits.tags_max);
 
@@ -168,7 +168,7 @@ pub fn profile_badges_extract(
 pub fn badge_award_validate_definition(
     award: *const BadgeAwardInfo,
     definition: *const BadgeDefinitionInfo,
-) Nip58Error!void {
+) BadgeError!void {
     std.debug.assert(@intFromPtr(award) != 0);
     std.debug.assert(@intFromPtr(definition) != 0);
 
@@ -187,7 +187,7 @@ pub fn profile_badge_pair_validate(
     award_recipients: []const BadgeAwardRecipient,
     definition: *const BadgeDefinitionInfo,
     profile_pubkey: *const [32]u8,
-) Nip58Error!void {
+) BadgeError!void {
     std.debug.assert(@intFromPtr(pair) != 0);
     std.debug.assert(@intFromPtr(award) != 0);
 
@@ -210,7 +210,7 @@ pub fn profile_badge_pair_validate(
 pub fn badge_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip58Error!nip01_event.EventTag {
+) BadgeError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
 
@@ -224,7 +224,7 @@ pub fn badge_build_identifier_tag(
 pub fn badge_build_name_tag(
     output: *BuiltTag,
     name: []const u8,
-) Nip58Error!nip01_event.EventTag {
+) BadgeError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(name.len <= limits.tag_item_bytes_max);
 
@@ -238,7 +238,7 @@ pub fn badge_build_name_tag(
 pub fn badge_build_description_tag(
     output: *BuiltTag,
     description: []const u8,
-) Nip58Error!nip01_event.EventTag {
+) BadgeError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(description.len <= limits.tag_item_bytes_max);
 
@@ -253,7 +253,7 @@ pub fn badge_build_image_tag(
     output: *BuiltTag,
     image_url: []const u8,
     dimensions: ?[]const u8,
-) Nip58Error!nip01_event.EventTag {
+) BadgeError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(image_url.len <= limits.tag_item_bytes_max);
 
@@ -272,7 +272,7 @@ pub fn badge_build_thumb_tag(
     output: *BuiltTag,
     thumb_url: []const u8,
     dimensions: ?[]const u8,
-) Nip58Error!nip01_event.EventTag {
+) BadgeError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(thumb_url.len <= limits.tag_item_bytes_max);
 
@@ -290,7 +290,7 @@ pub fn badge_build_thumb_tag(
 pub fn badge_build_definition_tag(
     output: *BuiltTag,
     reference: *const BadgeDefinitionReference,
-) Nip58Error!nip01_event.EventTag {
+) BadgeError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(reference) != 0);
 
@@ -309,7 +309,7 @@ pub fn badge_build_awarded_pubkey_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip58Error!nip01_event.EventTag {
+) BadgeError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
 
@@ -327,7 +327,7 @@ pub fn badge_build_awarded_pubkey_tag(
 /// Builds the fixed profile-badges `d` tag.
 pub fn profile_badges_build_identifier_tag(
     output: *BuiltTag,
-) Nip58Error!nip01_event.EventTag {
+) BadgeError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(profile_badges_identifier.len > 0);
 
@@ -342,7 +342,7 @@ pub fn profile_badges_build_award_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip58Error!nip01_event.EventTag {
+) BadgeError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
 
@@ -362,7 +362,7 @@ fn apply_definition_tag(
     identifier: *?[]const u8,
     info: *BadgeDefinitionInfo,
     out_thumbs: []ImageInfo,
-) Nip58Error!void {
+) BadgeError!void {
     std.debug.assert(@intFromPtr(identifier) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -378,7 +378,7 @@ fn apply_definition_tag(
 fn parse_definition_identifier(
     tag: nip01_event.EventTag,
     identifier: *?[]const u8,
-) Nip58Error!void {
+) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(identifier) != 0);
 
@@ -386,7 +386,7 @@ fn parse_definition_identifier(
     identifier.* = parse_single_utf8_value(tag) catch return error.InvalidIdentifierTag;
 }
 
-fn parse_definition_name(tag: nip01_event.EventTag, info: *BadgeDefinitionInfo) Nip58Error!void {
+fn parse_definition_name(tag: nip01_event.EventTag, info: *BadgeDefinitionInfo) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -397,7 +397,7 @@ fn parse_definition_name(tag: nip01_event.EventTag, info: *BadgeDefinitionInfo) 
 fn parse_definition_description(
     tag: nip01_event.EventTag,
     info: *BadgeDefinitionInfo,
-) Nip58Error!void {
+) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -405,7 +405,7 @@ fn parse_definition_description(
     info.description = parse_single_utf8_value(tag) catch return error.InvalidDescriptionTag;
 }
 
-fn parse_definition_image(tag: nip01_event.EventTag, info: *BadgeDefinitionInfo) Nip58Error!void {
+fn parse_definition_image(tag: nip01_event.EventTag, info: *BadgeDefinitionInfo) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -420,7 +420,7 @@ fn parse_definition_thumb(
     tag: nip01_event.EventTag,
     info: *BadgeDefinitionInfo,
     out_thumbs: []ImageInfo,
-) Nip58Error!void {
+) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -437,7 +437,7 @@ fn apply_award_tag(
     badge_definition: *?BadgeDefinitionReference,
     out_recipients: []BadgeAwardRecipient,
     recipient_count: *u16,
-) Nip58Error!void {
+) BadgeError!void {
     std.debug.assert(@intFromPtr(badge_definition) != 0);
     std.debug.assert(@intFromPtr(recipient_count) != 0);
 
@@ -453,7 +453,7 @@ fn apply_award_tag(
 fn parse_award_definition_tag(
     tag: nip01_event.EventTag,
     badge_definition: *?BadgeDefinitionReference,
-) Nip58Error!void {
+) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(badge_definition) != 0);
 
@@ -465,7 +465,7 @@ fn parse_award_pubkey_tag(
     tag: nip01_event.EventTag,
     out_recipients: []BadgeAwardRecipient,
     recipient_count: *u16,
-) Nip58Error!void {
+) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(recipient_count) != 0);
 
@@ -484,7 +484,7 @@ fn apply_profile_tag(
     pending_definition: *?nip01_event.EventTag,
     out_pairs: []ProfileBadgePair,
     count: *u16,
-) Nip58Error!void {
+) BadgeError!void {
     std.debug.assert(@intFromPtr(has_identifier) != 0);
     std.debug.assert(@intFromPtr(count) != 0);
 
@@ -514,7 +514,7 @@ fn apply_profile_tag(
     pending_definition.* = null;
 }
 
-fn parse_profile_identifier_tag(tag: nip01_event.EventTag, has_identifier: *bool) Nip58Error!void {
+fn parse_profile_identifier_tag(tag: nip01_event.EventTag, has_identifier: *bool) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(has_identifier) != 0);
 
@@ -528,10 +528,10 @@ fn parse_profile_identifier_tag(tag: nip01_event.EventTag, has_identifier: *bool
 
 fn parse_definition_reference_tag(
     tag: nip01_event.EventTag,
-    invalid_error: Nip58Error,
-) Nip58Error!BadgeDefinitionReference {
+    invalid_error: BadgeError,
+) BadgeError!BadgeDefinitionReference {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
-    std.debug.assert(@typeInfo(Nip58Error) == .error_set);
+    std.debug.assert(@typeInfo(BadgeError) == .error_set);
 
     if (tag.items.len < 2 or tag.items.len > 3) return invalid_error;
     if (!std.mem.eql(u8, tag.items[0], "a")) return invalid_error;
@@ -541,7 +541,7 @@ fn parse_definition_reference_tag(
     return parsed;
 }
 
-fn parse_award_event_tag(tag: nip01_event.EventTag) Nip58Error!BadgeAwardEventReference {
+fn parse_award_event_tag(tag: nip01_event.EventTag) BadgeError!BadgeAwardEventReference {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.tag_items_max >= 2);
 
@@ -555,10 +555,10 @@ fn parse_award_event_tag(tag: nip01_event.EventTag) Nip58Error!BadgeAwardEventRe
 
 fn parse_definition_coordinate_text(
     text: []const u8,
-    invalid_error: Nip58Error,
-) Nip58Error!BadgeDefinitionReference {
+    invalid_error: BadgeError,
+) BadgeError!BadgeDefinitionReference {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
-    std.debug.assert(@typeInfo(Nip58Error) == .error_set);
+    std.debug.assert(@typeInfo(BadgeError) == .error_set);
 
     var parts = std.mem.splitScalar(u8, text, ':');
     const kind_text = parts.next() orelse return invalid_error;
@@ -577,7 +577,7 @@ fn parse_definition_coordinate_text(
 fn format_definition_coordinate(
     output: []u8,
     reference: *const BadgeDefinitionReference,
-) Nip58Error![]const u8 {
+) BadgeError![]const u8 {
     std.debug.assert(output.len <= limits.tag_item_bytes_max);
     std.debug.assert(@intFromPtr(reference) != 0);
 
@@ -592,10 +592,10 @@ fn format_definition_coordinate(
 fn parse_required_url_item(
     tag: nip01_event.EventTag,
     index: usize,
-    invalid_error: Nip58Error,
-) Nip58Error![]const u8 {
+    invalid_error: BadgeError,
+) BadgeError![]const u8 {
     std.debug.assert(index < limits.tag_items_max);
-    std.debug.assert(@typeInfo(Nip58Error) == .error_set);
+    std.debug.assert(@typeInfo(BadgeError) == .error_set);
 
     if (tag.items.len <= index) return invalid_error;
     return parse_url(tag.items[index]) catch return invalid_error;
@@ -604,10 +604,10 @@ fn parse_required_url_item(
 fn parse_optional_url_item(
     tag: nip01_event.EventTag,
     index: usize,
-    invalid_error: Nip58Error,
-) Nip58Error!?[]const u8 {
+    invalid_error: BadgeError,
+) BadgeError!?[]const u8 {
     std.debug.assert(index < limits.tag_items_max);
-    std.debug.assert(@typeInfo(Nip58Error) == .error_set);
+    std.debug.assert(@typeInfo(BadgeError) == .error_set);
 
     if (tag.items.len <= index) return null;
     if (tag.items[index].len == 0) return null;
@@ -617,10 +617,10 @@ fn parse_optional_url_item(
 fn parse_optional_dimensions_item(
     tag: nip01_event.EventTag,
     index: usize,
-    invalid_error: Nip58Error,
-) Nip58Error!?[]const u8 {
+    invalid_error: BadgeError,
+) BadgeError!?[]const u8 {
     std.debug.assert(index < limits.tag_items_max);
-    std.debug.assert(@typeInfo(Nip58Error) == .error_set);
+    std.debug.assert(@typeInfo(BadgeError) == .error_set);
 
     if (tag.items.len <= index) return null;
     return parse_dimensions(tag.items[index]) catch return invalid_error;

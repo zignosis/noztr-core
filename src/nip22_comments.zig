@@ -6,7 +6,7 @@ const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const comment_event_kind: u32 = 1111;
 
-pub const Nip22Error = error{
+pub const CommentError = error{
     InvalidCommentKind,
     MissingRootTarget,
     MissingParentTarget,
@@ -110,7 +110,7 @@ pub fn comment_is_comment(event: *const nip01_event.Event) bool {
 }
 
 /// Parses strict NIP-22 root and parent linkage from a kind-1111 comment event.
-pub fn comment_parse(event: *const nip01_event.Event) Nip22Error!CommentInfo {
+pub fn comment_parse(event: *const nip01_event.Event) CommentError!CommentInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -144,7 +144,7 @@ pub fn comment_parse(event: *const nip01_event.Event) Nip22Error!CommentInfo {
     };
 }
 
-fn parse_comment_tag(tag: nip01_event.EventTag, parsed: *ParsedState) Nip22Error!void {
+fn parse_comment_tag(tag: nip01_event.EventTag, parsed: *ParsedState) CommentError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(parsed) != 0);
 
@@ -165,7 +165,7 @@ fn parse_root_tag(
     tag_name: []const u8,
     tag: nip01_event.EventTag,
     parsed: *ParsedState,
-) Nip22Error!bool {
+) CommentError!bool {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(parsed) != 0);
 
@@ -211,7 +211,7 @@ fn parse_parent_tag(
     tag_name: []const u8,
     tag: nip01_event.EventTag,
     parsed: *ParsedState,
-) Nip22Error!bool {
+) CommentError!bool {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(parsed) != 0);
 
@@ -253,7 +253,7 @@ fn parse_parent_tag(
     return false;
 }
 
-fn apply_root_event_tag(tag: nip01_event.EventTag, parsed: *ParsedState) Nip22Error!void {
+fn apply_root_event_tag(tag: nip01_event.EventTag, parsed: *ParsedState) CommentError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(parsed) != 0);
 
@@ -272,7 +272,7 @@ fn apply_root_event_tag(tag: nip01_event.EventTag, parsed: *ParsedState) Nip22Er
     return error.DuplicateRootTarget;
 }
 
-fn apply_parent_event_tag(tag: nip01_event.EventTag, parsed: *ParsedState) Nip22Error!void {
+fn apply_parent_event_tag(tag: nip01_event.EventTag, parsed: *ParsedState) CommentError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(parsed) != 0);
 
@@ -293,8 +293,8 @@ fn apply_parent_event_tag(tag: nip01_event.EventTag, parsed: *ParsedState) Nip22
 
 fn parse_event_target(
     tag: nip01_event.EventTag,
-    invalid_error: Nip22Error,
-) Nip22Error!ParsedEventTarget {
+    invalid_error: CommentError,
+) CommentError!ParsedEventTarget {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len >= 1);
 
@@ -319,8 +319,8 @@ fn parse_event_target(
 
 fn parse_coordinate_target(
     tag: nip01_event.EventTag,
-    invalid_error: Nip22Error,
-) Nip22Error!CoordinateTarget {
+    invalid_error: CommentError,
+) CommentError!CoordinateTarget {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len >= 1);
 
@@ -340,8 +340,8 @@ fn parse_coordinate_target(
 
 fn parse_external_target(
     tag: nip01_event.EventTag,
-    invalid_error: Nip22Error,
-) Nip22Error!ParsedExternalTarget {
+    invalid_error: CommentError,
+) CommentError!ParsedExternalTarget {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len >= 1);
 
@@ -363,8 +363,8 @@ fn parse_external_target(
 
 fn parse_kind_token(
     tag: nip01_event.EventTag,
-    invalid_error: Nip22Error,
-) Nip22Error![]const u8 {
+    invalid_error: CommentError,
+) CommentError![]const u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len >= 1);
 
@@ -379,8 +379,8 @@ fn parse_kind_token(
 
 fn parse_author_tag(
     tag: nip01_event.EventTag,
-    invalid_error: Nip22Error,
-) Nip22Error!ParsedAuthor {
+    invalid_error: CommentError,
+) CommentError!ParsedAuthor {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len >= 1);
 
@@ -405,7 +405,7 @@ fn finalize_root_target(
     parsed_target: ParsedTarget,
     companion_event: ?ParsedEventTarget,
     kind_token: []const u8,
-) Nip22Error!CommentTarget {
+) CommentError!CommentTarget {
     std.debug.assert(tags.len <= limits.tags_max);
     std.debug.assert(kind_token.len > 0);
     std.debug.assert(std.unicode.utf8ValidateSlice(kind_token));
@@ -429,7 +429,7 @@ fn finalize_parent_target(
     parsed_target: ParsedTarget,
     companion_event: ?ParsedEventTarget,
     kind_token: []const u8,
-) Nip22Error!CommentTarget {
+) CommentError!CommentTarget {
     std.debug.assert(tags.len <= limits.tags_max);
     std.debug.assert(kind_token.len > 0);
     std.debug.assert(std.unicode.utf8ValidateSlice(kind_token));
@@ -454,12 +454,12 @@ fn finalize_target(
     companion_event: ?ParsedEventTarget,
     kind_token: []const u8,
     uppercase_author: bool,
-    invalid_kind_error: Nip22Error,
-    missing_author_error: Nip22Error,
-    author_mismatch_error: Nip22Error,
-    kind_mismatch_error: Nip22Error,
-    text_note_error: Nip22Error,
-) Nip22Error!CommentTarget {
+    invalid_kind_error: CommentError,
+    missing_author_error: CommentError,
+    author_mismatch_error: CommentError,
+    kind_mismatch_error: CommentError,
+    text_note_error: CommentError,
+) CommentError!CommentTarget {
     std.debug.assert(tags.len <= limits.tags_max);
     std.debug.assert(kind_token.len > 0);
     std.debug.assert(std.unicode.utf8ValidateSlice(kind_token));
@@ -503,12 +503,12 @@ fn finalize_event_target(
     companion_event: ?ParsedEventTarget,
     kind_token: []const u8,
     uppercase_author: bool,
-    invalid_kind_error: Nip22Error,
-    missing_author_error: Nip22Error,
-    author_mismatch_error: Nip22Error,
-    kind_mismatch_error: Nip22Error,
-    text_note_error: Nip22Error,
-) Nip22Error!CommentTarget {
+    invalid_kind_error: CommentError,
+    missing_author_error: CommentError,
+    author_mismatch_error: CommentError,
+    kind_mismatch_error: CommentError,
+    text_note_error: CommentError,
+) CommentError!CommentTarget {
     std.debug.assert(tags.len <= limits.tags_max);
     std.debug.assert(kind_token.len > 0);
 
@@ -550,12 +550,12 @@ fn finalize_coordinate_target(
     companion_event: ?ParsedEventTarget,
     kind_token: []const u8,
     uppercase_author: bool,
-    invalid_kind_error: Nip22Error,
-    missing_author_error: Nip22Error,
-    author_mismatch_error: Nip22Error,
-    kind_mismatch_error: Nip22Error,
-    text_note_error: Nip22Error,
-) Nip22Error!CommentTarget {
+    invalid_kind_error: CommentError,
+    missing_author_error: CommentError,
+    author_mismatch_error: CommentError,
+    kind_mismatch_error: CommentError,
+    text_note_error: CommentError,
+) CommentError!CommentTarget {
     std.debug.assert(tags.len <= limits.tags_max);
     std.debug.assert(kind_token.len > 0);
 
@@ -591,8 +591,8 @@ fn finalize_coordinate_target(
 fn finalize_external_target(
     external_target: ParsedExternalTarget,
     kind_token: []const u8,
-    kind_mismatch_error: Nip22Error,
-) Nip22Error!CommentTarget {
+    kind_mismatch_error: CommentError,
+) CommentError!CommentTarget {
     std.debug.assert(kind_token.len > 0);
     std.debug.assert(std.unicode.utf8ValidateSlice(kind_token));
 
@@ -610,9 +610,9 @@ fn finalize_external_target(
 
 fn parse_non_text_note_kind(
     kind_token: []const u8,
-    invalid_kind_error: Nip22Error,
-    text_note_error: Nip22Error,
-) Nip22Error!u32 {
+    invalid_kind_error: CommentError,
+    text_note_error: CommentError,
+) CommentError!u32 {
     std.debug.assert(kind_token.len > 0);
     std.debug.assert(std.unicode.utf8ValidateSlice(kind_token));
 
@@ -624,9 +624,9 @@ fn parse_non_text_note_kind(
 fn require_matching_optional_author(
     expected: ?[32]u8,
     actual: [32]u8,
-    author_mismatch_error: Nip22Error,
-) Nip22Error!void {
-    std.debug.assert(@typeInfo(Nip22Error) == .error_set);
+    author_mismatch_error: CommentError,
+) CommentError!void {
+    std.debug.assert(@typeInfo(CommentError) == .error_set);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
     if (expected) |tag_pubkey| {
@@ -639,10 +639,10 @@ fn require_matching_optional_author(
 fn apply_coordinate_companion_event(
     coordinate: *CoordinateTarget,
     companion_event: ?ParsedEventTarget,
-    author_mismatch_error: Nip22Error,
-) Nip22Error!void {
+    author_mismatch_error: CommentError,
+) CommentError!void {
     std.debug.assert(@intFromPtr(coordinate) != 0);
-    std.debug.assert(@typeInfo(Nip22Error) == .error_set);
+    std.debug.assert(@typeInfo(CommentError) == .error_set);
 
     if (companion_event) |event_target| {
         coordinate.event_id = event_target.event_id;
@@ -659,12 +659,12 @@ fn select_author(
     tags: []const nip01_event.EventTag,
     uppercase_author: bool,
     required_pubkey: ?[32]u8,
-    missing_author_error: Nip22Error,
-    author_mismatch_error: Nip22Error,
+    missing_author_error: CommentError,
+    author_mismatch_error: CommentError,
     allow_ambiguous_single: bool,
-) Nip22Error!ParsedAuthor {
+) CommentError!ParsedAuthor {
     std.debug.assert(tags.len <= limits.tags_max);
-    std.debug.assert(@typeInfo(Nip22Error) == .error_set);
+    std.debug.assert(@typeInfo(CommentError) == .error_set);
 
     const tag_name = if (uppercase_author) "P" else "p";
     var first_author: ?ParsedAuthor = null;

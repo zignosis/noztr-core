@@ -1,9 +1,9 @@
 const std = @import("std");
 const nip01_event = @import("nip01_event.zig");
 
-pub const Nip40Error = error{InvalidExpirationTag};
+pub const ExpirationError = error{InvalidExpirationTag};
 
-pub fn event_expiration_unix_seconds(event: *const nip01_event.Event) Nip40Error!?u64 {
+pub fn event_expiration_unix_seconds(event: *const nip01_event.Event) ExpirationError!?u64 {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= std.math.maxInt(usize));
 
@@ -24,7 +24,7 @@ pub fn event_expiration_unix_seconds(event: *const nip01_event.Event) Nip40Error
 pub fn event_is_expired_at(
     event: *const nip01_event.Event,
     now_unix_seconds: u64,
-) Nip40Error!bool {
+) ExpirationError!bool {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(now_unix_seconds <= std.math.maxInt(u64));
 
@@ -36,7 +36,7 @@ pub fn event_is_expired_at(
     return now_unix_seconds > expiration.?;
 }
 
-fn parse_expiration_tag_value(tag: nip01_event.EventTag) Nip40Error!?u64 {
+fn parse_expiration_tag_value(tag: nip01_event.EventTag) ExpirationError!?u64 {
     std.debug.assert(tag.items.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(u64) == 8);
 

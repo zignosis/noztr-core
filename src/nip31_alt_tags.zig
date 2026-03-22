@@ -4,7 +4,7 @@ const nip01_event = @import("nip01_event.zig");
 
 pub const alt_tag_name: []const u8 = "alt";
 
-pub const Nip31Error = error{
+pub const AltTagError = error{
     DuplicateAltTag,
     InvalidAltTag,
 };
@@ -22,7 +22,7 @@ pub const BuiltTag = struct {
 };
 
 /// Extracts the strict `alt` fallback summary from an event, or `null` when absent.
-pub fn alt_extract(event: *const nip01_event.Event) Nip31Error!?[]const u8 {
+pub fn alt_extract(event: *const nip01_event.Event) AltTagError!?[]const u8 {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -36,7 +36,7 @@ pub fn alt_extract(event: *const nip01_event.Event) Nip31Error!?[]const u8 {
 }
 
 /// Builds a canonical `alt` tag for unknown or custom event kinds.
-pub fn alt_build_tag(output: *BuiltTag, summary: []const u8) Nip31Error!nip01_event.EventTag {
+pub fn alt_build_tag(output: *BuiltTag, summary: []const u8) AltTagError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(summary.len <= limits.tag_item_bytes_max);
 

@@ -3,7 +3,7 @@ const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
 const url_with_host = @import("internal/url_with_host.zig");
 
-pub const Nip23Error = error{
+pub const LongFormError = error{
     UnsupportedKind,
     MissingIdentifier,
     DuplicateIdentifierTag,
@@ -80,7 +80,7 @@ pub fn long_form_is_supported(event: *const nip01_event.Event) bool {
 pub fn long_form_extract(
     event: *const nip01_event.Event,
     out_hashtags: [][]const u8,
-) Nip23Error!LongFormMetadata {
+) LongFormError!LongFormMetadata {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_hashtags.len <= std.math.maxInt(u16));
 
@@ -106,7 +106,7 @@ pub fn long_form_extract(
 pub fn long_form_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip23Error!nip01_event.EventTag {
+) LongFormError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
 
@@ -120,7 +120,7 @@ pub fn long_form_build_identifier_tag(
 pub fn long_form_build_title_tag(
     output: *BuiltTag,
     title: []const u8,
-) Nip23Error!nip01_event.EventTag {
+) LongFormError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(title.len <= limits.tag_item_bytes_max);
 
@@ -135,7 +135,7 @@ pub fn long_form_build_image_tag(
     output: *BuiltTag,
     image_url: []const u8,
     image_dimensions: ?[]const u8,
-) Nip23Error!nip01_event.EventTag {
+) LongFormError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(image_url.len <= limits.tag_item_bytes_max);
 
@@ -153,7 +153,7 @@ pub fn long_form_build_image_tag(
 pub fn long_form_build_summary_tag(
     output: *BuiltTag,
     summary: []const u8,
-) Nip23Error!nip01_event.EventTag {
+) LongFormError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(summary.len <= limits.tag_item_bytes_max);
 
@@ -167,7 +167,7 @@ pub fn long_form_build_summary_tag(
 pub fn long_form_build_published_at_tag(
     output: *BuiltTag,
     published_at: u64,
-) Nip23Error!nip01_event.EventTag {
+) LongFormError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(published_at <= std.math.maxInt(u64));
 
@@ -183,7 +183,7 @@ pub fn long_form_build_published_at_tag(
 pub fn long_form_build_hashtag_tag(
     output: *BuiltTag,
     hashtag: []const u8,
-) Nip23Error!nip01_event.EventTag {
+) LongFormError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(hashtag.len <= limits.tag_item_bytes_max);
 
@@ -198,7 +198,7 @@ fn apply_tag(
     identifier: *?[]const u8,
     metadata: *LongFormMetadata,
     out_hashtags: [][]const u8,
-) Nip23Error!void {
+) LongFormError!void {
     std.debug.assert(@intFromPtr(identifier) != 0);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -215,7 +215,7 @@ fn apply_tag(
 fn apply_identifier_tag(
     tag: nip01_event.EventTag,
     identifier: *?[]const u8,
-) Nip23Error!void {
+) LongFormError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(identifier) != 0);
 
@@ -225,7 +225,7 @@ fn apply_identifier_tag(
     };
 }
 
-fn apply_title_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) Nip23Error!void {
+fn apply_title_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) LongFormError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -235,7 +235,7 @@ fn apply_title_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) Nip23
     };
 }
 
-fn apply_image_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) Nip23Error!void {
+fn apply_image_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) LongFormError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -245,7 +245,7 @@ fn apply_image_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) Nip23
     metadata.image_dimensions = parsed.dimensions;
 }
 
-fn apply_summary_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) Nip23Error!void {
+fn apply_summary_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) LongFormError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -258,7 +258,7 @@ fn apply_summary_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) Nip
 fn apply_published_at_tag(
     tag: nip01_event.EventTag,
     metadata: *LongFormMetadata,
-) Nip23Error!void {
+) LongFormError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -270,7 +270,7 @@ fn apply_hashtag_tag(
     tag: nip01_event.EventTag,
     metadata: *LongFormMetadata,
     out_hashtags: [][]const u8,
-) Nip23Error!void {
+) LongFormError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -288,7 +288,7 @@ fn parse_hashtag_tag(tag: nip01_event.EventTag) error{InvalidHashtagTag}![]const
     return parse_hashtag_value(tag.items[1]) catch return error.InvalidHashtagTag;
 }
 
-fn validate_content(content: []const u8) Nip23Error!void {
+fn validate_content(content: []const u8) LongFormError!void {
     std.debug.assert(content.len <= limits.content_bytes_max);
     std.debug.assert(limits.content_bytes_max > 0);
 
@@ -297,10 +297,10 @@ fn validate_content(content: []const u8) Nip23Error!void {
 
 fn parse_single_value(
     tag: nip01_event.EventTag,
-    invalid_error: Nip23Error,
-) Nip23Error![]const u8 {
+    invalid_error: LongFormError,
+) LongFormError![]const u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
-    std.debug.assert(@typeInfo(Nip23Error) == .error_set);
+    std.debug.assert(@typeInfo(LongFormError) == .error_set);
 
     if (tag.items.len != 2) return invalid_error;
     return parse_nonempty_utf8(tag.items[1]) catch invalid_error;
@@ -311,7 +311,7 @@ const ImageValue = struct {
     dimensions: ?[]const u8 = null,
 };
 
-fn parse_image_value(tag: nip01_event.EventTag) Nip23Error!ImageValue {
+fn parse_image_value(tag: nip01_event.EventTag) LongFormError!ImageValue {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.tag_items_max >= 3);
 
@@ -325,7 +325,7 @@ fn parse_image_value(tag: nip01_event.EventTag) Nip23Error!ImageValue {
     return value;
 }
 
-fn parse_published_at_value(tag: nip01_event.EventTag) Nip23Error!u64 {
+fn parse_published_at_value(tag: nip01_event.EventTag) LongFormError!u64 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@sizeOf(u64) == 8);
 

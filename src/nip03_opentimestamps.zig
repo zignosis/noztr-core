@@ -6,7 +6,7 @@ const url_with_host = @import("internal/url_with_host.zig");
 
 pub const opentimestamps_kind: u32 = 1040;
 
-pub const Nip03Error = error{
+pub const OpenTimestampsError = error{
     InvalidEventKind,
     InvalidEventTag,
     DuplicateEventTag,
@@ -77,7 +77,7 @@ const ots_bitcoin_tag = [_]u8{ 0x05, 0x88, 0x96, 0x0d, 0x73, 0xd7, 0x19, 0x01 };
 pub fn opentimestamps_extract(
     proof_output: []u8,
     event: *const nip01_event.Event,
-) Nip03Error!OpenTimestampsAttestation {
+) OpenTimestampsError!OpenTimestampsAttestation {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(proof_output.len <= limits.content_bytes_max);
 
@@ -98,7 +98,7 @@ pub fn opentimestamps_extract(
 pub fn opentimestamps_validate_target_reference(
     attestation: *const OpenTimestampsAttestation,
     target_event: *const nip01_event.Event,
-) Nip03Error!void {
+) OpenTimestampsError!void {
     std.debug.assert(@intFromPtr(attestation) != 0);
     std.debug.assert(@intFromPtr(target_event) != 0);
 
@@ -114,7 +114,7 @@ pub fn opentimestamps_validate_target_reference(
 pub fn opentimestamps_validate_local_proof(
     attestation: *const OpenTimestampsAttestation,
     proof: []const u8,
-) Nip03Error!void {
+) OpenTimestampsError!void {
     std.debug.assert(@intFromPtr(attestation) != 0);
     std.debug.assert(proof.len <= limits.content_bytes_max);
 
@@ -142,7 +142,7 @@ pub fn opentimestamps_build_event_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
     relay_url: ?[]const u8,
-) Nip03Error!nip01_event.EventTag {
+) OpenTimestampsError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
 
@@ -161,7 +161,7 @@ pub fn opentimestamps_build_event_tag(
 pub fn opentimestamps_build_kind_tag(
     output: *BuiltTag,
     target_kind: u32,
-) Nip03Error!nip01_event.EventTag {
+) OpenTimestampsError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(target_kind <= limits.kind_max);
 
@@ -175,7 +175,7 @@ pub fn opentimestamps_build_kind_tag(
 fn parse_required_tags(
     tags: []const nip01_event.EventTag,
     parsed: *OpenTimestampsAttestation,
-) Nip03Error!void {
+) OpenTimestampsError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(tags.len <= limits.tags_max);
 
@@ -202,7 +202,7 @@ fn parse_required_tags(
 fn parse_event_tag(
     tag: nip01_event.EventTag,
     parsed: *OpenTimestampsAttestation,
-) Nip03Error!void {
+) OpenTimestampsError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -220,7 +220,7 @@ fn parse_event_tag(
     }
 }
 
-fn parse_kind_tag(tag: nip01_event.EventTag) Nip03Error!u32 {
+fn parse_kind_tag(tag: nip01_event.EventTag) OpenTimestampsError!u32 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.kind_max == std.math.maxInt(u16));
 
@@ -232,7 +232,7 @@ fn parse_kind_tag(tag: nip01_event.EventTag) Nip03Error!u32 {
     return parsed;
 }
 
-fn decode_proof(output: []u8, proof_base64: []const u8) Nip03Error!u32 {
+fn decode_proof(output: []u8, proof_base64: []const u8) OpenTimestampsError!u32 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(proof_base64.len <= limits.content_bytes_max);
 
@@ -257,7 +257,7 @@ const ProofScanState = struct {
     saw_bitcoin: bool = false,
 };
 
-fn proof_expect_magic(cursor: *ProofCursor, magic: []const u8) Nip03Error!void {
+fn proof_expect_magic(cursor: *ProofCursor, magic: []const u8) OpenTimestampsError!void {
     std.debug.assert(@intFromPtr(cursor) != 0);
     std.debug.assert(magic.len <= limits.content_bytes_max);
 
@@ -266,7 +266,7 @@ fn proof_expect_magic(cursor: *ProofCursor, magic: []const u8) Nip03Error!void {
     }
 }
 
-fn proof_read_byte(cursor: *ProofCursor) Nip03Error!u8 {
+fn proof_read_byte(cursor: *ProofCursor) OpenTimestampsError!u8 {
     std.debug.assert(@intFromPtr(cursor) != 0);
     std.debug.assert(cursor.bytes.len <= limits.content_bytes_max);
 
@@ -276,7 +276,7 @@ fn proof_read_byte(cursor: *ProofCursor) Nip03Error!u8 {
     return value;
 }
 
-fn proof_read_bytes(cursor: *ProofCursor, len: usize) Nip03Error![]const u8 {
+fn proof_read_bytes(cursor: *ProofCursor, len: usize) OpenTimestampsError![]const u8 {
     std.debug.assert(@intFromPtr(cursor) != 0);
     std.debug.assert(len <= limits.content_bytes_max);
 
@@ -286,7 +286,7 @@ fn proof_read_bytes(cursor: *ProofCursor, len: usize) Nip03Error![]const u8 {
     return bytes;
 }
 
-fn proof_read_varuint(cursor: *ProofCursor) Nip03Error!u32 {
+fn proof_read_varuint(cursor: *ProofCursor) OpenTimestampsError!u32 {
     std.debug.assert(@intFromPtr(cursor) != 0);
     std.debug.assert(cursor.bytes.len <= limits.content_bytes_max);
 
@@ -305,7 +305,7 @@ fn proof_read_varbytes(
     cursor: *ProofCursor,
     max_len: u16,
     min_len: u16,
-) Nip03Error![]const u8 {
+) OpenTimestampsError![]const u8 {
     std.debug.assert(@intFromPtr(cursor) != 0);
     std.debug.assert(min_len <= max_len);
 
@@ -317,7 +317,7 @@ fn proof_read_varbytes(
 fn proof_parse_timestamp(
     cursor: *ProofCursor,
     scan: *ProofScanState,
-) Nip03Error!void {
+) OpenTimestampsError!void {
     std.debug.assert(@intFromPtr(cursor) != 0);
     std.debug.assert(@intFromPtr(scan) != 0);
 
@@ -338,7 +338,7 @@ fn proof_parse_timestamp_item(
     scan: *ProofScanState,
     tag: u8,
     depth: *u8,
-) Nip03Error!void {
+) OpenTimestampsError!void {
     std.debug.assert(@intFromPtr(cursor) != 0);
     std.debug.assert(@intFromPtr(depth) != 0);
 
@@ -348,7 +348,7 @@ fn proof_parse_timestamp_item(
     depth.* += 1;
 }
 
-fn proof_parse_operation(cursor: *ProofCursor, tag: u8) Nip03Error!void {
+fn proof_parse_operation(cursor: *ProofCursor, tag: u8) OpenTimestampsError!void {
     std.debug.assert(@intFromPtr(cursor) != 0);
     std.debug.assert(cursor.bytes.len <= limits.content_bytes_max);
 
@@ -364,7 +364,7 @@ fn proof_parse_operation(cursor: *ProofCursor, tag: u8) Nip03Error!void {
 fn proof_parse_attestation(
     cursor: *ProofCursor,
     scan: *ProofScanState,
-) Nip03Error!void {
+) OpenTimestampsError!void {
     std.debug.assert(@intFromPtr(cursor) != 0);
     std.debug.assert(@intFromPtr(scan) != 0);
 
@@ -402,7 +402,7 @@ fn parse_optional_url(text: []const u8) error{InvalidUrl}!?[]const u8 {
     return try parse_url(text);
 }
 
-fn validate_event_suffix_item(text: []const u8) Nip03Error!void {
+fn validate_event_suffix_item(text: []const u8) OpenTimestampsError!void {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 

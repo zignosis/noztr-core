@@ -9,7 +9,7 @@ pub const community_definition_kind: u32 = 34550;
 pub const community_post_kind: u32 = 1111;
 pub const community_approval_kind: u32 = 4550;
 
-pub const Nip72Error = error{
+pub const CommunityError = error{
     InvalidCommunityDefinitionKind,
     InvalidCommunityPostKind,
     InvalidCommunityApprovalKind,
@@ -142,7 +142,7 @@ pub fn community_extract(
     event: *const nip01_event.Event,
     out_moderators: []CommunityModerator,
     out_relays: []CommunityRelay,
-) Nip72Error!CommunityInfo {
+) CommunityError!CommunityInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_moderators.len <= limits.tags_max);
 
@@ -156,7 +156,7 @@ pub fn community_extract(
 }
 
 /// Extracts community linkage from a `kind:1111` community post.
-pub fn community_post_extract(event: *const nip01_event.Event) Nip72Error!CommunityPostInfo {
+pub fn community_post_extract(event: *const nip01_event.Event) CommunityError!CommunityPostInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -232,7 +232,7 @@ pub fn community_post_extract(event: *const nip01_event.Event) Nip72Error!Commun
 pub fn community_approval_extract(
     event: *const nip01_event.Event,
     out_communities: []CommunityCoordinate,
-) Nip72Error!CommunityApprovalInfo {
+) CommunityError!CommunityApprovalInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_communities.len <= limits.tags_max);
 
@@ -263,7 +263,7 @@ pub fn community_approval_extract(
 pub fn community_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -276,7 +276,7 @@ pub fn community_build_identifier_tag(
 pub fn community_build_name_tag(
     output: *BuiltTag,
     name: []const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -289,7 +289,7 @@ pub fn community_build_name_tag(
 pub fn community_build_description_tag(
     output: *BuiltTag,
     description: []const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -303,7 +303,7 @@ pub fn community_build_image_tag(
     output: *BuiltTag,
     image_url: []const u8,
     dimensions: ?Dimensions,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -327,7 +327,7 @@ pub fn community_build_moderator_tag(
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
     role: ?[]const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -352,7 +352,7 @@ pub fn community_build_relay_tag(
     output: *BuiltTag,
     relay_url: []const u8,
     marker: ?[]const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -370,7 +370,7 @@ pub fn community_post_build_uppercase_community_tag(
     output: *BuiltTag,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     return build_case_coordinate_tag(output, "A", coordinate_text, relay_hint, error.InvalidCommunityTag);
 }
 
@@ -378,7 +378,7 @@ pub fn community_post_build_lowercase_community_tag(
     output: *BuiltTag,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     return build_case_coordinate_tag(output, "a", coordinate_text, relay_hint, error.InvalidParentTag);
 }
 
@@ -386,7 +386,7 @@ pub fn community_post_build_lowercase_parent_event_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -405,7 +405,7 @@ pub fn community_post_build_uppercase_author_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     return build_case_pubkey_tag(output, "P", pubkey_hex, relay_hint, error.InvalidCommunityAuthorTag);
 }
 
@@ -413,21 +413,21 @@ pub fn community_post_build_lowercase_author_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     return build_case_pubkey_tag(output, "p", pubkey_hex, relay_hint, error.InvalidParentAuthorTag);
 }
 
 pub fn community_post_build_uppercase_kind_tag(
     output: *BuiltTag,
     kind: u32,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     return build_case_kind_tag(output, "K", kind, error.InvalidCommunityKindTag);
 }
 
 pub fn community_post_build_lowercase_kind_tag(
     output: *BuiltTag,
     kind: u32,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     return build_case_kind_tag(output, "k", kind, error.InvalidParentKindTag);
 }
 
@@ -435,7 +435,7 @@ pub fn community_approval_build_community_tag(
     output: *BuiltTag,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     return build_case_coordinate_tag(output, "a", coordinate_text, relay_hint, error.InvalidCommunityTag);
 }
 
@@ -443,7 +443,7 @@ pub fn community_approval_build_post_coordinate_tag(
     output: *BuiltTag,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     return build_case_coordinate_tag(output, "a", coordinate_text, relay_hint, error.InvalidApprovedPostCoordinateTag);
 }
 
@@ -451,7 +451,7 @@ pub fn community_approval_build_post_event_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -470,14 +470,14 @@ pub fn community_approval_build_post_author_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     return build_case_pubkey_tag(output, "p", pubkey_hex, relay_hint, error.InvalidCommunityAuthorTag);
 }
 
 pub fn community_approval_build_post_kind_tag(
     output: *BuiltTag,
     kind: u32,
-) Nip72Error!nip01_event.EventTag {
+) CommunityError!nip01_event.EventTag {
     return build_case_kind_tag(output, "k", kind, error.InvalidApprovedPostKindTag);
 }
 
@@ -492,7 +492,7 @@ fn apply_community_tag(
     info: *CommunityInfo,
     out_moderators: []CommunityModerator,
     out_relays: []CommunityRelay,
-) Nip72Error!void {
+) CommunityError!void {
     std.debug.assert(@intFromPtr(identifier) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -505,7 +505,7 @@ fn apply_community_tag(
     if (std.mem.eql(u8, tag.items[0], "relay")) return append_relay(tag, info, out_relays);
 }
 
-fn apply_identifier_tag(tag: nip01_event.EventTag, field: *?[]const u8) Nip72Error!void {
+fn apply_identifier_tag(tag: nip01_event.EventTag, field: *?[]const u8) CommunityError!void {
     std.debug.assert(@intFromPtr(field) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -514,7 +514,7 @@ fn apply_identifier_tag(tag: nip01_event.EventTag, field: *?[]const u8) Nip72Err
     field.* = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidIdentifierTag;
 }
 
-fn apply_name_tag(tag: nip01_event.EventTag, info: *CommunityInfo) Nip72Error!void {
+fn apply_name_tag(tag: nip01_event.EventTag, info: *CommunityInfo) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -523,7 +523,7 @@ fn apply_name_tag(tag: nip01_event.EventTag, info: *CommunityInfo) Nip72Error!vo
     info.name = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidNameTag;
 }
 
-fn apply_description_tag(tag: nip01_event.EventTag, info: *CommunityInfo) Nip72Error!void {
+fn apply_description_tag(tag: nip01_event.EventTag, info: *CommunityInfo) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -532,7 +532,7 @@ fn apply_description_tag(tag: nip01_event.EventTag, info: *CommunityInfo) Nip72E
     info.description = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidDescriptionTag;
 }
 
-fn apply_image_tag(tag: nip01_event.EventTag, info: *CommunityInfo) Nip72Error!void {
+fn apply_image_tag(tag: nip01_event.EventTag, info: *CommunityInfo) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -548,7 +548,7 @@ fn append_moderator(
     tag: nip01_event.EventTag,
     info: *CommunityInfo,
     out_moderators: []CommunityModerator,
-) Nip72Error!void {
+) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.moderator_count <= out_moderators.len);
 
@@ -563,7 +563,7 @@ fn append_relay(
     tag: nip01_event.EventTag,
     info: *CommunityInfo,
     out_relays: []CommunityRelay,
-) Nip72Error!void {
+) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.relay_count <= out_relays.len);
 
@@ -581,7 +581,7 @@ fn apply_post_tag(
     lower_event: *?EventReference,
     lower_author: *?TagPubkey,
     lower_kind: *?u32,
-) Nip72Error!void {
+) CommunityError!void {
     std.debug.assert(@intFromPtr(upper) != 0);
     std.debug.assert(@intFromPtr(lower_kind) != 0);
 
@@ -601,7 +601,7 @@ fn apply_approval_tag(
     out_communities: []CommunityCoordinate,
     author: *?TagPubkey,
     saw_kind: *bool,
-) Nip72Error!void {
+) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(author) != 0);
 
@@ -630,7 +630,7 @@ fn apply_approval_a_tag(
     tag: nip01_event.EventTag,
     info: *CommunityApprovalInfo,
     out_communities: []CommunityCoordinate,
-) Nip72Error!void {
+) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.community_count <= out_communities.len);
 
@@ -651,7 +651,7 @@ fn ensure_top_level_match(
     community_author: *const TagPubkey,
     parent_author: TagPubkey,
     parent_kind: u32,
-) Nip72Error!void {
+) CommunityError!void {
     std.debug.assert(@intFromPtr(community) != 0);
     std.debug.assert(@intFromPtr(parent) != 0);
 
@@ -667,9 +667,9 @@ fn ensure_top_level_match(
 fn apply_single_coordinate_tag(
     tag: nip01_event.EventTag,
     field: *?AddressableTarget,
-    duplicate_error: Nip72Error,
-    invalid_error: Nip72Error,
-) Nip72Error!void {
+    duplicate_error: CommunityError,
+    invalid_error: CommunityError,
+) CommunityError!void {
     std.debug.assert(@intFromPtr(field) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -680,9 +680,9 @@ fn apply_single_coordinate_tag(
 fn apply_single_event_tag(
     tag: nip01_event.EventTag,
     field: *?EventReference,
-    duplicate_error: Nip72Error,
-    invalid_error: Nip72Error,
-) Nip72Error!void {
+    duplicate_error: CommunityError,
+    invalid_error: CommunityError,
+) CommunityError!void {
     std.debug.assert(@intFromPtr(field) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -693,9 +693,9 @@ fn apply_single_event_tag(
 fn apply_single_pubkey_tag(
     tag: nip01_event.EventTag,
     field: *?TagPubkey,
-    duplicate_error: Nip72Error,
-    invalid_error: Nip72Error,
-) Nip72Error!void {
+    duplicate_error: CommunityError,
+    invalid_error: CommunityError,
+) CommunityError!void {
     std.debug.assert(@intFromPtr(field) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -703,7 +703,7 @@ fn apply_single_pubkey_tag(
     field.* = try parse_pubkey_tag(tag, invalid_error);
 }
 
-fn apply_upper_kind_tag(tag: nip01_event.EventTag, saw_upper_kind: *bool) Nip72Error!void {
+fn apply_upper_kind_tag(tag: nip01_event.EventTag, saw_upper_kind: *bool) CommunityError!void {
     std.debug.assert(@intFromPtr(saw_upper_kind) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -714,7 +714,7 @@ fn apply_upper_kind_tag(tag: nip01_event.EventTag, saw_upper_kind: *bool) Nip72E
     saw_upper_kind.* = true;
 }
 
-fn apply_lower_kind_tag(tag: nip01_event.EventTag, field: *?u32) Nip72Error!void {
+fn apply_lower_kind_tag(tag: nip01_event.EventTag, field: *?u32) CommunityError!void {
     std.debug.assert(@intFromPtr(field) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -726,7 +726,7 @@ fn apply_approval_kind_tag(
     tag: nip01_event.EventTag,
     info: *CommunityApprovalInfo,
     saw_kind: *bool,
-) Nip72Error!void {
+) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_kind) != 0);
 
@@ -740,8 +740,8 @@ fn build_case_coordinate_tag(
     name: []const u8,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
-    invalid_error: Nip72Error,
-) Nip72Error!nip01_event.EventTag {
+    invalid_error: CommunityError,
+) CommunityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -761,8 +761,8 @@ fn build_case_pubkey_tag(
     name: []const u8,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
-    invalid_error: Nip72Error,
-) Nip72Error!nip01_event.EventTag {
+    invalid_error: CommunityError,
+) CommunityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -781,8 +781,8 @@ fn build_case_kind_tag(
     output: *BuiltTag,
     name: []const u8,
     kind: u32,
-    invalid_error: Nip72Error,
-) Nip72Error!nip01_event.EventTag {
+    invalid_error: CommunityError,
+) CommunityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(kind <= limits.kind_max);
 
@@ -795,7 +795,7 @@ fn build_case_kind_tag(
     return output.as_event_tag();
 }
 
-fn parse_moderator_tag(tag: nip01_event.EventTag) Nip72Error!CommunityModerator {
+fn parse_moderator_tag(tag: nip01_event.EventTag) CommunityError!CommunityModerator {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 
@@ -811,7 +811,7 @@ fn parse_moderator_tag(tag: nip01_event.EventTag) Nip72Error!CommunityModerator 
     };
 }
 
-fn parse_relay_tag(tag: nip01_event.EventTag) Nip72Error!CommunityRelay {
+fn parse_relay_tag(tag: nip01_event.EventTag) CommunityError!CommunityRelay {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 
@@ -824,7 +824,7 @@ fn parse_relay_tag(tag: nip01_event.EventTag) Nip72Error!CommunityRelay {
     };
 }
 
-fn parse_coordinate_tag(tag: nip01_event.EventTag, invalid_error: Nip72Error) Nip72Error!AddressableTarget {
+fn parse_coordinate_tag(tag: nip01_event.EventTag, invalid_error: CommunityError) CommunityError!AddressableTarget {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 
@@ -838,7 +838,7 @@ fn parse_coordinate_tag(tag: nip01_event.EventTag, invalid_error: Nip72Error) Ni
     };
 }
 
-fn parse_event_tag(tag: nip01_event.EventTag, invalid_error: Nip72Error) Nip72Error!EventReference {
+fn parse_event_tag(tag: nip01_event.EventTag, invalid_error: CommunityError) CommunityError!EventReference {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 
@@ -849,7 +849,7 @@ fn parse_event_tag(tag: nip01_event.EventTag, invalid_error: Nip72Error) Nip72Er
     };
 }
 
-fn parse_pubkey_tag(tag: nip01_event.EventTag, invalid_error: Nip72Error) Nip72Error!TagPubkey {
+fn parse_pubkey_tag(tag: nip01_event.EventTag, invalid_error: CommunityError) CommunityError!TagPubkey {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 
@@ -860,7 +860,7 @@ fn parse_pubkey_tag(tag: nip01_event.EventTag, invalid_error: Nip72Error) Nip72E
     };
 }
 
-fn parse_kind_tag(tag: nip01_event.EventTag, invalid_error: Nip72Error) Nip72Error!u32 {
+fn parse_kind_tag(tag: nip01_event.EventTag, invalid_error: CommunityError) CommunityError!u32 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 

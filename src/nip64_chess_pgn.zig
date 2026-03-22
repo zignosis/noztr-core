@@ -4,7 +4,7 @@ const nip01_event = @import("nip01_event.zig");
 
 pub const chess_pgn_kind: u32 = 64;
 
-pub const Nip64Error = error{
+pub const ChessPgnError = error{
     UnsupportedKind,
     DuplicateAltTag,
     InvalidAltTag,
@@ -66,7 +66,7 @@ pub fn chess_pgn_is_supported(event: *const nip01_event.Event) bool {
 }
 
 /// Extracts bounded NIP-64 metadata and validates the PGN database content.
-pub fn chess_pgn_extract(event: *const nip01_event.Event) Nip64Error!ChessPgnInfo {
+pub fn chess_pgn_extract(event: *const nip01_event.Event) ChessPgnError!ChessPgnInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -84,7 +84,7 @@ pub fn chess_pgn_extract(event: *const nip01_event.Event) Nip64Error!ChessPgnInf
 }
 
 /// Validates the provided PGN database content and returns the bounded game count.
-pub fn chess_pgn_validate(content: []const u8) Nip64Error!u16 {
+pub fn chess_pgn_validate(content: []const u8) ChessPgnError!u16 {
     try validate_content_text(content);
 
     var scanner = Scanner{ .content = content };
@@ -104,7 +104,7 @@ pub fn chess_pgn_validate(content: []const u8) Nip64Error!u16 {
 pub fn chess_pgn_build_alt_tag(
     output: *BuiltTag,
     alt: []const u8,
-) Nip64Error!nip01_event.EventTag {
+) ChessPgnError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 2);
 
@@ -114,7 +114,7 @@ pub fn chess_pgn_build_alt_tag(
     return output.as_event_tag();
 }
 
-fn apply_tag(tag: nip01_event.EventTag, info: *ChessPgnInfo) Nip64Error!void {
+fn apply_tag(tag: nip01_event.EventTag, info: *ChessPgnInfo) ChessPgnError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -132,7 +132,7 @@ fn parse_alt_tag(tag: nip01_event.EventTag) error{InvalidValue}![]const u8 {
     return parse_nonempty_utf8(tag.items[1]) catch return error.InvalidValue;
 }
 
-fn parse_game(scanner: *Scanner) Nip64Error!void {
+fn parse_game(scanner: *Scanner) ChessPgnError!void {
     std.debug.assert(@intFromPtr(scanner) != 0);
     std.debug.assert(scanner.content.len <= limits.content_bytes_max);
 
@@ -144,7 +144,7 @@ fn parse_game(scanner: *Scanner) Nip64Error!void {
     try parse_movetext(scanner);
 }
 
-fn parse_tag_pair(scanner: *Scanner) Nip64Error!void {
+fn parse_tag_pair(scanner: *Scanner) ChessPgnError!void {
     std.debug.assert(@intFromPtr(scanner) != 0);
     std.debug.assert(scanner.peek().? == '[');
 
@@ -161,7 +161,7 @@ fn parse_tag_pair(scanner: *Scanner) Nip64Error!void {
     }
 }
 
-fn parse_movetext(scanner: *Scanner) Nip64Error!void {
+fn parse_movetext(scanner: *Scanner) ChessPgnError!void {
     std.debug.assert(@intFromPtr(scanner) != 0);
     std.debug.assert(scanner.content.len <= limits.content_bytes_max);
 
@@ -198,7 +198,7 @@ fn parse_movetext(scanner: *Scanner) Nip64Error!void {
     return error.InvalidPgn;
 }
 
-fn parse_symbol(scanner: *Scanner) Nip64Error!void {
+fn parse_symbol(scanner: *Scanner) ChessPgnError!void {
     std.debug.assert(@intFromPtr(scanner) != 0);
     std.debug.assert(scanner.content.len <= limits.content_bytes_max);
 
@@ -211,7 +211,7 @@ fn parse_symbol(scanner: *Scanner) Nip64Error!void {
     }
 }
 
-fn parse_quoted_value(scanner: *Scanner) Nip64Error!void {
+fn parse_quoted_value(scanner: *Scanner) ChessPgnError!void {
     std.debug.assert(@intFromPtr(scanner) != 0);
     std.debug.assert(scanner.content.len <= limits.content_bytes_max);
 
@@ -231,7 +231,7 @@ fn parse_quoted_value(scanner: *Scanner) Nip64Error!void {
     return error.InvalidPgn;
 }
 
-fn parse_movetext_token(scanner: *Scanner) Nip64Error![]const u8 {
+fn parse_movetext_token(scanner: *Scanner) ChessPgnError![]const u8 {
     std.debug.assert(@intFromPtr(scanner) != 0);
     std.debug.assert(scanner.content.len <= limits.content_bytes_max);
 
@@ -244,7 +244,7 @@ fn parse_movetext_token(scanner: *Scanner) Nip64Error![]const u8 {
     return scanner.content[start..scanner.index];
 }
 
-fn consume_brace_comment(scanner: *Scanner) Nip64Error!void {
+fn consume_brace_comment(scanner: *Scanner) ChessPgnError!void {
     std.debug.assert(@intFromPtr(scanner) != 0);
     std.debug.assert(scanner.peek().? == '{');
 
@@ -266,7 +266,7 @@ fn consume_line_comment(scanner: *Scanner) void {
     }
 }
 
-fn require_horizontal_whitespace(scanner: *Scanner) Nip64Error!void {
+fn require_horizontal_whitespace(scanner: *Scanner) ChessPgnError!void {
     std.debug.assert(@intFromPtr(scanner) != 0);
     std.debug.assert(scanner.content.len <= limits.content_bytes_max);
 
@@ -295,7 +295,7 @@ fn skip_ascii_whitespace(scanner: *Scanner) void {
     }
 }
 
-fn validate_content_text(content: []const u8) Nip64Error!void {
+fn validate_content_text(content: []const u8) ChessPgnError!void {
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
     std.debug.assert(limits.content_bytes_max > 0);
 

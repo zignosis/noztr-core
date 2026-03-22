@@ -7,7 +7,7 @@ pub const repository_announcement_kind: u32 = 30617;
 pub const repository_state_kind: u32 = 30618;
 pub const user_grasp_list_kind: u32 = 10317;
 
-pub const Nip34Error = error{
+pub const GitError = error{
     InvalidRepositoryAnnouncementKind,
     InvalidRepositoryStateKind,
     InvalidUserGraspListKind,
@@ -81,7 +81,7 @@ pub fn repository_announcement_extract(
     out_relays: [][]const u8,
     out_maintainers: [][32]u8,
     out_topics: [][]const u8,
-) Nip34Error!RepositoryAnnouncementInfo {
+) GitError!RepositoryAnnouncementInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_web.len <= limits.tags_max);
 
@@ -100,7 +100,7 @@ pub fn repository_announcement_extract(
 pub fn repository_state_extract(
     event: *const nip01_event.Event,
     out_refs: []RepositoryStateRef,
-) Nip34Error!RepositoryStateInfo {
+) GitError!RepositoryStateInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_refs.len <= limits.tags_max);
 
@@ -119,7 +119,7 @@ pub fn repository_state_extract(
 pub fn user_grasp_list_extract(
     event: *const nip01_event.Event,
     out_servers: [][]const u8,
-) Nip34Error!UserGraspListInfo {
+) GitError!UserGraspListInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_servers.len <= limits.tags_max);
 
@@ -141,7 +141,7 @@ pub fn user_grasp_list_extract(
 pub fn repository_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip34Error!nip01_event.EventTag {
+) GitError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
 
@@ -155,7 +155,7 @@ pub fn repository_build_identifier_tag(
 pub fn repository_build_name_tag(
     output: *BuiltTag,
     name: []const u8,
-) Nip34Error!nip01_event.EventTag {
+) GitError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(name.len <= limits.tag_item_bytes_max);
 
@@ -169,7 +169,7 @@ pub fn repository_build_name_tag(
 pub fn repository_build_description_tag(
     output: *BuiltTag,
     description: []const u8,
-) Nip34Error!nip01_event.EventTag {
+) GitError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(description.len <= limits.tag_item_bytes_max);
 
@@ -184,7 +184,7 @@ pub fn repository_build_url_list_tag(
     output: *BuiltTag,
     name: []const u8,
     values: []const []const u8,
-) Nip34Error!nip01_event.EventTag {
+) GitError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(values.len + 1 <= limits.tag_items_max);
 
@@ -203,7 +203,7 @@ pub fn repository_build_url_list_tag(
 pub fn repository_build_earliest_unique_commit_tag(
     output: *BuiltTag,
     commit_id: []const u8,
-) Nip34Error!nip01_event.EventTag {
+) GitError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(commit_id.len <= limits.tag_item_bytes_max);
 
@@ -218,7 +218,7 @@ pub fn repository_build_earliest_unique_commit_tag(
 pub fn repository_build_maintainers_tag(
     output: *BuiltTag,
     pubkeys: []const []const u8,
-) Nip34Error!nip01_event.EventTag {
+) GitError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(pubkeys.len + 1 <= limits.tag_items_max);
 
@@ -237,7 +237,7 @@ pub fn repository_build_maintainers_tag(
 pub fn repository_build_topic_tag(
     output: *BuiltTag,
     topic: []const u8,
-) Nip34Error!nip01_event.EventTag {
+) GitError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(topic.len <= limits.tag_item_bytes_max);
 
@@ -252,7 +252,7 @@ pub fn repository_build_ref_tag(
     output: *BuiltTag,
     ref_name: []const u8,
     commit_id: []const u8,
-) Nip34Error!nip01_event.EventTag {
+) GitError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(ref_name.len <= limits.tag_item_bytes_max);
 
@@ -266,7 +266,7 @@ pub fn repository_build_ref_tag(
 pub fn repository_build_head_tag(
     output: *BuiltTag,
     ref_name: []const u8,
-) Nip34Error!nip01_event.EventTag {
+) GitError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(ref_name.len <= limits.tag_item_bytes_max - 5);
 
@@ -282,7 +282,7 @@ pub fn repository_build_head_tag(
 pub fn repository_build_grasp_servers_tag(
     output: *BuiltTag,
     urls: []const []const u8,
-) Nip34Error!nip01_event.EventTag {
+) GitError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(urls.len + 1 <= limits.tag_items_max);
 
@@ -305,7 +305,7 @@ fn apply_announcement_tag(
     out_relays: [][]const u8,
     out_maintainers: [][32]u8,
     out_topics: [][]const u8,
-) Nip34Error!void {
+) GitError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -327,7 +327,7 @@ fn apply_state_tag(
     identifier: *?[]const u8,
     info: *RepositoryStateInfo,
     out_refs: []RepositoryStateRef,
-) Nip34Error!void {
+) GitError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -344,7 +344,7 @@ fn apply_state_tag(
     info.ref_count += 1;
 }
 
-fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip34Error!void {
+fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) GitError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(identifier) != 0);
 
@@ -356,9 +356,9 @@ fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip
 fn apply_text_tag(
     tag: nip01_event.EventTag,
     field: *?[]const u8,
-    duplicate_error: Nip34Error,
-    invalid_error: Nip34Error,
-) Nip34Error!void {
+    duplicate_error: GitError,
+    invalid_error: GitError,
+) GitError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -371,8 +371,8 @@ fn append_url_values(
     tag: nip01_event.EventTag,
     count: *u16,
     out: [][]const u8,
-    invalid_error: Nip34Error,
-) Nip34Error!void {
+    invalid_error: GitError,
+) GitError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(count) != 0);
 
@@ -388,7 +388,7 @@ fn append_maintainers(
     tag: nip01_event.EventTag,
     info: *RepositoryAnnouncementInfo,
     out: [][32]u8,
-) Nip34Error!void {
+) GitError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out.len <= limits.tags_max);
 
@@ -404,7 +404,7 @@ fn append_topic(
     tag: nip01_event.EventTag,
     info: *RepositoryAnnouncementInfo,
     out: [][]const u8,
-) Nip34Error!void {
+) GitError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out.len <= limits.tags_max);
 
@@ -416,7 +416,7 @@ fn append_topic(
     info.topic_count += 1;
 }
 
-fn apply_euc_tag(tag: nip01_event.EventTag, info: *RepositoryAnnouncementInfo) Nip34Error!void {
+fn apply_euc_tag(tag: nip01_event.EventTag, info: *RepositoryAnnouncementInfo) GitError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -428,7 +428,7 @@ fn apply_euc_tag(tag: nip01_event.EventTag, info: *RepositoryAnnouncementInfo) N
     };
 }
 
-fn apply_head_tag(tag: nip01_event.EventTag, info: *RepositoryStateInfo) Nip34Error!void {
+fn apply_head_tag(tag: nip01_event.EventTag, info: *RepositoryStateInfo) GitError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -447,7 +447,7 @@ fn is_supported_url_list_name(name: []const u8) bool {
         std.mem.eql(u8, name, "relays");
 }
 
-fn map_url_list_error(name: []const u8) Nip34Error {
+fn map_url_list_error(name: []const u8) GitError {
     std.debug.assert(is_supported_url_list_name(name));
     std.debug.assert(name.len <= limits.tag_item_bytes_max);
 

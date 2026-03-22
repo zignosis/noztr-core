@@ -11,7 +11,7 @@ const wrap_event_kind: u32 = 1059;
 const seal_event_kind: u32 = 13;
 
 /// Typed failures for staged NIP-59 unwrap boundaries.
-pub const Nip59Error = error{
+pub const WrapError = error{
     InvalidWrapEvent,
     InvalidSealEvent,
     InvalidRumorEvent,
@@ -23,7 +23,7 @@ pub const Nip59Error = error{
     OutOfMemory,
 };
 
-pub const Nip59BuildError = nip44.Nip44Error || nostr_keys.NostrKeysError || error{
+pub const WrapBuildError = nip44.ConversationEncryptionError || nostr_keys.NostrKeysError || error{
     InvalidRumorEvent,
     InvalidSealEvent,
     InvalidWrapEvent,
@@ -49,7 +49,7 @@ pub const BuiltWrapEvent = struct {
 };
 
 /// Validate kind and cryptographic structure for an outer NIP-59 wrap event.
-pub fn nip59_validate_wrap_structure(wrap_event: *const Event) Nip59Error!void {
+pub fn nip59_validate_wrap_structure(wrap_event: *const Event) WrapError!void {
     std.debug.assert(@intFromPtr(wrap_event) != 0);
     std.debug.assert(wrap_event.kind <= std.math.maxInt(u32));
 
@@ -78,7 +78,7 @@ pub fn nip59_build_outbound_for_recipient(
     wrap_created_at: u64,
     seal_nonce: *const [32]u8,
     wrap_nonce: *const [32]u8,
-) Nip59BuildError!BuiltOutboundTranscript {
+) WrapBuildError!BuiltOutboundTranscript {
     std.debug.assert(@intFromPtr(output_seal) != 0);
     std.debug.assert(@intFromPtr(output_wrap) != 0);
 
@@ -126,7 +126,7 @@ pub fn nip59_unwrap(
     recipient_private_key_material: *const [32]u8,
     wrap_event: *const Event,
     scratch: std.mem.Allocator,
-) Nip59Error!void {
+) WrapError!void {
     std.debug.assert(@intFromPtr(output_rumor) != 0);
     std.debug.assert(@intFromPtr(recipient_private_key_material) != 0);
 
@@ -184,7 +184,7 @@ pub fn nip59_unwrap(
 fn validate_unsigned_rumor_event(
     rumor_event: *const Event,
     sender_secret: *const [32]u8,
-) Nip59BuildError!void {
+) WrapBuildError!void {
     std.debug.assert(@intFromPtr(rumor_event) != 0);
     std.debug.assert(@intFromPtr(sender_secret) != 0);
     std.debug.assert(rumor_event.kind <= std.math.maxInt(u32));
@@ -199,7 +199,7 @@ fn validate_unsigned_rumor_event(
     }
 }
 
-fn serialize_rumor_json(output: []u8, rumor_event: *const Event) Nip59BuildError![]const u8 {
+fn serialize_rumor_json(output: []u8, rumor_event: *const Event) WrapBuildError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(rumor_event) != 0);
 
@@ -217,7 +217,7 @@ fn encrypt_payload_for_recipient(
     recipient_pubkey: *const [32]u8,
     plaintext: []const u8,
     nonce: *const [32]u8,
-) Nip59BuildError![]const u8 {
+) WrapBuildError![]const u8 {
     std.debug.assert(@intFromPtr(sender_secret) != 0);
     std.debug.assert(@intFromPtr(recipient_pubkey) != 0);
 
@@ -232,7 +232,7 @@ fn build_seal_event(
     sender_secret: *const [32]u8,
     created_at: u64,
     payload: []const u8,
-) Nip59BuildError!void {
+) WrapBuildError!void {
     std.debug.assert(@intFromPtr(output_seal) != 0);
     std.debug.assert(@intFromPtr(sender_secret) != 0);
 
@@ -260,7 +260,7 @@ fn build_wrap_event(
     recipient_pubkey: *const [32]u8,
     created_at: u64,
     payload: []const u8,
-) Nip59BuildError!void {
+) WrapBuildError!void {
     std.debug.assert(@intFromPtr(output_wrap) != 0);
     std.debug.assert(@intFromPtr(wrap_secret) != 0);
 
@@ -298,7 +298,7 @@ fn init_wrap_tags(
     return output_wrap.tags_storage[0..1];
 }
 
-fn validate_seal_event(seal_event: *const Event) Nip59Error!void {
+fn validate_seal_event(seal_event: *const Event) WrapError!void {
     std.debug.assert(@intFromPtr(seal_event) != 0);
     std.debug.assert(seal_event.kind <= std.math.maxInt(u32));
 
@@ -314,7 +314,7 @@ fn validate_seal_event(seal_event: *const Event) Nip59Error!void {
     };
 }
 
-fn parse_unsigned_rumor_event(input: []const u8, scratch: std.mem.Allocator) Nip59Error!Event {
+fn parse_unsigned_rumor_event(input: []const u8, scratch: std.mem.Allocator) WrapError!Event {
     std.debug.assert(input.len <= limits.event_json_max + 1);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -358,7 +358,7 @@ const RumorFieldState = struct {
 fn parse_unsigned_rumor_object(
     object: std.json.ObjectMap,
     scratch: std.mem.Allocator,
-) Nip59Error!Event {
+) WrapError!Event {
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -410,7 +410,7 @@ fn parse_unsigned_rumor_object(
     return parsed;
 }
 
-fn validate_rumor_id_matches(rumor_event: *const Event) Nip59Error!void {
+fn validate_rumor_id_matches(rumor_event: *const Event) WrapError!void {
     std.debug.assert(@intFromPtr(rumor_event) != 0);
     std.debug.assert(rumor_event.kind <= std.math.maxInt(u32));
 
@@ -428,7 +428,7 @@ fn parse_unsigned_rumor_field(
     key: []const u8,
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip59Error!void {
+) WrapError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -473,7 +473,7 @@ fn parse_unsigned_rumor_field(
     }
 }
 
-fn parse_rumor_hex_32(value: std.json.Value) Nip59Error![32]u8 {
+fn parse_rumor_hex_32(value: std.json.Value) WrapError![32]u8 {
     std.debug.assert(limits.id_hex_length == 64);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -487,7 +487,7 @@ fn parse_rumor_hex_32(value: std.json.Value) Nip59Error![32]u8 {
     return output;
 }
 
-fn parse_rumor_json_u32(value: std.json.Value) Nip59Error!u32 {
+fn parse_rumor_json_u32(value: std.json.Value) WrapError!u32 {
     std.debug.assert(@sizeOf(u32) == 4);
     std.debug.assert(@sizeOf(std.json.Value) > 0);
 
@@ -500,7 +500,7 @@ fn parse_rumor_json_u32(value: std.json.Value) Nip59Error!u32 {
     return std.math.cast(u32, value.integer) orelse error.InvalidRumorEvent;
 }
 
-fn parse_rumor_json_u64(value: std.json.Value) Nip59Error!u64 {
+fn parse_rumor_json_u64(value: std.json.Value) WrapError!u64 {
     std.debug.assert(@sizeOf(u64) == 8);
     std.debug.assert(@sizeOf(std.json.Value) > 0);
 
@@ -516,7 +516,7 @@ fn parse_rumor_json_u64(value: std.json.Value) Nip59Error!u64 {
 fn parse_rumor_content_owned(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip59Error![]const u8 {
+) WrapError![]const u8 {
     std.debug.assert(limits.content_bytes_max > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -542,7 +542,7 @@ fn parse_rumor_content_owned(
 fn parse_rumor_tags(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip59Error![]const nip01_event.EventTag {
+) WrapError![]const nip01_event.EventTag {
     std.debug.assert(limits.tags_max > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -587,7 +587,7 @@ fn parse_rumor_tags(
 fn parse_rumor_tag_item_owned(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip59Error![]const u8 {
+) WrapError![]const u8 {
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -601,7 +601,7 @@ fn parse_rumor_tag_item_owned(
     return owned;
 }
 
-fn parse_rumor_tag_item(value: std.json.Value) Nip59Error![]const u8 {
+fn parse_rumor_tag_item(value: std.json.Value) WrapError![]const u8 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
@@ -617,7 +617,7 @@ fn parse_rumor_tag_item(value: std.json.Value) Nip59Error![]const u8 {
     return value.string;
 }
 
-fn validate_lower_hex(source: []const u8, expected_length: u8) Nip59Error!void {
+fn validate_lower_hex(source: []const u8, expected_length: u8) WrapError!void {
     std.debug.assert(expected_length > 0);
     std.debug.assert(expected_length <= 128);
 
@@ -646,7 +646,7 @@ fn wipe_bytes(bytes: []u8) void {
     std.crypto.secureZero(u8, bytes);
 }
 
-fn map_seal_parse_error(parse_error: nip01_event.EventParseError) Nip59Error {
+fn map_seal_parse_error(parse_error: nip01_event.EventParseError) WrapError {
     std.debug.assert(@intFromError(parse_error) >= 0);
     std.debug.assert(!@inComptime());
 
@@ -656,7 +656,7 @@ fn map_seal_parse_error(parse_error: nip01_event.EventParseError) Nip59Error {
     };
 }
 
-fn map_rumor_json_parse_error(parse_error: anyerror) Nip59Error {
+fn map_rumor_json_parse_error(parse_error: anyerror) WrapError {
     std.debug.assert(@intFromError(parse_error) >= 0);
     std.debug.assert(!@inComptime());
 

@@ -6,7 +6,7 @@ const libwally_backend = @import("internal/libwally_backend.zig");
 const c = libwally_backend.c;
 const hardened_bit = libwally_backend.hardened_bit;
 
-pub const Nip06Error = error{
+pub const MnemonicError = error{
     InvalidMnemonicLength,
     UnknownMnemonicWord,
     InvalidChecksum,
@@ -20,9 +20,9 @@ pub const Nip06Error = error{
 };
 
 /// Validate an English BIP39 mnemonic for the NIP-06 derivation boundary.
-pub fn mnemonic_validate(mnemonic: []const u8) Nip06Error!void {
+pub fn mnemonic_validate(mnemonic: []const u8) MnemonicError!void {
     std.debug.assert(mnemonic.len <= limits.nip06_mnemonic_bytes_max);
-    std.debug.assert(@sizeOf(Nip06Error) > 0);
+    std.debug.assert(@sizeOf(MnemonicError) > 0);
 
     var normalized_storage: [limits.nip06_normalized_bytes_max]u8 = undefined;
     defer wipe_bytes(normalized_storage[0..]);
@@ -43,7 +43,7 @@ pub fn mnemonic_to_seed(
     output: []u8,
     mnemonic: []const u8,
     passphrase: ?[]const u8,
-) Nip06Error![]const u8 {
+) MnemonicError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(@sizeOf([limits.nip06_seed_bytes]u8) == limits.nip06_seed_bytes);
 
@@ -92,7 +92,7 @@ pub fn derive_nostr_secret_key_from_seed(
     output: []u8,
     seed: []const u8,
     account: u32,
-) Nip06Error![]const u8 {
+) MnemonicError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(seed.len <= limits.nip06_seed_bytes);
 
@@ -130,7 +130,7 @@ pub fn derive_nostr_secret_key(
     mnemonic: []const u8,
     passphrase: ?[]const u8,
     account: u32,
-) Nip06Error![]const u8 {
+) MnemonicError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(@sizeOf([limits.nip06_seed_bytes]u8) == limits.nip06_seed_bytes);
 
@@ -140,7 +140,7 @@ pub fn derive_nostr_secret_key(
     return derive_nostr_secret_key_from_seed(output, seed[0..], account);
 }
 
-fn validate_mnemonic_text(mnemonic: []const u8) Nip06Error!void {
+fn validate_mnemonic_text(mnemonic: []const u8) MnemonicError!void {
     std.debug.assert(mnemonic.len <= limits.nip06_mnemonic_bytes_max);
     std.debug.assert(@sizeOf(u16) == 2);
 
@@ -151,7 +151,7 @@ fn validate_mnemonic_text(mnemonic: []const u8) Nip06Error!void {
     try require_mnemonic_word_count(mnemonic);
 }
 
-fn validate_optional_utf8_text(text: ?[]const u8, max_len: u16) Nip06Error!void {
+fn validate_optional_utf8_text(text: ?[]const u8, max_len: u16) MnemonicError!void {
     std.debug.assert(max_len > 0);
     std.debug.assert(max_len <= limits.content_bytes_max);
 
@@ -160,7 +160,7 @@ fn validate_optional_utf8_text(text: ?[]const u8, max_len: u16) Nip06Error!void 
     if (!std.unicode.utf8ValidateSlice(value)) return error.InvalidUtf8;
 }
 
-fn normalize_mnemonic_text(output: []u8, mnemonic: []const u8) Nip06Error![]const u8 {
+fn normalize_mnemonic_text(output: []u8, mnemonic: []const u8) MnemonicError![]const u8 {
     std.debug.assert(output.len >= limits.nip06_normalized_bytes_max);
     std.debug.assert(mnemonic.len <= limits.nip06_mnemonic_bytes_max);
 
@@ -172,7 +172,7 @@ fn normalize_mnemonic_text(output: []u8, mnemonic: []const u8) Nip06Error![]cons
     };
 }
 
-fn normalize_optional_text(output: []u8, text: ?[]const u8) Nip06Error!?[]const u8 {
+fn normalize_optional_text(output: []u8, text: ?[]const u8) MnemonicError!?[]const u8 {
     std.debug.assert(output.len >= limits.nip06_normalized_bytes_max);
     std.debug.assert(text == null or text.?.len <= limits.nip06_passphrase_bytes_max);
 
@@ -185,7 +185,7 @@ fn normalize_optional_text(output: []u8, text: ?[]const u8) Nip06Error!?[]const 
     };
 }
 
-fn require_mnemonic_word_count(mnemonic: []const u8) Nip06Error!void {
+fn require_mnemonic_word_count(mnemonic: []const u8) MnemonicError!void {
     std.debug.assert(mnemonic.len > 0);
     std.debug.assert(mnemonic.len <= limits.nip06_mnemonic_bytes_max);
 
@@ -204,7 +204,7 @@ fn require_mnemonic_word_count(mnemonic: []const u8) Nip06Error!void {
     if (!is_supported_word_count(word_count)) return error.InvalidMnemonicLength;
 }
 
-fn require_known_words(mnemonic: []const u8) Nip06Error!void {
+fn require_known_words(mnemonic: []const u8) MnemonicError!void {
     std.debug.assert(mnemonic.len > 0);
     std.debug.assert(mnemonic.len <= limits.nip06_mnemonic_bytes_max);
 
@@ -246,7 +246,7 @@ fn word_is_known(word: []const u8) bool {
     return false;
 }
 
-fn write_c_string(buffer: []u8, text: []const u8) Nip06Error![:0]const u8 {
+fn write_c_string(buffer: []u8, text: []const u8) MnemonicError![:0]const u8 {
     std.debug.assert(buffer.len > 0);
     std.debug.assert(text.len + 1 <= buffer.len);
 
@@ -256,7 +256,7 @@ fn write_c_string(buffer: []u8, text: []const u8) Nip06Error![:0]const u8 {
     return buffer[0..text.len :0];
 }
 
-fn write_optional_c_string(buffer: []u8, text: ?[]const u8) Nip06Error!?[:0]const u8 {
+fn write_optional_c_string(buffer: []u8, text: ?[]const u8) MnemonicError!?[:0]const u8 {
     std.debug.assert(buffer.len > 0);
     std.debug.assert(text == null or text.?.len + 1 <= buffer.len);
 
@@ -264,7 +264,7 @@ fn write_optional_c_string(buffer: []u8, text: ?[]const u8) Nip06Error!?[:0]cons
     return try write_c_string(buffer, value);
 }
 
-fn copy_secret_key(output: []u8, hdkey: *const c.struct_ext_key) Nip06Error![]const u8 {
+fn copy_secret_key(output: []u8, hdkey: *const c.struct_ext_key) MnemonicError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(hdkey.priv_key.len == limits.nip06_secret_key_bytes + 1);
 

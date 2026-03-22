@@ -6,7 +6,7 @@ const nip32_labeling = @import("nip32_labeling.zig");
 pub const tag_name: []const u8 = "content-warning";
 pub const label_namespace: []const u8 = "content-warning";
 
-pub const Nip36Error = error{
+pub const ContentWarningError = error{
     InvalidContentWarningTag,
     InvalidContentWarningLabel,
 };
@@ -30,7 +30,7 @@ pub const BuiltTag = struct {
 /// Extracts the first NIP-36 content-warning tag from an event.
 pub fn content_warning_extract(
     event: *const nip01_event.Event,
-) Nip36Error!?ContentWarningInfo {
+) ContentWarningError!?ContentWarningInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -46,7 +46,7 @@ pub fn content_warning_extract(
 pub fn content_warning_build_tag(
     output: *BuiltTag,
     reason: ?[]const u8,
-) Nip36Error!nip01_event.EventTag {
+) ContentWarningError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(reason == null or reason.?.len <= limits.tag_item_bytes_max);
 
@@ -64,7 +64,7 @@ pub fn content_warning_build_tag(
 /// Builds the canonical NIP-32 `L` namespace tag for content-warning labels.
 pub fn content_warning_build_namespace_tag(
     output: *nip32_labeling.BuiltTag,
-) Nip36Error!nip01_event.EventTag {
+) ContentWarningError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(label_namespace.len <= limits.tag_item_bytes_max);
 
@@ -77,7 +77,7 @@ pub fn content_warning_build_namespace_tag(
 pub fn content_warning_build_label_tag(
     output: *nip32_labeling.BuiltTag,
     label: []const u8,
-) Nip36Error!nip01_event.EventTag {
+) ContentWarningError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(label.len <= limits.tag_item_bytes_max);
 
@@ -102,7 +102,7 @@ pub fn label_is_content_warning(label: nip32_labeling.Label) bool {
     return std.mem.eql(u8, label.namespace, label_namespace);
 }
 
-fn parse_reason(tag: nip01_event.EventTag) Nip36Error!?[]const u8 {
+fn parse_reason(tag: nip01_event.EventTag) ContentWarningError!?[]const u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 

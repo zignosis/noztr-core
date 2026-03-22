@@ -8,7 +8,7 @@ const websocket_relay_url = @import("internal/websocket_relay_url.zig");
 pub const discovery_kind: u32 = 30166;
 pub const monitor_kind: u32 = 10166;
 
-pub const Nip66Error = error{
+pub const RelayDiscoveryError = error{
     InvalidDiscoveryKind,
     InvalidMonitorKind,
     MissingIdentifierTag,
@@ -107,7 +107,7 @@ pub fn relay_discovery_extract(
     out_requirements: []RelayRequirement,
     out_topics: [][]const u8,
     out_kind_policies: []RelayKindPolicy,
-) Nip66Error!RelayDiscoveryInfo {
+) RelayDiscoveryError!RelayDiscoveryInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_supported_nips.len <= limits.tags_max);
 
@@ -138,7 +138,7 @@ pub fn relay_monitor_extract(
     event: *const nip01_event.Event,
     out_timeouts: []RelayMonitorTimeout,
     out_checks: [][]const u8,
-) Nip66Error!RelayMonitorInfo {
+) RelayDiscoveryError!RelayMonitorInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_checks.len <= limits.tags_max);
 
@@ -159,7 +159,7 @@ pub fn relay_monitor_extract(
 pub fn relay_discovery_build_url_tag(
     output: *BuiltTag,
     relay_url: []const u8,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -175,7 +175,7 @@ pub fn relay_discovery_build_url_tag(
 pub fn relay_discovery_build_pubkey_tag(
     output: *BuiltTag,
     relay_pubkey: *const [32]u8,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(relay_pubkey) != 0);
 
@@ -193,7 +193,7 @@ pub fn relay_discovery_build_rtt_tag(
     output: *BuiltTag,
     metric: DiscoveryRttMetric,
     milliseconds: u32,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(milliseconds <= std.math.maxInt(u32));
 
@@ -212,7 +212,7 @@ pub fn relay_discovery_build_rtt_tag(
 pub fn relay_discovery_build_network_tag(
     output: *BuiltTag,
     network_type: []const u8,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -225,7 +225,7 @@ pub fn relay_discovery_build_network_tag(
 pub fn relay_discovery_build_relay_type_tag(
     output: *BuiltTag,
     relay_type: []const u8,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -238,7 +238,7 @@ pub fn relay_discovery_build_relay_type_tag(
 pub fn relay_discovery_build_supported_nip_tag(
     output: *BuiltTag,
     nip_number: u16,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(nip_number <= std.math.maxInt(u16));
 
@@ -255,7 +255,7 @@ pub fn relay_discovery_build_requirement_tag(
     output: *BuiltTag,
     requirement: []const u8,
     enabled: bool,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -272,7 +272,7 @@ pub fn relay_discovery_build_requirement_tag(
 pub fn relay_discovery_build_topic_tag(
     output: *BuiltTag,
     topic: []const u8,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -286,7 +286,7 @@ pub fn relay_discovery_build_kind_tag(
     output: *BuiltTag,
     kind: u32,
     accepted: bool,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(kind <= limits.kind_max);
 
@@ -301,7 +301,7 @@ pub fn relay_discovery_build_kind_tag(
 pub fn relay_discovery_build_geohash_tag(
     output: *BuiltTag,
     geohash: []const u8,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -314,7 +314,7 @@ pub fn relay_discovery_build_geohash_tag(
 pub fn relay_monitor_build_frequency_tag(
     output: *BuiltTag,
     frequency_seconds: u64,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(frequency_seconds <= std.math.maxInt(u64));
 
@@ -333,7 +333,7 @@ pub fn relay_monitor_build_timeout_tag(
     output: *BuiltTag,
     milliseconds: u32,
     check: ?[]const u8,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -359,7 +359,7 @@ pub fn relay_monitor_build_timeout_tag(
 pub fn relay_monitor_build_check_tag(
     output: *BuiltTag,
     check: []const u8,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -372,7 +372,7 @@ pub fn relay_monitor_build_check_tag(
 pub fn relay_monitor_build_geohash_tag(
     output: *BuiltTag,
     geohash: []const u8,
-) Nip66Error!nip01_event.EventTag {
+) RelayDiscoveryError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -390,7 +390,7 @@ fn apply_discovery_tag(
     out_requirements: []RelayRequirement,
     out_topics: [][]const u8,
     out_kind_policies: []RelayKindPolicy,
-) Nip66Error!void {
+) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(identity) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -460,7 +460,7 @@ fn apply_monitor_tag(
     info: *RelayMonitorInfo,
     out_timeouts: []RelayMonitorTimeout,
     out_checks: [][]const u8,
-) Nip66Error!void {
+) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(saw_frequency) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -485,7 +485,7 @@ fn apply_monitor_tag(
 fn apply_identity_tag(
     tag: nip01_event.EventTag,
     identity: *?RelayIdentity,
-) Nip66Error!void {
+) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(identity) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -509,9 +509,9 @@ fn parse_identity_value(text: []const u8) error{InvalidIdentity}!RelayIdentity {
 fn apply_rtt_tag(
     tag: nip01_event.EventTag,
     field: *?u32,
-    duplicate_error: Nip66Error,
-    invalid_error: Nip66Error,
-) Nip66Error!void {
+    duplicate_error: RelayDiscoveryError,
+    invalid_error: RelayDiscoveryError,
+) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(field) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -523,10 +523,10 @@ fn apply_rtt_tag(
 fn apply_text_tag(
     tag: nip01_event.EventTag,
     field: *?[]const u8,
-    duplicate_error: Nip66Error,
-    invalid_error: Nip66Error,
+    duplicate_error: RelayDiscoveryError,
+    invalid_error: RelayDiscoveryError,
     parser: fn ([]const u8) anyerror![]const u8,
-) Nip66Error!void {
+) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(field) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -539,7 +539,7 @@ fn append_supported_nip(
     tag: nip01_event.EventTag,
     info: *RelayDiscoveryInfo,
     out_supported_nips: []u16,
-) Nip66Error!void {
+) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_supported_nips.len <= std.math.maxInt(u16));
 
@@ -555,7 +555,7 @@ fn append_requirement(
     tag: nip01_event.EventTag,
     info: *RelayDiscoveryInfo,
     out_requirements: []RelayRequirement,
-) Nip66Error!void {
+) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_requirements.len <= std.math.maxInt(u16));
 
@@ -571,7 +571,7 @@ fn append_topic(
     tag: nip01_event.EventTag,
     info: *RelayDiscoveryInfo,
     out_topics: [][]const u8,
-) Nip66Error!void {
+) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_topics.len <= std.math.maxInt(u16));
 
@@ -585,7 +585,7 @@ fn append_kind_policy(
     tag: nip01_event.EventTag,
     info: *RelayDiscoveryInfo,
     out_kind_policies: []RelayKindPolicy,
-) Nip66Error!void {
+) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_kind_policies.len <= std.math.maxInt(u16));
 
@@ -601,7 +601,7 @@ fn apply_frequency_tag(
     tag: nip01_event.EventTag,
     saw_frequency: *bool,
     info: *RelayMonitorInfo,
-) Nip66Error!void {
+) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(saw_frequency) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -615,7 +615,7 @@ fn append_timeout(
     tag: nip01_event.EventTag,
     info: *RelayMonitorInfo,
     out_timeouts: []RelayMonitorTimeout,
-) Nip66Error!void {
+) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_timeouts.len <= std.math.maxInt(u16));
 
@@ -628,7 +628,7 @@ fn append_check(
     tag: nip01_event.EventTag,
     info: *RelayMonitorInfo,
     out_checks: [][]const u8,
-) Nip66Error!void {
+) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_checks.len <= std.math.maxInt(u16));
 

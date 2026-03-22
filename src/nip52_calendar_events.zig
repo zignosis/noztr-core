@@ -8,7 +8,7 @@ pub const time_calendar_event_kind: u32 = 31923;
 pub const calendar_kind: u32 = 31924;
 pub const calendar_rsvp_kind: u32 = 31925;
 
-pub const Nip52Error = error{
+pub const CalendarError = error{
     InvalidDateEventKind,
     InvalidTimeEventKind,
     InvalidCalendarKind,
@@ -151,7 +151,7 @@ pub fn date_calendar_event_extract(
     out_hashtags: [][]const u8,
     out_references: [][]const u8,
     out_calendars: []CalendarCoordinate,
-) Nip52Error!DateCalendarEventInfo {
+) CalendarError!DateCalendarEventInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_locations.len <= limits.tags_max);
 
@@ -179,7 +179,7 @@ pub fn time_calendar_event_extract(
     out_references: [][]const u8,
     out_calendars: []CalendarCoordinate,
     out_days: []u64,
-) Nip52Error!TimeCalendarEventInfo {
+) CalendarError!TimeCalendarEventInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_days.len <= limits.tags_max);
 
@@ -203,7 +203,7 @@ pub fn time_calendar_event_extract(
 pub fn calendar_extract(
     event: *const nip01_event.Event,
     out_events: []CalendarCoordinate,
-) Nip52Error!CalendarInfo {
+) CalendarError!CalendarInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_events.len <= limits.tags_max);
 
@@ -221,7 +221,7 @@ pub fn calendar_extract(
 }
 
 /// Extracts bounded metadata from a `kind:31925` calendar RSVP event.
-pub fn calendar_rsvp_extract(event: *const nip01_event.Event) Nip52Error!CalendarRsvpInfo {
+pub fn calendar_rsvp_extract(event: *const nip01_event.Event) CalendarError!CalendarRsvpInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -254,7 +254,7 @@ pub fn calendar_rsvp_extract(event: *const nip01_event.Event) Nip52Error!Calenda
 pub fn calendar_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip52Error!nip01_event.EventTag {
+) CalendarError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
 
@@ -268,7 +268,7 @@ pub fn calendar_build_identifier_tag(
 pub fn calendar_build_title_tag(
     output: *BuiltTag,
     title: []const u8,
-) Nip52Error!nip01_event.EventTag {
+) CalendarError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(title.len <= limits.tag_item_bytes_max);
 
@@ -282,7 +282,7 @@ pub fn calendar_build_title_tag(
 pub fn calendar_build_location_tag(
     output: *BuiltTag,
     location: []const u8,
-) Nip52Error!nip01_event.EventTag {
+) CalendarError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(location.len <= limits.tag_item_bytes_max);
 
@@ -298,7 +298,7 @@ pub fn calendar_build_participant_tag(
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
     role: ?[]const u8,
-) Nip52Error!nip01_event.EventTag {
+) CalendarError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
 
@@ -324,7 +324,7 @@ pub fn calendar_build_coordinate_tag(
     output: *BuiltTag,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
-) Nip52Error!nip01_event.EventTag {
+) CalendarError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(coordinate_text.len <= limits.tag_item_bytes_max);
 
@@ -343,7 +343,7 @@ pub fn calendar_build_coordinate_tag(
 pub fn calendar_build_date_start_tag(
     output: *BuiltTag,
     date_text: []const u8,
-) Nip52Error!nip01_event.EventTag {
+) CalendarError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(date_text.len <= limits.tag_item_bytes_max);
 
@@ -357,7 +357,7 @@ pub fn calendar_build_date_start_tag(
 pub fn calendar_build_day_tag(
     output: *BuiltTag,
     day_index: u64,
-) Nip52Error!nip01_event.EventTag {
+) CalendarError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(day_index <= std.math.maxInt(u64));
 
@@ -373,7 +373,7 @@ pub fn calendar_build_day_tag(
 pub fn calendar_build_status_tag(
     output: *BuiltTag,
     status: AttendanceStatus,
-) Nip52Error!nip01_event.EventTag {
+) CalendarError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromEnum(status) <= @intFromEnum(AttendanceStatus.tentative));
 
@@ -394,7 +394,7 @@ fn extract_common_info(
     out_hashtags: [][]const u8,
     out_references: [][]const u8,
     out_calendars: []CalendarCoordinate,
-) Nip52Error!CalendarCommonInfo {
+) CalendarError!CalendarCommonInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_locations.len <= limits.tags_max);
 
@@ -423,7 +423,7 @@ fn apply_common_tag(
     out_hashtags: [][]const u8,
     out_references: [][]const u8,
     out_calendars: []CalendarCoordinate,
-) Nip52Error!void {
+) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -446,7 +446,7 @@ fn apply_time_tag(
     info: *TimeCalendarEventInfo,
     has_start: *bool,
     out_days: []u64,
-) Nip52Error!void {
+) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -471,7 +471,7 @@ fn apply_calendar_tag(
     title: *?[]const u8,
     info: *CalendarInfo,
     out_events: []CalendarCoordinate,
-) Nip52Error!void {
+) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -498,7 +498,7 @@ fn apply_rsvp_tag(
     free_busy: *?FreeBusyStatus,
     author_pubkey: *?[32]u8,
     author_relay_hint: *?[]const u8,
-) Nip52Error!void {
+) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(identifier) != 0);
 
@@ -512,7 +512,7 @@ fn apply_rsvp_tag(
     if (std.mem.eql(u8, name, "p")) return apply_rsvp_author(tag, author_pubkey, author_relay_hint);
 }
 
-fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip52Error!void {
+fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(identifier) != 0);
 
@@ -521,7 +521,7 @@ fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip
     identifier.* = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidIdentifierTag;
 }
 
-fn apply_title_tag(tag: nip01_event.EventTag, title: *?[]const u8) Nip52Error!void {
+fn apply_title_tag(tag: nip01_event.EventTag, title: *?[]const u8) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(title) != 0);
 
@@ -533,9 +533,9 @@ fn apply_title_tag(tag: nip01_event.EventTag, title: *?[]const u8) Nip52Error!vo
 fn apply_text_tag(
     tag: nip01_event.EventTag,
     field: *?[]const u8,
-    duplicate_error: Nip52Error,
-    invalid_error: Nip52Error,
-) Nip52Error!void {
+    duplicate_error: CalendarError,
+    invalid_error: CalendarError,
+) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -547,9 +547,9 @@ fn apply_text_tag(
 fn apply_url_tag(
     tag: nip01_event.EventTag,
     field: *?[]const u8,
-    duplicate_error: Nip52Error,
-    invalid_error: Nip52Error,
-) Nip52Error!void {
+    duplicate_error: CalendarError,
+    invalid_error: CalendarError,
+) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -561,9 +561,9 @@ fn apply_url_tag(
 fn parse_date_tag(
     tag: nip01_event.EventTag,
     field: *?[]const u8,
-    duplicate_error: Nip52Error,
-    invalid_error: Nip52Error,
-) Nip52Error![]const u8 {
+    duplicate_error: CalendarError,
+    invalid_error: CalendarError,
+) CalendarError![]const u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -578,8 +578,8 @@ fn append_text_value(
     tag: nip01_event.EventTag,
     count: *u16,
     out: [][]const u8,
-    invalid_error: Nip52Error,
-) Nip52Error!void {
+    invalid_error: CalendarError,
+) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(count) != 0);
 
@@ -593,8 +593,8 @@ fn append_url_value(
     tag: nip01_event.EventTag,
     count: *u16,
     out: [][]const u8,
-    invalid_error: Nip52Error,
-) Nip52Error!void {
+    invalid_error: CalendarError,
+) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(count) != 0);
 
@@ -608,7 +608,7 @@ fn append_participant(
     tag: nip01_event.EventTag,
     info: *CalendarCommonInfo,
     out: []CalendarParticipant,
-) Nip52Error!void {
+) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out.len <= limits.tags_max);
 
@@ -626,7 +626,7 @@ fn append_participant(
     info.participant_count += 1;
 }
 
-fn append_calendar(tag: nip01_event.EventTag, info: *CalendarCommonInfo, out: []CalendarCoordinate) Nip52Error!void {
+fn append_calendar(tag: nip01_event.EventTag, info: *CalendarCommonInfo, out: []CalendarCoordinate) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out.len <= limits.tags_max);
 
@@ -640,7 +640,7 @@ fn append_calendar(tag: nip01_event.EventTag, info: *CalendarCommonInfo, out: []
     info.calendar_count += 1;
 }
 
-fn apply_time_start(tag: nip01_event.EventTag, info: *TimeCalendarEventInfo, has_start: *bool) Nip52Error!void {
+fn apply_time_start(tag: nip01_event.EventTag, info: *TimeCalendarEventInfo, has_start: *bool) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -650,7 +650,7 @@ fn apply_time_start(tag: nip01_event.EventTag, info: *TimeCalendarEventInfo, has
     has_start.* = true;
 }
 
-fn apply_time_end(tag: nip01_event.EventTag, info: *TimeCalendarEventInfo) Nip52Error!void {
+fn apply_time_end(tag: nip01_event.EventTag, info: *TimeCalendarEventInfo) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -659,7 +659,7 @@ fn apply_time_end(tag: nip01_event.EventTag, info: *TimeCalendarEventInfo) Nip52
     info.end_time = std.fmt.parseUnsigned(u64, tag.items[1], 10) catch return error.InvalidEndTag;
 }
 
-fn apply_rsvp_activity(tag: nip01_event.EventTag, activity: *?CalendarCoordinate) Nip52Error!void {
+fn apply_rsvp_activity(tag: nip01_event.EventTag, activity: *?CalendarCoordinate) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(activity) != 0);
 
@@ -672,7 +672,7 @@ fn apply_rsvp_activity(tag: nip01_event.EventTag, activity: *?CalendarCoordinate
     activity.* = parsed;
 }
 
-fn apply_rsvp_revision(tag: nip01_event.EventTag, revision: *?EventRevision) Nip52Error!void {
+fn apply_rsvp_revision(tag: nip01_event.EventTag, revision: *?EventRevision) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(revision) != 0);
 
@@ -686,7 +686,7 @@ fn apply_rsvp_revision(tag: nip01_event.EventTag, revision: *?EventRevision) Nip
     };
 }
 
-fn apply_rsvp_status(tag: nip01_event.EventTag, status: *?AttendanceStatus) Nip52Error!void {
+fn apply_rsvp_status(tag: nip01_event.EventTag, status: *?AttendanceStatus) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(status) != 0);
 
@@ -695,7 +695,7 @@ fn apply_rsvp_status(tag: nip01_event.EventTag, status: *?AttendanceStatus) Nip5
     status.* = parse_attendance_status(tag.items[1]) catch return error.InvalidStatusTag;
 }
 
-fn apply_free_busy(tag: nip01_event.EventTag, free_busy: *?FreeBusyStatus) Nip52Error!void {
+fn apply_free_busy(tag: nip01_event.EventTag, free_busy: *?FreeBusyStatus) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(free_busy) != 0);
 
@@ -708,7 +708,7 @@ fn apply_rsvp_author(
     tag: nip01_event.EventTag,
     pubkey: *?[32]u8,
     relay_hint: *?[]const u8,
-) Nip52Error!void {
+) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(pubkey) != 0);
 

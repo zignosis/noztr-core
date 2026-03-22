@@ -8,7 +8,7 @@ pub const informational_kind: u32 = 10019;
 pub const nutzap_kind: u32 = 9321;
 pub const redemption_kind: u32 = 7376;
 
-pub const Nip61Error = error{
+pub const NutzapError = error{
     InvalidInformationalKind,
     InvalidNutzapKind,
     InvalidRedemptionKind,
@@ -93,7 +93,7 @@ pub fn informational_extract(
     event: *const nip01_event.Event,
     out_relays: [][]const u8,
     out_mints: []MintPreference,
-) Nip61Error!InformationalInfo {
+) NutzapError!InformationalInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_relays.len <= limits.tags_max);
 
@@ -112,7 +112,7 @@ pub fn informational_extract(
 pub fn nutzap_extract(
     event: *const nip01_event.Event,
     out_proofs: [][]const u8,
-) Nip61Error!NutzapInfo {
+) NutzapError!NutzapInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_proofs.len <= limits.tags_max);
 
@@ -138,7 +138,7 @@ pub fn nutzap_extract(
 pub fn redemption_extract(
     event: *const nip01_event.Event,
     out_redeemed: []TargetEvent,
-) Nip61Error!RedemptionInfo {
+) NutzapError!RedemptionInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_redeemed.len <= limits.tags_max);
 
@@ -156,7 +156,7 @@ pub fn redemption_extract(
 pub fn informational_build_relay_tag(
     output: *BuiltTag,
     relay_url: []const u8,
-) Nip61Error!nip01_event.EventTag {
+) NutzapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == limits.tag_items_max);
 
@@ -171,7 +171,7 @@ pub fn informational_build_mint_tag(
     output: *BuiltTag,
     mint_url: []const u8,
     units: []const []const u8,
-) Nip61Error!nip01_event.EventTag {
+) NutzapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(units.len <= output.items.len - 2);
 
@@ -189,7 +189,7 @@ pub fn informational_build_mint_tag(
 pub fn informational_build_pubkey_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
-) Nip61Error!nip01_event.EventTag {
+) NutzapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == limits.tag_items_max);
 
@@ -204,7 +204,7 @@ pub fn informational_build_pubkey_tag(
 pub fn nutzap_build_proof_tag(
     output: *BuiltTag,
     proof_json: []const u8,
-) Nip61Error!nip01_event.EventTag {
+) NutzapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == limits.tag_items_max);
 
@@ -218,7 +218,7 @@ pub fn nutzap_build_proof_tag(
 pub fn nutzap_build_unit_tag(
     output: *BuiltTag,
     unit: []const u8,
-) Nip61Error!nip01_event.EventTag {
+) NutzapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == limits.tag_items_max);
 
@@ -232,7 +232,7 @@ pub fn nutzap_build_unit_tag(
 pub fn nutzap_build_mint_url_tag(
     output: *BuiltTag,
     mint_url: []const u8,
-) Nip61Error!nip01_event.EventTag {
+) NutzapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == limits.tag_items_max);
 
@@ -246,7 +246,7 @@ pub fn nutzap_build_mint_url_tag(
 pub fn nutzap_build_recipient_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
-) Nip61Error!nip01_event.EventTag {
+) NutzapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == limits.tag_items_max);
 
@@ -262,7 +262,7 @@ pub fn nutzap_build_target_event_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip61Error!nip01_event.EventTag {
+) NutzapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == limits.tag_items_max);
 
@@ -281,7 +281,7 @@ pub fn nutzap_build_target_event_tag(
 pub fn nutzap_build_target_kind_tag(
     output: *BuiltTag,
     event_kind: u32,
-) Nip61Error!nip01_event.EventTag {
+) NutzapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(event_kind <= limits.kind_max);
 
@@ -298,7 +298,7 @@ pub fn redemption_build_redeemed_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip61Error!nip01_event.EventTag {
+) NutzapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == limits.tag_items_max);
 
@@ -319,7 +319,7 @@ pub fn redemption_build_redeemed_tag(
 pub fn redemption_build_sender_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
-) Nip61Error!nip01_event.EventTag {
+) NutzapError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == limits.tag_items_max);
 
@@ -336,7 +336,7 @@ fn apply_informational_tag(
     pubkey: *?[32]u8,
     out_relays: [][]const u8,
     out_mints: []MintPreference,
-) Nip61Error!void {
+) NutzapError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(pubkey) != 0);
 
@@ -353,7 +353,7 @@ fn append_relay(
     tag: nip01_event.EventTag,
     info: *InformationalInfo,
     out_relays: [][]const u8,
-) Nip61Error!void {
+) NutzapError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.relay_count <= out_relays.len);
 
@@ -367,7 +367,7 @@ fn append_mint(
     tag: nip01_event.EventTag,
     info: *InformationalInfo,
     out_mints: []MintPreference,
-) Nip61Error!void {
+) NutzapError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.mint_count <= out_mints.len);
 
@@ -401,7 +401,7 @@ fn apply_nutzap_tag(
     saw_mint: *bool,
     saw_recipient: *bool,
     out_proofs: [][]const u8,
-) Nip61Error!void {
+) NutzapError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_mint) != 0);
 
@@ -414,7 +414,7 @@ fn apply_nutzap_tag(
     if (std.mem.eql(u8, tag.items[0], "k")) return parse_target_kind_tag(tag, info);
 }
 
-fn append_proof(tag: nip01_event.EventTag, info: *NutzapInfo, out_proofs: [][]const u8) Nip61Error!void {
+fn append_proof(tag: nip01_event.EventTag, info: *NutzapInfo, out_proofs: [][]const u8) NutzapError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.proof_count <= out_proofs.len);
 
@@ -424,7 +424,7 @@ fn append_proof(tag: nip01_event.EventTag, info: *NutzapInfo, out_proofs: [][]co
     info.proof_count += 1;
 }
 
-fn parse_unit_tag(tag: nip01_event.EventTag, info: *NutzapInfo) Nip61Error!void {
+fn parse_unit_tag(tag: nip01_event.EventTag, info: *NutzapInfo) NutzapError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -433,7 +433,7 @@ fn parse_unit_tag(tag: nip01_event.EventTag, info: *NutzapInfo) Nip61Error!void 
     info.unit = parse_unit(tag.items[1]) catch return error.InvalidUnitTag;
 }
 
-fn parse_mint_url_tag(tag: nip01_event.EventTag, info: *NutzapInfo, saw_mint: *bool) Nip61Error!void {
+fn parse_mint_url_tag(tag: nip01_event.EventTag, info: *NutzapInfo, saw_mint: *bool) NutzapError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_mint) != 0);
 
@@ -447,7 +447,7 @@ fn parse_recipient_tag(
     tag: nip01_event.EventTag,
     info: *NutzapInfo,
     saw_recipient: *bool,
-) Nip61Error!void {
+) NutzapError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_recipient) != 0);
 
@@ -457,7 +457,7 @@ fn parse_recipient_tag(
     saw_recipient.* = true;
 }
 
-fn parse_target_event_tag(tag: nip01_event.EventTag, info: *NutzapInfo) Nip61Error!void {
+fn parse_target_event_tag(tag: nip01_event.EventTag, info: *NutzapInfo) NutzapError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -472,7 +472,7 @@ fn parse_target_event_tag(tag: nip01_event.EventTag, info: *NutzapInfo) Nip61Err
     };
 }
 
-fn parse_target_kind_tag(tag: nip01_event.EventTag, info: *NutzapInfo) Nip61Error!void {
+fn parse_target_kind_tag(tag: nip01_event.EventTag, info: *NutzapInfo) NutzapError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -488,7 +488,7 @@ fn apply_redemption_tag(
     info: *RedemptionInfo,
     sender: *?[32]u8,
     out_redeemed: []TargetEvent,
-) Nip61Error!void {
+) NutzapError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(sender) != 0);
 
@@ -504,7 +504,7 @@ fn append_redeemed(
     tag: nip01_event.EventTag,
     info: *RedemptionInfo,
     out_redeemed: []TargetEvent,
-) Nip61Error!void {
+) NutzapError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.redeemed_count <= out_redeemed.len);
 

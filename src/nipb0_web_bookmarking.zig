@@ -5,7 +5,7 @@ const url_with_host = @import("internal/url_with_host.zig");
 
 pub const web_bookmark_kind: u32 = 39701;
 
-pub const NipB0Error = error{
+pub const WebBookmarkError = error{
     UnsupportedKind,
     MissingIdentifier,
     DuplicateIdentifierTag,
@@ -53,7 +53,7 @@ pub fn web_bookmark_is_supported(event: *const nip01_event.Event) bool {
 pub fn web_bookmark_extract(
     event: *const nip01_event.Event,
     out_hashtags: [][]const u8,
-) NipB0Error!WebBookmarkInfo {
+) WebBookmarkError!WebBookmarkInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_hashtags.len <= std.math.maxInt(u16));
 
@@ -76,7 +76,7 @@ pub fn web_bookmark_extract(
 pub fn web_bookmark_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) NipB0Error!nip01_event.EventTag {
+) WebBookmarkError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
 
@@ -90,7 +90,7 @@ pub fn web_bookmark_build_identifier_tag(
 pub fn web_bookmark_build_title_tag(
     output: *BuiltTag,
     title: []const u8,
-) NipB0Error!nip01_event.EventTag {
+) WebBookmarkError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(title.len <= limits.tag_item_bytes_max);
 
@@ -104,7 +104,7 @@ pub fn web_bookmark_build_title_tag(
 pub fn web_bookmark_build_published_at_tag(
     output: *BuiltTag,
     published_at: u64,
-) NipB0Error!nip01_event.EventTag {
+) WebBookmarkError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(published_at <= std.math.maxInt(u64));
 
@@ -120,7 +120,7 @@ pub fn web_bookmark_build_published_at_tag(
 pub fn web_bookmark_build_hashtag_tag(
     output: *BuiltTag,
     hashtag: []const u8,
-) NipB0Error!nip01_event.EventTag {
+) WebBookmarkError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(hashtag.len <= limits.tag_item_bytes_max);
 
@@ -135,7 +135,7 @@ fn apply_tag(
     identifier: *?[]const u8,
     info: *WebBookmarkInfo,
     out_hashtags: [][]const u8,
-) NipB0Error!void {
+) WebBookmarkError!void {
     std.debug.assert(@intFromPtr(identifier) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -147,7 +147,7 @@ fn apply_tag(
     if (std.mem.eql(u8, name, "t")) return apply_hashtag_tag(tag, info, out_hashtags);
 }
 
-fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) NipB0Error!void {
+fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) WebBookmarkError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(identifier) != 0);
 
@@ -155,7 +155,7 @@ fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip
     identifier.* = parse_identifier_value(tag) catch return error.InvalidIdentifierTag;
 }
 
-fn apply_title_tag(tag: nip01_event.EventTag, info: *WebBookmarkInfo) NipB0Error!void {
+fn apply_title_tag(tag: nip01_event.EventTag, info: *WebBookmarkInfo) WebBookmarkError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -166,7 +166,7 @@ fn apply_title_tag(tag: nip01_event.EventTag, info: *WebBookmarkInfo) NipB0Error
 fn apply_published_at_tag(
     tag: nip01_event.EventTag,
     info: *WebBookmarkInfo,
-) NipB0Error!void {
+) WebBookmarkError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -178,7 +178,7 @@ fn apply_hashtag_tag(
     tag: nip01_event.EventTag,
     info: *WebBookmarkInfo,
     out_hashtags: [][]const u8,
-) NipB0Error!void {
+) WebBookmarkError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -220,7 +220,7 @@ fn parse_hashtag_tag(tag: nip01_event.EventTag) error{InvalidValue}![]const u8 {
     return parse_hashtag_value(tag.items[1]) catch return error.InvalidValue;
 }
 
-fn validate_content(content: []const u8) NipB0Error!void {
+fn validate_content(content: []const u8) WebBookmarkError!void {
     std.debug.assert(content.len <= limits.content_bytes_max);
     std.debug.assert(limits.content_bytes_max > 0);
 

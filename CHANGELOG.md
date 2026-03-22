@@ -16,8 +16,8 @@ For the public versioning policy, see
 ### Breaking Changes
 
 - removed temporary public naming aliases introduced during the API-naming normalization pass
-- normalized the remaining older public NIP-module error type names to the module-shaped naming
-  pattern used across the rest of the library
+- normalized public error type names toward descriptive names inside module namespaces and removed
+  the short-lived numeric `NipXXError` naming that briefly appeared on `master`
 - downstream callers should now use the canonical symbol names only
 - migration guide:
   - [docs/guides/migrating-from-0.1.0-rc.1.md](docs/guides/migrating-from-0.1.0-rc.1.md)

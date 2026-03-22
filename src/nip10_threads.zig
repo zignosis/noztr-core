@@ -8,7 +8,7 @@ pub const text_note_event_kind: u32 = 1;
 const nip10_e_tag_items_max: u8 = 5;
 const nip10_marker_bytes_max: u8 = 5;
 
-pub const Nip10Error = error{
+pub const ThreadError = error{
     InvalidEventKind,
     InvalidETag,
     InvalidEventId,
@@ -84,7 +84,7 @@ pub fn thread_marker_parse(marker: []const u8) error{InvalidMarker}!ThreadMarker
 pub fn thread_extract(
     event: *const nip01_event.Event,
     mentions_out: []ThreadReference,
-) Nip10Error!ThreadInfo {
+) ThreadError!ThreadInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(mentions_out.len <= std.math.maxInt(u16));
 
@@ -104,7 +104,7 @@ fn apply_marked_reference(
     info: *ThreadInfo,
     marker: ThreadMarker,
     reference: ThreadReference,
-) Nip10Error!void {
+) ThreadError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromEnum(marker) <= @intFromEnum(ThreadMarker.reply));
 
@@ -121,7 +121,7 @@ fn apply_marked_reference(
     info.reply = reference;
 }
 
-fn parse_thread_tag(tag: nip01_event.EventTag) Nip10Error!?ParsedThreadTag {
+fn parse_thread_tag(tag: nip01_event.EventTag) ThreadError!?ParsedThreadTag {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(nip10_e_tag_items_max == 5);
 
@@ -159,7 +159,7 @@ fn parse_thread_tag(tag: nip01_event.EventTag) Nip10Error!?ParsedThreadTag {
     };
 }
 
-fn parse_tag_tail(tag: nip01_event.EventTag) Nip10Error!TagTail {
+fn parse_tag_tail(tag: nip01_event.EventTag) ThreadError!TagTail {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(nip10_e_tag_items_max == 5);
 
@@ -210,7 +210,7 @@ fn marker_kind(marker: ThreadMarker) ThreadTagKind {
     };
 }
 
-fn scan_thread_tags(event: *const nip01_event.Event) Nip10Error!ThreadScan {
+fn scan_thread_tags(event: *const nip01_event.Event) ThreadError!ThreadScan {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -242,7 +242,7 @@ fn scan_thread_tags(event: *const nip01_event.Event) Nip10Error!ThreadScan {
     return scan;
 }
 
-fn final_mention_count(scan: ThreadScan, output_len: usize) Nip10Error!u16 {
+fn final_mention_count(scan: ThreadScan, output_len: usize) ThreadError!u16 {
     std.debug.assert(output_len <= std.math.maxInt(u16));
     std.debug.assert(scan.explicit_mention_count <= limits.tags_max);
 
@@ -263,7 +263,7 @@ fn fill_explicit_mode(
     mentions_out: []ThreadReference,
     scan: ThreadScan,
     mention_count: u16,
-) Nip10Error!ThreadInfo {
+) ThreadError!ThreadInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(mention_count <= mentions_out.len);
 
@@ -292,7 +292,7 @@ fn fill_positional_mode(
     mentions_out: []ThreadReference,
     scan: ThreadScan,
     mention_count: u16,
-) Nip10Error!ThreadInfo {
+) ThreadError!ThreadInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(mention_count <= mentions_out.len);
 
@@ -340,7 +340,7 @@ fn is_unmarked_mention(index: u16, total_count: u16) bool {
     return index != 0 and index + 1 != total_count;
 }
 
-fn parse_pubkey(text: []const u8) Nip10Error![32]u8 {
+fn parse_pubkey(text: []const u8) ThreadError![32]u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 

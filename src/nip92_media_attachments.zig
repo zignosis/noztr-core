@@ -4,7 +4,7 @@ const nip01_event = @import("nip01_event.zig");
 const url_with_host = @import("internal/url_with_host.zig");
 const nip94_file_metadata = @import("nip94_file_metadata.zig");
 
-pub const Nip92Error = error{
+pub const MediaAttachmentError = error{
     InvalidImetaTag,
     MissingUrlField,
     MissingMetadataField,
@@ -98,7 +98,7 @@ const ParseState = struct {
 pub fn imeta_extract(
     tag: nip01_event.EventTag,
     out_fallback_urls: [][]const u8,
-) Nip92Error!ImetaInfo {
+) MediaAttachmentError!ImetaInfo {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out_fallback_urls.len <= limits.tags_max);
 
@@ -159,7 +159,7 @@ pub fn imeta_build_field(
     output: *BuiltField,
     name: []const u8,
     value: []const u8,
-) Nip92Error![]const u8 {
+) MediaAttachmentError![]const u8 {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(name.len < limits.tag_item_bytes_max);
 
@@ -173,7 +173,7 @@ pub fn imeta_build_field(
 pub fn imeta_build_tag(
     output: *BuiltTag,
     fields: []const []const u8,
-) Nip92Error!nip01_event.EventTag {
+) MediaAttachmentError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(fields.len + 1 <= limits.tag_items_max);
 
@@ -197,7 +197,7 @@ fn apply_field_text(
     state: *ParseState,
     info: ?*ImetaInfo,
     out_fallback_urls: [][]const u8,
-) Nip92Error!void {
+) MediaAttachmentError!void {
     std.debug.assert(field_text.len <= limits.tag_item_bytes_max);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -215,7 +215,7 @@ fn apply_field(
     state: *ParseState,
     info: ?*ImetaInfo,
     out_fallback_urls: [][]const u8,
-) Nip92Error!void {
+) MediaAttachmentError!void {
     std.debug.assert(name.len <= limits.tag_item_bytes_max);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -238,7 +238,7 @@ fn apply_field(
     if (std.mem.eql(u8, name, "service")) return parse_service_field(value, state, info);
 }
 
-fn parse_url_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) Nip92Error!void {
+fn parse_url_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -252,7 +252,7 @@ fn parse_mime_type_field(
     value: []const u8,
     state: *ParseState,
     info: ?*ImetaInfo,
-) Nip92Error!void {
+) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -263,7 +263,7 @@ fn parse_mime_type_field(
     if (info) |output| output.mime_type = parsed;
 }
 
-fn parse_hash_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) Nip92Error!void {
+fn parse_hash_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -278,7 +278,7 @@ fn parse_original_hash_field(
     value: []const u8,
     state: *ParseState,
     info: ?*ImetaInfo,
-) Nip92Error!void {
+) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -289,7 +289,7 @@ fn parse_original_hash_field(
     if (info) |output| output.original_sha256 = parsed;
 }
 
-fn parse_size_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) Nip92Error!void {
+fn parse_size_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -304,7 +304,7 @@ fn parse_dimensions_field(
     value: []const u8,
     state: *ParseState,
     info: ?*ImetaInfo,
-) Nip92Error!void {
+) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -315,7 +315,7 @@ fn parse_dimensions_field(
     if (info) |output| output.dimensions = parsed;
 }
 
-fn parse_magnet_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) Nip92Error!void {
+fn parse_magnet_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -330,7 +330,7 @@ fn parse_infohash_field(
     value: []const u8,
     state: *ParseState,
     info: ?*ImetaInfo,
-) Nip92Error!void {
+) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -345,7 +345,7 @@ fn parse_blurhash_field(
     value: []const u8,
     state: *ParseState,
     info: ?*ImetaInfo,
-) Nip92Error!void {
+) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -356,7 +356,7 @@ fn parse_blurhash_field(
     if (info) |output| output.blurhash = parsed;
 }
 
-fn parse_thumb_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) Nip92Error!void {
+fn parse_thumb_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -367,7 +367,7 @@ fn parse_thumb_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) N
     if (info) |output| output.thumb_url = parsed;
 }
 
-fn parse_image_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) Nip92Error!void {
+fn parse_image_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -378,7 +378,7 @@ fn parse_image_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) N
     if (info) |output| output.image_url = parsed;
 }
 
-fn parse_summary_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) Nip92Error!void {
+fn parse_summary_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -389,7 +389,7 @@ fn parse_summary_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo)
     if (info) |output| output.summary = parsed;
 }
 
-fn parse_alt_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) Nip92Error!void {
+fn parse_alt_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -405,7 +405,7 @@ fn parse_fallback_field(
     state: *ParseState,
     info: ?*ImetaInfo,
     out_fallback_urls: [][]const u8,
-) Nip92Error!void {
+) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -422,7 +422,7 @@ fn parse_service_field(
     value: []const u8,
     state: *ParseState,
     info: ?*ImetaInfo,
-) Nip92Error!void {
+) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -433,7 +433,7 @@ fn parse_service_field(
     if (info) |output| output.service = parsed;
 }
 
-fn validate_field(name: []const u8, value: []const u8) Nip92Error!void {
+fn validate_field(name: []const u8, value: []const u8) MediaAttachmentError!void {
     std.debug.assert(name.len <= limits.tag_item_bytes_max);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 

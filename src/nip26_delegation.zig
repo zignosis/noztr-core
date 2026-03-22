@@ -5,7 +5,7 @@ const nip01_event = @import("nip01_event.zig");
 
 pub const delegation_tag_name = "delegation";
 
-pub const Nip26Error = error{
+pub const DelegationError = error{
     InvalidDelegationTag,
     InvalidDelegatorPubkey,
     InvalidCondition,
@@ -51,7 +51,7 @@ pub const BuiltTag = struct {
 };
 
 /// Parses a canonical `delegation` tag.
-pub fn delegation_tag_parse(tag: nip01_event.EventTag) Nip26Error!DelegationTag {
+pub fn delegation_tag_parse(tag: nip01_event.EventTag) DelegationError!DelegationTag {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.tag_items_max >= 4);
 
@@ -72,7 +72,7 @@ pub fn delegation_tag_parse(tag: nip01_event.EventTag) Nip26Error!DelegationTag 
 pub fn delegation_conditions_parse(
     text: []const u8,
     out: []DelegationCondition,
-) Nip26Error!DelegationConditions {
+) DelegationError!DelegationConditions {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(out.len <= limits.nip26_conditions_max);
 
@@ -98,7 +98,7 @@ pub fn delegation_conditions_parse(
 pub fn delegation_conditions_format(
     output: []u8,
     conditions: DelegationConditions,
-) Nip26Error![]const u8 {
+) DelegationError![]const u8 {
     std.debug.assert(output.len <= limits.nip26_message_bytes_max);
     std.debug.assert(conditions.items.len <= limits.nip26_conditions_max);
 
@@ -118,7 +118,7 @@ pub fn delegation_message_build(
     output: []u8,
     delegatee_pubkey: *const [32]u8,
     conditions_text: []const u8,
-) Nip26Error![]const u8 {
+) DelegationError![]const u8 {
     std.debug.assert(output.len <= limits.nip26_message_bytes_max);
     std.debug.assert(@intFromPtr(delegatee_pubkey) != 0);
 
@@ -137,7 +137,7 @@ pub fn delegation_signature_sign(
     delegator_secret_key: *const [32]u8,
     delegatee_pubkey: *const [32]u8,
     conditions_text: []const u8,
-) Nip26Error!void {
+) DelegationError!void {
     std.debug.assert(@intFromPtr(output_signature) != 0);
     std.debug.assert(@intFromPtr(delegator_secret_key) != 0);
 
@@ -155,7 +155,7 @@ pub fn delegation_signature_sign(
 pub fn delegation_signature_verify(
     tag: *const DelegationTag,
     delegatee_pubkey: *const [32]u8,
-) Nip26Error!void {
+) DelegationError!void {
     std.debug.assert(@intFromPtr(tag) != 0);
     std.debug.assert(@intFromPtr(delegatee_pubkey) != 0);
 
@@ -188,7 +188,7 @@ pub fn delegation_event_validate(
     tag: *const DelegationTag,
     event: *const nip01_event.Event,
     out_conditions: []DelegationCondition,
-) Nip26Error!DelegationConditions {
+) DelegationError!DelegationConditions {
     std.debug.assert(@intFromPtr(tag) != 0);
     std.debug.assert(@intFromPtr(event) != 0);
 
@@ -202,7 +202,7 @@ pub fn delegation_event_validate(
 pub fn delegation_tag_build(
     output: *BuiltTag,
     tag: *const DelegationTag,
-) Nip26Error!nip01_event.EventTag {
+) DelegationError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(tag) != 0);
 
@@ -215,7 +215,7 @@ pub fn delegation_tag_build(
     return output.as_event_tag();
 }
 
-fn parse_condition(text: []const u8) Nip26Error!DelegationCondition {
+fn parse_condition(text: []const u8) DelegationError!DelegationCondition {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.kind_max == std.math.maxInt(u16));
 
@@ -239,7 +239,7 @@ fn parse_condition(text: []const u8) Nip26Error!DelegationCondition {
 fn write_condition(
     writer: anytype,
     condition: DelegationCondition,
-) Nip26Error!void {
+) DelegationError!void {
     std.debug.assert(@typeInfo(DelegationCondition) == .@"union");
     std.debug.assert(@TypeOf(writer) != void);
 
@@ -267,7 +267,7 @@ fn condition_matches(condition: DelegationCondition, event: *const nip01_event.E
     };
 }
 
-fn validate_condition_text(text: []const u8) Nip26Error!void {
+fn validate_condition_text(text: []const u8) DelegationError!void {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.nip26_conditions_max > 0);
 
@@ -278,7 +278,7 @@ fn validate_condition_text(text: []const u8) Nip26Error!void {
 fn delegation_message_digest(
     delegatee_pubkey: *const [32]u8,
     conditions_text: []const u8,
-) Nip26Error![32]u8 {
+) DelegationError![32]u8 {
     std.debug.assert(@intFromPtr(delegatee_pubkey) != 0);
     std.debug.assert(conditions_text.len <= limits.tag_item_bytes_max);
 
@@ -296,7 +296,7 @@ fn delegation_message_digest(
     return digest;
 }
 
-fn copy_conditions_text(output: []u8, text: []const u8) Nip26Error![]const u8 {
+fn copy_conditions_text(output: []u8, text: []const u8) DelegationError![]const u8 {
     std.debug.assert(output.len <= limits.tag_item_bytes_max);
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
 
@@ -372,9 +372,9 @@ fn validate_lower_hex(text: []const u8, expected_length: u8) error{InvalidHex}!v
     }
 }
 
-fn map_verify_error(verify_error: secp256k1_backend.BackendVerifyError) Nip26Error {
+fn map_verify_error(verify_error: secp256k1_backend.BackendVerifyError) DelegationError {
     std.debug.assert(@intFromError(verify_error) >= 0);
-    std.debug.assert(@typeInfo(Nip26Error) == .error_set);
+    std.debug.assert(@typeInfo(DelegationError) == .error_set);
 
     return switch (verify_error) {
         error.InvalidPublicKey => error.InvalidDelegatorPubkey,
@@ -383,9 +383,9 @@ fn map_verify_error(verify_error: secp256k1_backend.BackendVerifyError) Nip26Err
     };
 }
 
-fn map_sign_error(sign_error: secp256k1_backend.BackendSignError) Nip26Error {
+fn map_sign_error(sign_error: secp256k1_backend.BackendSignError) DelegationError {
     std.debug.assert(@intFromError(sign_error) >= 0);
-    std.debug.assert(@typeInfo(Nip26Error) == .error_set);
+    std.debug.assert(@typeInfo(DelegationError) == .error_set);
 
     return switch (sign_error) {
         error.InvalidSecretKey => error.InvalidSecretKey,

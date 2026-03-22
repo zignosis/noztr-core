@@ -2,7 +2,7 @@ const std = @import("std");
 const limits = @import("limits.zig");
 
 /// Typed bounded search-validation failures.
-pub const Nip50Error = error{InvalidSearchValue};
+pub const SearchError = error{InvalidSearchValue};
 
 /// Supported NIP-50 strict extension token keys.
 pub const SearchTokenKey = enum {
@@ -24,7 +24,7 @@ pub const SearchToken = struct {
 };
 
 /// Validates bounded NIP-50 search-field size and UTF-8 shape.
-pub fn search_field_validate(value: []const u8) Nip50Error!void {
+pub fn search_field_validate(value: []const u8) SearchError!void {
     std.debug.assert(limits.nip50_search_field_bytes_max > 0);
     std.debug.assert(limits.nip50_search_field_bytes_max <= limits.tag_item_bytes_max);
 

@@ -8,7 +8,7 @@ const websocket_relay_url = @import("internal/websocket_relay_url.zig");
 
 pub const remote_signing_event_kind: u32 = 24_133;
 
-pub const Nip46Error = error{
+pub const RemoteSigningError = error{
     InvalidMethod,
     InvalidPermission,
     InvalidPermissionKind,
@@ -183,7 +183,7 @@ pub const DiscoveryInfo = struct {
 
 const nostrconnect_url_placeholder = "<nostrconnect>";
 
-pub fn method_parse(text: []const u8) Nip46Error!RemoteSigningMethod {
+pub fn method_parse(text: []const u8) RemoteSigningError!RemoteSigningMethod {
     std.debug.assert(@sizeOf(RemoteSigningMethod) > 0);
     std.debug.assert(limits.tag_item_bytes_max > 0);
 
@@ -218,7 +218,7 @@ pub fn method_text(method: RemoteSigningMethod) []const u8 {
     };
 }
 
-pub fn permission_parse(text: []const u8) Nip46Error!Permission {
+pub fn permission_parse(text: []const u8) RemoteSigningError!Permission {
     std.debug.assert(@sizeOf(Permission) > 0);
     std.debug.assert(limits.tag_item_bytes_max > 0);
 
@@ -250,7 +250,7 @@ pub fn permission_parse(text: []const u8) Nip46Error!Permission {
     return .{ .method = method, .scope = .{ .raw = scope_text } };
 }
 
-pub fn permission_format(output: []u8, permission: Permission) Nip46Error![]const u8 {
+pub fn permission_format(output: []u8, permission: Permission) RemoteSigningError![]const u8 {
     std.debug.assert(output.len <= limits.tag_item_bytes_max);
     std.debug.assert(@sizeOf(Permission) > 0);
 
@@ -282,7 +282,7 @@ pub fn permission_format(output: []u8, permission: Permission) Nip46Error![]cons
     }
 }
 
-pub fn message_parse_json(input: []const u8, scratch: std.mem.Allocator) Nip46Error!Message {
+pub fn message_parse_json(input: []const u8, scratch: std.mem.Allocator) RemoteSigningError!Message {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -313,7 +313,7 @@ pub fn message_parse_json(input: []const u8, scratch: std.mem.Allocator) Nip46Er
     return parse_message_object(root.object, scratch);
 }
 
-pub fn message_serialize_json(output: []u8, message: Message) Nip46Error![]const u8 {
+pub fn message_serialize_json(output: []u8, message: Message) RemoteSigningError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(Message) > 0);
 
@@ -326,7 +326,7 @@ pub fn message_serialize_json(output: []u8, message: Message) Nip46Error![]const
     return output[0..stream.pos];
 }
 
-pub fn request_validate(request: *const Request, scratch: std.mem.Allocator) Nip46Error!void {
+pub fn request_validate(request: *const Request, scratch: std.mem.Allocator) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(request) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -349,7 +349,7 @@ pub fn request_validate(request: *const Request, scratch: std.mem.Allocator) Nip
 pub fn request_parse_typed(
     request: *const Request,
     scratch: std.mem.Allocator,
-) Nip46Error!ParsedRequest {
+) RemoteSigningError!ParsedRequest {
     std.debug.assert(@intFromPtr(request) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -374,7 +374,7 @@ pub fn request_build_connect(
     id: []const u8,
     request: *const ConnectRequest,
     scratch: std.mem.Allocator,
-) Nip46Error!Request {
+) RemoteSigningError!Request {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(request) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
@@ -404,7 +404,7 @@ pub fn request_build_sign_event(
     id: []const u8,
     unsigned_event_json: []const u8,
     scratch: std.mem.Allocator,
-) Nip46Error!Request {
+) RemoteSigningError!Request {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(unsigned_event_json.len <= std.math.maxInt(usize));
@@ -423,7 +423,7 @@ pub fn request_build_pubkey_text(
     method: RemoteSigningMethod,
     request: *const PubkeyTextRequest,
     scratch: std.mem.Allocator,
-) Nip46Error!Request {
+) RemoteSigningError!Request {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(request) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
@@ -446,7 +446,7 @@ pub fn request_build_empty(
     id: []const u8,
     method: RemoteSigningMethod,
     scratch: std.mem.Allocator,
-) Nip46Error!Request {
+) RemoteSigningError!Request {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(@intFromEnum(method) <= @intFromEnum(RemoteSigningMethod.switch_relays));
@@ -464,7 +464,7 @@ pub fn response_validate(
     response: *const Response,
     method: RemoteSigningMethod,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(response) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -481,7 +481,7 @@ pub fn response_validate(
 }
 
 /// Parse a validated `connect` response into `ack` or a secret echo.
-pub fn response_result_connect(response: *const Response) Nip46Error!ConnectResult {
+pub fn response_result_connect(response: *const Response) RemoteSigningError!ConnectResult {
     std.debug.assert(@intFromPtr(response) != 0);
     std.debug.assert(@sizeOf(ConnectResult) > 0);
 
@@ -494,7 +494,7 @@ pub fn response_result_connect(response: *const Response) Nip46Error!ConnectResu
 }
 
 /// Parse a validated `get_public_key` response into the returned pubkey.
-pub fn response_result_get_public_key(response: *const Response) Nip46Error![32]u8 {
+pub fn response_result_get_public_key(response: *const Response) RemoteSigningError![32]u8 {
     std.debug.assert(@intFromPtr(response) != 0);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -507,7 +507,7 @@ pub fn response_result_get_public_key(response: *const Response) Nip46Error![32]
 pub fn response_result_sign_event(
     response: *const Response,
     scratch: std.mem.Allocator,
-) Nip46Error!nip01_event.Event {
+) RemoteSigningError!nip01_event.Event {
     std.debug.assert(@intFromPtr(response) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -517,7 +517,7 @@ pub fn response_result_sign_event(
 }
 
 /// Parse a validated `switch_relays` response into an updated relay list or `null`.
-pub fn response_result_switch_relays(response: *const Response) Nip46Error!?[]const []const u8 {
+pub fn response_result_switch_relays(response: *const Response) RemoteSigningError!?[]const []const u8 {
     std.debug.assert(@intFromPtr(response) != 0);
     std.debug.assert(@sizeOf(ResponsePayload) > 0);
 
@@ -532,7 +532,7 @@ pub fn response_result_switch_relays(response: *const Response) Nip46Error!?[]co
     };
 }
 
-pub fn uri_parse(input: []const u8, scratch: std.mem.Allocator) Nip46Error!ConnectionUri {
+pub fn uri_parse(input: []const u8, scratch: std.mem.Allocator) RemoteSigningError!ConnectionUri {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -546,7 +546,7 @@ pub fn uri_parse(input: []const u8, scratch: std.mem.Allocator) Nip46Error!Conne
     return error.InvalidScheme;
 }
 
-pub fn uri_serialize(output: []u8, uri: ConnectionUri) Nip46Error![]const u8 {
+pub fn uri_serialize(output: []u8, uri: ConnectionUri) RemoteSigningError![]const u8 {
     std.debug.assert(output.len <= limits.nip46_uri_bytes_max);
     std.debug.assert(@sizeOf(ConnectionUri) > 0);
 
@@ -563,7 +563,7 @@ pub fn envelope_validate(
     event: *const nip01_event.Event,
     expected_target_pubkey: ?*const [32]u8,
     nip44_scratch: []u8,
-) Nip46Error!Envelope {
+) RemoteSigningError!Envelope {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(nip44_scratch.len <= limits.nip44_payload_decoded_max_bytes);
 
@@ -602,7 +602,7 @@ pub fn envelope_validate(
 pub fn discovery_parse_well_known(
     input: []const u8,
     scratch: std.mem.Allocator,
-) Nip46Error!DiscoveryInfo {
+) RemoteSigningError!DiscoveryInfo {
     std.debug.assert(input.len <= limits.relay_message_bytes_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -629,7 +629,7 @@ pub fn discovery_parse_well_known(
 pub fn discovery_parse_nip89(
     event: *const nip01_event.Event,
     scratch: std.mem.Allocator,
-) Nip46Error!DiscoveryInfo {
+) RemoteSigningError!DiscoveryInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -667,7 +667,7 @@ pub fn discovery_render_nostrconnect_url(
     template_url: []const u8,
     connection_uri: []const u8,
     scratch: std.mem.Allocator,
-) Nip46Error![]const u8 {
+) RemoteSigningError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -715,7 +715,7 @@ const MessageParseState = struct {
 fn parse_message_object(
     object: std.json.ObjectMap,
     scratch: std.mem.Allocator,
-) Nip46Error!Message {
+) RemoteSigningError!Message {
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -732,7 +732,7 @@ fn parse_message_field(
     key: []const u8,
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -776,7 +776,7 @@ fn parse_message_field(
 fn build_message_from_state(
     state: MessageParseState,
     scratch: std.mem.Allocator,
-) Nip46Error!Message {
+) RemoteSigningError!Message {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(@sizeOf(MessageParseState) > 0);
 
@@ -791,7 +791,7 @@ fn build_request_message(
     id: []const u8,
     state: MessageParseState,
     scratch: std.mem.Allocator,
-) Nip46Error!Message {
+) RemoteSigningError!Message {
     std.debug.assert(id.len > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -805,7 +805,7 @@ fn build_request_message(
     return .{ .request = request };
 }
 
-fn build_response_message(id: []const u8, state: MessageParseState) Nip46Error!Message {
+fn build_response_message(id: []const u8, state: MessageParseState) RemoteSigningError!Message {
     std.debug.assert(id.len > 0);
     std.debug.assert(@sizeOf(MessageParseState) > 0);
 
@@ -820,7 +820,7 @@ fn build_response_message(id: []const u8, state: MessageParseState) Nip46Error!M
 fn parse_well_known_root(
     object: std.json.ObjectMap,
     scratch: std.mem.Allocator,
-) Nip46Error!DiscoveryInfo {
+) RemoteSigningError!DiscoveryInfo {
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -841,7 +841,7 @@ fn parse_well_known_root(
 fn validate_nostrconnect_client_uri(
     connection_uri: []const u8,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(connection_uri.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -851,7 +851,7 @@ fn validate_nostrconnect_client_uri(
     }
 }
 
-fn find_single_nostrconnect_placeholder(template_url: []const u8) Nip46Error!usize {
+fn find_single_nostrconnect_placeholder(template_url: []const u8) RemoteSigningError!usize {
     std.debug.assert(template_url.len <= std.math.maxInt(usize));
     std.debug.assert(nostrconnect_url_placeholder.len > 0);
 
@@ -865,7 +865,7 @@ fn find_single_nostrconnect_placeholder(template_url: []const u8) Nip46Error!usi
     return placeholder_start;
 }
 
-fn parse_well_known_names(value: std.json.Value) Nip46Error![32]u8 {
+fn parse_well_known_names(value: std.json.Value) RemoteSigningError![32]u8 {
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -884,7 +884,7 @@ fn parse_well_known_nip46(
     value: std.json.Value,
     app_pubkey: [32]u8,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(partial) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -923,7 +923,7 @@ fn parse_well_known_relays(
     relay_buf: *[limits.nip46_relays_max][]const u8,
     relay_count: *u8,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(relay_count.* <= limits.nip46_relays_max);
 
@@ -948,7 +948,7 @@ fn parse_well_known_relays(
 fn parse_well_known_discovery_url(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip46Error![]const u8 {
+) RemoteSigningError![]const u8 {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.tag_item_bytes_max > 0);
 
@@ -970,7 +970,7 @@ fn parse_discovery_tag(
     relay_count: *u8,
     saw_kind: *bool,
     discovery_url: *?[]const u8,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(relay_count) != 0);
     std.debug.assert(@intFromPtr(saw_kind) != 0);
 
@@ -990,7 +990,7 @@ fn parse_discovery_tag(
     }
 }
 
-fn parse_discovery_kind_tag(tag: nip01_event.EventTag, saw_kind: *bool) Nip46Error!void {
+fn parse_discovery_kind_tag(tag: nip01_event.EventTag, saw_kind: *bool) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(saw_kind) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -1010,7 +1010,7 @@ fn parse_discovery_relay_tag(
     tag: nip01_event.EventTag,
     relays_buf: *[limits.nip46_relays_max][]const u8,
     relay_count: *u8,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(relay_count) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -1023,7 +1023,7 @@ fn parse_discovery_relay_tag(
 fn parse_discovery_url_tag(
     tag: nip01_event.EventTag,
     discovery_url: *?[]const u8,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(discovery_url) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -1037,7 +1037,7 @@ fn parse_discovery_url_tag(
     discovery_url.* = tag.items[1];
 }
 
-fn parse_id_value(value: std.json.Value, scratch: std.mem.Allocator) Nip46Error![]const u8 {
+fn parse_id_value(value: std.json.Value, scratch: std.mem.Allocator) RemoteSigningError![]const u8 {
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1051,7 +1051,7 @@ fn parse_id_value(value: std.json.Value, scratch: std.mem.Allocator) Nip46Error!
     return id;
 }
 
-fn parse_method_value(value: std.json.Value) Nip46Error!RemoteSigningMethod {
+fn parse_method_value(value: std.json.Value) RemoteSigningError!RemoteSigningMethod {
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
     std.debug.assert(@sizeOf(RemoteSigningMethod) > 0);
 
@@ -1064,7 +1064,7 @@ fn parse_method_value(value: std.json.Value) Nip46Error!RemoteSigningMethod {
 fn parse_result_value(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip46Error!ResponsePayload {
+) RemoteSigningError!ResponsePayload {
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1102,7 +1102,7 @@ fn parse_string_array_value(
     max_items: u8,
     max_item_len: u32,
     scratch: std.mem.Allocator,
-) Nip46Error![]const []const u8 {
+) RemoteSigningError![]const []const u8 {
     std.debug.assert(max_items > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1130,7 +1130,7 @@ fn parse_optional_string_value(
     value: std.json.Value,
     max_len: u32,
     scratch: std.mem.Allocator,
-) Nip46Error!?[]const u8 {
+) RemoteSigningError!?[]const u8 {
     std.debug.assert(max_len > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1144,8 +1144,8 @@ fn parse_required_string_value(
     value: std.json.Value,
     max_len: u32,
     scratch: std.mem.Allocator,
-    invalid_error: Nip46Error,
-) Nip46Error![]const u8 {
+    invalid_error: RemoteSigningError,
+) RemoteSigningError![]const u8 {
     std.debug.assert(max_len > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1178,7 +1178,7 @@ fn duplicate_valid_utf8(
     return scratch.dupe(u8, text) catch return error.OutOfMemory;
 }
 
-fn validate_message_id(id: []const u8) Nip46Error!void {
+fn validate_message_id(id: []const u8) RemoteSigningError!void {
     std.debug.assert(id.len <= limits.nip46_message_id_bytes_max);
     std.debug.assert(id.len <= std.math.maxInt(usize));
 
@@ -1193,7 +1193,7 @@ fn validate_message_id(id: []const u8) Nip46Error!void {
     }
 }
 
-fn validate_response_common(response: *const Response) Nip46Error!void {
+fn validate_response_common(response: *const Response) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(response) != 0);
     std.debug.assert(@sizeOf(ResponsePayload) > 0);
 
@@ -1208,7 +1208,7 @@ fn validate_response_common(response: *const Response) Nip46Error!void {
     }
 }
 
-fn response_text_payload(response: *const Response) Nip46Error![]const u8 {
+fn response_text_payload(response: *const Response) RemoteSigningError![]const u8 {
     std.debug.assert(@intFromPtr(response) != 0);
     std.debug.assert(@sizeOf(ResponsePayload) > 0);
 
@@ -1224,7 +1224,7 @@ fn response_text_payload(response: *const Response) Nip46Error![]const u8 {
 fn validate_connect_params(
     params: []const []const u8,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(params.len <= limits.nip46_message_params_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
@@ -1264,7 +1264,7 @@ fn method_is_zero_param(method: RemoteSigningMethod) bool {
 fn parse_typed_connect_request(
     params: []const []const u8,
     scratch: std.mem.Allocator,
-) Nip46Error!ConnectRequest {
+) RemoteSigningError!ConnectRequest {
     std.debug.assert(params.len <= limits.nip46_message_params_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1283,7 +1283,7 @@ fn parse_typed_connect_request(
 fn validate_sign_event_params(
     params: []const []const u8,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(params.len <= limits.nip46_message_params_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1293,7 +1293,7 @@ fn validate_sign_event_params(
     try validate_unsigned_event_json(params[0], scratch);
 }
 
-fn require_zero_params(params: []const []const u8) Nip46Error!void {
+fn require_zero_params(params: []const []const u8) RemoteSigningError!void {
     std.debug.assert(params.len <= limits.nip46_message_params_max);
     std.debug.assert(params.len <= std.math.maxInt(usize));
 
@@ -1302,7 +1302,7 @@ fn require_zero_params(params: []const []const u8) Nip46Error!void {
     }
 }
 
-fn validate_pubkey_text_params(params: []const []const u8) Nip46Error!void {
+fn validate_pubkey_text_params(params: []const []const u8) RemoteSigningError!void {
     std.debug.assert(params.len <= limits.nip46_message_params_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -1315,7 +1315,7 @@ fn validate_pubkey_text_params(params: []const []const u8) Nip46Error!void {
     }
 }
 
-fn parse_pubkey_text_request(params: []const []const u8) Nip46Error!PubkeyTextRequest {
+fn parse_pubkey_text_request(params: []const []const u8) RemoteSigningError!PubkeyTextRequest {
     std.debug.assert(params.len <= limits.nip46_message_params_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -1329,7 +1329,7 @@ fn validate_response_result(
     result: ResponseResult,
     method: RemoteSigningMethod,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@intFromEnum(method) <= @intFromEnum(RemoteSigningMethod.switch_relays));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1345,7 +1345,7 @@ fn validate_response_result(
     }
 }
 
-fn validate_connect_result(result: ResponseResult) Nip46Error!void {
+fn validate_connect_result(result: ResponseResult) RemoteSigningError!void {
     std.debug.assert(@sizeOf(ResponseResult) > 0);
     std.debug.assert(!@inComptime());
 
@@ -1358,7 +1358,7 @@ fn validate_connect_result(result: ResponseResult) Nip46Error!void {
 fn validate_sign_event_result(
     result: ResponseResult,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@sizeOf(ResponseResult) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1370,7 +1370,7 @@ fn validate_sign_event_result(
     }
 }
 
-fn validate_ping_result(result: ResponseResult) Nip46Error!void {
+fn validate_ping_result(result: ResponseResult) RemoteSigningError!void {
     std.debug.assert(@sizeOf(ResponseResult) > 0);
     std.debug.assert(!@inComptime());
 
@@ -1382,7 +1382,7 @@ fn validate_ping_result(result: ResponseResult) Nip46Error!void {
     }
 }
 
-fn validate_pubkey_result(result: ResponseResult) Nip46Error!void {
+fn validate_pubkey_result(result: ResponseResult) RemoteSigningError!void {
     std.debug.assert(@sizeOf(ResponseResult) > 0);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -1392,7 +1392,7 @@ fn validate_pubkey_result(result: ResponseResult) Nip46Error!void {
     }
 }
 
-fn validate_text_result(result: ResponseResult) Nip46Error!void {
+fn validate_text_result(result: ResponseResult) RemoteSigningError!void {
     std.debug.assert(@sizeOf(ResponseResult) > 0);
     std.debug.assert(!@inComptime());
 
@@ -1402,7 +1402,7 @@ fn validate_text_result(result: ResponseResult) Nip46Error!void {
     }
 }
 
-fn validate_switch_relays_result(result: ResponseResult) Nip46Error!void {
+fn validate_switch_relays_result(result: ResponseResult) RemoteSigningError!void {
     std.debug.assert(@sizeOf(ResponseResult) > 0);
     std.debug.assert(!@inComptime());
 
@@ -1417,7 +1417,7 @@ fn validate_switch_relays_result(result: ResponseResult) Nip46Error!void {
     }
 }
 
-fn parse_uri_parts(input: []const u8) Nip46Error!ParsedUriParts {
+fn parse_uri_parts(input: []const u8) RemoteSigningError!ParsedUriParts {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(input.len <= std.math.maxInt(usize));
 
@@ -1455,7 +1455,7 @@ fn parse_bunker_uri(
     authority: []const u8,
     query: ?[]const u8,
     scratch: std.mem.Allocator,
-) Nip46Error!BunkerUri {
+) RemoteSigningError!BunkerUri {
     std.debug.assert(authority.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1478,7 +1478,7 @@ fn parse_client_uri(
     authority: []const u8,
     query: ?[]const u8,
     scratch: std.mem.Allocator,
-) Nip46Error!ClientUri {
+) RemoteSigningError!ClientUri {
     std.debug.assert(authority.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1520,7 +1520,7 @@ fn parse_uri_query(
     relay_count: *u8,
     secret: *?[]const u8,
     metadata: ?*ClientMetadata,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(raw_query.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1544,7 +1544,7 @@ fn apply_query_pair(
     relay_count: *u8,
     secret: *?[]const u8,
     metadata: ?*ClientMetadata,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(raw_key.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1591,7 +1591,7 @@ fn parse_legacy_metadata_json(
     metadata: *ClientMetadata,
     input: []const u8,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(metadata) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1616,7 +1616,7 @@ fn parse_legacy_metadata_name(
     metadata: *ClientMetadata,
     object: std.json.ObjectMap,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(metadata) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1638,7 +1638,7 @@ fn parse_legacy_metadata_url(
     metadata: *ClientMetadata,
     object: std.json.ObjectMap,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(metadata) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1660,7 +1660,7 @@ fn parse_legacy_metadata_icons(
     metadata: *ClientMetadata,
     object: std.json.ObjectMap,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(metadata) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1688,7 +1688,7 @@ fn append_query_relay(
     relay: []const u8,
     relay_buf: *[limits.nip46_relays_max][]const u8,
     relay_count: *u8,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(relay_count.* <= limits.nip46_relays_max);
     std.debug.assert(relay.len <= std.math.maxInt(usize));
 
@@ -1703,7 +1703,7 @@ fn append_query_relay(
 fn parse_permissions_csv(
     perms_text: []const u8,
     scratch: std.mem.Allocator,
-) Nip46Error![]const Permission {
+) RemoteSigningError![]const Permission {
     std.debug.assert(perms_text.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1735,7 +1735,7 @@ fn parse_permissions_csv(
 fn duplicate_relay_slice(
     input: []const []const u8,
     scratch: std.mem.Allocator,
-) Nip46Error![]const []const u8 {
+) RemoteSigningError![]const []const u8 {
     std.debug.assert(input.len <= limits.nip46_relays_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1748,7 +1748,7 @@ fn query_decode_component(
     text: []const u8,
     plus_as_space: bool,
     scratch: std.mem.Allocator,
-) Nip46Error![]const u8 {
+) RemoteSigningError![]const u8 {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1802,7 +1802,7 @@ fn decode_hex_nibble(byte: u8) error{InvalidHex}!u8 {
     return error.InvalidHex;
 }
 
-fn write_request_json(writer: anytype, request: Request) Nip46Error!void {
+fn write_request_json(writer: anytype, request: Request) RemoteSigningError!void {
     std.debug.assert(request.params.len <= limits.nip46_message_params_max);
     std.debug.assert(request.id.len <= limits.nip46_message_id_bytes_max);
 
@@ -1816,7 +1816,7 @@ fn write_request_json(writer: anytype, request: Request) Nip46Error!void {
     try write_all(writer, "]}");
 }
 
-fn write_response_json(writer: anytype, response: Response) Nip46Error!void {
+fn write_response_json(writer: anytype, response: Response) RemoteSigningError!void {
     std.debug.assert(response.id.len <= limits.nip46_message_id_bytes_max);
     std.debug.assert(@sizeOf(Response) > 0);
 
@@ -1838,7 +1838,7 @@ fn write_response_json(writer: anytype, response: Response) Nip46Error!void {
     try write_all(writer, "}");
 }
 
-fn write_result_json(writer: anytype, result: ResponseResult) Nip46Error!void {
+fn write_result_json(writer: anytype, result: ResponseResult) RemoteSigningError!void {
     std.debug.assert(@sizeOf(ResponseResult) > 0);
     std.debug.assert(!@inComptime());
 
@@ -1852,7 +1852,7 @@ fn write_result_json(writer: anytype, result: ResponseResult) Nip46Error!void {
     }
 }
 
-fn write_json_string_array(writer: anytype, values: []const []const u8) Nip46Error!void {
+fn write_json_string_array(writer: anytype, values: []const []const u8) RemoteSigningError!void {
     std.debug.assert(values.len <= std.math.maxInt(u16));
     std.debug.assert(values.len <= std.math.maxInt(usize));
 
@@ -1863,7 +1863,7 @@ fn write_json_string_array(writer: anytype, values: []const []const u8) Nip46Err
     }
 }
 
-fn write_json_string(writer: anytype, value: []const u8) Nip46Error!void {
+fn write_json_string(writer: anytype, value: []const u8) RemoteSigningError!void {
     std.debug.assert(value.len <= limits.nip46_message_json_bytes_max);
     std.debug.assert(value.len <= std.math.maxInt(usize));
 
@@ -1874,7 +1874,7 @@ fn write_json_string(writer: anytype, value: []const u8) Nip46Error!void {
     try write_byte(writer, '"');
 }
 
-fn write_json_escaped_byte(writer: anytype, byte: u8) Nip46Error!void {
+fn write_json_escaped_byte(writer: anytype, byte: u8) RemoteSigningError!void {
     std.debug.assert(byte <= 255);
     std.debug.assert(@sizeOf(u8) == 1);
 
@@ -1896,7 +1896,7 @@ fn write_json_escaped_byte(writer: anytype, byte: u8) Nip46Error!void {
     }
 }
 
-fn write_bunker_uri(writer: anytype, bunker: BunkerUri) Nip46Error!void {
+fn write_bunker_uri(writer: anytype, bunker: BunkerUri) RemoteSigningError!void {
     std.debug.assert(bunker.relays.len <= limits.nip46_relays_max);
     std.debug.assert(@sizeOf(BunkerUri) > 0);
 
@@ -1905,7 +1905,7 @@ fn write_bunker_uri(writer: anytype, bunker: BunkerUri) Nip46Error!void {
     try write_uri_query(writer, bunker.relays, bunker.secret, null);
 }
 
-fn write_client_uri(writer: anytype, client: ClientUri) Nip46Error!void {
+fn write_client_uri(writer: anytype, client: ClientUri) RemoteSigningError!void {
     std.debug.assert(client.relays.len <= limits.nip46_relays_max);
     std.debug.assert(client.permissions.len <= limits.nip46_permissions_max);
 
@@ -1925,7 +1925,7 @@ fn write_uri_query(
     relays: []const []const u8,
     secret: ?[]const u8,
     metadata: ?ClientMetadata,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(relays.len <= limits.nip46_relays_max);
     std.debug.assert(@sizeOf(ClientMetadata) > 0);
 
@@ -1952,7 +1952,7 @@ fn write_query_pair(
     wrote_query: *bool,
     key: []const u8,
     value: []const u8,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(key.len > 0);
     std.debug.assert(@intFromPtr(wrote_query) != 0);
 
@@ -1967,7 +1967,7 @@ fn write_query_pair(
     try write_percent_encoded(writer, value);
 }
 
-fn join_permissions(output: []u8, permissions: []const Permission) Nip46Error![]const u8 {
+fn join_permissions(output: []u8, permissions: []const Permission) RemoteSigningError![]const u8 {
     std.debug.assert(output.len <= limits.tag_item_bytes_max);
     std.debug.assert(permissions.len <= limits.nip46_permissions_max);
 
@@ -1985,7 +1985,7 @@ fn join_permissions(output: []u8, permissions: []const Permission) Nip46Error![]
     return output[0..used];
 }
 
-fn write_percent_encoded(writer: anytype, text: []const u8) Nip46Error!void {
+fn write_percent_encoded(writer: anytype, text: []const u8) RemoteSigningError!void {
     std.debug.assert(text.len <= limits.nip46_uri_bytes_max);
     std.debug.assert(text.len <= std.math.maxInt(usize));
 
@@ -2006,21 +2006,21 @@ fn write_percent_encoded(writer: anytype, text: []const u8) Nip46Error!void {
     }
 }
 
-fn write_all(writer: anytype, text: []const u8) Nip46Error!void {
+fn write_all(writer: anytype, text: []const u8) RemoteSigningError!void {
     std.debug.assert(text.len <= limits.nip46_uri_bytes_max);
     std.debug.assert(text.len <= std.math.maxInt(usize));
 
     writer.writeAll(text) catch return error.BufferTooSmall;
 }
 
-fn write_byte(writer: anytype, byte: u8) Nip46Error!void {
+fn write_byte(writer: anytype, byte: u8) RemoteSigningError!void {
     std.debug.assert(byte <= 255);
     std.debug.assert(@sizeOf(u8) == 1);
 
     writer.writeByte(byte) catch return error.BufferTooSmall;
 }
 
-fn write_print(writer: anytype, comptime fmt: []const u8, args: anytype) Nip46Error!void {
+fn write_print(writer: anytype, comptime fmt: []const u8, args: anytype) RemoteSigningError!void {
     std.debug.assert(fmt.len > 0);
     std.debug.assert(fmt.len <= limits.nip46_uri_bytes_max);
 
@@ -2058,7 +2058,7 @@ fn tag_is_p(tag: nip01_event.EventTag) bool {
     return std.mem.eql(u8, tag.items[0], "p");
 }
 
-fn parse_target_pubkey(tag: nip01_event.EventTag) Nip46Error![32]u8 {
+fn parse_target_pubkey(tag: nip01_event.EventTag) RemoteSigningError![32]u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -2068,7 +2068,7 @@ fn parse_target_pubkey(tag: nip01_event.EventTag) Nip46Error![32]u8 {
     return parse_lower_hex_32(tag.items[1]) catch error.InvalidTargetPubkey;
 }
 
-fn validate_secret(secret: []const u8) Nip46Error!void {
+fn validate_secret(secret: []const u8) RemoteSigningError!void {
     std.debug.assert(secret.len <= std.math.maxInt(usize));
     std.debug.assert(limits.nip46_secret_bytes_max > 0);
 
@@ -2083,7 +2083,7 @@ fn validate_secret(secret: []const u8) Nip46Error!void {
     }
 }
 
-fn validate_name(name: []const u8) Nip46Error!void {
+fn validate_name(name: []const u8) RemoteSigningError!void {
     std.debug.assert(name.len <= std.math.maxInt(usize));
     std.debug.assert(name.len <= std.math.maxInt(usize));
 
@@ -2095,7 +2095,7 @@ fn validate_name(name: []const u8) Nip46Error!void {
 fn validate_unsigned_event_json(
     input: []const u8,
     scratch: std.mem.Allocator,
-) Nip46Error!void {
+) RemoteSigningError!void {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -2121,7 +2121,7 @@ fn validate_unsigned_event_json(
     try validate_unsigned_event_object(root.object);
 }
 
-fn validate_unsigned_event_object(object: std.json.ObjectMap) Nip46Error!void {
+fn validate_unsigned_event_object(object: std.json.ObjectMap) RemoteSigningError!void {
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
     std.debug.assert(limits.kind_max == std.math.maxInt(u16));
 
@@ -2158,7 +2158,7 @@ fn validate_unsigned_event_object(object: std.json.ObjectMap) Nip46Error!void {
     }
 }
 
-fn validate_unsigned_kind(value: std.json.Value) Nip46Error!void {
+fn validate_unsigned_kind(value: std.json.Value) RemoteSigningError!void {
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
     std.debug.assert(limits.kind_max <= std.math.maxInt(u32));
 
@@ -2170,7 +2170,7 @@ fn validate_unsigned_kind(value: std.json.Value) Nip46Error!void {
     }
 }
 
-fn validate_unsigned_created_at(value: std.json.Value) Nip46Error!void {
+fn validate_unsigned_created_at(value: std.json.Value) RemoteSigningError!void {
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
     std.debug.assert(@sizeOf(u64) == 8);
 
@@ -2179,7 +2179,7 @@ fn validate_unsigned_created_at(value: std.json.Value) Nip46Error!void {
     }
 }
 
-fn validate_unsigned_content(value: std.json.Value) Nip46Error!void {
+fn validate_unsigned_content(value: std.json.Value) RemoteSigningError!void {
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
     std.debug.assert(limits.content_bytes_max > 0);
 
@@ -2194,7 +2194,7 @@ fn validate_unsigned_content(value: std.json.Value) Nip46Error!void {
     }
 }
 
-fn validate_unsigned_tags(value: std.json.Value) Nip46Error!void {
+fn validate_unsigned_tags(value: std.json.Value) RemoteSigningError!void {
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
     std.debug.assert(limits.tags_max > 0);
 

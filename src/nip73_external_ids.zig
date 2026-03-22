@@ -3,7 +3,7 @@ const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
 const url_with_host = @import("internal/url_with_host.zig");
 
-pub const Nip73Error = error{
+pub const ExternalIdError = error{
     InvalidKind,
     InvalidValue,
     InvalidHint,
@@ -75,7 +75,7 @@ pub const BuiltTag = struct {
 };
 
 /// Parses and validates a bounded NIP-73 external content id plus optional hint URL.
-pub fn external_id_parse(value: []const u8, hint: ?[]const u8) Nip73Error!ExternalId {
+pub fn external_id_parse(value: []const u8, hint: ?[]const u8) ExternalIdError!ExternalId {
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
     std.debug.assert(value.len <= limits.content_bytes_max);
 
@@ -91,7 +91,7 @@ pub fn external_id_parse(value: []const u8, hint: ?[]const u8) Nip73Error!Extern
 }
 
 /// Parses a NIP-73 `k`/`K` kind token into the canonical kind model.
-pub fn external_kind_parse(text: []const u8) Nip73Error!ExternalIdKind {
+pub fn external_kind_parse(text: []const u8) ExternalIdError!ExternalIdKind {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(text.len <= limits.content_bytes_max);
 
@@ -114,7 +114,7 @@ pub fn external_kind_parse(text: []const u8) Nip73Error!ExternalIdKind {
 }
 
 /// Serializes a canonical NIP-73 kind token into caller-owned storage.
-pub fn external_kind_text(output: []u8, kind: ExternalIdKind) Nip73Error![]const u8 {
+pub fn external_kind_text(output: []u8, kind: ExternalIdKind) ExternalIdError![]const u8 {
     std.debug.assert(output.len <= limits.tag_item_bytes_max);
     std.debug.assert(@sizeOf(ExternalIdKind) > 0);
 
@@ -152,7 +152,7 @@ pub fn external_id_matches_kind(kind_text: []const u8, value: []const u8) bool {
 pub fn external_id_build_i_tag(
     output: *BuiltTag,
     external_id: *const ExternalId,
-) Nip73Error!nip01_event.EventTag {
+) ExternalIdError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(external_id) != 0);
 
@@ -174,7 +174,7 @@ pub fn external_id_build_i_tag(
 pub fn external_id_build_k_tag(
     output: *BuiltTag,
     kind: ExternalIdKind,
-) Nip73Error!nip01_event.EventTag {
+) ExternalIdError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@sizeOf(ExternalIdKind) > 0);
 
@@ -184,7 +184,7 @@ pub fn external_id_build_k_tag(
     return output.as_event_tag();
 }
 
-fn detect_kind(value: []const u8) Nip73Error!ExternalIdKind {
+fn detect_kind(value: []const u8) ExternalIdError!ExternalIdKind {
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
     std.debug.assert(value.len <= limits.content_bytes_max);
 
@@ -209,7 +209,7 @@ fn detect_kind(value: []const u8) Nip73Error!ExternalIdKind {
     return error.InvalidValue;
 }
 
-fn parse_blockchain_kind(text: []const u8, suffix: []const u8) Nip73Error!?[]const u8 {
+fn parse_blockchain_kind(text: []const u8, suffix: []const u8) ExternalIdError!?[]const u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(suffix.len > 0);
 
@@ -219,7 +219,7 @@ fn parse_blockchain_kind(text: []const u8, suffix: []const u8) Nip73Error!?[]con
     return chain;
 }
 
-fn parse_blockchain_value(value: []const u8, separator: []const u8) Nip73Error!?[]const u8 {
+fn parse_blockchain_value(value: []const u8, separator: []const u8) ExternalIdError!?[]const u8 {
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
     std.debug.assert(separator.len > 0);
 
@@ -233,7 +233,7 @@ fn parse_blockchain_value(value: []const u8, separator: []const u8) Nip73Error!?
     return chain;
 }
 
-fn validate_chain_token(chain: []const u8) Nip73Error!void {
+fn validate_chain_token(chain: []const u8) ExternalIdError!void {
     std.debug.assert(chain.len <= limits.tag_item_bytes_max);
     std.debug.assert(chain.len <= limits.content_bytes_max);
 
@@ -244,7 +244,7 @@ fn validate_chain_token(chain: []const u8) Nip73Error!void {
     }
 }
 
-fn parse_nonempty_utf8(text: []const u8) Nip73Error![]const u8 {
+fn parse_nonempty_utf8(text: []const u8) ExternalIdError![]const u8 {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(text.len <= limits.content_bytes_max);
 

@@ -2,7 +2,7 @@ const std = @import("std");
 const limits = @import("limits.zig");
 const nip21_uri = @import("nip21_uri.zig");
 
-pub const Nip27Error = error{
+pub const ReferenceError = error{
     BufferTooSmall,
     ScratchTooSmall,
 };
@@ -25,7 +25,7 @@ pub fn reference_extract(
     content: []const u8,
     references_out: []ContentReference,
     tlv_scratch: []u8,
-) Nip27Error!u16 {
+) ReferenceError!u16 {
     std.debug.assert(content.len <= limits.content_bytes_max);
     std.debug.assert(references_out.len <= std.math.maxInt(u16));
 

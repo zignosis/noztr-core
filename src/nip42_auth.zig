@@ -2,7 +2,7 @@ const std = @import("std");
 const nip01_event = @import("nip01_event.zig");
 const relay_origin = @import("internal/relay_origin.zig");
 
-pub const Nip42Error = error{
+pub const AuthError = error{
     ChallengeEmpty,
     ChallengeTooLong,
     RelayUrlMismatch,
@@ -64,7 +64,7 @@ pub fn auth_validate_event(
     expected_challenge: []const u8,
     now_unix_seconds: u64,
     window_seconds: u32,
-) Nip42Error!void {
+) AuthError!void {
     std.debug.assert(auth_event.created_at <= std.math.maxInt(u64));
     std.debug.assert(window_seconds <= std.math.maxInt(u32));
 
@@ -102,7 +102,7 @@ pub fn auth_state_accept_event(
     expected_relay: []const u8,
     now_unix_seconds: u64,
     window_seconds: u32,
-) Nip42Error!void {
+) AuthError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(state.authenticated_count <= authenticated_pubkeys_max);
 
@@ -171,7 +171,7 @@ fn validate_timestamp_window(
     created_at: u64,
     now_unix_seconds: u64,
     window_seconds: u32,
-) Nip42Error!void {
+) AuthError!void {
     std.debug.assert(created_at <= std.math.maxInt(u64));
     std.debug.assert(window_seconds <= std.math.maxInt(u32));
 
@@ -197,7 +197,7 @@ fn validate_timestamp_window(
     }
 }
 
-fn map_event_verify_error(verify_error: nip01_event.EventVerifyError) Nip42Error {
+fn map_event_verify_error(verify_error: nip01_event.EventVerifyError) AuthError {
     std.debug.assert(@intFromError(verify_error) >= 0);
     std.debug.assert(!@inComptime());
 
@@ -209,7 +209,7 @@ fn map_event_verify_error(verify_error: nip01_event.EventVerifyError) Nip42Error
     };
 }
 
-fn force_auth_verify_mapping(verify_error: nip01_event.EventVerifyError) Nip42Error!void {
+fn force_auth_verify_mapping(verify_error: nip01_event.EventVerifyError) AuthError!void {
     std.debug.assert(@intFromError(verify_error) >= 0);
     std.debug.assert(!@inComptime());
 

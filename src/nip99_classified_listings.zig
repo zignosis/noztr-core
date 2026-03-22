@@ -3,7 +3,7 @@ const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
 const url_with_host = @import("internal/url_with_host.zig");
 
-pub const Nip99Error = error{
+pub const ClassifiedListingError = error{
     UnsupportedKind,
     MissingIdentifier,
     DuplicateIdentifierTag,
@@ -95,7 +95,7 @@ pub fn listing_extract(
     event: *const nip01_event.Event,
     out_images: []ImageInfo,
     out_hashtags: [][]const u8,
-) Nip99Error!ListingMetadata {
+) ClassifiedListingError!ListingMetadata {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_images.len <= std.math.maxInt(u16));
 
@@ -119,7 +119,7 @@ pub fn listing_extract(
 pub fn listing_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip99Error!nip01_event.EventTag {
+) ClassifiedListingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     output.items[0] = "d";
@@ -132,7 +132,7 @@ pub fn listing_build_identifier_tag(
 pub fn listing_build_title_tag(
     output: *BuiltTag,
     title: []const u8,
-) Nip99Error!nip01_event.EventTag {
+) ClassifiedListingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     output.items[0] = "title";
@@ -145,7 +145,7 @@ pub fn listing_build_title_tag(
 pub fn listing_build_summary_tag(
     output: *BuiltTag,
     summary: []const u8,
-) Nip99Error!nip01_event.EventTag {
+) ClassifiedListingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     output.items[0] = "summary";
@@ -158,7 +158,7 @@ pub fn listing_build_summary_tag(
 pub fn listing_build_published_at_tag(
     output: *BuiltTag,
     published_at: u64,
-) Nip99Error!nip01_event.EventTag {
+) ClassifiedListingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(published_at <= std.math.maxInt(u64));
 
@@ -174,7 +174,7 @@ pub fn listing_build_published_at_tag(
 pub fn listing_build_location_tag(
     output: *BuiltTag,
     location: []const u8,
-) Nip99Error!nip01_event.EventTag {
+) ClassifiedListingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     output.items[0] = "location";
@@ -187,7 +187,7 @@ pub fn listing_build_location_tag(
 pub fn listing_build_price_tag(
     output: *BuiltTag,
     price: *const PriceInfo,
-) Nip99Error!nip01_event.EventTag {
+) ClassifiedListingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(price) != 0);
 
@@ -207,7 +207,7 @@ pub fn listing_build_price_tag(
 pub fn listing_build_status_tag(
     output: *BuiltTag,
     status: ListingStatus,
-) Nip99Error!nip01_event.EventTag {
+) ClassifiedListingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@sizeOf(ListingStatus) > 0);
 
@@ -225,7 +225,7 @@ pub fn listing_build_status_tag(
 pub fn listing_build_geohash_tag(
     output: *BuiltTag,
     geohash: []const u8,
-) Nip99Error!nip01_event.EventTag {
+) ClassifiedListingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     output.items[0] = "g";
@@ -239,7 +239,7 @@ pub fn listing_build_image_tag(
     output: *BuiltTag,
     image_url: []const u8,
     dimensions: ?[]const u8,
-) Nip99Error!nip01_event.EventTag {
+) ClassifiedListingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     output.items[0] = "image";
@@ -256,7 +256,7 @@ pub fn listing_build_image_tag(
 pub fn listing_build_hashtag_tag(
     output: *BuiltTag,
     hashtag: []const u8,
-) Nip99Error!nip01_event.EventTag {
+) ClassifiedListingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     output.items[0] = "t";
@@ -271,7 +271,7 @@ fn apply_tag(
     metadata: *ListingMetadata,
     out_images: []ImageInfo,
     out_hashtags: [][]const u8,
-) Nip99Error!void {
+) ClassifiedListingError!void {
     std.debug.assert(@intFromPtr(identifier) != 0);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -289,7 +289,7 @@ fn apply_tag(
     if (std.mem.eql(u8, name, "t")) return apply_hashtag_tag(tag, metadata, out_hashtags);
 }
 
-fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip99Error!void {
+fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) ClassifiedListingError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(identifier) != 0);
 
@@ -297,7 +297,7 @@ fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip
     identifier.* = parse_identifier_value(tag) catch return error.InvalidIdentifierTag;
 }
 
-fn apply_title_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) Nip99Error!void {
+fn apply_title_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) ClassifiedListingError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -305,7 +305,7 @@ fn apply_title_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) Nip99E
     metadata.title = parse_single_utf8_value(tag) catch return error.InvalidTitleTag;
 }
 
-fn apply_summary_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) Nip99Error!void {
+fn apply_summary_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) ClassifiedListingError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -313,7 +313,7 @@ fn apply_summary_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) Nip9
     metadata.summary = parse_single_utf8_value(tag) catch return error.InvalidSummaryTag;
 }
 
-fn apply_published_at_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) Nip99Error!void {
+fn apply_published_at_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) ClassifiedListingError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -321,7 +321,7 @@ fn apply_published_at_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata)
     metadata.published_at = parse_u64_value(tag) catch return error.InvalidPublishedAtTag;
 }
 
-fn apply_location_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) Nip99Error!void {
+fn apply_location_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) ClassifiedListingError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -329,7 +329,7 @@ fn apply_location_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) Nip
     metadata.location = parse_single_utf8_value(tag) catch return error.InvalidLocationTag;
 }
 
-fn apply_price_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) Nip99Error!void {
+fn apply_price_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) ClassifiedListingError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -337,7 +337,7 @@ fn apply_price_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) Nip99E
     metadata.price = try parse_price(tag);
 }
 
-fn apply_status_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) Nip99Error!void {
+fn apply_status_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) ClassifiedListingError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -345,7 +345,7 @@ fn apply_status_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) Nip99
     metadata.status = try parse_status(tag);
 }
 
-fn apply_geohash_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) Nip99Error!void {
+fn apply_geohash_tag(tag: nip01_event.EventTag, metadata: *ListingMetadata) ClassifiedListingError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -358,7 +358,7 @@ fn apply_image_tag(
     tag: nip01_event.EventTag,
     metadata: *ListingMetadata,
     out_images: []ImageInfo,
-) Nip99Error!void {
+) ClassifiedListingError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -374,7 +374,7 @@ fn apply_hashtag_tag(
     tag: nip01_event.EventTag,
     metadata: *ListingMetadata,
     out_hashtags: [][]const u8,
-) Nip99Error!void {
+) ClassifiedListingError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -385,7 +385,7 @@ fn apply_hashtag_tag(
     metadata.hashtag_count += 1;
 }
 
-fn parse_price(tag: nip01_event.EventTag) Nip99Error!PriceInfo {
+fn parse_price(tag: nip01_event.EventTag) ClassifiedListingError!PriceInfo {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.tag_items_max >= 4);
 
@@ -399,7 +399,7 @@ fn parse_price(tag: nip01_event.EventTag) Nip99Error!PriceInfo {
     return .{ .amount = amount, .currency = currency, .frequency = frequency };
 }
 
-fn validate_price(price: *const PriceInfo) Nip99Error!void {
+fn validate_price(price: *const PriceInfo) ClassifiedListingError!void {
     std.debug.assert(@intFromPtr(price) != 0);
     std.debug.assert(price.amount.len <= limits.tag_item_bytes_max);
 
@@ -410,7 +410,7 @@ fn validate_price(price: *const PriceInfo) Nip99Error!void {
     }
 }
 
-fn parse_status(tag: nip01_event.EventTag) Nip99Error!ListingStatus {
+fn parse_status(tag: nip01_event.EventTag) ClassifiedListingError!ListingStatus {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@sizeOf(ListingStatus) > 0);
 
@@ -420,7 +420,7 @@ fn parse_status(tag: nip01_event.EventTag) Nip99Error!ListingStatus {
     return .{ .other = value };
 }
 
-fn validate_content(content: []const u8) Nip99Error!void {
+fn validate_content(content: []const u8) ClassifiedListingError!void {
     std.debug.assert(content.len <= limits.content_bytes_max);
     std.debug.assert(limits.content_bytes_max > 0);
 
@@ -454,8 +454,8 @@ fn parse_u64_value(tag: nip01_event.EventTag) error{InvalidValue}!u64 {
 fn parse_required_url_item(
     tag: nip01_event.EventTag,
     index: usize,
-    invalid: Nip99Error,
-) Nip99Error![]const u8 {
+    invalid: ClassifiedListingError,
+) ClassifiedListingError![]const u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(index < limits.tag_items_max);
 
@@ -466,8 +466,8 @@ fn parse_required_url_item(
 fn parse_optional_dimensions_item(
     tag: nip01_event.EventTag,
     index: usize,
-    invalid: Nip99Error,
-) Nip99Error!?[]const u8 {
+    invalid: ClassifiedListingError,
+) ClassifiedListingError!?[]const u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(index < limits.tag_items_max);
 

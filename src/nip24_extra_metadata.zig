@@ -4,7 +4,7 @@ const nip01_event = @import("nip01_event.zig");
 const url_with_host = @import("internal/url_with_host.zig");
 const nip73_external_ids = @import("nip73_external_ids.zig");
 
-pub const Nip24Error = error{
+pub const ExtraMetadataError = error{
     OutOfMemory,
     InvalidJson,
     InvalidDisplayName,
@@ -62,7 +62,7 @@ pub const BuiltTag = struct {
 pub fn metadata_extras_parse_json(
     input: []const u8,
     scratch: std.mem.Allocator,
-) Nip24Error!MetadataExtras {
+) ExtraMetadataError!MetadataExtras {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(input.len <= limits.content_bytes_max);
 
@@ -92,7 +92,7 @@ pub fn metadata_extras_parse_json(
 pub fn metadata_extras_serialize_json(
     output: []u8,
     extras: *const MetadataExtras,
-) Nip24Error![]const u8 {
+) ExtraMetadataError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(extras) != 0);
 
@@ -119,7 +119,7 @@ pub fn common_tags_extract(
     tags: []const nip01_event.EventTag,
     out_reference_urls: [][]const u8,
     out_hashtags: [][]const u8,
-) Nip24Error!CommonTagInfo {
+) ExtraMetadataError!CommonTagInfo {
     std.debug.assert(out_reference_urls.len <= std.math.maxInt(u16));
     std.debug.assert(out_hashtags.len <= std.math.maxInt(u16));
 
@@ -136,7 +136,7 @@ pub fn common_tags_extract_with_external_ids(
     out_reference_urls: [][]const u8,
     out_external_ids: []nip73_external_ids.ExternalId,
     out_hashtags: [][]const u8,
-) Nip24Error!CommonTagInfo {
+) ExtraMetadataError!CommonTagInfo {
     std.debug.assert(out_reference_urls.len <= std.math.maxInt(u16));
     std.debug.assert(out_external_ids.len <= std.math.maxInt(u16));
 
@@ -151,7 +151,7 @@ pub fn common_tags_extract_with_external_ids(
 pub fn common_tags_build_reference_tag(
     output: *BuiltTag,
     reference_url: []const u8,
-) Nip24Error!nip01_event.EventTag {
+) ExtraMetadataError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(reference_url.len <= limits.tag_item_bytes_max);
 
@@ -165,7 +165,7 @@ pub fn common_tags_build_reference_tag(
 pub fn common_tags_build_title_tag(
     output: *BuiltTag,
     title: []const u8,
-) Nip24Error!nip01_event.EventTag {
+) ExtraMetadataError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(title.len <= limits.tag_item_bytes_max);
 
@@ -179,7 +179,7 @@ pub fn common_tags_build_title_tag(
 pub fn common_tags_build_hashtag_tag(
     output: *BuiltTag,
     hashtag: []const u8,
-) Nip24Error!nip01_event.EventTag {
+) ExtraMetadataError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(hashtag.len <= limits.tag_item_bytes_max);
 
@@ -193,7 +193,7 @@ fn parse_known_extra_field(
     extras: *MetadataExtras,
     key: []const u8,
     value: std.json.Value,
-) Nip24Error!void {
+) ExtraMetadataError!void {
     std.debug.assert(@intFromPtr(extras) != 0);
     std.debug.assert(@sizeOf(std.json.Value) > 0);
 
@@ -245,7 +245,7 @@ fn parse_json_bool(value: std.json.Value) error{InvalidField}!bool {
     return value.bool;
 }
 
-fn parse_birthday(value: std.json.Value) Nip24Error!?Birthday {
+fn parse_birthday(value: std.json.Value) ExtraMetadataError!?Birthday {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(Birthday) > 0);
 
@@ -305,7 +305,7 @@ fn write_optional_string_field(
     needs_comma: *bool,
     key: []const u8,
     value: ?[]const u8,
-) Nip24Error!void {
+) ExtraMetadataError!void {
     std.debug.assert(@intFromPtr(needs_comma) != 0);
     std.debug.assert(key.len > 0);
 
@@ -319,7 +319,7 @@ fn write_optional_bool_field(
     needs_comma: *bool,
     key: []const u8,
     value: ?bool,
-) Nip24Error!void {
+) ExtraMetadataError!void {
     std.debug.assert(@intFromPtr(needs_comma) != 0);
     std.debug.assert(key.len > 0);
 
@@ -333,7 +333,7 @@ fn write_optional_birthday_field(
     needs_comma: *bool,
     key: []const u8,
     value: ?Birthday,
-) Nip24Error!void {
+) ExtraMetadataError!void {
     std.debug.assert(@intFromPtr(needs_comma) != 0);
     std.debug.assert(key.len > 0);
 
@@ -353,7 +353,7 @@ fn write_optional_integer_field(
     needs_comma: *bool,
     key: []const u8,
     value: anytype,
-) Nip24Error!void {
+) ExtraMetadataError!void {
     std.debug.assert(@intFromPtr(needs_comma) != 0);
     std.debug.assert(key.len > 0);
 
@@ -366,7 +366,7 @@ fn write_field_prefix(
     writer: anytype,
     needs_comma: *bool,
     key: []const u8,
-) Nip24Error!void {
+) ExtraMetadataError!void {
     std.debug.assert(@intFromPtr(needs_comma) != 0);
     std.debug.assert(key.len > 0);
 
@@ -378,7 +378,7 @@ fn write_field_prefix(
     needs_comma.* = true;
 }
 
-fn write_json_string(writer: anytype, text: []const u8) Nip24Error!void {
+fn write_json_string(writer: anytype, text: []const u8) ExtraMetadataError!void {
     std.debug.assert(text.len <= limits.content_bytes_max);
     std.debug.assert(@sizeOf(u8) == 1);
 
@@ -408,7 +408,7 @@ fn apply_common_tag(
     out_reference_urls: [][]const u8,
     out_external_ids: []nip73_external_ids.ExternalId,
     out_hashtags: [][]const u8,
-) Nip24Error!void {
+) ExtraMetadataError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_reference_urls.len <= std.math.maxInt(u16));
 
@@ -420,7 +420,7 @@ fn apply_common_tag(
     if (std.mem.eql(u8, name, "t")) return apply_hashtag_tag(tag, info, out_hashtags);
 }
 
-fn apply_title_tag(tag: nip01_event.EventTag, info: *CommonTagInfo) Nip24Error!void {
+fn apply_title_tag(tag: nip01_event.EventTag, info: *CommonTagInfo) ExtraMetadataError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -432,7 +432,7 @@ fn apply_reference_tag(
     tag: nip01_event.EventTag,
     info: *CommonTagInfo,
     out_reference_urls: [][]const u8,
-) Nip24Error!void {
+) ExtraMetadataError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_reference_urls.len <= std.math.maxInt(u16));
 
@@ -446,7 +446,7 @@ fn apply_hashtag_tag(
     tag: nip01_event.EventTag,
     info: *CommonTagInfo,
     out_hashtags: [][]const u8,
-) Nip24Error!void {
+) ExtraMetadataError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_hashtags.len <= std.math.maxInt(u16));
 
@@ -460,7 +460,7 @@ fn apply_external_id_tag(
     tag: nip01_event.EventTag,
     info: *CommonTagInfo,
     out_external_ids: []nip73_external_ids.ExternalId,
-) Nip24Error!void {
+) ExtraMetadataError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_external_ids.len <= std.math.maxInt(u16));
 
@@ -553,9 +553,9 @@ fn has_ascii_uppercase(text: []const u8) bool {
     return false;
 }
 
-fn map_json_parse_error(parse_error: anyerror) Nip24Error {
+fn map_json_parse_error(parse_error: anyerror) ExtraMetadataError {
     std.debug.assert(@typeInfo(@TypeOf(parse_error)) == .error_set);
-    std.debug.assert(@typeInfo(Nip24Error) == .error_set);
+    std.debug.assert(@typeInfo(ExtraMetadataError) == .error_set);
 
     return switch (parse_error) {
         error.OutOfMemory => error.OutOfMemory,

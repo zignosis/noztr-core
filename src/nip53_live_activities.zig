@@ -7,7 +7,7 @@ const url_with_scheme = @import("internal/url_with_scheme.zig");
 pub const live_stream_event_kind: u32 = 30311;
 pub const live_chat_message_kind: u32 = 1311;
 
-pub const Nip53Error = error{
+pub const LiveActivityError = error{
     InvalidLiveActivityKind,
     MissingIdentifierTag,
     DuplicateIdentifierTag,
@@ -113,7 +113,7 @@ pub fn live_activity_extract(
     out_relays: [][]const u8,
     out_hashtags: [][]const u8,
     out_pinned: [][32]u8,
-) Nip53Error!LiveActivityInfo {
+) LiveActivityError!LiveActivityInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_participants.len <= limits.tags_max);
 
@@ -129,7 +129,7 @@ pub fn live_activity_extract(
 }
 
 /// Extracts the activity reference and optional reply metadata from a live-chat message.
-pub fn live_chat_extract(event: *const nip01_event.Event) Nip53Error!LiveChatInfo {
+pub fn live_chat_extract(event: *const nip01_event.Event) LiveActivityError!LiveChatInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -159,7 +159,7 @@ pub fn live_chat_extract(event: *const nip01_event.Event) Nip53Error!LiveChatInf
 pub fn live_activity_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip53Error!nip01_event.EventTag {
+) LiveActivityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
 
@@ -173,7 +173,7 @@ pub fn live_activity_build_identifier_tag(
 pub fn live_activity_build_title_tag(
     output: *BuiltTag,
     title: []const u8,
-) Nip53Error!nip01_event.EventTag {
+) LiveActivityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(title.len <= limits.tag_item_bytes_max);
 
@@ -187,7 +187,7 @@ pub fn live_activity_build_title_tag(
 pub fn live_activity_build_streaming_tag(
     output: *BuiltTag,
     url: []const u8,
-) Nip53Error!nip01_event.EventTag {
+) LiveActivityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(url.len <= limits.tag_item_bytes_max);
 
@@ -201,7 +201,7 @@ pub fn live_activity_build_streaming_tag(
 pub fn live_activity_build_status_tag(
     output: *BuiltTag,
     status: LiveActivityStatus,
-) Nip53Error!nip01_event.EventTag {
+) LiveActivityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromEnum(status) <= @intFromEnum(LiveActivityStatus.ended));
 
@@ -222,7 +222,7 @@ pub fn live_activity_build_participant_tag(
     relay_hint: ?[]const u8,
     role: ?[]const u8,
     proof: ?[]const u8,
-) Nip53Error!nip01_event.EventTag {
+) LiveActivityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
 
@@ -254,7 +254,7 @@ pub fn live_chat_build_activity_tag(
     output: *BuiltTag,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
-) Nip53Error!nip01_event.EventTag {
+) LiveActivityError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(coordinate_text.len <= limits.tag_item_bytes_max);
 
@@ -279,7 +279,7 @@ fn apply_live_tag(
     out_relays: [][]const u8,
     out_hashtags: [][]const u8,
     out_pinned: [][32]u8,
-) Nip53Error!void {
+) LiveActivityError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -302,7 +302,7 @@ fn apply_live_tag(
     if (std.mem.eql(u8, name, "pinned")) return append_pinned(tag, info, out_pinned);
 }
 
-fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip53Error!void {
+fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) LiveActivityError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(identifier) != 0);
 
@@ -314,9 +314,9 @@ fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip
 fn apply_text_tag(
     tag: nip01_event.EventTag,
     field: *?[]const u8,
-    duplicate_error: Nip53Error,
-    invalid_error: Nip53Error,
-) Nip53Error!void {
+    duplicate_error: LiveActivityError,
+    invalid_error: LiveActivityError,
+) LiveActivityError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -328,9 +328,9 @@ fn apply_text_tag(
 fn apply_url_tag(
     tag: nip01_event.EventTag,
     field: *?[]const u8,
-    duplicate_error: Nip53Error,
-    invalid_error: Nip53Error,
-) Nip53Error!void {
+    duplicate_error: LiveActivityError,
+    invalid_error: LiveActivityError,
+) LiveActivityError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -342,9 +342,9 @@ fn apply_url_tag(
 fn apply_timestamp_tag(
     tag: nip01_event.EventTag,
     field: *?u64,
-    duplicate_error: Nip53Error,
-    invalid_error: Nip53Error,
-) Nip53Error!void {
+    duplicate_error: LiveActivityError,
+    invalid_error: LiveActivityError,
+) LiveActivityError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -353,7 +353,7 @@ fn apply_timestamp_tag(
     field.* = std.fmt.parseUnsigned(u64, tag.items[1], 10) catch return invalid_error;
 }
 
-fn apply_status_tag(tag: nip01_event.EventTag, field: *?LiveActivityStatus) Nip53Error!void {
+fn apply_status_tag(tag: nip01_event.EventTag, field: *?LiveActivityStatus) LiveActivityError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -365,9 +365,9 @@ fn apply_status_tag(tag: nip01_event.EventTag, field: *?LiveActivityStatus) Nip5
 fn apply_u32_tag(
     tag: nip01_event.EventTag,
     field: *?u32,
-    duplicate_error: Nip53Error,
-    invalid_error: Nip53Error,
-) Nip53Error!void {
+    duplicate_error: LiveActivityError,
+    invalid_error: LiveActivityError,
+) LiveActivityError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -380,7 +380,7 @@ fn append_participant(
     tag: nip01_event.EventTag,
     info: *LiveActivityInfo,
     out: []LiveActivityParticipant,
-) Nip53Error!void {
+) LiveActivityError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out.len <= limits.tags_max);
 
@@ -401,7 +401,7 @@ fn append_participant(
     info.participant_count += 1;
 }
 
-fn append_relays(tag: nip01_event.EventTag, info: *LiveActivityInfo, out: [][]const u8) Nip53Error!void {
+fn append_relays(tag: nip01_event.EventTag, info: *LiveActivityInfo, out: [][]const u8) LiveActivityError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out.len <= limits.tags_max);
 
@@ -417,8 +417,8 @@ fn append_text_value(
     tag: nip01_event.EventTag,
     count: *u16,
     out: [][]const u8,
-    invalid_error: Nip53Error,
-) Nip53Error!void {
+    invalid_error: LiveActivityError,
+) LiveActivityError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(count) != 0);
 
@@ -428,7 +428,7 @@ fn append_text_value(
     count.* += 1;
 }
 
-fn append_pinned(tag: nip01_event.EventTag, info: *LiveActivityInfo, out: [][32]u8) Nip53Error!void {
+fn append_pinned(tag: nip01_event.EventTag, info: *LiveActivityInfo, out: [][32]u8) LiveActivityError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out.len <= limits.tags_max);
 

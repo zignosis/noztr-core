@@ -5,7 +5,7 @@ const nip01_event = @import("nip01_event.zig");
 pub const blossom_server_list_kind: u32 = 10063;
 pub const blob_sha256_hex_length: u8 = 64;
 
-pub const NipB7Error = error{
+pub const BlossomError = error{
     InvalidServerListKind,
     MissingServerTag,
     InvalidServerTag,
@@ -42,7 +42,7 @@ pub const BuiltTag = struct {
 pub fn blossom_servers_extract(
     event: *const nip01_event.Event,
     out_server_urls: [][]const u8,
-) NipB7Error!BlossomServerListInfo {
+) BlossomError!BlossomServerListInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_server_urls.len <= limits.tags_max);
 
@@ -62,7 +62,7 @@ pub fn blossom_servers_extract(
 pub fn blossom_build_server_tag(
     output: *BuiltTag,
     server_url: []const u8,
-) NipB7Error!nip01_event.EventTag {
+) BlossomError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     if (server_url.len > limits.tag_item_bytes_max) return error.InvalidServerUrl;
@@ -80,7 +80,7 @@ pub fn blossom_build_server_tag(
 }
 
 /// Extracts a deterministic blob hash and optional extension from a blob URL.
-pub fn blossom_extract_blob_reference(blob_url: []const u8) NipB7Error!BlobReference {
+pub fn blossom_extract_blob_reference(blob_url: []const u8) BlossomError!BlobReference {
     if (blob_url.len > limits.content_bytes_max) return error.InvalidBlobUrl;
     std.debug.assert(blob_url.len <= limits.content_bytes_max);
     std.debug.assert(blob_sha256_hex_length == limits.id_hex_length);
@@ -99,7 +99,7 @@ pub fn blossom_extract_blob_reference(blob_url: []const u8) NipB7Error!BlobRefer
 pub fn blossom_build_fallback_path(
     output: []u8,
     reference: BlobReference,
-) NipB7Error![]const u8 {
+) BlossomError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(u16));
     std.debug.assert(reference.extension == null or reference.extension.?.len > 0);
 
@@ -111,7 +111,7 @@ pub fn blossom_build_fallback_url(
     output: []u8,
     server_url: []const u8,
     reference: BlobReference,
-) NipB7Error![]const u8 {
+) BlossomError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(u16));
 
     if (server_url.len > limits.tag_item_bytes_max) return error.InvalidServerUrl;
@@ -133,7 +133,7 @@ pub fn blossom_build_fallback_url_for_blob(
     output: []u8,
     server_url: []const u8,
     blob_url: []const u8,
-) NipB7Error![]const u8 {
+) BlossomError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(u16));
 
     if (server_url.len > limits.tag_item_bytes_max) return error.InvalidServerUrl;
@@ -151,7 +151,7 @@ fn parse_server_tag(
     tag: nip01_event.EventTag,
     out_server_urls: [][]const u8,
     server_count: *u16,
-) NipB7Error!void {
+) BlossomError!void {
     std.debug.assert(@intFromPtr(server_count) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -302,7 +302,7 @@ fn hash_candidate_is_bounded(url: []const u8, start: usize) bool {
     return !std.ascii.isHex(url[start + blob_sha256_hex_length]);
 }
 
-fn parse_blob_extension(url: []const u8, hash_end: usize) NipB7Error!?[]const u8 {
+fn parse_blob_extension(url: []const u8, hash_end: usize) BlossomError!?[]const u8 {
     std.debug.assert(hash_end <= url.len);
     std.debug.assert(hash_end >= blob_sha256_hex_length);
 

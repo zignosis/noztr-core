@@ -7,7 +7,7 @@ const url_with_scheme = @import("internal/url_with_scheme.zig");
 pub const emoji_tag_name: []const u8 = "emoji";
 pub const emoji_set_kind: u32 = 30030;
 
-pub const Nip30Error = error{
+pub const EmojiError = error{
     InvalidEmojiTag,
     InvalidShortcode,
     InvalidImageUrl,
@@ -47,7 +47,7 @@ pub fn emoji_shortcode_is_valid(shortcode: []const u8) bool {
 }
 
 /// Extracts a shortcode from an exact `:shortcode:` token.
-pub fn emoji_shortcode_from_token(token: []const u8) Nip30Error![]const u8 {
+pub fn emoji_shortcode_from_token(token: []const u8) EmojiError![]const u8 {
     std.debug.assert(limits.content_bytes_max > 0);
     std.debug.assert(limits.content_bytes_max >= 3);
 
@@ -60,7 +60,7 @@ pub fn emoji_shortcode_from_token(token: []const u8) Nip30Error![]const u8 {
 }
 
 /// Extracts a strict NIP-30 emoji tag.
-pub fn emoji_tag_extract(tag: nip01_event.EventTag) Nip30Error!EmojiTagInfo {
+pub fn emoji_tag_extract(tag: nip01_event.EventTag) EmojiError!EmojiTagInfo {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.tag_items_max >= 4);
 
@@ -82,7 +82,7 @@ pub fn emoji_build_tag(
     shortcode: []const u8,
     image_url: []const u8,
     emoji_set_address: ?[]const u8,
-) Nip30Error!nip01_event.EventTag {
+) EmojiError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 4);
 

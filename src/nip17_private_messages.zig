@@ -9,14 +9,14 @@ pub const dm_kind: u32 = 14;
 pub const file_dm_kind: u32 = 15;
 pub const dm_relays_kind: u32 = 10050;
 
-pub const Nip17RelayListError = error{
+pub const RelayListError = error{
     InvalidRelayListKind,
     InvalidRelayTag,
     InvalidRelayUrl,
     BufferTooSmall,
 };
 
-pub const Nip17Error = nip59_wrap.Nip59Error || error{
+pub const PrivateMessageError = nip59_wrap.WrapError || error{
     InvalidMessageKind,
     InvalidFileMessageKind,
     InvalidRecipientTag,
@@ -30,7 +30,7 @@ pub const Nip17Error = nip59_wrap.Nip59Error || error{
     MissingFileMetadataTag,
     UnsupportedEncryptionAlgorithm,
     BufferTooSmall,
-} || Nip17RelayListError;
+} || RelayListError;
 
 pub const DmRecipient = struct {
     pubkey: [32]u8,
@@ -114,7 +114,7 @@ pub const BuiltFileMetadataTag = struct {
 pub fn nip17_message_parse(
     event: *const nip01_event.Event,
     recipients_out: []DmRecipient,
-) Nip17Error!DmMessageInfo {
+) PrivateMessageError!DmMessageInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(recipients_out.len <= limits.tags_max);
 
@@ -140,7 +140,7 @@ pub fn nip17_file_message_parse(
     recipients_out: []DmRecipient,
     thumbs_out: [][]const u8,
     fallbacks_out: [][]const u8,
-) Nip17Error!FileMessageInfo {
+) PrivateMessageError!FileMessageInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(recipients_out.len <= limits.tags_max);
 
@@ -186,7 +186,7 @@ pub fn nip17_unwrap_message(
     wrap_event: *const nip01_event.Event,
     recipients_out: []DmRecipient,
     scratch: std.mem.Allocator,
-) Nip17Error!DmMessageInfo {
+) PrivateMessageError!DmMessageInfo {
     std.debug.assert(@intFromPtr(output_rumor) != 0);
     std.debug.assert(@intFromPtr(recipient_private_key) != 0);
 
@@ -203,7 +203,7 @@ pub fn nip17_unwrap_file_message(
     thumbs_out: [][]const u8,
     fallbacks_out: [][]const u8,
     scratch: std.mem.Allocator,
-) Nip17Error!FileMessageInfo {
+) PrivateMessageError!FileMessageInfo {
     std.debug.assert(@intFromPtr(output_rumor) != 0);
     std.debug.assert(@intFromPtr(recipient_private_key) != 0);
 
@@ -215,7 +215,7 @@ pub fn nip17_unwrap_file_message(
 pub fn nip17_relay_list_extract(
     event: *const nip01_event.Event,
     out: [][]const u8,
-) Nip17RelayListError!u16 {
+) RelayListError!u16 {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out.len <= limits.tags_max);
 
@@ -238,7 +238,7 @@ pub fn nip17_build_recipient_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     _ = parse_lower_hex_32(pubkey_hex) catch return error.InvalidRecipientTag;
@@ -258,7 +258,7 @@ pub fn nip17_build_recipient_tag(
 pub fn nip17_build_relay_tag(
     output: *BuiltTag,
     relay_url: []const u8,
-) Nip17RelayListError!nip01_event.EventTag {
+) RelayListError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
 
     output.items[0] = "relay";
@@ -271,7 +271,7 @@ pub fn nip17_build_relay_tag(
 pub fn nip17_build_file_type_tag(
     output: *BuiltFileMetadataTag,
     file_type: []const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     return build_file_text_tag(output, "file-type", file_type);
 }
 
@@ -279,7 +279,7 @@ pub fn nip17_build_file_type_tag(
 pub fn nip17_build_file_encryption_algorithm_tag(
     output: *BuiltFileMetadataTag,
     algorithm: FileEncryptionAlgorithm,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     return build_file_text_tag(output, "encryption-algorithm", algorithm.as_text());
 }
 
@@ -287,7 +287,7 @@ pub fn nip17_build_file_encryption_algorithm_tag(
 pub fn nip17_build_file_decryption_key_tag(
     output: *BuiltFileMetadataTag,
     decryption_key: []const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     return build_file_text_tag(output, "decryption-key", decryption_key);
 }
 
@@ -295,7 +295,7 @@ pub fn nip17_build_file_decryption_key_tag(
 pub fn nip17_build_file_decryption_nonce_tag(
     output: *BuiltFileMetadataTag,
     decryption_nonce: []const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     return build_file_text_tag(output, "decryption-nonce", decryption_nonce);
 }
 
@@ -303,7 +303,7 @@ pub fn nip17_build_file_decryption_nonce_tag(
 pub fn nip17_build_file_hash_tag(
     output: *BuiltFileMetadataTag,
     encrypted_file_hash_hex: []const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     return build_file_hash_tag(output, "x", encrypted_file_hash_hex);
 }
 
@@ -311,7 +311,7 @@ pub fn nip17_build_file_hash_tag(
 pub fn nip17_build_file_original_hash_tag(
     output: *BuiltFileMetadataTag,
     original_file_hash_hex: []const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     return build_file_hash_tag(output, "ox", original_file_hash_hex);
 }
 
@@ -319,7 +319,7 @@ pub fn nip17_build_file_original_hash_tag(
 pub fn nip17_build_file_size_tag(
     output: *BuiltFileMetadataTag,
     size: u64,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(limits.tag_item_bytes_max >= 20);
 
@@ -331,7 +331,7 @@ pub fn nip17_build_file_size_tag(
 pub fn nip17_build_file_dimensions_tag(
     output: *BuiltFileMetadataTag,
     dimensions: FileDimensions,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(limits.tag_item_bytes_max >= 21);
 
@@ -348,7 +348,7 @@ pub fn nip17_build_file_dimensions_tag(
 pub fn nip17_build_file_blurhash_tag(
     output: *BuiltFileMetadataTag,
     blurhash: []const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     return build_file_text_tag(output, "blurhash", blurhash);
 }
 
@@ -356,7 +356,7 @@ pub fn nip17_build_file_blurhash_tag(
 pub fn nip17_build_file_thumb_tag(
     output: *BuiltFileMetadataTag,
     thumb_url: []const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     return build_file_url_tag(output, "thumb", thumb_url);
 }
 
@@ -364,7 +364,7 @@ pub fn nip17_build_file_thumb_tag(
 pub fn nip17_build_file_fallback_tag(
     output: *BuiltFileMetadataTag,
     fallback_url: []const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     return build_file_url_tag(output, "fallback", fallback_url);
 }
 
@@ -373,7 +373,7 @@ fn parse_message_tag(
     info: *DmMessageInfo,
     recipients_out: []DmRecipient,
     count: *u16,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(count) != 0);
 
@@ -387,7 +387,7 @@ fn build_file_text_tag(
     output: *BuiltFileMetadataTag,
     key: []const u8,
     value: []const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(key.len > 0);
 
@@ -399,7 +399,7 @@ fn build_file_hash_tag(
     output: *BuiltFileMetadataTag,
     key: []const u8,
     value: []const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(key.len > 0);
 
@@ -411,7 +411,7 @@ fn build_file_url_tag(
     output: *BuiltFileMetadataTag,
     key: []const u8,
     value: []const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(key.len > 0);
 
@@ -423,7 +423,7 @@ fn build_file_value_tag(
     output: *BuiltFileMetadataTag,
     key: []const u8,
     value: []const u8,
-) Nip17Error!nip01_event.EventTag {
+) PrivateMessageError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(key.len > 0);
 
@@ -462,7 +462,7 @@ fn parse_file_message_tag(
     thumb_count: *u16,
     fallbacks_out: [][]const u8,
     fallback_count: *u16,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -491,7 +491,7 @@ fn parse_file_metadata_tag(
     thumb_count: *u16,
     fallbacks_out: [][]const u8,
     fallback_count: *u16,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -524,7 +524,7 @@ fn parse_required_file_text_tag(
     tag: nip01_event.EventTag,
     output: *[]const u8,
     saw_tag: *bool,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(saw_tag) != 0);
 
@@ -538,7 +538,7 @@ fn parse_file_encryption_algorithm_tag(
     tag: nip01_event.EventTag,
     info: *FileMessageInfo,
     state: *FileMetadataState,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -555,7 +555,7 @@ fn parse_required_file_hash_tag(
     tag: nip01_event.EventTag,
     output: *[32]u8,
     saw_tag: *bool,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(saw_tag) != 0);
 
@@ -569,7 +569,7 @@ fn parse_optional_original_hash_tag(
     tag: nip01_event.EventTag,
     info: *FileMessageInfo,
     state: *FileMetadataState,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -583,7 +583,7 @@ fn parse_optional_file_size_tag(
     tag: nip01_event.EventTag,
     info: *FileMessageInfo,
     state: *FileMetadataState,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -597,7 +597,7 @@ fn parse_optional_dimensions_tag(
     tag: nip01_event.EventTag,
     info: *FileMessageInfo,
     state: *FileMetadataState,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -611,7 +611,7 @@ fn parse_optional_blurhash_tag(
     tag: nip01_event.EventTag,
     info: *FileMessageInfo,
     state: *FileMetadataState,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -625,7 +625,7 @@ fn parse_url_list_tag(
     tag: nip01_event.EventTag,
     output: [][]const u8,
     count: *u16,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(count) != 0);
     std.debug.assert(output.len <= limits.tags_max);
 
@@ -641,7 +641,7 @@ fn finalize_file_message_info(
     recipient_count: u16,
     thumb_count: u16,
     fallback_count: u16,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -659,7 +659,7 @@ fn parse_recipient_tag(
     tag: nip01_event.EventTag,
     recipients_out: []DmRecipient,
     count: *u16,
-) Nip17Error!void {
+) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(count) != 0);
     std.debug.assert(recipients_out.len <= limits.tags_max);
 
@@ -676,7 +676,7 @@ fn parse_recipient_tag(
     count.* += 1;
 }
 
-fn parse_reply_tag(tag: nip01_event.EventTag, info: *DmMessageInfo) Nip17Error!void {
+fn parse_reply_tag(tag: nip01_event.EventTag, info: *DmMessageInfo) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -704,7 +704,7 @@ fn parse_reply_tag(tag: nip01_event.EventTag, info: *DmMessageInfo) Nip17Error!v
     info.reply_to = reply;
 }
 
-fn parse_file_reply_tag(tag: nip01_event.EventTag, info: *FileMessageInfo) Nip17Error!void {
+fn parse_file_reply_tag(tag: nip01_event.EventTag, info: *FileMessageInfo) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -732,7 +732,7 @@ fn parse_file_reply_tag(tag: nip01_event.EventTag, info: *FileMessageInfo) Nip17
     info.reply_to = reply;
 }
 
-fn parse_subject_tag(tag: nip01_event.EventTag, info: *DmMessageInfo) Nip17Error!void {
+fn parse_subject_tag(tag: nip01_event.EventTag, info: *DmMessageInfo) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -741,7 +741,7 @@ fn parse_subject_tag(tag: nip01_event.EventTag, info: *DmMessageInfo) Nip17Error
     info.subject = tag.items[1];
 }
 
-fn parse_file_subject_tag(tag: nip01_event.EventTag, info: *FileMessageInfo) Nip17Error!void {
+fn parse_file_subject_tag(tag: nip01_event.EventTag, info: *FileMessageInfo) PrivateMessageError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -828,7 +828,7 @@ fn parse_lower_hex_32(text: []const u8) error{InvalidHex}![32]u8 {
     return lower_hex_32.parse(text);
 }
 
-fn validate_reply_suffix(text: []const u8) Nip17Error!void {
+fn validate_reply_suffix(text: []const u8) PrivateMessageError!void {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 

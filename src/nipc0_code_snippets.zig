@@ -6,7 +6,7 @@ const lower_hex_32 = @import("internal/lower_hex_32.zig");
 pub const code_snippet_kind: u32 = 1337;
 pub const repo_announcement_kind: u32 = 30617;
 
-pub const NipC0Error = error{
+pub const CodeSnippetError = error{
     UnsupportedKind,
     DuplicateLanguageTag,
     InvalidLanguageTag,
@@ -81,7 +81,7 @@ pub fn code_snippet_extract(
     event: *const nip01_event.Event,
     out_licenses: []LicenseInfo,
     out_dependencies: [][]const u8,
-) NipC0Error!CodeSnippetInfo {
+) CodeSnippetError!CodeSnippetInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_licenses.len <= std.math.maxInt(u16));
     std.debug.assert(out_dependencies.len <= std.math.maxInt(u16));
@@ -100,7 +100,7 @@ pub fn code_snippet_extract(
 pub fn code_snippet_build_language_tag(
     output: *BuiltTag,
     language: []const u8,
-) NipC0Error!nip01_event.EventTag {
+) CodeSnippetError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.text_storage.len == limits.tag_item_bytes_max);
 
@@ -116,7 +116,7 @@ pub fn code_snippet_build_language_tag(
 pub fn code_snippet_build_name_tag(
     output: *BuiltTag,
     name: []const u8,
-) NipC0Error!nip01_event.EventTag {
+) CodeSnippetError!nip01_event.EventTag {
     return build_text_tag(output, "name", name, error.InvalidNameTag);
 }
 
@@ -124,7 +124,7 @@ pub fn code_snippet_build_name_tag(
 pub fn code_snippet_build_extension_tag(
     output: *BuiltTag,
     extension: []const u8,
-) NipC0Error!nip01_event.EventTag {
+) CodeSnippetError!nip01_event.EventTag {
     return build_text_tag(output, "extension", extension, error.InvalidExtensionTag);
 }
 
@@ -132,7 +132,7 @@ pub fn code_snippet_build_extension_tag(
 pub fn code_snippet_build_description_tag(
     output: *BuiltTag,
     description: []const u8,
-) NipC0Error!nip01_event.EventTag {
+) CodeSnippetError!nip01_event.EventTag {
     return build_text_tag(output, "description", description, error.InvalidDescriptionTag);
 }
 
@@ -140,7 +140,7 @@ pub fn code_snippet_build_description_tag(
 pub fn code_snippet_build_runtime_tag(
     output: *BuiltTag,
     runtime: []const u8,
-) NipC0Error!nip01_event.EventTag {
+) CodeSnippetError!nip01_event.EventTag {
     return build_text_tag(output, "runtime", runtime, error.InvalidRuntimeTag);
 }
 
@@ -148,7 +148,7 @@ pub fn code_snippet_build_runtime_tag(
 pub fn code_snippet_build_license_tag(
     output: *BuiltTag,
     license: LicenseInfo,
-) NipC0Error!nip01_event.EventTag {
+) CodeSnippetError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len >= 3);
 
@@ -168,7 +168,7 @@ pub fn code_snippet_build_license_tag(
 pub fn code_snippet_build_dependency_tag(
     output: *BuiltTag,
     dependency: []const u8,
-) NipC0Error!nip01_event.EventTag {
+) CodeSnippetError!nip01_event.EventTag {
     return build_text_tag(output, "dep", dependency, error.InvalidDependencyTag);
 }
 
@@ -176,7 +176,7 @@ pub fn code_snippet_build_dependency_tag(
 pub fn code_snippet_build_repo_tag(
     output: *BuiltTag,
     repo: RepoReference,
-) NipC0Error!nip01_event.EventTag {
+) CodeSnippetError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@sizeOf(RepoReference) > 0);
 
@@ -205,7 +205,7 @@ fn apply_tag(
     info: *CodeSnippetInfo,
     out_licenses: []LicenseInfo,
     out_dependencies: [][]const u8,
-) NipC0Error!void {
+) CodeSnippetError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_licenses.len <= std.math.maxInt(u16));
 
@@ -259,9 +259,9 @@ fn apply_tag(
 fn apply_optional_text_tag(
     tag: nip01_event.EventTag,
     field: *?[]const u8,
-    duplicate_error: NipC0Error,
-    invalid_error: NipC0Error,
-) NipC0Error!void {
+    duplicate_error: CodeSnippetError,
+    invalid_error: CodeSnippetError,
+) CodeSnippetError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -269,7 +269,7 @@ fn apply_optional_text_tag(
     field.* = parse_single_utf8_value(tag) catch return invalid_error;
 }
 
-fn apply_repo_tag(tag: nip01_event.EventTag, info: *CodeSnippetInfo) NipC0Error!void {
+fn apply_repo_tag(tag: nip01_event.EventTag, info: *CodeSnippetInfo) CodeSnippetError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -281,7 +281,7 @@ fn apply_license_tag(
     tag: nip01_event.EventTag,
     info: *CodeSnippetInfo,
     out_licenses: []LicenseInfo,
-) NipC0Error!void {
+) CodeSnippetError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -295,7 +295,7 @@ fn apply_dependency_tag(
     tag: nip01_event.EventTag,
     info: *CodeSnippetInfo,
     out_dependencies: [][]const u8,
-) NipC0Error!void {
+) CodeSnippetError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -309,8 +309,8 @@ fn build_text_tag(
     output: *BuiltTag,
     name: []const u8,
     value: []const u8,
-    invalid_error: NipC0Error,
-) NipC0Error!nip01_event.EventTag {
+    invalid_error: CodeSnippetError,
+) CodeSnippetError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(name.len > 0);
 
@@ -437,7 +437,7 @@ fn format_repo_coordinate(
     ) catch return error.BufferTooSmall;
 }
 
-fn validate_content(content: []const u8) NipC0Error!void {
+fn validate_content(content: []const u8) CodeSnippetError!void {
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
     std.debug.assert(limits.content_bytes_max > 0);
 

@@ -16,7 +16,7 @@ const alignment_slop_bytes: u8 = 45;
 const ciphertext_body_bytes: u8 = limits.nip49_key_bytes;
 const polymod_values_bytes: u16 = ncryptsec_hrp.len + limits.nip49_bech32_bytes_max;
 
-pub const Nip49Error = error{
+pub const PrivateKeyEncryptionError = error{
     InvalidUtf8,
     InvalidNormalization,
     InvalidSecretKey,
@@ -59,7 +59,7 @@ const Bech32Decoded = struct {
 };
 
 /// Return the minimum caller-owned scratch bytes required for the fixed NIP-49 scrypt boundary.
-pub fn nip49_scrypt_scratch_bytes(log_n: u8) Nip49Error!u64 {
+pub fn nip49_scrypt_scratch_bytes(log_n: u8) PrivateKeyEncryptionError!u64 {
     try validate_log_n(log_n);
 
     const rounds = @as(u64, 1) << @intCast(log_n);
@@ -72,7 +72,7 @@ pub fn nip49_scrypt_scratch_bytes(log_n: u8) Nip49Error!u64 {
 }
 
 /// Parse the fixed 91-byte NIP-49 payload into a typed frame.
-pub fn nip49_parse_bytes(input: []const u8) Nip49Error!EncryptedSecretKey {
+pub fn nip49_parse_bytes(input: []const u8) PrivateKeyEncryptionError!EncryptedSecretKey {
     std.debug.assert(limits.nip49_payload_bytes == 91);
     std.debug.assert(43 + limits.nip49_ciphertext_bytes == limits.nip49_payload_bytes);
 
@@ -104,7 +104,7 @@ pub fn nip49_parse_bytes(input: []const u8) Nip49Error!EncryptedSecretKey {
 pub fn nip49_serialize_bytes(
     output: []u8,
     encrypted: EncryptedSecretKey,
-) Nip49Error![]const u8 {
+) PrivateKeyEncryptionError![]const u8 {
     std.debug.assert(limits.nip49_payload_bytes == 91);
     std.debug.assert(43 + limits.nip49_ciphertext_bytes == limits.nip49_payload_bytes);
 
@@ -121,7 +121,7 @@ pub fn nip49_serialize_bytes(
 }
 
 /// Decode a bech32 `ncryptsec` string into a typed NIP-49 frame.
-pub fn nip49_decode_bech32(input: []const u8) Nip49Error!EncryptedSecretKey {
+pub fn nip49_decode_bech32(input: []const u8) PrivateKeyEncryptionError!EncryptedSecretKey {
     std.debug.assert(ncryptsec_hrp.len > 0);
     std.debug.assert(limits.nip49_payload_bytes <= limits.nip49_bech32_bytes_max);
 
@@ -146,7 +146,7 @@ pub fn nip49_decode_bech32(input: []const u8) Nip49Error!EncryptedSecretKey {
 pub fn nip49_encode_bech32(
     output: []u8,
     encrypted: EncryptedSecretKey,
-) Nip49Error![]const u8 {
+) PrivateKeyEncryptionError![]const u8 {
     std.debug.assert(ncryptsec_hrp.len > 0);
     std.debug.assert(limits.nip49_payload_bytes <= limits.nip49_bech32_bytes_max);
 
@@ -162,7 +162,7 @@ pub fn nip49_encrypt(
     log_n: u8,
     key_security: KeySecurity,
     scrypt_scratch: []u8,
-) Nip49Error!EncryptedSecretKey {
+) PrivateKeyEncryptionError!EncryptedSecretKey {
     std.debug.assert(@intFromPtr(secret_key) != 0);
     std.debug.assert(limits.nip49_key_bytes == 32);
 
@@ -190,7 +190,7 @@ pub fn nip49_encrypt_with_salt_and_nonce(
     scrypt_scratch: []u8,
     salt: *const [limits.nip49_salt_bytes]u8,
     nonce: *const [limits.nip49_nonce_bytes]u8,
-) Nip49Error!EncryptedSecretKey {
+) PrivateKeyEncryptionError!EncryptedSecretKey {
     std.debug.assert(@intFromPtr(secret_key) != 0);
     std.debug.assert(@intFromPtr(salt) != 0);
     std.debug.assert(@intFromPtr(nonce) != 0);
@@ -220,7 +220,7 @@ pub fn nip49_encrypt_to_bech32(
     log_n: u8,
     key_security: KeySecurity,
     scrypt_scratch: []u8,
-) Nip49Error![]const u8 {
+) PrivateKeyEncryptionError![]const u8 {
     const encrypted = try nip49_encrypt(secret_key, password, log_n, key_security, scrypt_scratch);
     return nip49_encode_bech32(output, encrypted);
 }
@@ -235,7 +235,7 @@ pub fn nip49_encrypt_with_salt_and_nonce_to_bech32(
     scrypt_scratch: []u8,
     salt: *const [limits.nip49_salt_bytes]u8,
     nonce: *const [limits.nip49_nonce_bytes]u8,
-) Nip49Error![]const u8 {
+) PrivateKeyEncryptionError![]const u8 {
     const encrypted = try nip49_encrypt_with_salt_and_nonce(
         secret_key,
         password,
@@ -254,7 +254,7 @@ pub fn nip49_decrypt(
     encrypted: EncryptedSecretKey,
     password: []const u8,
     scrypt_scratch: []u8,
-) Nip49Error!void {
+) PrivateKeyEncryptionError!void {
     std.debug.assert(@intFromPtr(output_secret_key) != 0);
     std.debug.assert(limits.nip49_key_bytes == 32);
 
@@ -274,7 +274,7 @@ pub fn nip49_decrypt_from_bech32(
     input: []const u8,
     password: []const u8,
     scrypt_scratch: []u8,
-) Nip49Error!void {
+) PrivateKeyEncryptionError!void {
     std.debug.assert(@intFromPtr(output_secret_key) != 0);
     std.debug.assert(ncryptsec_hrp.len > 0);
 
@@ -288,7 +288,7 @@ fn derive_key(
     password: []const u8,
     salt: *const [limits.nip49_salt_bytes]u8,
     log_n: u8,
-) Nip49Error!void {
+) PrivateKeyEncryptionError!void {
     try validate_log_n(log_n);
     try require_scrypt_scratch(scrypt_scratch, log_n);
 
@@ -312,7 +312,7 @@ fn derive_key(
     };
 }
 
-fn normalize_password(output: []u8, password: []const u8) Nip49Error![]const u8 {
+fn normalize_password(output: []u8, password: []const u8) PrivateKeyEncryptionError![]const u8 {
     std.debug.assert(output.len >= limits.nip49_password_normalized_bytes_max);
     std.debug.assert(password.len <= limits.content_bytes_max);
 
@@ -324,24 +324,24 @@ fn normalize_password(output: []u8, password: []const u8) Nip49Error![]const u8 
     };
 }
 
-fn require_scrypt_scratch(scrypt_scratch: []const u8, log_n: u8) Nip49Error!void {
+fn require_scrypt_scratch(scrypt_scratch: []const u8, log_n: u8) PrivateKeyEncryptionError!void {
     const required = try nip49_scrypt_scratch_bytes(log_n);
     if (required > std.math.maxInt(usize)) return error.InvalidLogN;
     if (@as(u64, scrypt_scratch.len) < required) return error.BufferTooSmall;
 }
 
-fn validate_log_n(log_n: u8) Nip49Error!void {
+fn validate_log_n(log_n: u8) PrivateKeyEncryptionError!void {
     if (log_n == 0) return error.InvalidLogN;
     if (log_n > max_log_n) return error.InvalidLogN;
 }
 
-fn validate_frame(encrypted: EncryptedSecretKey) Nip49Error!void {
+fn validate_frame(encrypted: EncryptedSecretKey) PrivateKeyEncryptionError!void {
     if (encrypted.version != version_v2) return error.InvalidVersion;
     try validate_log_n(encrypted.log_n);
     _ = parse_key_security(@intFromEnum(encrypted.key_security)) catch return error.InvalidKeySecurity;
 }
 
-fn parse_key_security(value: u8) Nip49Error!KeySecurity {
+fn parse_key_security(value: u8) PrivateKeyEncryptionError!KeySecurity {
     return switch (value) {
         0x00 => .weak,
         0x01 => .medium,
@@ -373,7 +373,7 @@ fn decrypt_ciphertext(
     output_secret_key: *[limits.nip49_key_bytes]u8,
     encrypted: EncryptedSecretKey,
     key: *const [limits.nip49_key_bytes]u8,
-) Nip49Error!void {
+) PrivateKeyEncryptionError!void {
     const aad = [_]u8{@intFromEnum(encrypted.key_security)};
     var tag: [XChaCha20Poly1305.tag_length]u8 = undefined;
     @memcpy(tag[0..], encrypted.ciphertext[ciphertext_body_bytes..]);
@@ -387,7 +387,7 @@ fn decrypt_ciphertext(
     ) catch return error.InvalidCiphertext;
 }
 
-fn map_key_error(err: nostr_keys.NostrKeysError) Nip49Error {
+fn map_key_error(err: nostr_keys.NostrKeysError) PrivateKeyEncryptionError {
     return switch (err) {
         error.InvalidSecretKey => error.InvalidSecretKey,
         error.InvalidEvent => unreachable,
@@ -406,7 +406,7 @@ fn decode_bech32(
     input: []const u8,
     hrp_buffer: *[ncryptsec_hrp.len]u8,
     data_values_buffer: *[limits.nip49_bech32_bytes_max]u8,
-) Nip49Error!Bech32Decoded {
+) PrivateKeyEncryptionError!Bech32Decoded {
     if (input.len < ncryptsec_hrp.len + 1 + 6) return error.InvalidBech32;
     if (input.len > limits.nip49_bech32_bytes_max) return error.InvalidBech32;
 
@@ -445,7 +445,7 @@ fn decode_bech32(
     };
 }
 
-fn lower_bech32_char(char: u8, case_state: *Bech32CaseState) Nip49Error!u8 {
+fn lower_bech32_char(char: u8, case_state: *Bech32CaseState) PrivateKeyEncryptionError!u8 {
     if (char < 33 or char > 126) return error.InvalidBech32;
 
     var lowered = char;
@@ -459,7 +459,7 @@ fn lower_bech32_char(char: u8, case_state: *Bech32CaseState) Nip49Error!u8 {
     return lowered;
 }
 
-fn encode_bech32(output: []u8, hrp: []const u8, payload: []const u8) Nip49Error![]const u8 {
+fn encode_bech32(output: []u8, hrp: []const u8, payload: []const u8) PrivateKeyEncryptionError![]const u8 {
     var data_values: [limits.nip49_bech32_bytes_max]u8 = undefined;
     const data_len = try convert_bits(data_values[0..], payload, 8, 5, true);
     const total_len = hrp.len + 1 + data_len + 6;
@@ -484,7 +484,7 @@ fn convert_bits(
     from_bits: u8,
     to_bits: u8,
     pad: bool,
-) Nip49Error!u16 {
+) PrivateKeyEncryptionError!u16 {
     var accumulator: u32 = 0;
     var bits: u8 = 0;
     var output_index: u16 = 0;

@@ -52,8 +52,8 @@ comptime {
     _ = @import("nip98_example.zig");
     _ = @import("nipb7_example.zig");
     _ = @import("remote_signing_adversarial_example.zig");
-    if (@hasDecl(noztr.nip45_count, "Nip45Error")) _ = @import("nip45_example.zig");
-    if (@hasDecl(noztr.nip50_search, "Nip50Error")) _ = @import("nip50_example.zig");
+    if (@hasDecl(noztr.nip45_count, "CountError")) _ = @import("nip45_example.zig");
+    if (@hasDecl(noztr.nip50_search, "SearchError")) _ = @import("nip50_example.zig");
     _ = @import("nip51_example.zig");
     _ = @import("nip52_example.zig");
     _ = @import("nip53_example.zig");
@@ -92,7 +92,7 @@ comptime {
     _ = @import("nip72_adversarial_example.zig");
     _ = @import("nip73_example.zig");
     _ = @import("nip75_example.zig");
-    if (@hasDecl(noztr.nip77_negentropy, "Nip77Error")) _ = @import("nip77_example.zig");
+    if (@hasDecl(noztr.nip77_negentropy, "NegentropyError")) _ = @import("nip77_example.zig");
     _ = @import("nip78_example.zig");
     _ = @import("nip89_example.zig");
     _ = @import("nip84_example.zig");

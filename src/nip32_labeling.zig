@@ -7,7 +7,7 @@ const url_with_host = @import("internal/url_with_host.zig");
 pub const label_event_kind: u32 = 1985;
 pub const default_namespace: []const u8 = "ugc";
 
-pub const Nip32Error = error{
+pub const LabelingError = error{
     InvalidLabelEventKind,
     InvalidSelfLabelKind,
     MissingLabel,
@@ -89,7 +89,7 @@ pub fn label_event_extract(
     out_namespaces: []LabelNamespace,
     out_labels: []Label,
     out_targets: []LabelTarget,
-) Nip32Error!LabelEventInfo {
+) LabelingError!LabelEventInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_namespaces.len <= limits.tags_max);
 
@@ -128,7 +128,7 @@ pub fn self_labels_extract(
     event: *const nip01_event.Event,
     out_namespaces: []LabelNamespace,
     out_labels: []Label,
-) Nip32Error!SelfLabelInfo {
+) LabelingError!SelfLabelInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_labels.len <= limits.tags_max);
 
@@ -155,7 +155,7 @@ pub fn self_labels_extract(
 pub fn label_build_namespace_tag(
     output: *BuiltTag,
     namespace: []const u8,
-) Nip32Error!nip01_event.EventTag {
+) LabelingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(namespace.len <= limits.tag_item_bytes_max);
 
@@ -170,7 +170,7 @@ pub fn label_build_label_tag(
     output: *BuiltTag,
     value: []const u8,
     namespace: ?[]const u8,
-) Nip32Error!nip01_event.EventTag {
+) LabelingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -189,7 +189,7 @@ pub fn label_build_event_target_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip32Error!nip01_event.EventTag {
+) LabelingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
 
@@ -209,7 +209,7 @@ pub fn label_build_pubkey_target_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip32Error!nip01_event.EventTag {
+) LabelingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
 
@@ -229,7 +229,7 @@ pub fn label_build_coordinate_target_tag(
     output: *BuiltTag,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
-) Nip32Error!nip01_event.EventTag {
+) LabelingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(coordinate_text.len <= limits.tag_item_bytes_max);
 
@@ -248,7 +248,7 @@ pub fn label_build_coordinate_target_tag(
 pub fn label_build_relay_target_tag(
     output: *BuiltTag,
     relay_url: []const u8,
-) Nip32Error!nip01_event.EventTag {
+) LabelingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(relay_url.len <= limits.tag_item_bytes_max);
 
@@ -262,7 +262,7 @@ pub fn label_build_relay_target_tag(
 pub fn label_build_hashtag_target_tag(
     output: *BuiltTag,
     hashtag: []const u8,
-) Nip32Error!nip01_event.EventTag {
+) LabelingError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(hashtag.len <= limits.tag_item_bytes_max);
 
@@ -280,7 +280,7 @@ fn apply_label_event_tag(
     label_count: *u16,
     out_targets: []LabelTarget,
     target_count: *u16,
-) Nip32Error!void {
+) LabelingError!void {
     std.debug.assert(@intFromPtr(namespace_count) != 0);
     std.debug.assert(@intFromPtr(target_count) != 0);
 
@@ -300,7 +300,7 @@ fn apply_self_label_tag(
     namespace_count: *u16,
     out_labels: []Label,
     label_count: *u16,
-) Nip32Error!void {
+) LabelingError!void {
     std.debug.assert(@intFromPtr(namespace_count) != 0);
     std.debug.assert(@intFromPtr(label_count) != 0);
 
@@ -317,7 +317,7 @@ fn parse_namespace_tag(
     tag: nip01_event.EventTag,
     out: []LabelNamespace,
     count: *u16,
-) Nip32Error!void {
+) LabelingError!void {
     std.debug.assert(@intFromPtr(count) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -335,7 +335,7 @@ fn parse_label_tag(
     tag: nip01_event.EventTag,
     out: []Label,
     count: *u16,
-) Nip32Error!void {
+) LabelingError!void {
     std.debug.assert(@intFromPtr(count) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -356,7 +356,7 @@ fn parse_target_tag(
     tag: nip01_event.EventTag,
     out: []LabelTarget,
     count: *u16,
-) Nip32Error!void {
+) LabelingError!void {
     std.debug.assert(@intFromPtr(count) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -379,7 +379,7 @@ fn parse_target_tag(
     count.* += 1;
 }
 
-fn parse_event_target(tag: nip01_event.EventTag) Nip32Error!EventTarget {
+fn parse_event_target(tag: nip01_event.EventTag) LabelingError!EventTarget {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.id_hex_length == limits.pubkey_hex_length);
 
@@ -390,7 +390,7 @@ fn parse_event_target(tag: nip01_event.EventTag) Nip32Error!EventTarget {
     };
 }
 
-fn parse_pubkey_target(tag: nip01_event.EventTag) Nip32Error!PubkeyTarget {
+fn parse_pubkey_target(tag: nip01_event.EventTag) LabelingError!PubkeyTarget {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -401,7 +401,7 @@ fn parse_pubkey_target(tag: nip01_event.EventTag) Nip32Error!PubkeyTarget {
     };
 }
 
-fn parse_coordinate_target(tag: nip01_event.EventTag) Nip32Error!CoordinateTarget {
+fn parse_coordinate_target(tag: nip01_event.EventTag) LabelingError!CoordinateTarget {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.kind_max == std.math.maxInt(u16));
 
@@ -411,7 +411,7 @@ fn parse_coordinate_target(tag: nip01_event.EventTag) Nip32Error!CoordinateTarge
     return parsed;
 }
 
-fn parse_relay_target(tag: nip01_event.EventTag) Nip32Error![]const u8 {
+fn parse_relay_target(tag: nip01_event.EventTag) LabelingError![]const u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.tag_items_max >= 2);
 
@@ -419,7 +419,7 @@ fn parse_relay_target(tag: nip01_event.EventTag) Nip32Error![]const u8 {
     return parse_url(tag.items[1]) catch return error.InvalidRelayTargetTag;
 }
 
-fn parse_hashtag_target(tag: nip01_event.EventTag) Nip32Error![]const u8 {
+fn parse_hashtag_target(tag: nip01_event.EventTag) LabelingError![]const u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.tag_items_max >= 2);
 
@@ -430,7 +430,7 @@ fn parse_hashtag_target(tag: nip01_event.EventTag) Nip32Error![]const u8 {
 fn validate_label_namespaces(
     namespaces: []const LabelNamespace,
     labels: []const Label,
-) Nip32Error!void {
+) LabelingError!void {
     std.debug.assert(namespaces.len <= limits.tags_max);
     std.debug.assert(labels.len <= limits.tags_max);
 
@@ -488,8 +488,8 @@ fn validate_coordinate_kind(kind: u32, identifier: []const u8) error{InvalidCoor
 fn parse_optional_url_item(
     tag: nip01_event.EventTag,
     index: usize,
-    invalid: Nip32Error,
-) Nip32Error!?[]const u8 {
+    invalid: LabelingError,
+) LabelingError!?[]const u8 {
     std.debug.assert(index <= limits.tag_items_max);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 

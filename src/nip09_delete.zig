@@ -5,7 +5,7 @@ const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const delete_event_kind: u32 = 5;
 
-pub const Nip09Error = error{
+pub const DeleteError = error{
     InvalidDeleteEventKind,
     EmptyDeleteTargets,
     InvalidETag,
@@ -87,7 +87,7 @@ pub fn delete_extract_targets_checked(
 pub fn deletion_can_apply(
     delete_event: *const nip01_event.Event,
     target_event: *const nip01_event.Event,
-) Nip09Error!bool {
+) DeleteError!bool {
     std.debug.assert(@intFromPtr(delete_event) != 0);
     std.debug.assert(@intFromPtr(target_event) != 0);
 

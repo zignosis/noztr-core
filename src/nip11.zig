@@ -1,7 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 
-pub const Nip11Error = error{
+pub const RelayInfoError = error{
     OutOfMemory,
     InvalidJson,
     InvalidKnownFieldType,
@@ -33,7 +33,7 @@ pub const RelayInformationDocument = struct {
 pub fn nip11_parse_document(
     input: []const u8,
     scratch: std.mem.Allocator,
-) Nip11Error!RelayInformationDocument {
+) RelayInfoError!RelayInformationDocument {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.nip11_supported_nips_max > 0);
 
@@ -68,7 +68,7 @@ pub fn nip11_parse_document(
     return document;
 }
 
-pub fn nip11_validate_known_fields(doc: *const RelayInformationDocument) Nip11Error!void {
+pub fn nip11_validate_known_fields(doc: *const RelayInformationDocument) RelayInfoError!void {
     std.debug.assert(doc.supported_nips.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(doc) != 0);
 
@@ -98,7 +98,7 @@ fn parse_known_top_level_field(
     key: []const u8,
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip11Error!void {
+) RelayInfoError!void {
     std.debug.assert(@intFromPtr(doc) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -123,7 +123,7 @@ fn parse_known_top_level_field(
 fn parse_known_string_field(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip11Error![]const u8 {
+) RelayInfoError![]const u8 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -134,7 +134,7 @@ fn parse_known_string_field(
     return scratch.dupe(u8, value.string) catch return error.OutOfMemory;
 }
 
-fn parse_supported_nips(value: std.json.Value, scratch: std.mem.Allocator) Nip11Error![]const u32 {
+fn parse_supported_nips(value: std.json.Value, scratch: std.mem.Allocator) RelayInfoError![]const u32 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -160,7 +160,7 @@ fn parse_supported_nips(value: std.json.Value, scratch: std.mem.Allocator) Nip11
     return output;
 }
 
-fn validate_pubkey(pubkey: []const u8) Nip11Error!void {
+fn validate_pubkey(pubkey: []const u8) RelayInfoError!void {
     std.debug.assert(@sizeOf(u8) == 1);
     std.debug.assert(limits.pubkey_hex_length == limits.id_hex_length);
 
@@ -198,7 +198,7 @@ fn is_lower_hex_digit(byte: u8) bool {
     return false;
 }
 
-fn validate_limitation_ranges(limitation: *const Limitation) Nip11Error!void {
+fn validate_limitation_ranges(limitation: *const Limitation) RelayInfoError!void {
     std.debug.assert(@intFromPtr(limitation) != 0);
     std.debug.assert(@sizeOf(Limitation) > 0);
 
@@ -228,7 +228,7 @@ fn validate_limitation_ranges(limitation: *const Limitation) Nip11Error!void {
     }
 }
 
-fn validate_limitation_value(value: u32, cap: u32) Nip11Error!void {
+fn validate_limitation_value(value: u32, cap: u32) RelayInfoError!void {
     std.debug.assert(cap > 0);
     std.debug.assert(value <= std.math.maxInt(u32));
 
@@ -237,7 +237,7 @@ fn validate_limitation_value(value: u32, cap: u32) Nip11Error!void {
     }
 }
 
-fn parse_limitation(value: std.json.Value) Nip11Error!Limitation {
+fn parse_limitation(value: std.json.Value) RelayInfoError!Limitation {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(Limitation) > 0);
 
@@ -259,7 +259,7 @@ fn parse_known_limitation_field(
     limitation: *Limitation,
     key: []const u8,
     field_value: std.json.Value,
-) Nip11Error!void {
+) RelayInfoError!void {
     std.debug.assert(@intFromPtr(limitation) != 0);
     std.debug.assert(
         limits.nip11_limitation_max_subid_length_max == limits.subscription_id_bytes_max,
@@ -299,7 +299,7 @@ fn parse_known_limitation_field(
     }
 }
 
-fn parse_limitation_u32(field_value: std.json.Value) Nip11Error!u32 {
+fn parse_limitation_u32(field_value: std.json.Value) RelayInfoError!u32 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(u32) == 4);
 
@@ -312,7 +312,7 @@ fn parse_limitation_u32(field_value: std.json.Value) Nip11Error!u32 {
     return std.math.cast(u32, field_value.integer) orelse error.InvalidStructuredField;
 }
 
-fn map_nip11_json_parse_error(parse_error: anyerror) Nip11Error {
+fn map_nip11_json_parse_error(parse_error: anyerror) RelayInfoError {
     std.debug.assert(@intFromError(parse_error) >= 0);
     std.debug.assert(!@inComptime());
 

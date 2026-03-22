@@ -2,7 +2,7 @@ const std = @import("std");
 const limits = @import("limits.zig");
 const nip01_event = @import("nip01_event.zig");
 
-pub const Nip02Error = error{
+pub const ContactsError = error{
     InvalidEventKind,
     InvalidContactTag,
     InvalidPubkey,
@@ -21,7 +21,7 @@ pub const ContactEntry = struct {
 /// - `ContactEntry.pubkey` is copied into `out`.
 /// - `ContactEntry.relay` and `ContactEntry.petname` borrow from `event.tags` item storage.
 /// - Keep `event` and its tag item backing storage alive and unmodified while using `out`.
-pub fn contacts_extract(event: *const nip01_event.Event, out: []ContactEntry) Nip02Error!u16 {
+pub fn contacts_extract(event: *const nip01_event.Event, out: []ContactEntry) ContactsError!u16 {
     std.debug.assert(event.tags.len <= std.math.maxInt(usize));
     std.debug.assert(out.len <= std.math.maxInt(usize));
 
@@ -46,7 +46,7 @@ pub fn contacts_extract(event: *const nip01_event.Event, out: []ContactEntry) Ni
     return @intCast(event.tags.len);
 }
 
-fn parse_contact_tag(tag: nip01_event.EventTag) Nip02Error!ContactEntry {
+fn parse_contact_tag(tag: nip01_event.EventTag) ContactsError!ContactEntry {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.nip02_contact_tag_items_max >= 2);
 
@@ -87,7 +87,7 @@ fn parse_contact_tag(tag: nip01_event.EventTag) Nip02Error!ContactEntry {
     };
 }
 
-fn parse_pubkey(source: []const u8, out: *[32]u8) Nip02Error!void {
+fn parse_pubkey(source: []const u8, out: *[32]u8) ContactsError!void {
     std.debug.assert(@intFromPtr(out) != 0);
     std.debug.assert(limits.pubkey_hex_length == 64);
 

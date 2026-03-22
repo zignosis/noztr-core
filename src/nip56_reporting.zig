@@ -5,7 +5,7 @@ const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const report_event_kind: u32 = 1984;
 
-pub const Nip56Error = error{
+pub const ReportError = error{
     InvalidReportKind,
     MissingPubkeyTarget,
     MissingReportType,
@@ -80,7 +80,7 @@ pub const BuiltTag = struct {
 pub fn report_extract(
     event: *const nip01_event.Event,
     out_server_urls: [][]const u8,
-) Nip56Error!ReportInfo {
+) ReportError!ReportInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_server_urls.len <= limits.tags_max);
 
@@ -118,7 +118,7 @@ pub fn report_build_pubkey_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
     report_type: ?ReportType,
-) Nip56Error!nip01_event.EventTag {
+) ReportError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
 
@@ -138,7 +138,7 @@ pub fn report_build_event_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
     report_type: ReportType,
-) Nip56Error!nip01_event.EventTag {
+) ReportError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
 
@@ -155,7 +155,7 @@ pub fn report_build_blob_tag(
     output: *BuiltTag,
     hash_hex: []const u8,
     report_type: ReportType,
-) Nip56Error!nip01_event.EventTag {
+) ReportError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(hash_hex.len <= limits.tag_item_bytes_max);
 
@@ -171,7 +171,7 @@ pub fn report_build_blob_tag(
 pub fn report_build_server_tag(
     output: *BuiltTag,
     server_url: []const u8,
-) Nip56Error!nip01_event.EventTag {
+) ReportError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(server_url.len <= limits.tag_item_bytes_max);
 
@@ -188,7 +188,7 @@ fn apply_report_tag(
     blob_target: *?BlobReportTarget,
     out_server_urls: [][]const u8,
     server_count: *u16,
-) Nip56Error!void {
+) ReportError!void {
     std.debug.assert(@intFromPtr(pubkey_target) != 0);
     std.debug.assert(@intFromPtr(server_count) != 0);
 
@@ -204,7 +204,7 @@ fn apply_report_tag(
 fn parse_pubkey_tag(
     tag: nip01_event.EventTag,
     target: *?PubkeyReportTarget,
-) Nip56Error!void {
+) ReportError!void {
     std.debug.assert(@intFromPtr(target) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -220,7 +220,7 @@ fn parse_pubkey_tag(
 fn parse_event_tag(
     tag: nip01_event.EventTag,
     target: *?EventReportTarget,
-) Nip56Error!void {
+) ReportError!void {
     std.debug.assert(@intFromPtr(target) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -240,7 +240,7 @@ fn parse_event_tag(
 fn parse_blob_tag(
     tag: nip01_event.EventTag,
     target: *?BlobReportTarget,
-) Nip56Error!void {
+) ReportError!void {
     std.debug.assert(@intFromPtr(target) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -256,7 +256,7 @@ fn parse_server_tag(
     tag: nip01_event.EventTag,
     out_server_urls: [][]const u8,
     count: *u16,
-) Nip56Error!void {
+) ReportError!void {
     std.debug.assert(@intFromPtr(count) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -266,7 +266,7 @@ fn parse_server_tag(
     count.* += 1;
 }
 
-fn parse_optional_pubkey_report_type(tag: nip01_event.EventTag) Nip56Error!?ReportType {
+fn parse_optional_pubkey_report_type(tag: nip01_event.EventTag) ReportError!?ReportType {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len >= 2);
 

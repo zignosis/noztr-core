@@ -2,7 +2,7 @@ const std = @import("std");
 const limits = @import("limits.zig");
 const nip19_bech32 = @import("nip19_bech32.zig");
 
-pub const Nip21Error = error{ InvalidUri, InvalidScheme, ForbiddenEntity, InvalidEntityEncoding };
+pub const UriError = error{ InvalidUri, InvalidScheme, ForbiddenEntity, InvalidEntityEncoding };
 
 pub const Nip21Reference = struct {
     identifier: []const u8,
@@ -17,7 +17,7 @@ pub const Nip21Reference = struct {
 ///   (for example `nprofile.relays`, `nevent.relays`, `naddr.identifier`,
 ///   `naddr.relays`, `nrelay.relay`).
 /// - Keep both `input` and `tlv_scratch` alive and unmodified while using borrowed fields.
-pub fn uri_parse(input: []const u8, tlv_scratch: []u8) Nip21Error!Nip21Reference {
+pub fn uri_parse(input: []const u8, tlv_scratch: []u8) UriError!Nip21Reference {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(tlv_scratch.len <= limits.nip19_tlv_scratch_bytes_max);
 
@@ -49,9 +49,9 @@ pub fn uri_parse(input: []const u8, tlv_scratch: []u8) Nip21Error!Nip21Reference
     };
 }
 
-fn map_nip19_decode_error(decode_error: nip19_bech32.Nip19Error) Nip21Error {
-    std.debug.assert(@typeInfo(nip19_bech32.Nip19Error) == .error_set);
-    std.debug.assert(@typeInfo(Nip21Error) == .error_set);
+fn map_nip19_decode_error(decode_error: nip19_bech32.Bech32Error) UriError {
+    std.debug.assert(@typeInfo(nip19_bech32.Bech32Error) == .error_set);
+    std.debug.assert(@typeInfo(UriError) == .error_set);
 
     return switch (decode_error) {
         error.InvalidBech32,
@@ -91,7 +91,7 @@ fn has_forbidden_separator(identifier: []const u8) bool {
     return false;
 }
 
-fn to_nostr_uri(output: []u8, identifier: []const u8) Nip21Error![]const u8 {
+fn to_nostr_uri(output: []u8, identifier: []const u8) UriError![]const u8 {
     std.debug.assert(output.len <= limits.nip21_uri_bytes_max);
     std.debug.assert(identifier.len <= limits.nip19_bech32_identifier_bytes_max);
 

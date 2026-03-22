@@ -3,7 +3,7 @@ const limits = @import("limits.zig");
 const nip01_filter = @import("nip01_filter.zig");
 
 /// Typed strict COUNT parser and metadata errors.
-pub const Nip45Error = error{
+pub const CountError = error{
     InvalidCountMessage,
     InvalidCountObject,
     InvalidCountValue,
@@ -37,7 +37,7 @@ pub const CountRelayMessage = struct {
 pub fn count_client_message_parse(
     input: []const u8,
     scratch: std.mem.Allocator,
-) Nip45Error!CountClientMessage {
+) CountError!CountClientMessage {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.message_filters_max > 0);
 
@@ -63,7 +63,7 @@ pub fn count_client_message_parse(
 pub fn count_relay_message_parse(
     input: []const u8,
     scratch: std.mem.Allocator,
-) Nip45Error!CountRelayMessage {
+) CountError!CountRelayMessage {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.subscription_id_bytes_max == 64);
 
@@ -85,7 +85,7 @@ pub fn count_relay_message_parse(
 }
 
 /// Validate optional COUNT metadata (`approximate`, `hll`).
-pub fn count_metadata_validate(metadata: *const CountMetadata) Nip45Error!void {
+pub fn count_metadata_validate(metadata: *const CountMetadata) CountError!void {
     std.debug.assert(@intFromPtr(metadata) != 0);
     std.debug.assert(limits.nip45_hll_hex_length == 512);
 
@@ -100,7 +100,7 @@ pub fn count_metadata_validate(metadata: *const CountMetadata) Nip45Error!void {
 fn parse_count_array(
     input: []const u8,
     parse_allocator: std.mem.Allocator,
-) Nip45Error!std.json.Value {
+) CountError!std.json.Value {
     std.debug.assert(@intFromPtr(parse_allocator.ptr) != 0);
     std.debug.assert(limits.relay_message_bytes_max >= limits.event_json_max);
 
@@ -124,7 +124,7 @@ fn parse_count_array(
     return root;
 }
 
-fn validate_count_command(value: std.json.Value) Nip45Error!void {
+fn validate_count_command(value: std.json.Value) CountError!void {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(limits.subscription_id_bytes_max == 64);
 
@@ -136,7 +136,7 @@ fn validate_count_command(value: std.json.Value) Nip45Error!void {
     }
 }
 
-fn parse_query_id_owned(value: std.json.Value, scratch: std.mem.Allocator) Nip45Error![]const u8 {
+fn parse_query_id_owned(value: std.json.Value, scratch: std.mem.Allocator) CountError![]const u8 {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.subscription_id_bytes_max == 64);
 
@@ -156,7 +156,7 @@ fn parse_client_filters(
     values: []const std.json.Value,
     scratch: std.mem.Allocator,
     filters: *[limits.message_filters_max]nip01_filter.Filter,
-) Nip45Error!u8 {
+) CountError!u8 {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(@intFromPtr(filters) != 0);
 
@@ -180,7 +180,7 @@ fn parse_client_filters(
 fn parse_filter_value(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip45Error!nip01_filter.Filter {
+) CountError!nip01_filter.Filter {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(@sizeOf(nip01_filter.Filter) > 0);
 
@@ -198,7 +198,7 @@ const ParsedCountObject = struct {
 fn parse_count_object(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip45Error!ParsedCountObject {
+) CountError!ParsedCountObject {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(@sizeOf(std.json.Value) > 0);
 
@@ -230,7 +230,7 @@ fn parse_count_object(
     return .{ .count = parsed_count, .metadata = metadata };
 }
 
-fn parse_count_value(value: std.json.Value) Nip45Error!u64 {
+fn parse_count_value(value: std.json.Value) CountError!u64 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(u64) == 8);
 
@@ -243,7 +243,7 @@ fn parse_count_value(value: std.json.Value) Nip45Error!u64 {
     return std.math.cast(u64, value.integer) orelse error.InvalidCountValue;
 }
 
-fn parse_approximate(value: std.json.Value) Nip45Error!bool {
+fn parse_approximate(value: std.json.Value) CountError!bool {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(bool) == 1);
 
@@ -253,7 +253,7 @@ fn parse_approximate(value: std.json.Value) Nip45Error!bool {
     return value.bool;
 }
 
-fn parse_hll_owned(value: std.json.Value, scratch: std.mem.Allocator) Nip45Error![]const u8 {
+fn parse_hll_owned(value: std.json.Value, scratch: std.mem.Allocator) CountError![]const u8 {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.nip45_hll_hex_length == 512);
 
@@ -263,7 +263,7 @@ fn parse_hll_owned(value: std.json.Value, scratch: std.mem.Allocator) Nip45Error
     return scratch.dupe(u8, value.string) catch return error.InvalidCountMessage;
 }
 
-fn validate_hex(value: []const u8) Nip45Error!void {
+fn validate_hex(value: []const u8) CountError!void {
     std.debug.assert(value.len <= limits.relay_message_bytes_max);
     std.debug.assert(limits.nip45_hll_hex_length == 512);
 
@@ -373,7 +373,7 @@ test "count parser rejects strict invalid vectors" {
     );
 }
 
-test "count parser forces every Nip45Error variant" {
+test "count parser forces every CountError variant" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
 

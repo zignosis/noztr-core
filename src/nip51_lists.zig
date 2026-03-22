@@ -8,7 +8,7 @@ const relay_origin = @import("internal/relay_origin.zig");
 const url_with_host = @import("internal/url_with_host.zig");
 const websocket_relay_url = @import("internal/websocket_relay_url.zig");
 
-pub const Nip51Error = error{
+pub const ListError = error{
     UnsupportedListKind,
     MissingIdentifier,
     DuplicateIdentifierTag,
@@ -36,7 +36,7 @@ pub const Nip51Error = error{
     BufferTooSmall,
 };
 
-pub const Nip51PrivateListError = Nip51Error || nip44.Nip44Error || error{
+pub const PrivateListError = ListError || nip44.ConversationEncryptionError || error{
     InvalidPrivateJson,
     InvalidPrivateTagArray,
     TooManyPrivateTags,
@@ -192,7 +192,7 @@ pub fn list_is_supported(event: *const nip01_event.Event) bool {
 /// - Only public tag-carried list items are extracted here.
 /// - Encrypted private list content in `event.content` is intentionally out of scope for this
 ///   strict Wave 1 helper and is ignored by this function.
-pub fn list_extract(event: *const nip01_event.Event, out: []ListItem) Nip51Error!ListInfo {
+pub fn list_extract(event: *const nip01_event.Event, out: []ListItem) ListError!ListInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out.len <= std.math.maxInt(u16));
 
@@ -225,7 +225,7 @@ pub fn list_extract(event: *const nip01_event.Event, out: []ListItem) Nip51Error
 pub fn list_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip51Error!nip01_event.EventTag {
+) ListError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
 
@@ -239,7 +239,7 @@ pub fn list_build_identifier_tag(
 pub fn bookmark_build_tag(
     output: *BuiltTag,
     item: BookmarkBuilderItem,
-) Nip51Error!nip01_event.EventTag {
+) ListError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(&output.text_storage) != 0);
 
@@ -255,7 +255,7 @@ pub fn bookmark_build_tag(
 pub fn emoji_build_tag(
     output: *BuiltTag,
     emoji: *const ListEmoji,
-) Nip51Error!nip01_event.EventTag {
+) ListError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(emoji) != 0);
 
@@ -287,7 +287,7 @@ pub fn emoji_build_tag(
 pub fn list_private_serialize_json(
     output: []u8,
     tags: []const nip01_event.EventTag,
-) Nip51PrivateListError![]const u8 {
+) PrivateListError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(tags.len <= std.math.maxInt(usize));
 
@@ -315,7 +315,7 @@ pub fn list_private_extract_json(
     input_json: []const u8,
     out: []ListItem,
     scratch: std.mem.Allocator,
-) Nip51PrivateListError!PrivateListInfo {
+) PrivateListError!PrivateListInfo {
     std.debug.assert(event_kind <= limits.kind_max);
     std.debug.assert(out.len <= std.math.maxInt(u16));
 
@@ -330,7 +330,7 @@ pub fn list_private_extract_nip44(
     author_private_key: *const [32]u8,
     out: []ListItem,
     scratch: std.mem.Allocator,
-) Nip51PrivateListError!PrivateListInfo {
+) PrivateListError!PrivateListInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(author_private_key) != 0);
 
@@ -357,7 +357,7 @@ fn apply_metadata_tag(
     kind: ListKind,
     tag: nip01_event.EventTag,
     metadata: *ListMetadata,
-) Nip51Error!bool {
+) ListError!bool {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -393,7 +393,7 @@ fn list_private_extract_json_kind(
     input_json: []const u8,
     out: []ListItem,
     scratch: std.mem.Allocator,
-) Nip51PrivateListError!PrivateListInfo {
+) PrivateListError!PrivateListInfo {
     std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
     std.debug.assert(out.len <= std.math.maxInt(u16));
 
@@ -416,7 +416,7 @@ fn list_private_extract_json_kind(
 fn parse_private_json_root(
     input_json: []const u8,
     parse_allocator: std.mem.Allocator,
-) Nip51PrivateListError!std.json.Value {
+) PrivateListError!std.json.Value {
     std.debug.assert(input_json.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(parse_allocator.ptr) != 0);
 
@@ -444,7 +444,7 @@ fn parse_private_json_root(
     return root;
 }
 
-fn parse_private_json_tag(kind: ListKind, value: std.json.Value) Nip51PrivateListError!ListItem {
+fn parse_private_json_tag(kind: ListKind, value: std.json.Value) PrivateListError!ListItem {
     std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
     std.debug.assert(@sizeOf(std.json.Value) > 0);
 
@@ -470,7 +470,7 @@ fn parse_private_json_tag(kind: ListKind, value: std.json.Value) Nip51PrivateLis
     return parse_item_tag(kind, .{ .items = items[0..value.array.items.len] });
 }
 
-fn validate_private_tag_item(item: []const u8) Nip51PrivateListError!void {
+fn validate_private_tag_item(item: []const u8) PrivateListError!void {
     std.debug.assert(item.len <= std.math.maxInt(usize));
     std.debug.assert(limits.tag_item_bytes_max > 0);
 
@@ -482,7 +482,7 @@ fn validate_private_tag_item(item: []const u8) Nip51PrivateListError!void {
     }
 }
 
-fn write_private_tag_json(writer: anytype, tag: nip01_event.EventTag) Nip51PrivateListError!void {
+fn write_private_tag_json(writer: anytype, tag: nip01_event.EventTag) PrivateListError!void {
     std.debug.assert(tag.items.len <= std.math.maxInt(usize));
     std.debug.assert(@TypeOf(writer) != void);
 
@@ -501,7 +501,7 @@ fn write_private_tag_json(writer: anytype, tag: nip01_event.EventTag) Nip51Priva
     try write_private_byte(writer, ']');
 }
 
-fn write_private_string_json(writer: anytype, value: []const u8) Nip51PrivateListError!void {
+fn write_private_string_json(writer: anytype, value: []const u8) PrivateListError!void {
     std.debug.assert(value.len <= std.math.maxInt(usize));
     std.debug.assert(@TypeOf(writer) != void);
 
@@ -511,21 +511,21 @@ fn write_private_string_json(writer: anytype, value: []const u8) Nip51PrivateLis
     };
 }
 
-fn write_private_escape(writer: anytype, escape_byte: u8) Nip51PrivateListError!void {
+fn write_private_escape(writer: anytype, escape_byte: u8) PrivateListError!void {
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(escape_byte > 0);
 
     try json_string_writer.write_escape(writer, escape_byte);
 }
 
-fn write_private_control_escape(writer: anytype, byte: u8) Nip51PrivateListError!void {
+fn write_private_control_escape(writer: anytype, byte: u8) PrivateListError!void {
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(byte < 0x20);
 
     try json_string_writer.write_control_escape(writer, byte);
 }
 
-fn write_private_byte(writer: anytype, byte: u8) Nip51PrivateListError!void {
+fn write_private_byte(writer: anytype, byte: u8) PrivateListError!void {
     std.debug.assert(@TypeOf(writer) != void);
     std.debug.assert(byte <= 255);
 
@@ -547,7 +547,7 @@ fn private_content_is_nip04_legacy(content: []const u8) bool {
     return std.mem.indexOf(u8, content, "?iv=") != null;
 }
 
-fn apply_identifier_tag(tag: nip01_event.EventTag, metadata: *ListMetadata) Nip51Error!void {
+fn apply_identifier_tag(tag: nip01_event.EventTag, metadata: *ListMetadata) ListError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -557,7 +557,7 @@ fn apply_identifier_tag(tag: nip01_event.EventTag, metadata: *ListMetadata) Nip5
     metadata.identifier = try parse_single_utf8_value(tag, error.InvalidIdentifierTag);
 }
 
-fn apply_title_tag(tag: nip01_event.EventTag, metadata: *ListMetadata) Nip51Error!void {
+fn apply_title_tag(tag: nip01_event.EventTag, metadata: *ListMetadata) ListError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -567,7 +567,7 @@ fn apply_title_tag(tag: nip01_event.EventTag, metadata: *ListMetadata) Nip51Erro
     metadata.title = try parse_single_utf8_value(tag, error.InvalidTitleTag);
 }
 
-fn apply_image_tag(tag: nip01_event.EventTag, metadata: *ListMetadata) Nip51Error!void {
+fn apply_image_tag(tag: nip01_event.EventTag, metadata: *ListMetadata) ListError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -577,7 +577,7 @@ fn apply_image_tag(tag: nip01_event.EventTag, metadata: *ListMetadata) Nip51Erro
     metadata.image = try parse_single_url_value(tag, error.InvalidImageTag);
 }
 
-fn apply_description_tag(tag: nip01_event.EventTag, metadata: *ListMetadata) Nip51Error!void {
+fn apply_description_tag(tag: nip01_event.EventTag, metadata: *ListMetadata) ListError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -610,7 +610,7 @@ fn kind_requires_identifier(kind: ListKind) bool {
     return kind_is_set(kind);
 }
 
-fn parse_item_tag(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListItem {
+fn parse_item_tag(kind: ListKind, tag: nip01_event.EventTag) ListError!ListItem {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
 
@@ -634,7 +634,7 @@ fn build_event_tag(
     output: *BuiltTag,
     tag_name: []const u8,
     event: ListEvent,
-) Nip51Error!nip01_event.EventTag {
+) ListError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(tag_name.len > 0);
 
@@ -655,7 +655,7 @@ fn build_coordinate_tag(
     tag_name: []const u8,
     coordinate: ListCoordinate,
     require_nonempty_identifier: bool,
-) Nip51Error!nip01_event.EventTag {
+) ListError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(tag_name.len > 0);
 
@@ -675,7 +675,7 @@ fn build_coordinate_tag(
     return output.as_event_tag();
 }
 
-fn build_hashtag_tag(output: *BuiltTag, hashtag: []const u8) Nip51Error!nip01_event.EventTag {
+fn build_hashtag_tag(output: *BuiltTag, hashtag: []const u8) ListError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(hashtag.len <= limits.tag_item_bytes_max);
 
@@ -690,7 +690,7 @@ fn build_hashtag_tag(output: *BuiltTag, hashtag: []const u8) Nip51Error!nip01_ev
     return output.as_event_tag();
 }
 
-fn build_url_tag(output: *BuiltTag, url: []const u8) Nip51Error!nip01_event.EventTag {
+fn build_url_tag(output: *BuiltTag, url: []const u8) ListError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(url.len <= limits.tag_item_bytes_max);
 
@@ -700,7 +700,7 @@ fn build_url_tag(output: *BuiltTag, url: []const u8) Nip51Error!nip01_event.Even
     return output.as_event_tag();
 }
 
-fn parse_pubkey_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListItem {
+fn parse_pubkey_item(kind: ListKind, tag: nip01_event.EventTag) ListError!ListItem {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
 
@@ -715,7 +715,7 @@ fn parse_pubkey_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListI
     };
 }
 
-fn parse_event_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListItem {
+fn parse_event_item(kind: ListKind, tag: nip01_event.EventTag) ListError!ListItem {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
 
@@ -733,7 +733,7 @@ fn parse_event_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListIt
     return .{ .event = parsed };
 }
 
-fn parse_coordinate_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListItem {
+fn parse_coordinate_item(kind: ListKind, tag: nip01_event.EventTag) ListError!ListItem {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
 
@@ -754,7 +754,7 @@ fn parse_coordinate_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!L
     return .{ .coordinate = parsed };
 }
 
-fn parse_hashtag_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListItem {
+fn parse_hashtag_item(kind: ListKind, tag: nip01_event.EventTag) ListError!ListItem {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
 
@@ -766,7 +766,7 @@ fn parse_hashtag_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!List
     return .{ .hashtag = value };
 }
 
-fn parse_url_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListItem {
+fn parse_url_item(kind: ListKind, tag: nip01_event.EventTag) ListError!ListItem {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
 
@@ -775,7 +775,7 @@ fn parse_url_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListItem
     return .{ .url = value };
 }
 
-fn parse_word_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListItem {
+fn parse_word_item(kind: ListKind, tag: nip01_event.EventTag) ListError!ListItem {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
 
@@ -787,7 +787,7 @@ fn parse_word_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListIte
     return .{ .word = value };
 }
 
-fn parse_relay_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListItem {
+fn parse_relay_item(kind: ListKind, tag: nip01_event.EventTag) ListError!ListItem {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
 
@@ -797,7 +797,7 @@ fn parse_relay_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListIt
     return .{ .relay_url = value };
 }
 
-fn parse_emoji_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListItem {
+fn parse_emoji_item(kind: ListKind, tag: nip01_event.EventTag) ListError!ListItem {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
 
@@ -825,7 +825,7 @@ fn parse_emoji_item(kind: ListKind, tag: nip01_event.EventTag) Nip51Error!ListIt
     return .{ .emoji = parsed };
 }
 
-fn require_family(kind: ListKind, family: ItemFamily) Nip51Error!void {
+fn require_family(kind: ListKind, family: ItemFamily) ListError!void {
     std.debug.assert(@intFromEnum(kind) <= @intFromEnum(ListKind.emoji_set));
     std.debug.assert(@intFromEnum(family) <= @intFromEnum(ItemFamily.emoji));
 
@@ -878,10 +878,10 @@ fn coordinate_kind_matches_list(kind: ListKind, coordinate_kind: u32) bool {
 
 fn parse_single_utf8_value(
     tag: nip01_event.EventTag,
-    invalid_error: Nip51Error,
-) Nip51Error![]const u8 {
+    invalid_error: ListError,
+) ListError![]const u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
-    std.debug.assert(@typeInfo(Nip51Error) == .error_set);
+    std.debug.assert(@typeInfo(ListError) == .error_set);
 
     if (tag.items.len != 2) {
         return invalid_error;
@@ -891,10 +891,10 @@ fn parse_single_utf8_value(
 
 fn parse_single_url_value(
     tag: nip01_event.EventTag,
-    invalid_error: Nip51Error,
-) Nip51Error![]const u8 {
+    invalid_error: ListError,
+) ListError![]const u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
-    std.debug.assert(@typeInfo(Nip51Error) == .error_set);
+    std.debug.assert(@typeInfo(ListError) == .error_set);
 
     if (tag.items.len != 2) {
         return invalid_error;
@@ -972,7 +972,7 @@ fn format_coordinate_text(
     output: []u8,
     coordinate: ListCoordinate,
     require_nonempty_identifier: bool,
-) Nip51Error![]const u8 {
+) ListError![]const u8 {
     std.debug.assert(output.len <= limits.tag_item_bytes_max);
     std.debug.assert(coordinate.kind <= limits.kind_max);
 
@@ -1100,7 +1100,7 @@ fn parse_hex_32_test(hex: []const u8) ![32]u8 {
 }
 
 fn expect_single_tag_error(
-    expected: Nip51Error,
+    expected: ListError,
     kind: u32,
     tag_items: []const []const u8,
 ) !void {

@@ -5,7 +5,7 @@ const nip01_event = @import("nip01_event.zig");
 pub const text_note_kind: u32 = 1;
 pub const subject_tag_name: []const u8 = "subject";
 
-pub const Nip14Error = error{
+pub const SubjectError = error{
     InvalidTextNoteKind,
     DuplicateSubjectTag,
     InvalidSubjectTag,
@@ -24,7 +24,7 @@ pub const BuiltTag = struct {
 };
 
 /// Extracts the strict `subject` tag from a kind-1 text note, or `null` when absent.
-pub fn subject_extract(event: *const nip01_event.Event) Nip14Error!?[]const u8 {
+pub fn subject_extract(event: *const nip01_event.Event) SubjectError!?[]const u8 {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -40,7 +40,7 @@ pub fn subject_extract(event: *const nip01_event.Event) Nip14Error!?[]const u8 {
 }
 
 /// Builds a canonical `subject` tag for a kind-1 text note.
-pub fn subject_build_tag(output: *BuiltTag, subject: []const u8) Nip14Error!nip01_event.EventTag {
+pub fn subject_build_tag(output: *BuiltTag, subject: []const u8) SubjectError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 2);
 

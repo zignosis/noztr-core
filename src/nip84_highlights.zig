@@ -6,7 +6,7 @@ const url_with_host = @import("internal/url_with_host.zig");
 
 pub const highlight_kind: u32 = 9802;
 
-pub const Nip84Error = error{
+pub const HighlightError = error{
     InvalidHighlightKind,
     DuplicateSourceTag,
     InvalidSourceTag,
@@ -73,7 +73,7 @@ pub fn highlight_extract(
     event: *const nip01_event.Event,
     out_attributions: []HighlightAttribution,
     out_url_references: []UrlReference,
-) Nip84Error!HighlightInfo {
+) HighlightError!HighlightInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_attributions.len <= limits.tags_max);
 
@@ -91,7 +91,7 @@ pub fn highlight_build_event_source_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip84Error!nip01_event.EventTag {
+) HighlightError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
 
@@ -111,7 +111,7 @@ pub fn highlight_build_address_source_tag(
     output: *BuiltTag,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
-) Nip84Error!nip01_event.EventTag {
+) HighlightError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(coordinate_text.len <= limits.tag_item_bytes_max);
 
@@ -131,7 +131,7 @@ pub fn highlight_build_url_reference_tag(
     output: *BuiltTag,
     url: []const u8,
     marker: ?[]const u8,
-) Nip84Error!nip01_event.EventTag {
+) HighlightError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(url.len <= limits.tag_item_bytes_max);
 
@@ -151,7 +151,7 @@ pub fn highlight_build_author_tag(
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
     role: ?[]const u8,
-) Nip84Error!nip01_event.EventTag {
+) HighlightError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
 
@@ -174,7 +174,7 @@ pub fn highlight_build_author_tag(
 pub fn highlight_build_context_tag(
     output: *BuiltTag,
     context: []const u8,
-) Nip84Error!nip01_event.EventTag {
+) HighlightError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(context.len <= limits.tag_item_bytes_max);
 
@@ -188,7 +188,7 @@ pub fn highlight_build_context_tag(
 pub fn highlight_build_comment_tag(
     output: *BuiltTag,
     comment: []const u8,
-) Nip84Error!nip01_event.EventTag {
+) HighlightError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(comment.len <= limits.tag_item_bytes_max);
 
@@ -203,7 +203,7 @@ fn apply_tag(
     info: *HighlightInfo,
     out_attributions: []HighlightAttribution,
     out_url_references: []UrlReference,
-) Nip84Error!void {
+) HighlightError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -215,7 +215,7 @@ fn apply_tag(
     if (std.mem.eql(u8, tag.items[0], "comment")) return parse_comment(tag, info);
 }
 
-fn parse_event_source(tag: nip01_event.EventTag, info: *HighlightInfo) Nip84Error!void {
+fn parse_event_source(tag: nip01_event.EventTag, info: *HighlightInfo) HighlightError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -230,7 +230,7 @@ fn parse_event_source(tag: nip01_event.EventTag, info: *HighlightInfo) Nip84Erro
     };
 }
 
-fn parse_address_source(tag: nip01_event.EventTag, info: *HighlightInfo) Nip84Error!void {
+fn parse_address_source(tag: nip01_event.EventTag, info: *HighlightInfo) HighlightError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -246,7 +246,7 @@ fn parse_url_reference(
     tag: nip01_event.EventTag,
     info: *HighlightInfo,
     out_url_references: []UrlReference,
-) Nip84Error!void {
+) HighlightError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out_url_references.len <= limits.tags_max);
 
@@ -269,7 +269,7 @@ fn parse_attribution(
     tag: nip01_event.EventTag,
     info: *HighlightInfo,
     out_attributions: []HighlightAttribution,
-) Nip84Error!void {
+) HighlightError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out_attributions.len <= limits.tags_max);
 
@@ -306,7 +306,7 @@ fn parse_attribution(
     info.attribution_count += 1;
 }
 
-fn parse_context(tag: nip01_event.EventTag, info: *HighlightInfo) Nip84Error!void {
+fn parse_context(tag: nip01_event.EventTag, info: *HighlightInfo) HighlightError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -315,7 +315,7 @@ fn parse_context(tag: nip01_event.EventTag, info: *HighlightInfo) Nip84Error!voi
     info.context = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidContextTag;
 }
 
-fn parse_comment(tag: nip01_event.EventTag, info: *HighlightInfo) Nip84Error!void {
+fn parse_comment(tag: nip01_event.EventTag, info: *HighlightInfo) HighlightError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -371,10 +371,10 @@ fn validate_coordinate_kind(kind: u32, identifier: []const u8) error{InvalidCoor
 fn parse_optional_url_item(
     tag: nip01_event.EventTag,
     index: usize,
-    invalid_error: Nip84Error,
-) Nip84Error!?[]const u8 {
+    invalid_error: HighlightError,
+) HighlightError!?[]const u8 {
     std.debug.assert(index < limits.tag_items_max);
-    std.debug.assert(@typeInfo(Nip84Error) == .error_set);
+    std.debug.assert(@typeInfo(HighlightError) == .error_set);
 
     if (tag.items.len <= index) return null;
     if (tag.items[index].len == 0) return null;
@@ -384,10 +384,10 @@ fn parse_optional_url_item(
 fn parse_optional_text_item(
     tag: nip01_event.EventTag,
     index: usize,
-    invalid_error: Nip84Error,
-) Nip84Error!?[]const u8 {
+    invalid_error: HighlightError,
+) HighlightError!?[]const u8 {
     std.debug.assert(index < limits.tag_items_max);
-    std.debug.assert(@typeInfo(Nip84Error) == .error_set);
+    std.debug.assert(@typeInfo(HighlightError) == .error_set);
 
     if (tag.items.len <= index) return null;
     if (tag.items[index].len == 0) return null;

@@ -1,7 +1,7 @@
 const std = @import("std");
 const nip01_event = @import("nip01_event.zig");
 
-pub const Nip70Error = error{ ProtectedAuthRequired, ProtectedPubkeyMismatch };
+pub const ProtectedError = error{ ProtectedAuthRequired, ProtectedPubkeyMismatch };
 
 pub fn event_has_protected_tag(event: *const nip01_event.Event) bool {
     std.debug.assert(event.tags.len <= std.math.maxInt(usize));
@@ -23,7 +23,7 @@ pub fn event_has_protected_tag(event: *const nip01_event.Event) bool {
 pub fn protected_event_validate(
     event: *const nip01_event.Event,
     authenticated_pubkey: ?*const [32]u8,
-) Nip70Error!void {
+) ProtectedError!void {
     std.debug.assert(event.pubkey[0] <= 255);
     std.debug.assert(@intFromPtr(event) != 0);
 

@@ -7,7 +7,7 @@ const lower_hex_32 = @import("internal/lower_hex_32.zig");
 pub const poll_kind: u32 = 1068;
 pub const poll_response_kind: u32 = 1018;
 
-pub const Nip88Error = error{
+pub const PollError = error{
     UnsupportedKind,
     MissingOptionTag,
     DuplicateOptionId,
@@ -106,7 +106,7 @@ pub fn poll_extract(
     event: *const nip01_event.Event,
     out_options: []PollOption,
     out_relays: [][]const u8,
-) Nip88Error!PollInfo {
+) PollError!PollInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_options.len <= limits.tags_max);
     std.debug.assert(out_relays.len <= limits.tags_max);
@@ -135,7 +135,7 @@ pub fn poll_extract(
 pub fn poll_response_extract(
     event: *const nip01_event.Event,
     out_responses: [][]const u8,
-) Nip88Error!PollResponseInfo {
+) PollError!PollResponseInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_responses.len <= limits.tags_max);
 
@@ -158,7 +158,7 @@ pub fn poll_response_extract(
 pub fn poll_build_option_tag(
     output: *BuiltTag,
     option: PollOption,
-) Nip88Error!nip01_event.EventTag {
+) PollError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len >= 3);
 
@@ -173,7 +173,7 @@ pub fn poll_build_option_tag(
 pub fn poll_build_relay_tag(
     output: *BuiltTag,
     relay_url: []const u8,
-) Nip88Error!nip01_event.EventTag {
+) PollError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len >= 2);
 
@@ -187,7 +187,7 @@ pub fn poll_build_relay_tag(
 pub fn poll_build_poll_type_tag(
     output: *BuiltTag,
     poll_type: PollType,
-) Nip88Error!nip01_event.EventTag {
+) PollError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@typeInfo(PollType).@"enum".fields.len == 2);
 
@@ -201,7 +201,7 @@ pub fn poll_build_poll_type_tag(
 pub fn poll_build_ends_at_tag(
     output: *BuiltTag,
     ends_at: u64,
-) Nip88Error!nip01_event.EventTag {
+) PollError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.text_storage.len >= 20);
 
@@ -217,7 +217,7 @@ pub fn poll_build_ends_at_tag(
 pub fn poll_response_build_event_tag(
     output: *BuiltTag,
     reference: PollEventReference,
-) Nip88Error!nip01_event.EventTag {
+) PollError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.text_storage.len >= limits.id_hex_length);
 
@@ -238,7 +238,7 @@ pub fn poll_response_build_event_tag(
 pub fn poll_response_build_response_tag(
     output: *BuiltTag,
     option_id: []const u8,
-) Nip88Error!nip01_event.EventTag {
+) PollError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len >= 2);
 
@@ -254,7 +254,7 @@ pub fn poll_tally_reduce(
     response_events: []const nip01_event.Event,
     out_latest_responses: []CountedResponse,
     out_option_tallies: []OptionTally,
-) Nip88Error!PollTally {
+) PollError!PollTally {
     std.debug.assert(@intFromPtr(poll_event) != 0);
     std.debug.assert(out_latest_responses.len <= limits.tags_max);
     std.debug.assert(out_option_tallies.len <= limits.tags_max);
@@ -296,7 +296,7 @@ fn apply_poll_tag(
     out_relays: [][]const u8,
     saw_poll_type: *bool,
     saw_ends_at: *bool,
-) Nip88Error!void {
+) PollError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_poll_type) != 0);
 
@@ -321,7 +321,7 @@ fn apply_option_tag(
     tag: nip01_event.EventTag,
     info: *PollInfo,
     out_options: []PollOption,
-) Nip88Error!void {
+) PollError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_options.len <= limits.tags_max);
 
@@ -338,7 +338,7 @@ fn apply_relay_tag(
     tag: nip01_event.EventTag,
     info: *PollInfo,
     out_relays: [][]const u8,
-) Nip88Error!void {
+) PollError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_relays.len <= limits.tags_max);
 
@@ -353,7 +353,7 @@ fn apply_response_tag(
     info: *PollResponseInfo,
     out_responses: [][]const u8,
     saw_event_tag: *bool,
-) Nip88Error!void {
+) PollError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_event_tag) != 0);
 
@@ -378,7 +378,7 @@ fn apply_response_tag(
 fn poll_extract_tallies(
     event: *const nip01_event.Event,
     out_option_tallies: []OptionTally,
-) Nip88Error!PollInfo {
+) PollError!PollInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_option_tallies.len <= limits.tags_max);
 
@@ -407,7 +407,7 @@ fn apply_poll_tally_tag(
     out_option_tallies: []OptionTally,
     saw_poll_type: *bool,
     saw_ends_at: *bool,
-) Nip88Error!void {
+) PollError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_ends_at) != 0);
 
@@ -438,7 +438,7 @@ fn apply_option_tally_tag(
     tag: nip01_event.EventTag,
     info: *PollInfo,
     out_option_tallies: []OptionTally,
-) Nip88Error!void {
+) PollError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(out_option_tallies.len <= limits.tags_max);
 
@@ -624,7 +624,7 @@ const ResponseIndexCache = struct {
         counted_responses: []CountedResponse,
         counted_response_count: *u16,
         candidate: CountedResponse,
-    ) Nip88Error!void {
+    ) PollError!void {
         std.debug.assert(@intFromPtr(counted_response_count) != 0);
         std.debug.assert(@intFromPtr(self) != 0);
 
@@ -819,7 +819,7 @@ fn parse_timestamp(text: []const u8) error{InvalidValue}!u64 {
     return std.fmt.parseUnsigned(u64, text, 10) catch return error.InvalidValue;
 }
 
-fn validate_content(content: []const u8, allow_empty: bool) Nip88Error!void {
+fn validate_content(content: []const u8, allow_empty: bool) PollError!void {
     std.debug.assert(limits.content_bytes_max > 0);
     std.debug.assert(@sizeOf(bool) == 1);
 

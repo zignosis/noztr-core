@@ -5,7 +5,7 @@ const lower_hex_32 = @import("internal/lower_hex_32.zig");
 
 pub const reaction_event_kind: u32 = 7;
 
-pub const Nip25Error = error{
+pub const ReactionError = error{
     InvalidReactionKind,
     InvalidContent,
     MissingEventTag,
@@ -67,7 +67,7 @@ pub fn reaction_is_reaction(event: *const nip01_event.Event) bool {
 }
 
 /// Classifies a reaction content value.
-pub fn reaction_classify_content(content: []const u8) Nip25Error!ReactionType {
+pub fn reaction_classify_content(content: []const u8) ReactionError!ReactionType {
     std.debug.assert(limits.content_bytes_max > 0);
     std.debug.assert(@sizeOf(ReactionType) > 0);
 
@@ -90,7 +90,7 @@ pub fn reaction_classify_content(content: []const u8) Nip25Error!ReactionType {
 }
 
 /// Parses a strict native NIP-25 reaction target from a kind-7 event.
-pub fn reaction_parse(event: *const nip01_event.Event) Nip25Error!ReactionTarget {
+pub fn reaction_parse(event: *const nip01_event.Event) ReactionError!ReactionTarget {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -140,7 +140,7 @@ fn parse_reaction_tag(
     found_custom_emoji: *bool,
     found_pubkey_tag: *bool,
     event_author_pubkey: *?[32]u8,
-) Nip25Error!void {
+) ReactionError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(parsed) != 0);
 
@@ -180,7 +180,7 @@ fn parse_event_tag(
     tag: nip01_event.EventTag,
     parsed: *ReactionTarget,
     event_author_pubkey: *?[32]u8,
-) Nip25Error!void {
+) ReactionError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(parsed) != 0);
 
@@ -206,7 +206,7 @@ fn parse_event_tag(
     }
 }
 
-fn parse_pubkey_tag(tag: nip01_event.EventTag, parsed: *ReactionTarget) Nip25Error!void {
+fn parse_pubkey_tag(tag: nip01_event.EventTag, parsed: *ReactionTarget) ReactionError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(parsed) != 0);
 
@@ -226,7 +226,7 @@ fn parse_pubkey_tag(tag: nip01_event.EventTag, parsed: *ReactionTarget) Nip25Err
     }
 }
 
-fn parse_coordinate_tag(tag: nip01_event.EventTag) Nip25Error!ReactionCoordinate {
+fn parse_coordinate_tag(tag: nip01_event.EventTag) ReactionError!ReactionCoordinate {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -243,7 +243,7 @@ fn parse_coordinate_tag(tag: nip01_event.EventTag) Nip25Error!ReactionCoordinate
     return coordinate;
 }
 
-fn parse_kind_tag(tag: nip01_event.EventTag) Nip25Error!u32 {
+fn parse_kind_tag(tag: nip01_event.EventTag) ReactionError!u32 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.kind_max <= std.math.maxInt(u32));
 
@@ -264,7 +264,7 @@ fn parse_emoji_tag(
     tag: nip01_event.EventTag,
     content: []const u8,
     reaction_type: ReactionType,
-) Nip25Error!?[]const u8 {
+) ReactionError!?[]const u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(content.len <= limits.content_bytes_max);
 
@@ -292,7 +292,7 @@ fn parse_emoji_tag(
     };
 }
 
-fn parse_emoji_set_coordinate(text: []const u8) Nip25Error!void {
+fn parse_emoji_set_coordinate(text: []const u8) ReactionError!void {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.kind_max <= std.math.maxInt(u32));
 
@@ -307,7 +307,7 @@ fn parse_emoji_set_coordinate(text: []const u8) Nip25Error!void {
 fn validate_target_metadata(
     parsed: *const ReactionTarget,
     event_author_pubkey: ?[32]u8,
-) Nip25Error!void {
+) ReactionError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(limits.kind_max <= std.math.maxInt(u32));
 
@@ -351,7 +351,7 @@ fn coordinate_kind_supports_a_tag(kind: u32) bool {
     return false;
 }
 
-fn parse_address_coordinate(text: []const u8) Nip25Error!ReactionCoordinate {
+fn parse_address_coordinate(text: []const u8) ReactionError!ReactionCoordinate {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 

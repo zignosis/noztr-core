@@ -10,7 +10,7 @@ pub const channel_message_kind: u32 = 42;
 pub const hide_message_kind: u32 = 43;
 pub const mute_user_kind: u32 = 44;
 
-pub const Nip28Error = error{
+pub const PublicChatError = error{
     InvalidChannelCreateKind,
     InvalidChannelMetadataKind,
     InvalidChannelMessageKind,
@@ -95,7 +95,7 @@ pub fn channel_metadata_parse_json(
     content: []const u8,
     out_relays: [][]const u8,
     scratch: std.mem.Allocator,
-) Nip28Error!ChannelMetadata {
+) PublicChatError!ChannelMetadata {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.content_bytes_max > 0);
 
@@ -112,7 +112,7 @@ pub fn channel_create_extract(
     event: *const nip01_event.Event,
     out_relays: [][]const u8,
     scratch: std.mem.Allocator,
-) Nip28Error!ChannelMetadata {
+) PublicChatError!ChannelMetadata {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -126,7 +126,7 @@ pub fn channel_metadata_extract(
     out_relays: [][]const u8,
     out_categories: [][]const u8,
     scratch: std.mem.Allocator,
-) Nip28Error!ChannelUpdateInfo {
+) PublicChatError!ChannelUpdateInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -148,7 +148,7 @@ pub fn channel_metadata_extract(
 pub fn channel_message_extract(
     event: *const nip01_event.Event,
     out_reply_pubkeys: [][32]u8,
-) Nip28Error!ChannelMessageInfo {
+) PublicChatError!ChannelMessageInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_reply_pubkeys.len <= limits.tags_max);
 
@@ -169,7 +169,7 @@ pub fn channel_message_extract(
 pub fn hide_message_extract(
     event: *const nip01_event.Event,
     scratch: std.mem.Allocator,
-) Nip28Error!HideMessageInfo {
+) PublicChatError!HideMessageInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -191,7 +191,7 @@ pub fn hide_message_extract(
 pub fn mute_user_extract(
     event: *const nip01_event.Event,
     scratch: std.mem.Allocator,
-) Nip28Error!MuteUserInfo {
+) PublicChatError!MuteUserInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -216,7 +216,7 @@ pub fn channel_build_metadata_json(
     about: ?[]const u8,
     picture: ?[]const u8,
     relays: []const []const u8,
-) Nip28Error![]const u8 {
+) PublicChatError![]const u8 {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(relays.len <= limits.tag_items_max);
 
@@ -233,7 +233,7 @@ pub fn channel_build_event_tag(
     event_id_hex: []const u8,
     relay_hint: ?[]const u8,
     marker: EventMarker,
-) Nip28Error!nip01_event.EventTag {
+) PublicChatError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 4);
 
@@ -258,7 +258,7 @@ pub fn channel_build_pubkey_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip28Error!nip01_event.EventTag {
+) PublicChatError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 4);
 
@@ -277,7 +277,7 @@ pub fn channel_build_pubkey_tag(
 pub fn channel_build_category_tag(
     output: *BuiltTag,
     category: []const u8,
-) Nip28Error!nip01_event.EventTag {
+) PublicChatError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 4);
 
@@ -291,7 +291,7 @@ pub fn channel_build_category_tag(
 pub fn channel_build_reason_json(
     output: *BuiltJson,
     reason: []const u8,
-) Nip28Error![]const u8 {
+) PublicChatError![]const u8 {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.storage.len == limits.content_bytes_max);
 
@@ -308,7 +308,7 @@ pub fn channel_build_reason_json(
 fn parse_metadata_object(
     object: std.json.ObjectMap,
     out_relays: [][]const u8,
-) Nip28Error!ChannelMetadata {
+) PublicChatError!ChannelMetadata {
     std.debug.assert(out_relays.len <= limits.tags_max);
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
 
@@ -338,8 +338,8 @@ fn parse_metadata_object(
 
 fn parse_optional_string_field(
     value: std.json.Value,
-    invalid_error: Nip28Error,
-) Nip28Error!?[]const u8 {
+    invalid_error: PublicChatError,
+) PublicChatError!?[]const u8 {
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
     std.debug.assert(@intFromError(invalid_error) >= 0);
 
@@ -348,7 +348,7 @@ fn parse_optional_string_field(
     return parse_nonempty_utf8(value.string) catch invalid_error;
 }
 
-fn parse_optional_url_field(value: std.json.Value) Nip28Error!?[]const u8 {
+fn parse_optional_url_field(value: std.json.Value) PublicChatError!?[]const u8 {
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
     std.debug.assert(limits.tag_item_bytes_max > 0);
 
@@ -357,7 +357,7 @@ fn parse_optional_url_field(value: std.json.Value) Nip28Error!?[]const u8 {
     return parse_url(value.string) catch return error.InvalidMetadataJson;
 }
 
-fn parse_metadata_relays(value: std.json.Value, out_relays: [][]const u8) Nip28Error!u16 {
+fn parse_metadata_relays(value: std.json.Value, out_relays: [][]const u8) PublicChatError!u16 {
     std.debug.assert(out_relays.len <= limits.tags_max);
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
 
@@ -378,7 +378,7 @@ fn apply_update_tag(
     channel: *?ChannelReference,
     out_categories: [][]const u8,
     category_count: *u16,
-) Nip28Error!void {
+) PublicChatError!void {
     std.debug.assert(@intFromPtr(channel) != 0);
     std.debug.assert(@intFromPtr(category_count) != 0);
 
@@ -397,7 +397,7 @@ fn append_category(
     tag: nip01_event.EventTag,
     out_categories: [][]const u8,
     count: *u16,
-) Nip28Error!void {
+) PublicChatError!void {
     std.debug.assert(@intFromPtr(count) != 0);
     std.debug.assert(count.* <= out_categories.len);
 
@@ -413,7 +413,7 @@ fn apply_message_tag(
     reply: *?ChannelReference,
     info: *ChannelMessageInfo,
     out_reply_pubkeys: [][32]u8,
-) Nip28Error!void {
+) PublicChatError!void {
     std.debug.assert(@intFromPtr(channel) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -431,7 +431,7 @@ fn parse_message_event_tag(
     tag: nip01_event.EventTag,
     channel: *?ChannelReference,
     reply: *?ChannelReference,
-) Nip28Error!void {
+) PublicChatError!void {
     std.debug.assert(@intFromPtr(channel) != 0);
     std.debug.assert(@intFromPtr(reply) != 0);
 
@@ -451,7 +451,7 @@ fn append_reply_pubkey(
     tag: nip01_event.EventTag,
     info: *ChannelMessageInfo,
     out_reply_pubkeys: [][32]u8,
-) Nip28Error!void {
+) PublicChatError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.reply_pubkey_count <= out_reply_pubkeys.len);
 
@@ -463,7 +463,7 @@ fn append_reply_pubkey(
     info.reply_pubkey_count += 1;
 }
 
-fn parse_reason_json(content: []const u8, scratch: std.mem.Allocator) Nip28Error!?[]const u8 {
+fn parse_reason_json(content: []const u8, scratch: std.mem.Allocator) PublicChatError!?[]const u8 {
     std.debug.assert(content.len <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -482,7 +482,7 @@ fn validate_metadata_fields(
     about: ?[]const u8,
     picture: ?[]const u8,
     relays: []const []const u8,
-) Nip28Error!void {
+) PublicChatError!void {
     std.debug.assert(relays.len <= limits.tag_items_max);
     std.debug.assert(limits.tag_item_bytes_max > 0);
 
@@ -498,7 +498,7 @@ fn write_metadata_json(
     about: ?[]const u8,
     picture: ?[]const u8,
     relays: []const []const u8,
-) Nip28Error!void {
+) PublicChatError!void {
     std.debug.assert(relays.len <= limits.tag_items_max);
     std.debug.assert(@TypeOf(writer) != void);
 
@@ -516,7 +516,7 @@ fn write_optional_json_string(
     needs_comma: bool,
     key: []const u8,
     value: ?[]const u8,
-) Nip28Error!bool {
+) PublicChatError!bool {
     std.debug.assert(key.len <= limits.tag_item_bytes_max);
     std.debug.assert(@TypeOf(writer) != void);
 
@@ -528,7 +528,7 @@ fn write_optional_json_string(
     return true;
 }
 
-fn write_relays_array(writer: anytype, relays: []const []const u8, needs_comma: *bool) Nip28Error!void {
+fn write_relays_array(writer: anytype, relays: []const []const u8, needs_comma: *bool) PublicChatError!void {
     std.debug.assert(@intFromPtr(needs_comma) != 0);
     std.debug.assert(relays.len <= limits.tag_items_max);
 
@@ -543,7 +543,7 @@ fn write_relays_array(writer: anytype, relays: []const []const u8, needs_comma: 
     needs_comma.* = true;
 }
 
-fn write_json_string(writer: anytype, text: []const u8) Nip28Error!void {
+fn write_json_string(writer: anytype, text: []const u8) PublicChatError!void {
     std.debug.assert(text.len <= limits.content_bytes_max);
     std.debug.assert(@TypeOf(writer) != void);
 

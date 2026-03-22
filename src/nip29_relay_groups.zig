@@ -12,7 +12,7 @@ pub const group_remove_user_kind: u32 = 9001;
 pub const group_join_request_kind: u32 = 9021;
 pub const group_leave_request_kind: u32 = 9022;
 
-pub const Nip29Error = error{
+pub const GroupError = error{
     InvalidGroupKind,
     InvalidGroupReference,
     InvalidGroupHost,
@@ -201,7 +201,7 @@ pub const BuiltTag = struct {
 };
 
 /// Extracts bounded NIP-29 group metadata from a kind-39000 event.
-pub fn group_metadata_extract(event: *const nip01_event.Event) Nip29Error!GroupMetadata {
+pub fn group_metadata_extract(event: *const nip01_event.Event) GroupError!GroupMetadata {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -222,7 +222,7 @@ pub fn group_admins_extract(
     event: *const nip01_event.Event,
     out_admins: []GroupAdmin,
     out_roles: [][]const u8,
-) Nip29Error!GroupAdminsInfo {
+) GroupError!GroupAdminsInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_admins.len <= limits.tags_max);
 
@@ -245,7 +245,7 @@ pub fn group_admins_extract(
 pub fn group_members_extract(
     event: *const nip01_event.Event,
     out_members: []GroupMember,
-) Nip29Error!GroupMembersInfo {
+) GroupError!GroupMembersInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_members.len <= limits.tags_max);
 
@@ -264,7 +264,7 @@ pub fn group_members_extract(
 }
 
 /// Parse a raw `<host>'<group-id>` group reference. Host-only input defaults `id` to `_`.
-pub fn group_reference_parse(text: []const u8) Nip29Error!GroupReference {
+pub fn group_reference_parse(text: []const u8) GroupError!GroupReference {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
@@ -284,7 +284,7 @@ pub fn group_reference_parse(text: []const u8) Nip29Error!GroupReference {
 }
 
 /// Build a raw `<host>'<group-id>` group reference.
-pub fn group_reference_build(output: []u8, reference: *const GroupReference) Nip29Error![]const u8 {
+pub fn group_reference_build(output: []u8, reference: *const GroupReference) GroupError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(reference) != 0);
 
@@ -299,7 +299,7 @@ pub fn group_reference_build(output: []u8, reference: *const GroupReference) Nip
 pub fn group_roles_extract(
     event: *const nip01_event.Event,
     out_roles: []GroupRole,
-) Nip29Error!GroupRolesInfo {
+) GroupError!GroupRolesInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_roles.len <= limits.tags_max);
 
@@ -321,7 +321,7 @@ pub fn group_roles_extract(
 pub fn group_state_apply_event(
     state: *GroupState,
     event: *const nip01_event.Event,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(event) != 0);
 
@@ -332,7 +332,7 @@ fn group_state_apply_event_with_cache(
     state: *GroupState,
     event: *const nip01_event.Event,
     user_index_cache: ?*UserIndexCache,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(event) != 0);
 
@@ -351,7 +351,7 @@ fn group_state_apply_event_with_cache(
 pub fn group_state_apply_events(
     state: *GroupState,
     events: []const nip01_event.Event,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(state.users.len <= state.user_storage.len);
     std.debug.assert(state.supported_roles.len <= state.supported_role_storage.len);
@@ -367,7 +367,7 @@ pub fn group_state_apply_events(
 pub fn group_join_request_extract(
     event: *const nip01_event.Event,
     previous_out: [][]const u8,
-) Nip29Error!GroupJoinRequestInfo {
+) GroupError!GroupJoinRequestInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(previous_out.len <= limits.tags_max);
 
@@ -379,7 +379,7 @@ pub fn group_join_request_extract(
 pub fn group_leave_request_extract(
     event: *const nip01_event.Event,
     previous_out: [][]const u8,
-) Nip29Error!GroupLeaveRequestInfo {
+) GroupError!GroupLeaveRequestInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(previous_out.len <= limits.tags_max);
 
@@ -392,7 +392,7 @@ pub fn group_put_user_extract(
     event: *const nip01_event.Event,
     out_roles: [][]const u8,
     out_previous: [][]const u8,
-) Nip29Error!GroupPutUserInfo {
+) GroupError!GroupPutUserInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_roles.len <= limits.tags_max);
 
@@ -404,7 +404,7 @@ pub fn group_put_user_extract(
 pub fn group_remove_user_extract(
     event: *const nip01_event.Event,
     out_previous: [][]const u8,
-) Nip29Error!GroupRemoveUserInfo {
+) GroupError!GroupRemoveUserInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_previous.len <= limits.tags_max);
 
@@ -416,7 +416,7 @@ pub fn group_remove_user_extract(
 pub fn group_build_identifier_tag(
     output: *BuiltTag,
     group_id: []const u8,
-) Nip29Error!nip01_event.EventTag {
+) GroupError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(group_id.len <= limits.tag_item_bytes_max);
 
@@ -427,7 +427,7 @@ pub fn group_build_identifier_tag(
 }
 
 /// Builds a canonical NIP-29 `name` tag.
-pub fn group_build_name_tag(output: *BuiltTag, name: []const u8) Nip29Error!nip01_event.EventTag {
+pub fn group_build_name_tag(output: *BuiltTag, name: []const u8) GroupError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(name.len <= limits.tag_item_bytes_max);
 
@@ -441,7 +441,7 @@ pub fn group_build_name_tag(output: *BuiltTag, name: []const u8) Nip29Error!nip0
 pub fn group_build_picture_tag(
     output: *BuiltTag,
     picture_url: []const u8,
-) Nip29Error!nip01_event.EventTag {
+) GroupError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(picture_url.len <= limits.tag_item_bytes_max);
 
@@ -455,7 +455,7 @@ pub fn group_build_picture_tag(
 pub fn group_build_about_tag(
     output: *BuiltTag,
     about: []const u8,
-) Nip29Error!nip01_event.EventTag {
+) GroupError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(about.len <= limits.tag_item_bytes_max);
 
@@ -469,7 +469,7 @@ pub fn group_build_about_tag(
 pub fn group_build_flag_tag(
     output: *BuiltTag,
     flag: GroupMetadataFlag,
-) Nip29Error!nip01_event.EventTag {
+) GroupError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromEnum(flag) <= std.math.maxInt(u8));
 
@@ -479,7 +479,7 @@ pub fn group_build_flag_tag(
 }
 
 /// Builds a canonical NIP-29 `h` tag for user or moderation events.
-pub fn group_build_group_tag(output: *BuiltTag, group_id: []const u8) Nip29Error!nip01_event.EventTag {
+pub fn group_build_group_tag(output: *BuiltTag, group_id: []const u8) GroupError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(group_id.len <= limits.tag_item_bytes_max);
 
@@ -494,7 +494,7 @@ pub fn group_build_role_tag(
     output: *BuiltTag,
     role_name: []const u8,
     description: ?[]const u8,
-) Nip29Error!nip01_event.EventTag {
+) GroupError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(role_name.len <= limits.tag_item_bytes_max);
 
@@ -509,7 +509,7 @@ pub fn group_build_role_tag(
 }
 
 /// Builds a canonical NIP-29 `code` tag for join requests.
-pub fn group_build_code_tag(output: *BuiltTag, code: []const u8) Nip29Error!nip01_event.EventTag {
+pub fn group_build_code_tag(output: *BuiltTag, code: []const u8) GroupError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(code.len <= limits.tag_item_bytes_max);
 
@@ -523,7 +523,7 @@ pub fn group_build_code_tag(output: *BuiltTag, code: []const u8) Nip29Error!nip0
 pub fn group_build_previous_tag(
     output: *BuiltTag,
     previous_ref: []const u8,
-) Nip29Error!nip01_event.EventTag {
+) GroupError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(previous_ref.len <= limits.tag_item_bytes_max);
 
@@ -538,7 +538,7 @@ pub fn group_build_user_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
     roles: []const []const u8,
-) Nip29Error!nip01_event.EventTag {
+) GroupError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(roles.len + 2 <= limits.tag_items_max);
 
@@ -559,7 +559,7 @@ pub fn group_build_admin_tag(
     pubkey_hex: []const u8,
     label: ?[]const u8,
     roles: []const []const u8,
-) Nip29Error!nip01_event.EventTag {
+) GroupError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(roles.len + 3 <= limits.tag_items_max);
 
@@ -586,7 +586,7 @@ pub fn group_build_member_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
     label: ?[]const u8,
-) Nip29Error!nip01_event.EventTag {
+) GroupError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
 
@@ -615,7 +615,7 @@ fn apply_metadata_tag(
     tag: nip01_event.EventTag,
     metadata: *GroupMetadata,
     flags: *MetadataFlags,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(metadata) != 0);
     std.debug.assert(@intFromPtr(flags) != 0);
 
@@ -627,7 +627,7 @@ fn apply_metadata_tag(
     return parse_metadata_flag(tag, metadata, flags);
 }
 
-fn parse_identifier_tag(tag: nip01_event.EventTag, group_id: *[]const u8) Nip29Error!void {
+fn parse_identifier_tag(tag: nip01_event.EventTag, group_id: *[]const u8) GroupError!void {
     std.debug.assert(@intFromPtr(group_id) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -637,7 +637,7 @@ fn parse_identifier_tag(tag: nip01_event.EventTag, group_id: *[]const u8) Nip29E
     group_id.* = parse_group_id(tag.items[1]) catch return error.InvalidIdentifierTag;
 }
 
-fn parse_name_tag(tag: nip01_event.EventTag, metadata: *GroupMetadata) Nip29Error!void {
+fn parse_name_tag(tag: nip01_event.EventTag, metadata: *GroupMetadata) GroupError!void {
     std.debug.assert(@intFromPtr(metadata) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -646,7 +646,7 @@ fn parse_name_tag(tag: nip01_event.EventTag, metadata: *GroupMetadata) Nip29Erro
     metadata.name = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidNameTag;
 }
 
-fn parse_picture_tag(tag: nip01_event.EventTag, metadata: *GroupMetadata) Nip29Error!void {
+fn parse_picture_tag(tag: nip01_event.EventTag, metadata: *GroupMetadata) GroupError!void {
     std.debug.assert(@intFromPtr(metadata) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -655,7 +655,7 @@ fn parse_picture_tag(tag: nip01_event.EventTag, metadata: *GroupMetadata) Nip29E
     metadata.picture = parse_url(tag.items[1]) catch return error.InvalidPictureTag;
 }
 
-fn parse_about_tag(tag: nip01_event.EventTag, metadata: *GroupMetadata) Nip29Error!void {
+fn parse_about_tag(tag: nip01_event.EventTag, metadata: *GroupMetadata) GroupError!void {
     std.debug.assert(@intFromPtr(metadata) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -668,7 +668,7 @@ fn parse_metadata_flag(
     tag: nip01_event.EventTag,
     metadata: *GroupMetadata,
     flags: *MetadataFlags,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(metadata) != 0);
     std.debug.assert(@intFromPtr(flags) != 0);
 
@@ -708,7 +708,7 @@ fn parse_metadata_flag(
     }
 }
 
-fn validate_flag_conflicts(flags: *const MetadataFlags) Nip29Error!void {
+fn validate_flag_conflicts(flags: *const MetadataFlags) GroupError!void {
     std.debug.assert(@intFromPtr(flags) != 0);
     std.debug.assert(@sizeOf(MetadataFlags) > 0);
 
@@ -723,7 +723,7 @@ fn apply_admin_tag(
     out_roles: [][]const u8,
     admin_count: *u16,
     role_count: *u16,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(group_id) != 0);
     std.debug.assert(@intFromPtr(admin_count) != 0);
 
@@ -739,7 +739,7 @@ fn parse_admin_tag(
     out_roles: [][]const u8,
     admin_count: *u16,
     role_count: *u16,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(admin_count) != 0);
     std.debug.assert(@intFromPtr(role_count) != 0);
 
@@ -784,7 +784,7 @@ fn apply_member_tag(
     group_id: *[]const u8,
     out_members: []GroupMember,
     member_count: *u16,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(group_id) != 0);
     std.debug.assert(@intFromPtr(member_count) != 0);
 
@@ -799,7 +799,7 @@ fn apply_role_tag(
     group_id: *[]const u8,
     out_roles: []GroupRole,
     role_count: *u16,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(group_id) != 0);
     std.debug.assert(@intFromPtr(role_count) != 0);
 
@@ -813,7 +813,7 @@ fn parse_role_tag(
     tag: nip01_event.EventTag,
     out_roles: []GroupRole,
     role_count: *u16,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(role_count) != 0);
     std.debug.assert(out_roles.len <= limits.tags_max);
 
@@ -833,7 +833,7 @@ fn parse_role_tag(
 fn extract_join_request(
     event: *const nip01_event.Event,
     previous_out: [][]const u8,
-) Nip29Error!GroupJoinRequestInfo {
+) GroupError!GroupJoinRequestInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(previous_out.len <= limits.tags_max);
 
@@ -858,7 +858,7 @@ fn apply_join_request_tag(
     previous_out: [][]const u8,
     previous_count: *u16,
     saw_code: *bool,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(previous_count) != 0);
 
@@ -877,7 +877,7 @@ fn apply_join_request_tag(
 fn extract_leave_request(
     event: *const nip01_event.Event,
     previous_out: [][]const u8,
-) Nip29Error!GroupLeaveRequestInfo {
+) GroupError!GroupLeaveRequestInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(previous_out.len <= limits.tags_max);
 
@@ -906,7 +906,7 @@ fn extract_put_user(
     event: *const nip01_event.Event,
     out_roles: [][]const u8,
     out_previous: [][]const u8,
-) Nip29Error!GroupPutUserInfo {
+) GroupError!GroupPutUserInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_roles.len <= limits.tags_max);
 
@@ -937,7 +937,7 @@ fn apply_put_user_tag(
     out_roles: [][]const u8,
     out_previous: [][]const u8,
     state: *UserEventState,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -960,7 +960,7 @@ fn apply_put_user_tag(
 fn finalize_put_user_info(
     info: *GroupPutUserInfo,
     state: *const UserEventState,
-) Nip29Error!GroupPutUserInfo {
+) GroupError!GroupPutUserInfo {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -974,7 +974,7 @@ fn finalize_put_user_info(
 fn extract_remove_user(
     event: *const nip01_event.Event,
     out_previous: [][]const u8,
-) Nip29Error!GroupRemoveUserInfo {
+) GroupError!GroupRemoveUserInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_previous.len <= limits.tags_max);
 
@@ -1005,7 +1005,7 @@ fn apply_remove_user_tag(
     info: *GroupRemoveUserInfo,
     out_previous: [][]const u8,
     state: *RemoveUserState,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -1026,7 +1026,7 @@ fn apply_remove_user_tag(
     state.saw_target = true;
 }
 
-fn parse_group_tag(tag: nip01_event.EventTag, group_id: *[]const u8) Nip29Error!void {
+fn parse_group_tag(tag: nip01_event.EventTag, group_id: *[]const u8) GroupError!void {
     std.debug.assert(@intFromPtr(group_id) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -1040,7 +1040,7 @@ fn parse_group_tag(tag: nip01_event.EventTag, group_id: *[]const u8) Nip29Error!
 fn reduce_metadata_event(
     state: *GroupState,
     event: *const nip01_event.Event,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(event.kind == group_metadata_kind);
 
@@ -1052,7 +1052,7 @@ fn reduce_metadata_event(
 fn reduce_supported_roles_event(
     state: *GroupState,
     event: *const nip01_event.Event,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(event.kind == group_roles_kind);
 
@@ -1065,7 +1065,7 @@ fn reduce_admins_event(
     state: *GroupState,
     event: *const nip01_event.Event,
     user_index_cache: ?*UserIndexCache,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(event.kind == group_admins_kind);
 
@@ -1085,7 +1085,7 @@ fn reduce_admin_snapshot_tag(
     tag: nip01_event.EventTag,
     group_id: *[]const u8,
     user_index_cache: ?*UserIndexCache,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(group_id) != 0);
 
@@ -1099,7 +1099,7 @@ fn apply_admin_snapshot_user(
     state: *GroupState,
     tag: nip01_event.EventTag,
     user_index_cache: ?*UserIndexCache,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -1113,7 +1113,7 @@ fn reduce_members_event(
     state: *GroupState,
     event: *const nip01_event.Event,
     user_index_cache: ?*UserIndexCache,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(event.kind == group_members_kind);
 
@@ -1133,7 +1133,7 @@ fn reduce_member_snapshot_tag(
     tag: nip01_event.EventTag,
     group_id: *[]const u8,
     user_index_cache: ?*UserIndexCache,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(group_id) != 0);
 
@@ -1147,7 +1147,7 @@ fn apply_member_snapshot_user(
     state: *GroupState,
     tag: nip01_event.EventTag,
     user_index_cache: ?*UserIndexCache,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -1168,7 +1168,7 @@ fn reduce_put_user_event(
     state: *GroupState,
     event: *const nip01_event.Event,
     user_index_cache: ?*UserIndexCache,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(event.kind == group_put_user_kind);
 
@@ -1185,7 +1185,7 @@ fn reduce_remove_user_event(
     state: *GroupState,
     event: *const nip01_event.Event,
     user_index_cache: ?*UserIndexCache,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(event.kind == group_remove_user_kind);
 
@@ -1198,7 +1198,7 @@ fn reduce_remove_user_event(
     rebuild_user_index_cache(user_index_cache, state);
 }
 
-fn ensure_state_group_id(state: *GroupState, group_id: []const u8) Nip29Error!void {
+fn ensure_state_group_id(state: *GroupState, group_id: []const u8) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(group_id.len <= limits.tag_item_bytes_max);
 
@@ -1234,7 +1234,7 @@ fn ensure_user_slot(
     state: *GroupState,
     pubkey: *const [32]u8,
     user_index_cache: ?*UserIndexCache,
-) Nip29Error!u16 {
+) GroupError!u16 {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(pubkey) != 0);
 
@@ -1333,8 +1333,8 @@ fn set_user_roles(
     state: *GroupState,
     user_index: u16,
     role_items: []const []const u8,
-    invalid_error: Nip29Error,
-) Nip29Error!void {
+    invalid_error: GroupError,
+) GroupError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(user_index < state.user_storage.len);
 
@@ -1415,7 +1415,7 @@ fn parse_user_tag(
     pubkey: *[32]u8,
     out_roles: [][]const u8,
     role_count: *u16,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(pubkey) != 0);
     std.debug.assert(@intFromPtr(role_count) != 0);
 
@@ -1432,7 +1432,7 @@ fn parse_previous_tag(
     tag: nip01_event.EventTag,
     out_previous: [][]const u8,
     previous_count: *u16,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(previous_count) != 0);
     std.debug.assert(out_previous.len <= limits.tags_max);
 
@@ -1447,7 +1447,7 @@ fn parse_member_tag(
     tag: nip01_event.EventTag,
     out_members: []GroupMember,
     member_count: *u16,
-) Nip29Error!void {
+) GroupError!void {
     std.debug.assert(@intFromPtr(member_count) != 0);
     std.debug.assert(out_members.len <= limits.tags_max);
 

@@ -1,7 +1,7 @@
 const std = @import("std");
 const limits = @import("limits.zig");
 
-pub const Nip19Error = error{
+pub const Bech32Error = error{
     InvalidBech32,
     InvalidChecksum,
     MixedCase,
@@ -54,7 +54,7 @@ pub const Nip19Entity = union(enum) {
 const bech32_charset = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
 const bech32_generator = [_]u32{ 0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3 };
 
-pub fn nip19_encode(output: []u8, entity: Nip19Entity) Nip19Error![]const u8 {
+pub fn nip19_encode(output: []u8, entity: Nip19Entity) Bech32Error![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(limits.nip19_tlv_scratch_bytes_max > 0);
 
@@ -77,7 +77,7 @@ pub fn nip19_encode(output: []u8, entity: Nip19Entity) Nip19Error![]const u8 {
 ///   `nprofile.relays`, `nevent.relays`, `naddr.identifier`, `naddr.relays`, and
 ///   `nrelay.relay`.
 /// - Keep `tlv_scratch` alive and unmodified while using these borrowed fields.
-pub fn nip19_decode(input: []const u8, tlv_scratch: []u8) Nip19Error!Nip19Entity {
+pub fn nip19_decode(input: []const u8, tlv_scratch: []u8) Bech32Error!Nip19Entity {
     if (input.len > limits.nip19_bech32_identifier_bytes_max) {
         return error.InvalidBech32;
     }
@@ -105,7 +105,7 @@ pub fn nip19_decode(input: []const u8, tlv_scratch: []u8) Nip19Error!Nip19Entity
     return error.InvalidPrefix;
 }
 
-fn encode_fixed_entity(output: []u8, hrp: []const u8, value: *const [32]u8) Nip19Error![]const u8 {
+fn encode_fixed_entity(output: []u8, hrp: []const u8, value: *const [32]u8) Bech32Error![]const u8 {
     std.debug.assert(value.len == 32);
     std.debug.assert(hrp.len <= limits.nip19_bech32_hrp_bytes_max);
 
@@ -115,7 +115,7 @@ fn encode_fixed_entity(output: []u8, hrp: []const u8, value: *const [32]u8) Nip1
 fn decode_fixed_entity(
     payload: []const u8,
     comptime tag: std.meta.Tag(Nip19Entity),
-) Nip19Error!Nip19Entity {
+) Bech32Error!Nip19Entity {
     std.debug.assert(payload.len <= limits.nip19_tlv_scratch_bytes_max);
     std.debug.assert(@typeInfo(Nip19Entity).@"union".tag_type != null);
 
@@ -128,7 +128,7 @@ fn decode_fixed_entity(
     return @unionInit(Nip19Entity, @tagName(tag), value);
 }
 
-fn encode_nprofile(output: []u8, pointer: NprofilePointer) Nip19Error![]const u8 {
+fn encode_nprofile(output: []u8, pointer: NprofilePointer) Bech32Error![]const u8 {
     std.debug.assert(pointer.pubkey.len == 32);
     std.debug.assert(pointer.relays.count <= limits.nip19_relays_max);
 
@@ -140,7 +140,7 @@ fn encode_nprofile(output: []u8, pointer: NprofilePointer) Nip19Error![]const u8
     return encode_bech32(output, "nprofile", payload[0..payload_len]);
 }
 
-fn encode_nevent(output: []u8, pointer: NeventPointer) Nip19Error![]const u8 {
+fn encode_nevent(output: []u8, pointer: NeventPointer) Bech32Error![]const u8 {
     std.debug.assert(pointer.id.len == 32);
     std.debug.assert(pointer.relays.count <= limits.nip19_relays_max);
 
@@ -160,7 +160,7 @@ fn encode_nevent(output: []u8, pointer: NeventPointer) Nip19Error![]const u8 {
     return encode_bech32(output, "nevent", payload[0..payload_len]);
 }
 
-fn encode_naddr(output: []u8, pointer: NaddrPointer) Nip19Error![]const u8 {
+fn encode_naddr(output: []u8, pointer: NaddrPointer) Bech32Error![]const u8 {
     std.debug.assert(pointer.pubkey.len == 32);
     std.debug.assert(pointer.identifier.len <= limits.nip19_identifier_tlv_bytes_max);
 
@@ -176,7 +176,7 @@ fn encode_naddr(output: []u8, pointer: NaddrPointer) Nip19Error![]const u8 {
     return encode_bech32(output, "naddr", payload[0..payload_len]);
 }
 
-fn encode_nrelay(output: []u8, pointer: NrelayPointer) Nip19Error![]const u8 {
+fn encode_nrelay(output: []u8, pointer: NrelayPointer) Bech32Error![]const u8 {
     std.debug.assert(pointer.relay.len <= limits.nip19_identifier_tlv_bytes_max);
     std.debug.assert(limits.nip19_relays_max > 0);
 
@@ -195,7 +195,7 @@ fn append_relays_tlv(
     payload: *[limits.nip19_tlv_scratch_bytes_max]u8,
     payload_len: *u16,
     relays: RelayList,
-) Nip19Error!void {
+) Bech32Error!void {
     std.debug.assert(relays.count <= limits.nip19_relays_max);
     std.debug.assert(payload_len.* <= payload.len);
 
@@ -211,7 +211,7 @@ fn append_tlv(
     tlv_type: u8,
     value: []const u8,
     non_empty: bool,
-) Nip19Error!void {
+) Bech32Error!void {
     std.debug.assert(payload_len.* <= payload.len);
     std.debug.assert(tlv_type <= limits.nip19_tlv_type_max);
 
@@ -248,7 +248,7 @@ fn decode_bech32(
     input: []const u8,
     hrp_buffer: *[limits.nip19_bech32_hrp_bytes_max]u8,
     data_values_buffer: *[limits.nip19_bech32_identifier_bytes_max]u8,
-) Nip19Error!Bech32Decoded {
+) Bech32Error!Bech32Decoded {
     if (input.len > limits.nip19_bech32_identifier_bytes_max) {
         return error.InvalidBech32;
     }
@@ -290,7 +290,7 @@ fn normalize_hrp(
     input_hrp: []const u8,
     hrp_buffer: *[limits.nip19_bech32_hrp_bytes_max]u8,
     case_state: *Bech32CaseState,
-) Nip19Error![]const u8 {
+) Bech32Error![]const u8 {
     std.debug.assert(input_hrp.len <= limits.nip19_bech32_hrp_bytes_max);
     std.debug.assert(hrp_buffer.len == limits.nip19_bech32_hrp_bytes_max);
     std.debug.assert(@intFromPtr(case_state) != 0);
@@ -313,7 +313,7 @@ fn decode_data_values(
     input_data: []const u8,
     output_values: *[limits.nip19_bech32_identifier_bytes_max]u8,
     case_state: *Bech32CaseState,
-) Nip19Error![]const u8 {
+) Bech32Error![]const u8 {
     std.debug.assert(input_data.len <= limits.nip19_bech32_identifier_bytes_max);
     std.debug.assert(output_values.len == limits.nip19_bech32_identifier_bytes_max);
     std.debug.assert(@intFromPtr(case_state) != 0);
@@ -333,7 +333,7 @@ fn decode_data_values(
     return output_values[0..input_data.len];
 }
 
-fn normalize_bech32_char(char: u8, case_state: *Bech32CaseState) Nip19Error!u8 {
+fn normalize_bech32_char(char: u8, case_state: *Bech32CaseState) Bech32Error!u8 {
     std.debug.assert(@intFromPtr(case_state) != 0);
     std.debug.assert(!(case_state.saw_upper and case_state.saw_lower));
 
@@ -354,7 +354,7 @@ fn normalize_bech32_char(char: u8, case_state: *Bech32CaseState) Nip19Error!u8 {
     return lowered;
 }
 
-fn encode_bech32(output: []u8, hrp: []const u8, payload: []const u8) Nip19Error![]const u8 {
+fn encode_bech32(output: []u8, hrp: []const u8, payload: []const u8) Bech32Error![]const u8 {
     std.debug.assert(hrp.len > 0);
     std.debug.assert(hrp.len <= limits.nip19_bech32_hrp_bytes_max);
 
@@ -389,7 +389,7 @@ fn convert_bits(
     from_bits: u8,
     to_bits: u8,
     pad: bool,
-) Nip19Error!u16 {
+) Bech32Error!u16 {
     std.debug.assert(from_bits > 0);
     std.debug.assert(to_bits > 0);
 
@@ -503,7 +503,7 @@ const TlvEntry = struct {
     value: []const u8,
 };
 
-fn tlv_next(payload: []const u8, index: *u16, count: *u8) Nip19Error!?TlvEntry {
+fn tlv_next(payload: []const u8, index: *u16, count: *u8) Bech32Error!?TlvEntry {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@intFromPtr(count) != 0);
 
@@ -522,7 +522,7 @@ fn tlv_next(payload: []const u8, index: *u16, count: *u8) Nip19Error!?TlvEntry {
     return .{ .tlv_type = tlv_type, .value = payload[value_start..value_end] };
 }
 
-fn relay_list_push(relays: *RelayList, value: []const u8, optional_known: bool) Nip19Error!void {
+fn relay_list_push(relays: *RelayList, value: []const u8, optional_known: bool) Bech32Error!void {
     std.debug.assert(@intFromPtr(relays) != 0);
     std.debug.assert(relays.count <= limits.nip19_relays_max);
 
@@ -540,7 +540,7 @@ fn relay_list_push(relays: *RelayList, value: []const u8, optional_known: bool) 
     relays.count += 1;
 }
 
-fn decode_nprofile(payload: []const u8) Nip19Error!NprofilePointer {
+fn decode_nprofile(payload: []const u8) Bech32Error!NprofilePointer {
     std.debug.assert(payload.len <= limits.nip19_tlv_scratch_bytes_max);
     std.debug.assert(limits.nip19_relays_max > 0);
 
@@ -562,7 +562,7 @@ fn decode_nprofile(payload: []const u8) Nip19Error!NprofilePointer {
     return pointer;
 }
 
-fn decode_nevent(payload: []const u8) Nip19Error!NeventPointer {
+fn decode_nevent(payload: []const u8) Bech32Error!NeventPointer {
     std.debug.assert(payload.len <= limits.nip19_tlv_scratch_bytes_max);
     std.debug.assert(@sizeOf(u32) == 4);
 
@@ -594,7 +594,7 @@ fn decode_nevent(payload: []const u8) Nip19Error!NeventPointer {
     return pointer;
 }
 
-fn decode_naddr(payload: []const u8) Nip19Error!NaddrPointer {
+fn decode_naddr(payload: []const u8) Bech32Error!NaddrPointer {
     std.debug.assert(payload.len <= limits.nip19_tlv_scratch_bytes_max);
     std.debug.assert(@sizeOf(u32) == 4);
 
@@ -627,7 +627,7 @@ fn decode_naddr(payload: []const u8) Nip19Error!NaddrPointer {
     return pointer;
 }
 
-fn decode_nrelay(payload: []const u8) Nip19Error!NrelayPointer {
+fn decode_nrelay(payload: []const u8) Bech32Error!NrelayPointer {
     std.debug.assert(payload.len <= limits.nip19_tlv_scratch_bytes_max);
     std.debug.assert(limits.nip19_tlv_entries_max > 0);
 

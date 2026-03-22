@@ -10,7 +10,7 @@ const base64_standard = std.base64.standard;
 const nip44_v2_salt = "nip44-v2";
 
 /// Typed failures for strict NIP-44 v2 encrypt/decrypt boundaries.
-pub const Nip44Error = error{
+pub const ConversationEncryptionError = error{
     InvalidPrivateKey,
     InvalidPublicKey,
     InvalidConversationKeyLength,
@@ -31,7 +31,7 @@ pub const Nip44Error = error{
 pub const Nip44NonceProvider = *const fn (
     ctx: ?*anyopaque,
     out_nonce: *[32]u8,
-) Nip44Error!void;
+) ConversationEncryptionError!void;
 
 /// Decoded NIP-44 payload frame.
 pub const Nip44DecodedPayload = struct {
@@ -45,7 +45,7 @@ pub const Nip44DecodedPayload = struct {
 pub fn nip44_get_conversation_key(
     private_key: *const [32]u8,
     public_key: *const [32]u8,
-) Nip44Error![32]u8 {
+) ConversationEncryptionError![32]u8 {
     std.debug.assert(@intFromPtr(private_key) != 0);
     std.debug.assert(@intFromPtr(public_key) != 0);
 
@@ -63,7 +63,7 @@ pub fn nip44_get_conversation_key(
 }
 
 /// Compute padded plaintext length without the 2-byte prefix.
-pub fn nip44_calc_padded_plaintext_len(plaintext_len: u16) Nip44Error!u32 {
+pub fn nip44_calc_padded_plaintext_len(plaintext_len: u16) ConversationEncryptionError!u32 {
     std.debug.assert(plaintext_len <= limits.nip44_plaintext_max_bytes);
     std.debug.assert(limits.nip44_plaintext_min_bytes > 0);
 
@@ -94,7 +94,7 @@ pub fn nip44_encrypt_to_base64(
     plaintext: []const u8,
     nonce_ctx: ?*anyopaque,
     nonce_provider: Nip44NonceProvider,
-) Nip44Error![]const u8 {
+) ConversationEncryptionError![]const u8 {
     std.debug.assert(@intFromPtr(conversation_key) != 0);
     std.debug.assert(@intFromPtr(nonce_provider) != 0);
 
@@ -110,7 +110,7 @@ pub fn nip44_encrypt_with_nonce_to_base64(
     conversation_key: *const [32]u8,
     plaintext: []const u8,
     nonce: *const [32]u8,
-) Nip44Error![]const u8 {
+) ConversationEncryptionError![]const u8 {
     std.debug.assert(@intFromPtr(conversation_key) != 0);
     std.debug.assert(@intFromPtr(nonce) != 0);
 
@@ -153,7 +153,7 @@ pub fn nip44_encrypt_with_nonce_to_base64(
 pub fn nip44_decode_payload(
     payload_base64: []const u8,
     raw_output: []u8,
-) Nip44Error!Nip44DecodedPayload {
+) ConversationEncryptionError!Nip44DecodedPayload {
     std.debug.assert(payload_base64.len <= std.math.maxInt(usize));
     std.debug.assert(raw_output.len <= std.math.maxInt(usize));
 
@@ -194,7 +194,7 @@ pub fn nip44_decrypt_from_base64(
     output_plaintext: []u8,
     conversation_key: *const [32]u8,
     payload_base64: []const u8,
-) Nip44Error![]const u8 {
+) ConversationEncryptionError![]const u8 {
     std.debug.assert(@intFromPtr(conversation_key) != 0);
     std.debug.assert(payload_base64.len <= std.math.maxInt(usize));
 
@@ -234,7 +234,7 @@ pub fn nip44_decrypt_from_base64(
     return plaintext;
 }
 
-fn validate_plaintext_len(plaintext_len: usize) Nip44Error!u16 {
+fn validate_plaintext_len(plaintext_len: usize) ConversationEncryptionError!u16 {
     std.debug.assert(plaintext_len <= std.math.maxInt(usize));
     std.debug.assert(limits.nip44_plaintext_max_bytes <= std.math.maxInt(u16));
 
@@ -247,7 +247,7 @@ fn validate_plaintext_len(plaintext_len: usize) Nip44Error!u16 {
     return @intCast(plaintext_len);
 }
 
-fn validate_fixed_size_secret(secret: []const u8, expected_len: u8) Nip44Error!void {
+fn validate_fixed_size_secret(secret: []const u8, expected_len: u8) ConversationEncryptionError!void {
     std.debug.assert(secret.len <= std.math.maxInt(usize));
     std.debug.assert(expected_len > 0);
 
@@ -272,7 +272,7 @@ fn calc_next_power_of_two(value: u32) u32 {
     return result;
 }
 
-fn ensure_supported_encoding(payload_base64: []const u8) Nip44Error!void {
+fn ensure_supported_encoding(payload_base64: []const u8) ConversationEncryptionError!void {
     std.debug.assert(payload_base64.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(u8) == 1);
 
@@ -284,7 +284,7 @@ fn ensure_supported_encoding(payload_base64: []const u8) Nip44Error!void {
     }
 }
 
-fn ensure_base64_payload_length(length: usize) Nip44Error!void {
+fn ensure_base64_payload_length(length: usize) ConversationEncryptionError!void {
     std.debug.assert(length <= std.math.maxInt(usize));
     std.debug.assert(limits.nip44_payload_base64_min_bytes > 0);
 
@@ -296,7 +296,7 @@ fn ensure_base64_payload_length(length: usize) Nip44Error!void {
     }
 }
 
-fn ensure_decoded_payload_length(length: usize) Nip44Error!void {
+fn ensure_decoded_payload_length(length: usize) ConversationEncryptionError!void {
     std.debug.assert(length <= std.math.maxInt(usize));
     std.debug.assert(limits.nip44_payload_decoded_min_bytes > 0);
 
@@ -308,7 +308,7 @@ fn ensure_decoded_payload_length(length: usize) Nip44Error!void {
     }
 }
 
-fn derive_message_keys(out: []u8, conversation_key: []const u8, nonce: []const u8) Nip44Error!void {
+fn derive_message_keys(out: []u8, conversation_key: []const u8, nonce: []const u8) ConversationEncryptionError!void {
     std.debug.assert(out.len >= limits.nip44_message_keys_bytes);
     std.debug.assert(conversation_key.len <= std.math.maxInt(usize));
 
@@ -325,7 +325,7 @@ fn write_padded_plaintext(
     out: []u8,
     plaintext: []const u8,
     padded_plaintext_len: u32,
-) Nip44Error!usize {
+) ConversationEncryptionError!usize {
     std.debug.assert(padded_plaintext_len >= 32);
     std.debug.assert(plaintext.len <= limits.nip44_plaintext_max_bytes);
 
@@ -346,7 +346,7 @@ fn encrypt_raw_payload(
     nonce: *const [32]u8,
     padded_plaintext: []const u8,
     message_keys: *const [limits.nip44_message_keys_bytes]u8,
-) Nip44Error!void {
+) ConversationEncryptionError!void {
     std.debug.assert(raw_payload.len >= limits.nip44_payload_decoded_min_bytes);
     std.debug.assert(padded_plaintext.len >= limits.nip44_ciphertext_min_bytes);
 
@@ -401,7 +401,7 @@ fn decrypt_ciphertext(
     );
 }
 
-fn remove_padding(output_plaintext: []u8, padded_plaintext: []const u8) Nip44Error![]const u8 {
+fn remove_padding(output_plaintext: []u8, padded_plaintext: []const u8) ConversationEncryptionError![]const u8 {
     std.debug.assert(padded_plaintext.len <= limits.nip44_ciphertext_max_bytes);
     std.debug.assert(padded_plaintext.len >= limits.nip44_ciphertext_min_bytes);
 
@@ -551,13 +551,13 @@ const conversation_vectors = [_]ConversationVector{
     },
 };
 
-fn fail_entropy_provider(_: ?*anyopaque, _: *[32]u8) Nip44Error!void {
+fn fail_entropy_provider(_: ?*anyopaque, _: *[32]u8) ConversationEncryptionError!void {
     std.debug.assert(@sizeOf(u8) == 1);
     std.debug.assert(!@inComptime());
     return error.EntropyUnavailable;
 }
 
-fn force_invalid_conversation_key_length() Nip44Error!void {
+fn force_invalid_conversation_key_length() ConversationEncryptionError!void {
     var invalid_secret: [31]u8 = [_]u8{0} ** 31;
     std.debug.assert(invalid_secret.len != limits.nip44_conversation_key_bytes);
     std.debug.assert(limits.nip44_conversation_key_bytes == limits.nip44_nonce_bytes);
@@ -567,7 +567,7 @@ fn force_invalid_conversation_key_length() Nip44Error!void {
     );
 }
 
-fn force_invalid_nonce_length() Nip44Error!void {
+fn force_invalid_nonce_length() ConversationEncryptionError!void {
     std.debug.assert(limits.nip44_nonce_bytes == limits.nip44_conversation_key_bytes);
     std.debug.assert(limits.nip44_nonce_bytes == 32);
     return error.InvalidNonceLength;
@@ -575,9 +575,9 @@ fn force_invalid_nonce_length() Nip44Error!void {
 
 fn map_shared_secret_error(
     shared_secret_error: secp256k1_backend.BackendSharedSecretError,
-) Nip44Error {
+) ConversationEncryptionError {
     std.debug.assert(@intFromError(shared_secret_error) >= 0);
-    std.debug.assert(@typeInfo(Nip44Error) == .error_set);
+    std.debug.assert(@typeInfo(ConversationEncryptionError) == .error_set);
 
     return switch (shared_secret_error) {
         error.InvalidPrivateKey => error.InvalidPrivateKey,

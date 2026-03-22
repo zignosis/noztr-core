@@ -4,7 +4,7 @@ const nip01_event = @import("nip01_event.zig");
 
 pub const app_data_kind: u32 = 30078;
 
-pub const Nip78Error = error{
+pub const AppDataError = error{
     InvalidAppDataKind,
     MissingIdentifierTag,
     DuplicateIdentifierTag,
@@ -37,7 +37,7 @@ pub fn app_data_is_supported(event: *const nip01_event.Event) bool {
 }
 
 /// Extracts the strict `d` identifier and opaque content from a `kind:30078` event.
-pub fn app_data_extract(event: *const nip01_event.Event) Nip78Error!AppDataInfo {
+pub fn app_data_extract(event: *const nip01_event.Event) AppDataError!AppDataInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -59,7 +59,7 @@ pub fn app_data_extract(event: *const nip01_event.Event) Nip78Error!AppDataInfo 
 pub fn app_data_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip78Error!nip01_event.EventTag {
+) AppDataError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
 

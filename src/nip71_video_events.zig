@@ -10,7 +10,7 @@ pub const short_video_kind: u32 = 22;
 pub const addressable_normal_video_kind: u32 = 34235;
 pub const addressable_short_video_kind: u32 = 34236;
 
-pub const Nip71Error = error{
+pub const VideoEventError = error{
     InvalidVideoKind,
     MissingTitleTag,
     DuplicateTitleTag,
@@ -154,7 +154,7 @@ pub fn video_extract(
     out_hashtags: [][]const u8,
     out_references: [][]const u8,
     out_origins: []OriginInfo,
-) Nip71Error!VideoInfo {
+) VideoEventError!VideoInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_variants.len <= limits.tags_max);
 
@@ -206,7 +206,7 @@ pub fn video_is_video_kind(kind: u32) bool {
 pub fn video_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip71Error!nip01_event.EventTag {
+) VideoEventError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -219,7 +219,7 @@ pub fn video_build_identifier_tag(
 pub fn video_build_title_tag(
     output: *BuiltTag,
     title: []const u8,
-) Nip71Error!nip01_event.EventTag {
+) VideoEventError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -232,7 +232,7 @@ pub fn video_build_title_tag(
 pub fn video_build_published_at_tag(
     output: *BuiltTag,
     unix_seconds: u64,
-) Nip71Error!nip01_event.EventTag {
+) VideoEventError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(unix_seconds <= std.math.maxInt(u64));
 
@@ -249,7 +249,7 @@ pub fn video_build_text_track_tag(
     value: []const u8,
     track_type: ?[]const u8,
     language_code: ?[]const u8,
-) Nip71Error!nip01_event.EventTag {
+) VideoEventError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -275,7 +275,7 @@ pub fn video_build_segment_tag(
     end_text: []const u8,
     title: []const u8,
     thumbnail_url: ?[]const u8,
-) Nip71Error!nip01_event.EventTag {
+) VideoEventError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -297,7 +297,7 @@ pub fn video_build_participant_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
-) Nip71Error!nip01_event.EventTag {
+) VideoEventError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -318,7 +318,7 @@ pub fn video_build_origin_tag(
     external_id: []const u8,
     original_url: []const u8,
     metadata: ?[]const u8,
-) Nip71Error!nip01_event.EventTag {
+) VideoEventError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
@@ -337,7 +337,7 @@ pub fn video_build_origin_tag(
 pub fn video_build_duration_field(
     output: *BuiltField,
     duration_seconds: f64,
-) Nip71Error![]const u8 {
+) VideoEventError![]const u8 {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(duration_seconds >= 0);
 
@@ -351,7 +351,7 @@ pub fn video_build_duration_field(
 pub fn video_build_bitrate_field(
     output: *BuiltField,
     bitrate: u64,
-) Nip71Error![]const u8 {
+) VideoEventError![]const u8 {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(bitrate <= std.math.maxInt(u64));
 
@@ -376,7 +376,7 @@ fn apply_video_tag(
     out_hashtags: [][]const u8,
     out_references: [][]const u8,
     out_origins: []OriginInfo,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(title) != 0);
 
@@ -407,7 +407,7 @@ fn apply_video_tag(
     if (std.mem.eql(u8, tag.items[0], "origin")) return append_origin(tag, info, out_origins);
 }
 
-fn apply_identifier_tag(tag: nip01_event.EventTag, field: *?[]const u8) Nip71Error!void {
+fn apply_identifier_tag(tag: nip01_event.EventTag, field: *?[]const u8) VideoEventError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -416,7 +416,7 @@ fn apply_identifier_tag(tag: nip01_event.EventTag, field: *?[]const u8) Nip71Err
     field.* = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidIdentifierTag;
 }
 
-fn apply_title_tag(tag: nip01_event.EventTag, field: *?[]const u8) Nip71Error!void {
+fn apply_title_tag(tag: nip01_event.EventTag, field: *?[]const u8) VideoEventError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -425,7 +425,7 @@ fn apply_title_tag(tag: nip01_event.EventTag, field: *?[]const u8) Nip71Error!vo
     field.* = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidTitleTag;
 }
 
-fn apply_published_at_tag(tag: nip01_event.EventTag, info: *VideoInfo) Nip71Error!void {
+fn apply_published_at_tag(tag: nip01_event.EventTag, info: *VideoInfo) VideoEventError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -436,7 +436,7 @@ fn apply_published_at_tag(tag: nip01_event.EventTag, info: *VideoInfo) Nip71Erro
     };
 }
 
-fn apply_content_warning_tag(tag: nip01_event.EventTag, info: *VideoInfo) Nip71Error!void {
+fn apply_content_warning_tag(tag: nip01_event.EventTag, info: *VideoInfo) VideoEventError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -446,7 +446,7 @@ fn apply_content_warning_tag(tag: nip01_event.EventTag, info: *VideoInfo) Nip71E
     info.content_warning = parse_optional_utf8(reason) catch return error.InvalidContentWarningTag;
 }
 
-fn apply_alt_tag(tag: nip01_event.EventTag, info: *VideoInfo) Nip71Error!void {
+fn apply_alt_tag(tag: nip01_event.EventTag, info: *VideoInfo) VideoEventError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -463,7 +463,7 @@ fn append_variant(
     out_variant_fallbacks: [][]const u8,
     image_cursor: *u16,
     fallback_cursor: *u16,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.variant_count <= out_variants.len);
 
@@ -483,7 +483,7 @@ fn append_text_track(
     tag: nip01_event.EventTag,
     info: *VideoInfo,
     out_text_tracks: []TextTrackInfo,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.text_track_count <= out_text_tracks.len);
 
@@ -498,7 +498,7 @@ fn append_segment(
     tag: nip01_event.EventTag,
     info: *VideoInfo,
     out_segments: []VideoSegment,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.segment_count <= out_segments.len);
 
@@ -511,7 +511,7 @@ fn append_participant(
     tag: nip01_event.EventTag,
     info: *VideoInfo,
     out_participants: []VideoParticipant,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.participant_count <= out_participants.len);
 
@@ -526,8 +526,8 @@ fn append_text_tag(
     tag: nip01_event.EventTag,
     count: *u16,
     output: [][]const u8,
-    invalid_error: Nip71Error,
-) Nip71Error!void {
+    invalid_error: VideoEventError,
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(count) != 0);
     std.debug.assert(count.* <= output.len);
 
@@ -541,7 +541,7 @@ fn append_origin(
     tag: nip01_event.EventTag,
     info: *VideoInfo,
     out_origins: []OriginInfo,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.origin_count <= out_origins.len);
 
@@ -556,7 +556,7 @@ fn parse_variant_tag(
     out_variant_fallbacks: [][]const u8,
     image_cursor: *u16,
     fallback_cursor: *u16,
-) Nip71Error!VideoVariant {
+) VideoEventError!VideoVariant {
     std.debug.assert(@intFromPtr(image_cursor) != 0);
     std.debug.assert(@intFromPtr(fallback_cursor) != 0);
 
@@ -593,7 +593,7 @@ fn apply_variant_field(
     out_variant_fallbacks: [][]const u8,
     image_cursor: *u16,
     fallback_cursor: *u16,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(field_text.len <= limits.tag_item_bytes_max);
 
@@ -620,7 +620,7 @@ fn parse_variant_url(
     value: []const u8,
     state: *VariantState,
     variant: *VideoVariant,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(variant) != 0);
 
@@ -633,7 +633,7 @@ fn parse_variant_mime(
     value: []const u8,
     state: *VariantState,
     variant: *VideoVariant,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(variant) != 0);
 
@@ -647,7 +647,7 @@ fn parse_variant_hash(
     value: []const u8,
     state: *VariantState,
     variant: *VideoVariant,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(variant) != 0);
 
@@ -661,7 +661,7 @@ fn parse_variant_dimensions(
     value: []const u8,
     state: *VariantState,
     variant: *VideoVariant,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(variant) != 0);
 
@@ -675,7 +675,7 @@ fn parse_variant_service(
     value: []const u8,
     state: *VariantState,
     variant: *VideoVariant,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(variant) != 0);
 
@@ -688,7 +688,7 @@ fn parse_variant_duration(
     value: []const u8,
     state: *VariantState,
     variant: *VideoVariant,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(variant) != 0);
 
@@ -704,7 +704,7 @@ fn parse_variant_bitrate(
     value: []const u8,
     state: *VariantState,
     variant: *VideoVariant,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(variant) != 0);
 
@@ -720,7 +720,7 @@ fn append_variant_url(
     output: [][]const u8,
     cursor: *u16,
     count: *u16,
-) Nip71Error!void {
+) VideoEventError!void {
     std.debug.assert(@intFromPtr(cursor) != 0);
     std.debug.assert(@intFromPtr(count) != 0);
 
@@ -730,7 +730,7 @@ fn append_variant_url(
     count.* += 1;
 }
 
-fn parse_text_track_tag(tag: nip01_event.EventTag) Nip71Error!TextTrackInfo {
+fn parse_text_track_tag(tag: nip01_event.EventTag) VideoEventError!TextTrackInfo {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 
@@ -746,7 +746,7 @@ fn parse_text_track_tag(tag: nip01_event.EventTag) Nip71Error!TextTrackInfo {
     };
 }
 
-fn parse_segment_tag(tag: nip01_event.EventTag) Nip71Error!VideoSegment {
+fn parse_segment_tag(tag: nip01_event.EventTag) VideoEventError!VideoSegment {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 
@@ -763,7 +763,7 @@ fn parse_segment_tag(tag: nip01_event.EventTag) Nip71Error!VideoSegment {
     };
 }
 
-fn parse_participant_tag(tag: nip01_event.EventTag) Nip71Error!VideoParticipant {
+fn parse_participant_tag(tag: nip01_event.EventTag) VideoEventError!VideoParticipant {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 
@@ -776,7 +776,7 @@ fn parse_participant_tag(tag: nip01_event.EventTag) Nip71Error!VideoParticipant 
     };
 }
 
-fn parse_origin_tag(tag: nip01_event.EventTag) Nip71Error!OriginInfo {
+fn parse_origin_tag(tag: nip01_event.EventTag) VideoEventError!OriginInfo {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 
@@ -791,7 +791,7 @@ fn parse_origin_tag(tag: nip01_event.EventTag) Nip71Error!OriginInfo {
     };
 }
 
-fn parse_video_flavor(kind: u32) Nip71Error!VideoFlavor {
+fn parse_video_flavor(kind: u32) VideoEventError!VideoFlavor {
     std.debug.assert(kind <= limits.kind_max);
     std.debug.assert(short_video_kind < addressable_normal_video_kind);
 

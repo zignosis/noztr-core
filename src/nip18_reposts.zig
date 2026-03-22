@@ -6,7 +6,7 @@ const lower_hex_32 = @import("internal/lower_hex_32.zig");
 pub const repost_event_kind: u32 = 6;
 pub const generic_repost_event_kind: u32 = 16;
 
-pub const Nip18Error = error{
+pub const RepostError = error{
     InvalidRepostKind,
     MissingEventTag,
     DuplicateEventTag,
@@ -60,7 +60,7 @@ pub fn repost_is_generic_repost(event: *const nip01_event.Event) bool {
 }
 
 /// Parses strict NIP-18 repost semantics from a kind-6 or kind-16 event.
-pub fn repost_parse(event: *const nip01_event.Event) Nip18Error!RepostTarget {
+pub fn repost_parse(event: *const nip01_event.Event) RepostError!RepostTarget {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -98,7 +98,7 @@ fn parse_repost_tag(
     tag: nip01_event.EventTag,
     parsed: *RepostTarget,
     found_event_tag: *bool,
-) Nip18Error!void {
+) RepostError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(parsed) != 0);
 
@@ -137,7 +137,7 @@ fn parse_repost_tag(
     }
 }
 
-fn parse_event_tag(tag: nip01_event.EventTag, parsed: *RepostTarget) Nip18Error!void {
+fn parse_event_tag(tag: nip01_event.EventTag, parsed: *RepostTarget) RepostError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(parsed) != 0);
 
@@ -156,7 +156,7 @@ fn parse_event_tag(tag: nip01_event.EventTag, parsed: *RepostTarget) Nip18Error!
     }
 }
 
-fn parse_pubkey_tag(tag: nip01_event.EventTag) Nip18Error![32]u8 {
+fn parse_pubkey_tag(tag: nip01_event.EventTag) RepostError![32]u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -168,7 +168,7 @@ fn parse_pubkey_tag(tag: nip01_event.EventTag) Nip18Error![32]u8 {
     };
 }
 
-fn parse_kind_tag(tag: nip01_event.EventTag) Nip18Error!u32 {
+fn parse_kind_tag(tag: nip01_event.EventTag) RepostError!u32 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.kind_max <= std.math.maxInt(u32));
 
@@ -185,7 +185,7 @@ fn parse_kind_tag(tag: nip01_event.EventTag) Nip18Error!u32 {
     return kind;
 }
 
-fn parse_coordinate_tag(tag: nip01_event.EventTag) Nip18Error!RepostCoordinate {
+fn parse_coordinate_tag(tag: nip01_event.EventTag) RepostError!RepostCoordinate {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -197,7 +197,7 @@ fn parse_coordinate_tag(tag: nip01_event.EventTag) Nip18Error!RepostCoordinate {
     };
 }
 
-fn parse_embedded_event_json(content: []const u8) Nip18Error!?[]const u8 {
+fn parse_embedded_event_json(content: []const u8) RepostError!?[]const u8 {
     std.debug.assert(content.len <= limits.content_bytes_max);
     std.debug.assert(std.unicode.utf8ValidateSlice(content));
 
@@ -213,7 +213,7 @@ fn parse_embedded_event_json(content: []const u8) Nip18Error!?[]const u8 {
 fn validate_target_metadata(
     repost_kind: u32,
     parsed: *const RepostTarget,
-) Nip18Error!void {
+) RepostError!void {
     std.debug.assert(repost_kind <= std.math.maxInt(u32));
     std.debug.assert(@intFromPtr(parsed) != 0);
 
@@ -269,7 +269,7 @@ fn coordinate_kind_supports_a_tag(kind: u32) bool {
 fn validate_embedded_event_consistency(
     repost_kind: u32,
     parsed: *const RepostTarget,
-) Nip18Error!void {
+) RepostError!void {
     std.debug.assert(repost_kind <= std.math.maxInt(u32));
     std.debug.assert(@intFromPtr(parsed) != 0);
 
@@ -289,7 +289,7 @@ fn validate_embedded_event_consistency(
 fn validate_embedded_event_id(
     parsed: *const RepostTarget,
     embedded: *const nip01_event.Event,
-) Nip18Error!void {
+) RepostError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(@intFromPtr(embedded) != 0);
 
@@ -302,7 +302,7 @@ fn validate_embedded_event_kind(
     repost_kind: u32,
     parsed: *const RepostTarget,
     embedded: *const nip01_event.Event,
-) Nip18Error!void {
+) RepostError!void {
     std.debug.assert(repost_kind <= std.math.maxInt(u32));
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(@intFromPtr(embedded) != 0);
@@ -323,7 +323,7 @@ fn validate_embedded_event_kind(
 fn validate_embedded_event_pubkey(
     parsed: *const RepostTarget,
     embedded: *const nip01_event.Event,
-) Nip18Error!void {
+) RepostError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(@intFromPtr(embedded) != 0);
 
@@ -337,7 +337,7 @@ fn validate_embedded_event_pubkey(
 fn validate_embedded_event_coordinate(
     parsed: *const RepostTarget,
     embedded: *const nip01_event.Event,
-) Nip18Error!void {
+) RepostError!void {
     std.debug.assert(@intFromPtr(parsed) != 0);
     std.debug.assert(@intFromPtr(embedded) != 0);
 

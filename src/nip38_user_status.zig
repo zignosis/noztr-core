@@ -7,7 +7,7 @@ const url_with_scheme = @import("internal/url_with_scheme.zig");
 
 pub const user_status_kind: u32 = 30315;
 
-pub const Nip38Error = error{
+pub const UserStatusError = error{
     InvalidStatusKind,
     MissingIdentifierTag,
     DuplicateIdentifierTag,
@@ -54,7 +54,7 @@ pub fn user_status_extract(
     out_event_ids: [][32]u8,
     out_coordinates: [][]const u8,
     out_emojis: []nip30_custom_emoji.EmojiTagInfo,
-) Nip38Error!UserStatusInfo {
+) UserStatusError!UserStatusInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_urls.len <= limits.tags_max);
 
@@ -81,7 +81,7 @@ pub fn user_status_extract(
 pub fn user_status_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip38Error!nip01_event.EventTag {
+) UserStatusError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -94,7 +94,7 @@ pub fn user_status_build_identifier_tag(
 pub fn user_status_build_url_tag(
     output: *BuiltTag,
     url: []const u8,
-) Nip38Error!nip01_event.EventTag {
+) UserStatusError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -107,7 +107,7 @@ pub fn user_status_build_url_tag(
 pub fn user_status_build_pubkey_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
-) Nip38Error!nip01_event.EventTag {
+) UserStatusError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -121,7 +121,7 @@ pub fn user_status_build_pubkey_tag(
 pub fn user_status_build_event_tag(
     output: *BuiltTag,
     event_id_hex: []const u8,
-) Nip38Error!nip01_event.EventTag {
+) UserStatusError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -135,7 +135,7 @@ pub fn user_status_build_event_tag(
 pub fn user_status_build_coordinate_tag(
     output: *BuiltTag,
     coordinate: []const u8,
-) Nip38Error!nip01_event.EventTag {
+) UserStatusError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 3);
 
@@ -149,7 +149,7 @@ pub fn user_status_build_coordinate_tag(
 pub fn user_status_build_expiration_tag(
     output: *BuiltTag,
     unix_seconds: u64,
-) Nip38Error!nip01_event.EventTag {
+) UserStatusError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(unix_seconds <= std.math.maxInt(u64));
 
@@ -170,7 +170,7 @@ fn apply_status_tag(
     out_event_ids: [][32]u8,
     out_coordinates: [][]const u8,
     out_emojis: []nip30_custom_emoji.EmojiTagInfo,
-) Nip38Error!void {
+) UserStatusError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -184,7 +184,7 @@ fn apply_status_tag(
     if (std.mem.eql(u8, tag.items[0], "emoji")) return append_emoji(tag, info, out_emojis);
 }
 
-fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip38Error!void {
+fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) UserStatusError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(identifier) != 0);
 
@@ -193,7 +193,7 @@ fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip
     identifier.* = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidIdentifierTag;
 }
 
-fn apply_expiration_tag(tag: nip01_event.EventTag, info: *UserStatusInfo) Nip38Error!void {
+fn apply_expiration_tag(tag: nip01_event.EventTag, info: *UserStatusInfo) UserStatusError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -208,7 +208,7 @@ fn append_url(
     tag: nip01_event.EventTag,
     info: *UserStatusInfo,
     out_urls: [][]const u8,
-) Nip38Error!void {
+) UserStatusError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.url_count <= out_urls.len);
 
@@ -222,7 +222,7 @@ fn append_pubkey(
     tag: nip01_event.EventTag,
     info: *UserStatusInfo,
     out_pubkeys: [][32]u8,
-) Nip38Error!void {
+) UserStatusError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.pubkey_count <= out_pubkeys.len);
 
@@ -238,7 +238,7 @@ fn append_event(
     tag: nip01_event.EventTag,
     info: *UserStatusInfo,
     out_event_ids: [][32]u8,
-) Nip38Error!void {
+) UserStatusError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.event_count <= out_event_ids.len);
 
@@ -254,7 +254,7 @@ fn append_coordinate(
     tag: nip01_event.EventTag,
     info: *UserStatusInfo,
     out_coordinates: [][]const u8,
-) Nip38Error!void {
+) UserStatusError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.coordinate_count <= out_coordinates.len);
 
@@ -270,7 +270,7 @@ fn append_emoji(
     tag: nip01_event.EventTag,
     info: *UserStatusInfo,
     out_emojis: []nip30_custom_emoji.EmojiTagInfo,
-) Nip38Error!void {
+) UserStatusError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.emoji_count <= out_emojis.len);
 

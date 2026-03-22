@@ -8,7 +8,7 @@ pub const wiki_article_kind: u32 = 30818;
 pub const wiki_merge_request_kind: u32 = 818;
 pub const wiki_redirect_kind: u32 = 30819;
 
-pub const Nip54Error = error{
+pub const WikiError = error{
     InvalidArticleKind,
     InvalidMergeRequestKind,
     InvalidRedirectKind,
@@ -88,7 +88,7 @@ pub fn wiki_article_extract(
     event: *const nip01_event.Event,
     out_forks: []WikiArticleReference,
     out_defers: []WikiArticleReference,
-) Nip54Error!WikiArticleInfo {
+) WikiError!WikiArticleInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_forks.len <= limits.tags_max);
 
@@ -104,7 +104,7 @@ pub fn wiki_article_extract(
 }
 
 /// Extracts bounded merge-request metadata from a `kind:818` wiki merge request.
-pub fn wiki_merge_request_extract(event: *const nip01_event.Event) Nip54Error!WikiMergeRequestInfo {
+pub fn wiki_merge_request_extract(event: *const nip01_event.Event) WikiError!WikiMergeRequestInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -127,7 +127,7 @@ pub fn wiki_merge_request_extract(event: *const nip01_event.Event) Nip54Error!Wi
 }
 
 /// Extracts bounded redirect metadata from a `kind:30819` wiki redirect event.
-pub fn wiki_redirect_extract(event: *const nip01_event.Event) Nip54Error!WikiRedirectInfo {
+pub fn wiki_redirect_extract(event: *const nip01_event.Event) WikiError!WikiRedirectInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -147,7 +147,7 @@ pub fn wiki_redirect_extract(event: *const nip01_event.Event) Nip54Error!WikiRed
 }
 
 /// Normalizes an ASCII-heavy wiki title into a `d` identifier slug.
-pub fn wiki_normalize_identifier_ascii(output: []u8, title: []const u8) Nip54Error![]const u8 {
+pub fn wiki_normalize_identifier_ascii(output: []u8, title: []const u8) WikiError![]const u8 {
     std.debug.assert(output.len <= limits.tag_item_bytes_max);
     std.debug.assert(title.len <= limits.tag_item_bytes_max);
 
@@ -179,7 +179,7 @@ pub fn wiki_normalize_identifier_ascii(output: []u8, title: []const u8) Nip54Err
 pub fn wiki_build_identifier_tag(
     output: *BuiltTag,
     identifier: []const u8,
-) Nip54Error!nip01_event.EventTag {
+) WikiError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(identifier.len <= limits.tag_item_bytes_max);
 
@@ -193,7 +193,7 @@ pub fn wiki_build_identifier_tag(
 pub fn wiki_build_title_tag(
     output: *BuiltTag,
     title: []const u8,
-) Nip54Error!nip01_event.EventTag {
+) WikiError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(title.len <= limits.tag_item_bytes_max);
 
@@ -207,7 +207,7 @@ pub fn wiki_build_title_tag(
 pub fn wiki_build_summary_tag(
     output: *BuiltTag,
     summary: []const u8,
-) Nip54Error!nip01_event.EventTag {
+) WikiError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(summary.len <= limits.tag_item_bytes_max);
 
@@ -223,7 +223,7 @@ pub fn wiki_build_article_reference_tag(
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
     marker: ?[]const u8,
-) Nip54Error!nip01_event.EventTag {
+) WikiError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(coordinate_text.len <= limits.tag_item_bytes_max);
 
@@ -248,7 +248,7 @@ pub fn wiki_build_event_reference_tag(
     event_id_hex: []const u8,
     relay_hint: ?[]const u8,
     marker: ?[]const u8,
-) Nip54Error!nip01_event.EventTag {
+) WikiError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(event_id_hex.len <= limits.tag_item_bytes_max);
 
@@ -271,7 +271,7 @@ pub fn wiki_build_event_reference_tag(
 pub fn wiki_build_destination_pubkey_tag(
     output: *BuiltTag,
     pubkey_hex: []const u8,
-) Nip54Error!nip01_event.EventTag {
+) WikiError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(pubkey_hex.len <= limits.tag_item_bytes_max);
 
@@ -288,7 +288,7 @@ fn apply_article_tag(
     info: *WikiArticleInfo,
     out_forks: []WikiArticleReference,
     out_defers: []WikiArticleReference,
-) Nip54Error!void {
+) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -311,7 +311,7 @@ fn apply_merge_request_tag(
     base_revision: *?WikiEventReference,
     source_event: *?WikiEventReference,
     destination_pubkey: *?[32]u8,
-) Nip54Error!void {
+) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(target_article) != 0);
 
@@ -326,7 +326,7 @@ fn apply_merge_request_tag(
     return apply_base_revision(tag, base_revision);
 }
 
-fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip54Error!void {
+fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(identifier) != 0);
 
@@ -338,9 +338,9 @@ fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Nip
 fn apply_text_tag(
     tag: nip01_event.EventTag,
     field: *?[]const u8,
-    duplicate_error: Nip54Error,
-    invalid_error: Nip54Error,
-) Nip54Error!void {
+    duplicate_error: WikiError,
+    invalid_error: WikiError,
+) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(field) != 0);
 
@@ -353,8 +353,8 @@ fn append_article_ref(
     tag: nip01_event.EventTag,
     count: *u16,
     out: []WikiArticleReference,
-    invalid_error: Nip54Error,
-) Nip54Error!void {
+    invalid_error: WikiError,
+) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(count) != 0);
 
@@ -364,7 +364,7 @@ fn append_article_ref(
     count.* += 1;
 }
 
-fn apply_target_article(tag: nip01_event.EventTag, target: *?WikiArticleReference) Nip54Error!void {
+fn apply_target_article(tag: nip01_event.EventTag, target: *?WikiArticleReference) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(target) != 0);
 
@@ -372,7 +372,7 @@ fn apply_target_article(tag: nip01_event.EventTag, target: *?WikiArticleReferenc
     target.* = parse_article_reference_tag(tag) catch return error.InvalidTargetArticleTag;
 }
 
-fn apply_source_event(tag: nip01_event.EventTag, source: *?WikiEventReference) Nip54Error!void {
+fn apply_source_event(tag: nip01_event.EventTag, source: *?WikiEventReference) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(source) != 0);
 
@@ -385,7 +385,7 @@ fn apply_source_event(tag: nip01_event.EventTag, source: *?WikiEventReference) N
     };
 }
 
-fn apply_base_revision(tag: nip01_event.EventTag, base: *?WikiEventReference) Nip54Error!void {
+fn apply_base_revision(tag: nip01_event.EventTag, base: *?WikiEventReference) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(base) != 0);
 
@@ -399,7 +399,7 @@ fn apply_base_revision(tag: nip01_event.EventTag, base: *?WikiEventReference) Ni
     };
 }
 
-fn apply_destination_pubkey(tag: nip01_event.EventTag, pubkey: *?[32]u8) Nip54Error!void {
+fn apply_destination_pubkey(tag: nip01_event.EventTag, pubkey: *?[32]u8) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(pubkey) != 0);
 
@@ -408,7 +408,7 @@ fn apply_destination_pubkey(tag: nip01_event.EventTag, pubkey: *?[32]u8) Nip54Er
     pubkey.* = parse_lower_hex_32(tag.items[1]) catch return error.InvalidDestinationPubkeyTag;
 }
 
-fn apply_redirect_target(tag: nip01_event.EventTag, target: *?WikiArticleReference) Nip54Error!void {
+fn apply_redirect_target(tag: nip01_event.EventTag, target: *?WikiArticleReference) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(target) != 0);
 

@@ -13,7 +13,7 @@ pub const uri_scheme = "nostr+walletconnect://";
 pub const metadata_bytes_max: u16 = 4_096;
 pub const message_json_bytes_max: u32 = limits.nip46_message_json_bytes_max;
 
-pub const Nip47Error = error{
+pub const NwcError = error{
     UnsupportedKind,
     InvalidUri,
     InvalidScheme,
@@ -149,7 +149,7 @@ pub const BuiltTag = struct {
     }
 };
 
-pub fn method_parse(text: []const u8) Nip47Error!Method {
+pub fn method_parse(text: []const u8) NwcError!Method {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(Method) > 0);
 
@@ -185,7 +185,7 @@ pub fn method_text(method: Method) []const u8 {
     };
 }
 
-pub fn encryption_parse(text: []const u8) Nip47Error!Encryption {
+pub fn encryption_parse(text: []const u8) NwcError!Encryption {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(Encryption) > 0);
 
@@ -205,7 +205,7 @@ pub fn encryption_text(encryption: Encryption) []const u8 {
     };
 }
 
-pub fn notification_type_parse(text: []const u8) Nip47Error!NotificationType {
+pub fn notification_type_parse(text: []const u8) NwcError!NotificationType {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(NotificationType) > 0);
 
@@ -228,7 +228,7 @@ pub fn notification_type_text(notification_type: NotificationType) []const u8 {
     };
 }
 
-pub fn error_code_parse(text: []const u8) Nip47Error!ErrorCode {
+pub fn error_code_parse(text: []const u8) NwcError!ErrorCode {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(ErrorCode) > 0);
 
@@ -266,7 +266,7 @@ pub fn error_code_text(error_code: ErrorCode) []const u8 {
     };
 }
 
-pub fn transaction_type_parse(text: []const u8) Nip47Error!TransactionType {
+pub fn transaction_type_parse(text: []const u8) NwcError!TransactionType {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(TransactionType) > 0);
 
@@ -286,7 +286,7 @@ pub fn transaction_type_text(transaction_type: TransactionType) []const u8 {
     };
 }
 
-pub fn transaction_state_parse(text: []const u8) Nip47Error!TransactionState {
+pub fn transaction_state_parse(text: []const u8) NwcError!TransactionState {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@sizeOf(TransactionState) > 0);
 
@@ -316,7 +316,7 @@ pub fn connection_uri_parse(
     input: []const u8,
     out_relays: [][]const u8,
     scratch: std.mem.Allocator,
-) Nip47Error!ConnectionUri {
+) NwcError!ConnectionUri {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -333,7 +333,7 @@ pub fn connection_uri_parse(
 pub fn connection_uri_serialize(
     output: []u8,
     connection_uri: ConnectionUri,
-) Nip47Error![]const u8 {
+) NwcError![]const u8 {
     std.debug.assert(output.len <= limits.nip46_uri_bytes_max);
     std.debug.assert(connection_uri.relays.len <= std.math.maxInt(usize));
 
@@ -368,7 +368,7 @@ pub fn info_event_extract(
     out_capabilities: [][]const u8,
     out_encryptions: []Encryption,
     out_notifications: []NotificationType,
-) Nip47Error!InfoEventInfo {
+) NwcError!InfoEventInfo {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -398,7 +398,7 @@ pub fn info_event_extract(
     return info;
 }
 
-pub fn request_event_extract(event: *const nip01_event.Event) Nip47Error!RequestEvent {
+pub fn request_event_extract(event: *const nip01_event.Event) NwcError!RequestEvent {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -433,7 +433,7 @@ pub fn request_event_extract(event: *const nip01_event.Event) Nip47Error!Request
     };
 }
 
-pub fn response_event_extract(event: *const nip01_event.Event) Nip47Error!ResponseEvent {
+pub fn response_event_extract(event: *const nip01_event.Event) NwcError!ResponseEvent {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -468,7 +468,7 @@ pub fn response_event_extract(event: *const nip01_event.Event) Nip47Error!Respon
     };
 }
 
-pub fn notification_event_extract(event: *const nip01_event.Event) Nip47Error!NotificationEvent {
+pub fn notification_event_extract(event: *const nip01_event.Event) NwcError!NotificationEvent {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -503,7 +503,7 @@ pub fn notification_event_extract(event: *const nip01_event.Event) Nip47Error!No
 pub fn nwc_build_pubkey_tag(
     output: *BuiltTag,
     pubkey: *const [32]u8,
-) Nip47Error!nip01_event.EventTag {
+) NwcError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(pubkey) != 0);
 
@@ -517,7 +517,7 @@ pub fn nwc_build_pubkey_tag(
 pub fn nwc_build_event_id_tag(
     output: *BuiltTag,
     event_id: *const [32]u8,
-) Nip47Error!nip01_event.EventTag {
+) NwcError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(event_id) != 0);
 
@@ -531,7 +531,7 @@ pub fn nwc_build_event_id_tag(
 pub fn nwc_build_encryption_tag(
     output: *BuiltTag,
     encryption: Encryption,
-) Nip47Error!nip01_event.EventTag {
+) NwcError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@typeInfo(Encryption) == .@"enum");
 
@@ -544,7 +544,7 @@ pub fn nwc_build_encryption_tag(
 pub fn nwc_build_expiration_tag(
     output: *BuiltTag,
     expiration: u64,
-) Nip47Error!nip01_event.EventTag {
+) NwcError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(expiration <= std.math.maxInt(u64));
 
@@ -559,7 +559,7 @@ pub fn nwc_build_expiration_tag(
 pub fn nwc_build_info_encryption_tag(
     output: *BuiltTag,
     encryptions: []const Encryption,
-) Nip47Error!nip01_event.EventTag {
+) NwcError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(encryptions.len <= std.math.maxInt(usize));
 
@@ -573,7 +573,7 @@ pub fn nwc_build_info_encryption_tag(
 pub fn nwc_build_info_notifications_tag(
     output: *BuiltTag,
     notifications: []const NotificationType,
-) Nip47Error!nip01_event.EventTag {
+) NwcError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(notifications.len <= std.math.maxInt(usize));
 
@@ -587,7 +587,7 @@ pub fn nwc_build_info_notifications_tag(
 pub fn nwc_format_info_capabilities(
     output: []u8,
     capabilities: []const []const u8,
-) Nip47Error![]const u8 {
+) NwcError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(capabilities.len <= std.math.maxInt(usize));
 
@@ -607,7 +607,7 @@ const UriParts = struct {
     query: ?[]const u8,
 };
 
-fn parse_uri_parts(input: []const u8) Nip47Error!UriParts {
+fn parse_uri_parts(input: []const u8) NwcError!UriParts {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(uri_scheme.len > 0);
 
@@ -630,7 +630,7 @@ fn parse_connection_query(
     wallet_service_pubkey: [32]u8,
     out_relays: [][]const u8,
     scratch: std.mem.Allocator,
-) Nip47Error!ConnectionUri {
+) NwcError!ConnectionUri {
     std.debug.assert(raw_query.len <= limits.nip46_uri_bytes_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -671,7 +671,7 @@ fn parse_connection_query(
     };
 }
 
-fn parse_info_content(content: []const u8, out_capabilities: [][]const u8) Nip47Error!InfoEventInfo {
+fn parse_info_content(content: []const u8, out_capabilities: [][]const u8) NwcError!InfoEventInfo {
     std.debug.assert(content.len <= limits.content_bytes_max);
     std.debug.assert(out_capabilities.len <= std.math.maxInt(usize));
 
@@ -689,7 +689,7 @@ fn parse_info_content(content: []const u8, out_capabilities: [][]const u8) Nip47
     return info;
 }
 
-fn parse_encryption_tag(tag: nip01_event.EventTag, out_encryptions: []Encryption) Nip47Error!u8 {
+fn parse_encryption_tag(tag: nip01_event.EventTag, out_encryptions: []Encryption) NwcError!u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out_encryptions.len <= std.math.maxInt(usize));
 
@@ -709,7 +709,7 @@ fn parse_encryption_tag(tag: nip01_event.EventTag, out_encryptions: []Encryption
 fn parse_notifications_tag(
     tag: nip01_event.EventTag,
     out_notifications: []NotificationType,
-) Nip47Error!u8 {
+) NwcError!u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out_notifications.len <= std.math.maxInt(usize));
 
@@ -725,7 +725,7 @@ fn parse_notifications_tag(
     return count;
 }
 
-fn parse_encryption_singleton_tag(tag: nip01_event.EventTag) Nip47Error!Encryption {
+fn parse_encryption_singleton_tag(tag: nip01_event.EventTag) NwcError!Encryption {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@sizeOf(Encryption) > 0);
 
@@ -733,7 +733,7 @@ fn parse_encryption_singleton_tag(tag: nip01_event.EventTag) Nip47Error!Encrypti
     return encryption_parse(tag.items[1]);
 }
 
-fn parse_expiration_tag(tag: nip01_event.EventTag) Nip47Error!u64 {
+fn parse_expiration_tag(tag: nip01_event.EventTag) NwcError!u64 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@sizeOf(u64) == 8);
 
@@ -741,7 +741,7 @@ fn parse_expiration_tag(tag: nip01_event.EventTag) Nip47Error!u64 {
     return std.fmt.parseUnsigned(u64, tag.items[1], 10) catch return error.InvalidExpirationTag;
 }
 
-fn parse_pubkey_tag(tag: nip01_event.EventTag) Nip47Error![32]u8 {
+fn parse_pubkey_tag(tag: nip01_event.EventTag) NwcError![32]u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -749,7 +749,7 @@ fn parse_pubkey_tag(tag: nip01_event.EventTag) Nip47Error![32]u8 {
     return parse_lower_hex_32(tag.items[1]) catch return error.InvalidTargetPubkey;
 }
 
-fn parse_event_id_tag(tag: nip01_event.EventTag) Nip47Error![32]u8 {
+fn parse_event_id_tag(tag: nip01_event.EventTag) NwcError![32]u8 {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.id_hex_length == 64);
 
@@ -782,7 +782,7 @@ fn validate_encrypted_content(text: []const u8) error{InvalidValue}![]const u8 {
     return text;
 }
 
-fn validate_lud16(text: []const u8) Nip47Error!void {
+fn validate_lud16(text: []const u8) NwcError!void {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(text.len <= std.math.maxInt(usize));
 
@@ -820,7 +820,7 @@ fn query_decode_component(
     text: []const u8,
     plus_as_space: bool,
     scratch: std.mem.Allocator,
-) Nip47Error![]const u8 {
+) NwcError![]const u8 {
     std.debug.assert(text.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -850,7 +850,7 @@ fn query_decode_component(
     return output[0..write_index];
 }
 
-fn join_encryptions(output: []u8, encryptions: []const Encryption) Nip47Error![]const u8 {
+fn join_encryptions(output: []u8, encryptions: []const Encryption) NwcError![]const u8 {
     std.debug.assert(output.len <= limits.tag_item_bytes_max);
     std.debug.assert(encryptions.len <= std.math.maxInt(usize));
 
@@ -865,7 +865,7 @@ fn join_encryptions(output: []u8, encryptions: []const Encryption) Nip47Error![]
 fn join_notifications(
     output: []u8,
     notifications: []const NotificationType,
-) Nip47Error![]const u8 {
+) NwcError![]const u8 {
     std.debug.assert(output.len <= limits.tag_item_bytes_max);
     std.debug.assert(notifications.len <= std.math.maxInt(usize));
 
@@ -877,7 +877,7 @@ fn join_notifications(
     return output[0..@intCast(index)];
 }
 
-fn write_percent_encoded(output: []u8, index: *u32, text: []const u8) Nip47Error!void {
+fn write_percent_encoded(output: []u8, index: *u32, text: []const u8) NwcError!void {
     const hex = "0123456789ABCDEF";
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(text.len <= std.math.maxInt(usize));
@@ -915,7 +915,7 @@ fn write_lower_hex(output: []u8, input: []const u8) void {
     }
 }
 
-fn write_bytes(output: []u8, index: *u32, bytes: []const u8) Nip47Error!void {
+fn write_bytes(output: []u8, index: *u32, bytes: []const u8) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(bytes.len <= std.math.maxInt(usize));
 
@@ -924,7 +924,7 @@ fn write_bytes(output: []u8, index: *u32, bytes: []const u8) Nip47Error!void {
     index.* += @intCast(bytes.len);
 }
 
-fn write_byte(output: []u8, index: *u32, byte: u8) Nip47Error!void {
+fn write_byte(output: []u8, index: *u32, byte: u8) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(byte <= 255);
 
@@ -1081,7 +1081,7 @@ const TransactionShape = enum {
     hold_invoice_accepted,
 };
 
-pub fn request_parse_json(input: []const u8, scratch: std.mem.Allocator) Nip47Error!Request {
+pub fn request_parse_json(input: []const u8, scratch: std.mem.Allocator) NwcError!Request {
     std.debug.assert(input.len <= message_json_bytes_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1090,7 +1090,7 @@ pub fn request_parse_json(input: []const u8, scratch: std.mem.Allocator) Nip47Er
     return parse_request_object(root.object, scratch);
 }
 
-pub fn request_serialize_json(output: []u8, request: Request) Nip47Error![]const u8 {
+pub fn request_serialize_json(output: []u8, request: Request) NwcError![]const u8 {
     std.debug.assert(output.len <= message_json_bytes_max);
     std.debug.assert(@sizeOf(Request) > 0);
 
@@ -1103,7 +1103,7 @@ pub fn request_serialize_json(output: []u8, request: Request) Nip47Error![]const
     return output[0..@intCast(index)];
 }
 
-pub fn response_parse_json(input: []const u8, scratch: std.mem.Allocator) Nip47Error!Response {
+pub fn response_parse_json(input: []const u8, scratch: std.mem.Allocator) NwcError!Response {
     std.debug.assert(input.len <= message_json_bytes_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1112,7 +1112,7 @@ pub fn response_parse_json(input: []const u8, scratch: std.mem.Allocator) Nip47E
     return parse_response_object(root.object, scratch);
 }
 
-pub fn response_serialize_json(output: []u8, response: Response) Nip47Error![]const u8 {
+pub fn response_serialize_json(output: []u8, response: Response) NwcError![]const u8 {
     std.debug.assert(output.len <= message_json_bytes_max);
     std.debug.assert(@sizeOf(Response) > 0);
 
@@ -1130,7 +1130,7 @@ pub fn response_serialize_json(output: []u8, response: Response) Nip47Error![]co
 pub fn notification_parse_json(
     input: []const u8,
     scratch: std.mem.Allocator,
-) Nip47Error!Notification {
+) NwcError!Notification {
     std.debug.assert(input.len <= message_json_bytes_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1142,7 +1142,7 @@ pub fn notification_parse_json(
 pub fn notification_serialize_json(
     output: []u8,
     notification: Notification,
-) Nip47Error![]const u8 {
+) NwcError![]const u8 {
     std.debug.assert(output.len <= message_json_bytes_max);
     std.debug.assert(@sizeOf(Notification) > 0);
 
@@ -1158,8 +1158,8 @@ pub fn notification_serialize_json(
 fn parse_json_root(
     input: []const u8,
     scratch: std.mem.Allocator,
-    invalid_err: Nip47Error,
-) Nip47Error!std.json.Value {
+    invalid_err: NwcError,
+) NwcError!std.json.Value {
     std.debug.assert(input.len <= message_json_bytes_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1173,7 +1173,7 @@ fn parse_json_root(
 fn parse_request_object(
     object: std.json.ObjectMap,
     scratch: std.mem.Allocator,
-) Nip47Error!Request {
+) NwcError!Request {
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1203,7 +1203,7 @@ fn parse_request_params(
     method: Method,
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip47Error!Request {
+) NwcError!Request {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(@sizeOf(std.json.Value) > 0);
 
@@ -1225,7 +1225,7 @@ fn parse_request_params(
     };
 }
 
-fn parse_empty_request_params(value: std.json.Value, request: Request) Nip47Error!Request {
+fn parse_empty_request_params(value: std.json.Value, request: Request) NwcError!Request {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(Request) > 0);
 
@@ -1234,7 +1234,7 @@ fn parse_empty_request_params(value: std.json.Value, request: Request) Nip47Erro
     return request;
 }
 
-fn parse_pay_invoice_params(value: std.json.Value) Nip47Error!PayInvoiceRequest {
+fn parse_pay_invoice_params(value: std.json.Value) NwcError!PayInvoiceRequest {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(PayInvoiceRequest) > 0);
 
@@ -1268,7 +1268,7 @@ fn parse_pay_invoice_params(value: std.json.Value) Nip47Error!PayInvoiceRequest 
 fn parse_pay_keysend_params(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip47Error!PayKeysendRequest {
+) NwcError!PayKeysendRequest {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1314,7 +1314,7 @@ fn parse_pay_keysend_params(
     return request;
 }
 
-fn parse_make_invoice_params(value: std.json.Value) Nip47Error!MakeInvoiceRequest {
+fn parse_make_invoice_params(value: std.json.Value) NwcError!MakeInvoiceRequest {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(MakeInvoiceRequest) > 0);
 
@@ -1350,7 +1350,7 @@ fn parse_make_invoice_params(value: std.json.Value) Nip47Error!MakeInvoiceReques
     return request;
 }
 
-fn parse_lookup_invoice_params(value: std.json.Value) Nip47Error!LookupInvoiceRequest {
+fn parse_lookup_invoice_params(value: std.json.Value) NwcError!LookupInvoiceRequest {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(LookupInvoiceRequest) > 0);
 
@@ -1374,7 +1374,7 @@ fn parse_lookup_invoice_params(value: std.json.Value) Nip47Error!LookupInvoiceRe
     return request;
 }
 
-fn parse_list_transactions_params(value: std.json.Value) Nip47Error!ListTransactionsRequest {
+fn parse_list_transactions_params(value: std.json.Value) NwcError!ListTransactionsRequest {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(ListTransactionsRequest) > 0);
 
@@ -1417,7 +1417,7 @@ fn parse_list_transactions_params(value: std.json.Value) Nip47Error!ListTransact
     return request;
 }
 
-fn parse_make_hold_invoice_params(value: std.json.Value) Nip47Error!MakeHoldInvoiceRequest {
+fn parse_make_hold_invoice_params(value: std.json.Value) NwcError!MakeHoldInvoiceRequest {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(MakeHoldInvoiceRequest) > 0);
 
@@ -1468,7 +1468,7 @@ fn parse_make_hold_invoice_params(value: std.json.Value) Nip47Error!MakeHoldInvo
     return request;
 }
 
-fn parse_cancel_hold_invoice_params(value: std.json.Value) Nip47Error!CancelHoldInvoiceRequest {
+fn parse_cancel_hold_invoice_params(value: std.json.Value) NwcError!CancelHoldInvoiceRequest {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(CancelHoldInvoiceRequest) > 0);
 
@@ -1483,7 +1483,7 @@ fn parse_cancel_hold_invoice_params(value: std.json.Value) Nip47Error!CancelHold
     return .{ .payment_hash = payment_hash orelse return error.InvalidParams };
 }
 
-fn parse_settle_hold_invoice_params(value: std.json.Value) Nip47Error!SettleHoldInvoiceRequest {
+fn parse_settle_hold_invoice_params(value: std.json.Value) NwcError!SettleHoldInvoiceRequest {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(SettleHoldInvoiceRequest) > 0);
 
@@ -1501,7 +1501,7 @@ fn parse_settle_hold_invoice_params(value: std.json.Value) Nip47Error!SettleHold
 fn parse_tlv_records(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip47Error![]const KeysendTlvRecord {
+) NwcError![]const KeysendTlvRecord {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1515,7 +1515,7 @@ fn parse_tlv_records(
     return records;
 }
 
-fn parse_tlv_record(value: std.json.Value) Nip47Error!KeysendTlvRecord {
+fn parse_tlv_record(value: std.json.Value) NwcError!KeysendTlvRecord {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(KeysendTlvRecord) > 0);
 
@@ -1548,7 +1548,7 @@ fn parse_tlv_record(value: std.json.Value) Nip47Error!KeysendTlvRecord {
 fn parse_response_object(
     object: std.json.ObjectMap,
     scratch: std.mem.Allocator,
-) Nip47Error!Response {
+) NwcError!Response {
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1586,7 +1586,7 @@ fn parse_response_fields(
     error_value: std.json.Value,
     result_value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip47Error!Response {
+) NwcError!Response {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1602,7 +1602,7 @@ fn parse_response_result(
     method: Method,
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip47Error!Response {
+) NwcError!Response {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1656,7 +1656,7 @@ fn parse_response_result(
     };
 }
 
-fn parse_payment_result(value: std.json.Value) Nip47Error!PaymentResult {
+fn parse_payment_result(value: std.json.Value) NwcError!PaymentResult {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(PaymentResult) > 0);
 
@@ -1681,7 +1681,7 @@ fn parse_payment_result(value: std.json.Value) Nip47Error!PaymentResult {
     return result;
 }
 
-fn parse_balance_result(value: std.json.Value) Nip47Error!BalanceResult {
+fn parse_balance_result(value: std.json.Value) NwcError!BalanceResult {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(BalanceResult) > 0);
 
@@ -1699,7 +1699,7 @@ fn parse_balance_result(value: std.json.Value) Nip47Error!BalanceResult {
 fn parse_wallet_info_result(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip47Error!WalletInfoResult {
+) NwcError!WalletInfoResult {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1758,7 +1758,7 @@ fn parse_wallet_info_result(
 fn parse_transactions_result(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip47Error![]const Transaction {
+) NwcError![]const Transaction {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1785,7 +1785,7 @@ fn parse_transactions_result(
     return items;
 }
 
-fn parse_empty_result(value: std.json.Value) Nip47Error!void {
+fn parse_empty_result(value: std.json.Value) NwcError!void {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(void) == 0);
 
@@ -1796,7 +1796,7 @@ fn parse_empty_result(value: std.json.Value) Nip47Error!void {
 fn parse_notification_object(
     object: std.json.ObjectMap,
     scratch: std.mem.Allocator,
-) Nip47Error!Notification {
+) NwcError!Notification {
     std.debug.assert(@sizeOf(std.json.ObjectMap) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1829,7 +1829,7 @@ fn parse_notification_value(
     notification_type: NotificationType,
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) Nip47Error!Notification {
+) NwcError!Notification {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1861,8 +1861,8 @@ fn parse_notification_value(
 fn parse_transaction_value(
     value: std.json.Value,
     shape: TransactionShape,
-    invalid_err: Nip47Error,
-) Nip47Error!Transaction {
+    invalid_err: NwcError,
+) NwcError!Transaction {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@typeInfo(TransactionShape) == .@"enum");
 
@@ -1880,7 +1880,7 @@ fn parse_transaction_field(
     tx: *Transaction,
     key: []const u8,
     field: std.json.Value,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(tx) != 0);
     std.debug.assert(@sizeOf(std.json.Value) > 0);
 
@@ -1926,7 +1926,7 @@ fn parse_transaction_numeric_field(
     tx: *Transaction,
     key: []const u8,
     field: std.json.Value,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(tx) != 0);
     std.debug.assert(@sizeOf(std.json.Value) > 0);
 
@@ -1969,8 +1969,8 @@ fn parse_transaction_numeric_field(
 fn validate_transaction_shape(
     tx: Transaction,
     shape: TransactionShape,
-    invalid_err: Nip47Error,
-) Nip47Error!void {
+    invalid_err: NwcError,
+) NwcError!void {
     std.debug.assert(@typeInfo(TransactionShape) == .@"enum");
     std.debug.assert(@sizeOf(Transaction) > 0);
 
@@ -1985,27 +1985,27 @@ fn validate_transaction_shape(
     }
 }
 
-fn validate_make_invoice_transaction(tx: Transaction, invalid_err: Nip47Error) Nip47Error!void {
+fn validate_make_invoice_transaction(tx: Transaction, invalid_err: NwcError) NwcError!void {
     std.debug.assert(@sizeOf(Transaction) > 0);
-    std.debug.assert(@sizeOf(Nip47Error) > 0);
+    std.debug.assert(@sizeOf(NwcError) > 0);
 
     if (tx.invoice == null) return invalid_err;
     if (tx.amount == null) return invalid_err;
     if (tx.created_at == null) return invalid_err;
 }
 
-fn validate_lookup_transaction(tx: Transaction, invalid_err: Nip47Error) Nip47Error!void {
+fn validate_lookup_transaction(tx: Transaction, invalid_err: NwcError) NwcError!void {
     std.debug.assert(@sizeOf(Transaction) > 0);
-    std.debug.assert(@sizeOf(Nip47Error) > 0);
+    std.debug.assert(@sizeOf(NwcError) > 0);
 
     if (tx.payment_hash == null) return invalid_err;
     if (tx.amount == null) return invalid_err;
     if (tx.created_at == null) return invalid_err;
 }
 
-fn validate_make_hold_transaction(tx: Transaction, invalid_err: Nip47Error) Nip47Error!void {
+fn validate_make_hold_transaction(tx: Transaction, invalid_err: NwcError) NwcError!void {
     std.debug.assert(@sizeOf(Transaction) > 0);
-    std.debug.assert(@sizeOf(Nip47Error) > 0);
+    std.debug.assert(@sizeOf(NwcError) > 0);
 
     if (tx.payment_hash == null) return invalid_err;
     if (tx.amount == null) return invalid_err;
@@ -2015,10 +2015,10 @@ fn validate_make_hold_transaction(tx: Transaction, invalid_err: Nip47Error) Nip4
 
 fn validate_payment_received_transaction(
     tx: Transaction,
-    invalid_err: Nip47Error,
-) Nip47Error!void {
+    invalid_err: NwcError,
+) NwcError!void {
     std.debug.assert(@sizeOf(Transaction) > 0);
-    std.debug.assert(@sizeOf(Nip47Error) > 0);
+    std.debug.assert(@sizeOf(NwcError) > 0);
 
     if (tx.invoice == null or tx.preimage == null) return invalid_err;
     if (tx.payment_hash == null or tx.amount == null) return invalid_err;
@@ -2028,9 +2028,9 @@ fn validate_payment_received_transaction(
     if (tx.state != null and tx.state.? != .settled) return invalid_err;
 }
 
-fn validate_payment_sent_transaction(tx: Transaction, invalid_err: Nip47Error) Nip47Error!void {
+fn validate_payment_sent_transaction(tx: Transaction, invalid_err: NwcError) NwcError!void {
     std.debug.assert(@sizeOf(Transaction) > 0);
-    std.debug.assert(@sizeOf(Nip47Error) > 0);
+    std.debug.assert(@sizeOf(NwcError) > 0);
 
     if (tx.invoice == null or tx.preimage == null) return invalid_err;
     if (tx.payment_hash == null or tx.amount == null) return invalid_err;
@@ -2042,10 +2042,10 @@ fn validate_payment_sent_transaction(tx: Transaction, invalid_err: Nip47Error) N
 
 fn validate_hold_notification_transaction(
     tx: Transaction,
-    invalid_err: Nip47Error,
-) Nip47Error!void {
+    invalid_err: NwcError,
+) NwcError!void {
     std.debug.assert(@sizeOf(Transaction) > 0);
-    std.debug.assert(@sizeOf(Nip47Error) > 0);
+    std.debug.assert(@sizeOf(NwcError) > 0);
 
     if (tx.invoice == null or tx.payment_hash == null) return invalid_err;
     if (tx.amount == null or tx.created_at == null) return invalid_err;
@@ -2054,7 +2054,7 @@ fn validate_hold_notification_transaction(
     if (tx.state != null and tx.state.? != .accepted) return invalid_err;
 }
 
-fn build_error_response(method: Method, err_info: ErrorInfo) Nip47Error!Response {
+fn build_error_response(method: Method, err_info: ErrorInfo) NwcError!Response {
     std.debug.assert(@typeInfo(Method) == .@"enum");
     std.debug.assert(@sizeOf(ErrorInfo) > 0);
 
@@ -2072,7 +2072,7 @@ fn build_error_response(method: Method, err_info: ErrorInfo) Nip47Error!Response
     };
 }
 
-fn parse_error_info(value: std.json.Value, invalid_err: Nip47Error) Nip47Error!ErrorInfo {
+fn parse_error_info(value: std.json.Value, invalid_err: NwcError) NwcError!ErrorInfo {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(ErrorInfo) > 0);
 
@@ -2098,7 +2098,7 @@ fn parse_error_info(value: std.json.Value, invalid_err: Nip47Error) Nip47Error!E
     };
 }
 
-fn parse_method_value(value: std.json.Value, invalid_err: Nip47Error) Nip47Error!Method {
+fn parse_method_value(value: std.json.Value, invalid_err: NwcError) NwcError!Method {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(Method) > 0);
 
@@ -2108,8 +2108,8 @@ fn parse_method_value(value: std.json.Value, invalid_err: Nip47Error) Nip47Error
 
 fn parse_notification_type_value(
     value: std.json.Value,
-    invalid_err: Nip47Error,
-) Nip47Error!NotificationType {
+    invalid_err: NwcError,
+) NwcError!NotificationType {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(NotificationType) > 0);
 
@@ -2117,7 +2117,7 @@ fn parse_notification_type_value(
     return notification_type_parse(value.string) catch return invalid_err;
 }
 
-fn parse_error_code_value(value: std.json.Value, invalid_err: Nip47Error) Nip47Error!ErrorCode {
+fn parse_error_code_value(value: std.json.Value, invalid_err: NwcError) NwcError!ErrorCode {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(ErrorCode) > 0);
 
@@ -2127,8 +2127,8 @@ fn parse_error_code_value(value: std.json.Value, invalid_err: Nip47Error) Nip47E
 
 fn parse_transaction_type_value(
     value: std.json.Value,
-    invalid_err: Nip47Error,
-) Nip47Error!TransactionType {
+    invalid_err: NwcError,
+) NwcError!TransactionType {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(TransactionType) > 0);
 
@@ -2138,8 +2138,8 @@ fn parse_transaction_type_value(
 
 fn parse_transaction_state_value(
     value: std.json.Value,
-    invalid_err: Nip47Error,
-) Nip47Error!TransactionState {
+    invalid_err: NwcError,
+) NwcError!TransactionState {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(TransactionState) > 0);
 
@@ -2150,8 +2150,8 @@ fn parse_transaction_state_value(
 fn parse_required_text(
     value: std.json.Value,
     allow_empty: bool,
-    invalid_err: Nip47Error,
-) Nip47Error![]const u8 {
+    invalid_err: NwcError,
+) NwcError![]const u8 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@TypeOf(allow_empty) == bool);
 
@@ -2164,8 +2164,8 @@ fn parse_required_text(
 fn parse_optional_text(
     value: std.json.Value,
     empty_as_none: bool,
-    invalid_err: Nip47Error,
-) Nip47Error!?[]const u8 {
+    invalid_err: NwcError,
+) NwcError!?[]const u8 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@TypeOf(empty_as_none) == bool);
 
@@ -2175,7 +2175,7 @@ fn parse_optional_text(
     return text;
 }
 
-fn parse_required_u64(value: std.json.Value, invalid_err: Nip47Error) Nip47Error!u64 {
+fn parse_required_u64(value: std.json.Value, invalid_err: NwcError) NwcError!u64 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(u64) == 8);
 
@@ -2183,7 +2183,7 @@ fn parse_required_u64(value: std.json.Value, invalid_err: Nip47Error) Nip47Error
     return @intCast(value.integer);
 }
 
-fn parse_required_u32(value: std.json.Value, invalid_err: Nip47Error) Nip47Error!u32 {
+fn parse_required_u32(value: std.json.Value, invalid_err: NwcError) NwcError!u32 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@sizeOf(u32) == 4);
 
@@ -2192,7 +2192,7 @@ fn parse_required_u32(value: std.json.Value, invalid_err: Nip47Error) Nip47Error
     return @intCast(number);
 }
 
-fn parse_required_bool(value: std.json.Value, invalid_err: Nip47Error) Nip47Error!bool {
+fn parse_required_bool(value: std.json.Value, invalid_err: NwcError) NwcError!bool {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@TypeOf(value) == std.json.Value);
 
@@ -2200,7 +2200,7 @@ fn parse_required_bool(value: std.json.Value, invalid_err: Nip47Error) Nip47Erro
     return value.bool;
 }
 
-fn parse_required_hex32(value: std.json.Value, invalid_err: Nip47Error) Nip47Error![32]u8 {
+fn parse_required_hex32(value: std.json.Value, invalid_err: NwcError) NwcError![32]u8 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -2208,7 +2208,7 @@ fn parse_required_hex32(value: std.json.Value, invalid_err: Nip47Error) Nip47Err
     return parse_lower_hex_32(value.string) catch return invalid_err;
 }
 
-fn parse_optional_hex32(value: std.json.Value, invalid_err: Nip47Error) Nip47Error!?[32]u8 {
+fn parse_optional_hex32(value: std.json.Value, invalid_err: NwcError) NwcError!?[32]u8 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -2219,8 +2219,8 @@ fn parse_optional_hex32(value: std.json.Value, invalid_err: Nip47Error) Nip47Err
 fn parse_token_array(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-    invalid_err: Nip47Error,
-) Nip47Error![]const []const u8 {
+    invalid_err: NwcError,
+) NwcError![]const []const u8 {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -2236,9 +2236,9 @@ fn parse_token_array(
     return items;
 }
 
-fn parse_metadata_value(value: std.json.Value, invalid_err: Nip47Error) Nip47Error!?std.json.Value {
+fn parse_metadata_value(value: std.json.Value, invalid_err: NwcError) NwcError!?std.json.Value {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
-    std.debug.assert(@sizeOf(Nip47Error) > 0);
+    std.debug.assert(@sizeOf(NwcError) > 0);
 
     if (value == .null) return null;
     if (value != .object) return invalid_err;
@@ -2302,7 +2302,7 @@ fn notification_method_text(notification: Notification) []const u8 {
     };
 }
 
-fn write_request_params_json(output: []u8, index: *u32, request: Request) Nip47Error!void {
+fn write_request_params_json(output: []u8, index: *u32, request: Request) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(Request) > 0);
 
@@ -2332,7 +2332,7 @@ fn write_pay_invoice_params_json(
     output: []u8,
     index: *u32,
     params: PayInvoiceRequest,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(PayInvoiceRequest) > 0);
 
@@ -2358,7 +2358,7 @@ fn write_pay_keysend_params_json(
     output: []u8,
     index: *u32,
     params: PayKeysendRequest,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(PayKeysendRequest) > 0);
 
@@ -2389,7 +2389,7 @@ fn write_make_invoice_params_json(
     output: []u8,
     index: *u32,
     params: MakeInvoiceRequest,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(MakeInvoiceRequest) > 0);
 
@@ -2424,7 +2424,7 @@ fn write_lookup_invoice_params_json(
     output: []u8,
     index: *u32,
     params: LookupInvoiceRequest,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(LookupInvoiceRequest) > 0);
 
@@ -2451,7 +2451,7 @@ fn write_list_transactions_params_json(
     output: []u8,
     index: *u32,
     params: ListTransactionsRequest,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(ListTransactionsRequest) > 0);
 
@@ -2479,7 +2479,7 @@ fn write_make_hold_invoice_params_json(
     output: []u8,
     index: *u32,
     params: MakeHoldInvoiceRequest,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(MakeHoldInvoiceRequest) > 0);
 
@@ -2526,7 +2526,7 @@ fn write_cancel_hold_invoice_params_json(
     output: []u8,
     index: *u32,
     params: CancelHoldInvoiceRequest,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(CancelHoldInvoiceRequest) > 0);
 
@@ -2540,7 +2540,7 @@ fn write_settle_hold_invoice_params_json(
     output: []u8,
     index: *u32,
     params: SettleHoldInvoiceRequest,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(SettleHoldInvoiceRequest) > 0);
 
@@ -2554,7 +2554,7 @@ fn write_response_error_json(
     output: []u8,
     index: *u32,
     response: Response,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(Response) > 0);
 
@@ -2570,7 +2570,7 @@ fn write_response_result_json(
     output: []u8,
     index: *u32,
     response: Response,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(Response) > 0);
 
@@ -2626,7 +2626,7 @@ fn write_payment_response_result(
     output: []u8,
     index: *u32,
     outcome: Outcome(PaymentResult),
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(PaymentResult) > 0);
 
@@ -2637,7 +2637,7 @@ fn write_empty_response_result(
     output: []u8,
     index: *u32,
     outcome: Outcome(void),
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(void) == 0);
 
@@ -2648,7 +2648,7 @@ fn write_notification_result_json(
     output: []u8,
     index: *u32,
     notification: Notification,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(Notification) > 0);
 
@@ -2673,7 +2673,7 @@ fn write_result_or_null_json(
     index: *u32,
     outcome: anytype,
     comptime writer_fn: anytype,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@TypeOf(writer_fn) == @TypeOf(writer_fn));
 
@@ -2687,7 +2687,7 @@ fn write_payment_result_payload(
     output: []u8,
     index: *u32,
     result: PaymentResult,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(PaymentResult) > 0);
 
@@ -2712,7 +2712,7 @@ fn write_make_invoice_payload(
     output: []u8,
     index: *u32,
     tx: Transaction,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(Transaction) > 0);
 
@@ -2724,7 +2724,7 @@ fn write_lookup_transaction_payload(
     output: []u8,
     index: *u32,
     tx: Transaction,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(Transaction) > 0);
 
@@ -2732,7 +2732,7 @@ fn write_lookup_transaction_payload(
     try write_transaction_json(output, index, tx, error.InvalidResponse);
 }
 
-fn write_make_hold_payload(output: []u8, index: *u32, tx: Transaction) Nip47Error!void {
+fn write_make_hold_payload(output: []u8, index: *u32, tx: Transaction) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(Transaction) > 0);
 
@@ -2744,7 +2744,7 @@ fn write_transactions_payload(
     output: []u8,
     index: *u32,
     transactions: []const Transaction,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(transactions.len <= std.math.maxInt(usize));
 
@@ -2761,7 +2761,7 @@ fn write_balance_payload(
     output: []u8,
     index: *u32,
     result: BalanceResult,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(BalanceResult) > 0);
 
@@ -2774,7 +2774,7 @@ fn write_wallet_info_payload(
     output: []u8,
     index: *u32,
     result: WalletInfoResult,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(WalletInfoResult) > 0);
 
@@ -2827,14 +2827,14 @@ fn write_wallet_info_payload(
     try write_bytes(output, index, "}");
 }
 
-fn write_empty_payload(output: []u8, index: *u32, _: void) Nip47Error!void {
+fn write_empty_payload(output: []u8, index: *u32, _: void) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(void) == 0);
 
     try write_empty_object(output, index);
 }
 
-fn write_error_info_json(output: []u8, index: *u32, err_info: ErrorInfo) Nip47Error!void {
+fn write_error_info_json(output: []u8, index: *u32, err_info: ErrorInfo) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(ErrorInfo) > 0);
 
@@ -2864,8 +2864,8 @@ fn write_transaction_json(
     output: []u8,
     index: *u32,
     tx: Transaction,
-    invalid_err: Nip47Error,
-) Nip47Error!void {
+    invalid_err: NwcError,
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(Transaction) > 0);
 
@@ -2901,8 +2901,8 @@ fn write_transaction_string_fields(
     index: *u32,
     first: *bool,
     tx: Transaction,
-    invalid_err: Nip47Error,
-) Nip47Error!void {
+    invalid_err: NwcError,
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@intFromPtr(first) != 0);
 
@@ -2928,7 +2928,7 @@ fn write_transaction_numeric_fields(
     index: *u32,
     first: *bool,
     tx: Transaction,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@intFromPtr(first) != 0);
 
@@ -2956,8 +2956,8 @@ fn write_tlv_records_field(
     index: *u32,
     first: *bool,
     records: []const KeysendTlvRecord,
-    invalid_err: Nip47Error,
-) Nip47Error!void {
+    invalid_err: NwcError,
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@intFromPtr(first) != 0);
 
@@ -2987,8 +2987,8 @@ fn write_string_array_field(
     first: *bool,
     name: []const u8,
     items: []const []const u8,
-    invalid_err: Nip47Error,
-) Nip47Error!void {
+    invalid_err: NwcError,
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@intFromPtr(first) != 0);
 
@@ -3008,8 +3008,8 @@ fn write_string_field(
     first: *bool,
     name: []const u8,
     value: []const u8,
-    invalid_err: Nip47Error,
-) Nip47Error!void {
+    invalid_err: NwcError,
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@intFromPtr(first) != 0);
 
@@ -3024,8 +3024,8 @@ fn write_hex32_field(
     first: *bool,
     name: []const u8,
     value: [32]u8,
-    invalid_err: Nip47Error,
-) Nip47Error!void {
+    invalid_err: NwcError,
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@intFromPtr(first) != 0);
 
@@ -3034,7 +3034,7 @@ fn write_hex32_field(
     try write_string_field(output, index, first, name, buffer[0..], invalid_err);
 }
 
-fn validate_json_text(text: []const u8, allow_empty: bool, invalid_err: Nip47Error) Nip47Error!void {
+fn validate_json_text(text: []const u8, allow_empty: bool, invalid_err: NwcError) NwcError!void {
     std.debug.assert(text.len <= message_json_bytes_max);
     std.debug.assert(@TypeOf(allow_empty) == bool);
 
@@ -3052,7 +3052,7 @@ fn write_u64_field(
     first: *bool,
     name: []const u8,
     value: u64,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@intFromPtr(first) != 0);
 
@@ -3066,7 +3066,7 @@ fn write_u32_field(
     first: *bool,
     name: []const u8,
     value: u32,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@intFromPtr(first) != 0);
 
@@ -3080,7 +3080,7 @@ fn write_bool_field(
     first: *bool,
     name: []const u8,
     value: bool,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@intFromPtr(first) != 0);
 
@@ -3094,7 +3094,7 @@ fn write_json_value_field(
     first: *bool,
     name: []const u8,
     value: std.json.Value,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@intFromPtr(first) != 0);
 
@@ -3108,7 +3108,7 @@ fn write_field_prefix(
     index: *u32,
     first: *bool,
     name: []const u8,
-) Nip47Error!void {
+) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@intFromPtr(first) != 0);
 
@@ -3118,14 +3118,14 @@ fn write_field_prefix(
     try write_bytes(output, index, ":");
 }
 
-fn write_empty_object(output: []u8, index: *u32) Nip47Error!void {
+fn write_empty_object(output: []u8, index: *u32) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(void) == 0);
 
     try write_bytes(output, index, "{}");
 }
 
-fn write_json_string(output: []u8, index: *u32, text: []const u8) Nip47Error!void {
+fn write_json_string(output: []u8, index: *u32, text: []const u8) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(text.len <= message_json_bytes_max);
 
@@ -3147,7 +3147,7 @@ fn write_json_string(output: []u8, index: *u32, text: []const u8) Nip47Error!voi
     try write_bytes(output, index, "\"");
 }
 
-fn write_json_value(output: []u8, index: *u32, value: std.json.Value) Nip47Error!void {
+fn write_json_value(output: []u8, index: *u32, value: std.json.Value) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(std.json.Value) > 0);
 
@@ -3159,7 +3159,7 @@ fn write_json_value(output: []u8, index: *u32, value: std.json.Value) Nip47Error
     index.* += @intCast(stream.pos);
 }
 
-fn write_u64(output: []u8, index: *u32, value: u64) Nip47Error!void {
+fn write_u64(output: []u8, index: *u32, value: u64) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(u64) == 8);
 
@@ -3170,7 +3170,7 @@ fn write_u64(output: []u8, index: *u32, value: u64) Nip47Error!void {
     try write_bytes(output, index, rendered);
 }
 
-fn write_u32(output: []u8, index: *u32, value: u32) Nip47Error!void {
+fn write_u32(output: []u8, index: *u32, value: u32) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
     std.debug.assert(@sizeOf(u32) == 4);
 
