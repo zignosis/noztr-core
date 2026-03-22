@@ -1,6 +1,6 @@
 .{
     .name = .noztr,
-    .version = "0.1.0-rc.1",
+    .version = "0.1.0-rc.2",
     .dependencies = .{
         .@"libwally-core" = .{
             .url = "git+https://github.com/ElementsProject/libwally-core.git#455ec5b0188e1fc76f38c9b7aad7f4e24b421eb4",

@@ -15,12 +15,56 @@ For the public versioning policy, see
 
 ### Breaking Changes
 
+- none currently recorded
+
+## [0.1.0-rc.2] - 2026-03-22
+
+Release type: breaking rc
+
+### Summary
+
+Second public release candidate for `noztr-core`.
+
+This RC keeps the kernel/runtime boundary and protocol surface stable, but tightens the public API
+teaching surface after the first public cut: temporary naming aliases are gone, public error names
+now consistently prefer descriptive names inside module namespaces, and a narrow `zig fmt`-based
+lint gate is now part of the documented verification path.
+
+### Public Highlights
+
+- removed temporary compatibility aliases from the public API and kept only the canonical names
+- normalized public error type names toward descriptive module-local names instead of short-lived
+  numeric `NipXXError` symbols
+- added `zig build lint` as a narrow, functional formatting gate using `zig fmt --check`
+- updated the migration guide and public style guide to make the naming rule explicit
+
+### Breaking Changes
+
 - removed temporary public naming aliases introduced during the API-naming normalization pass
-- normalized public error type names toward descriptive names inside module namespaces and removed
-  the short-lived numeric `NipXXError` naming that briefly appeared on `master`
-- downstream callers should now use the canonical symbol names only
+- changed public error type names across the exported surface toward descriptive names inside module
+  namespaces
+- downstream callers should update any explicit error type references and any old alias symbol usage
 - migration guide:
   - [docs/guides/migrating-from-0.1.0-rc.1.md](docs/guides/migrating-from-0.1.0-rc.1.md)
+
+### Compatibility Notes
+
+- Zig toolchain floor for this RC line remains `0.15.2`
+- optional I6 exports remain build-flag gated
+- these changes are naming- and contract-surface changes only; they do not change wire formats,
+  ownership posture, or kernel-vs-SDK scope
+
+### Docs And Examples
+
+- updated the public migration guide for post-`rc.1` callers
+- updated the public style guide to prefer descriptive names inside module namespaces
+- updated release-facing verification docs to include `zig build lint`
+
+### Verification
+
+- `zig build lint`
+- `zig build test --summary all`
+- `zig build`
 
 ## [0.1.0-rc.1] - 2026-03-21
 
