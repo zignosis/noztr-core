@@ -358,7 +358,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip46_remote_signing.ConnectResult) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.ParsedRequest) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.Discovery) == type);
-    try std.testing.expect(@TypeOf(nip47_wallet_connect.ConnectionUri) == type);
+    try std.testing.expect(@TypeOf(nip47_wallet_connect.Uri) == type);
     try std.testing.expect(@TypeOf(nip47_wallet_connect.Request) == type);
     try std.testing.expect(@TypeOf(nip47_wallet_connect.Response) == type);
     try std.testing.expect(@TypeOf(nip47_wallet_connect.Notification) == type);

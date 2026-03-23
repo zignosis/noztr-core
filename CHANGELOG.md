@@ -32,6 +32,8 @@ For the public versioning policy, see
   - `nip38_user_status`
   - `nip61_nutzaps`
   - `nip89_handlers`
+- shortened redundant route-internal request/result names in the Wallet Connect route:
+  - `nip47_wallet_connect`
 - removed pure storage-wrapper types where direct caller-owned `[]u8` buffers are clearer:
   - `nip28_public_chat.BuiltJson`
   - `nip71_video_events.BuiltField`

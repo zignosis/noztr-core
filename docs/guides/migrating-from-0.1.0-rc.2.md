@@ -80,6 +80,24 @@ Use these public names now:
 - `noztr.nip89_handlers.RecommendationInfo` -> `noztr.nip89_handlers.Recommendation`
 - `noztr.nip89_handlers.HandlerInfo` -> `noztr.nip89_handlers.Handler`
 - `noztr.nip89_handlers.ClientTagInfo` -> `noztr.nip89_handlers.ClientTag`
+- `noztr.nip47_wallet_connect.ConnectionUri` -> `noztr.nip47_wallet_connect.Uri`
+- `noztr.nip47_wallet_connect.InfoEventInfo` -> `noztr.nip47_wallet_connect.InfoEvent`
+- `noztr.nip47_wallet_connect.ErrorInfo` -> `noztr.nip47_wallet_connect.ErrorDetail`
+- `noztr.nip47_wallet_connect.PayInvoiceRequest` -> `noztr.nip47_wallet_connect.PayInvoice`
+- `noztr.nip47_wallet_connect.PayKeysendRequest` -> `noztr.nip47_wallet_connect.PayKeysend`
+- `noztr.nip47_wallet_connect.MakeInvoiceRequest` -> `noztr.nip47_wallet_connect.MakeInvoice`
+- `noztr.nip47_wallet_connect.LookupInvoiceRequest` -> `noztr.nip47_wallet_connect.LookupInvoice`
+- `noztr.nip47_wallet_connect.ListTransactionsRequest` ->
+  `noztr.nip47_wallet_connect.ListTransactions`
+- `noztr.nip47_wallet_connect.MakeHoldInvoiceRequest` ->
+  `noztr.nip47_wallet_connect.MakeHoldInvoice`
+- `noztr.nip47_wallet_connect.CancelHoldInvoiceRequest` ->
+  `noztr.nip47_wallet_connect.CancelHoldInvoice`
+- `noztr.nip47_wallet_connect.SettleHoldInvoiceRequest` ->
+  `noztr.nip47_wallet_connect.SettleHoldInvoice`
+- `noztr.nip47_wallet_connect.PaymentResult` -> `noztr.nip47_wallet_connect.Payment`
+- `noztr.nip47_wallet_connect.BalanceResult` -> `noztr.nip47_wallet_connect.Balance`
+- `noztr.nip47_wallet_connect.WalletInfoResult` -> `noztr.nip47_wallet_connect.WalletInfo`
 
 ## Why
 

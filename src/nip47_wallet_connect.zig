@@ -103,14 +103,14 @@ pub const TransactionState = enum {
     failed,
 };
 
-pub const ConnectionUri = struct {
+pub const Uri = struct {
     wallet_service_pubkey: [32]u8,
     client_secret: [32]u8,
     relays: []const []const u8,
     lud16: ?[]const u8 = null,
 };
 
-pub const InfoEventInfo = struct {
+pub const InfoEvent = struct {
     capability_count: u16 = 0,
     encryption_count: u8 = 0,
     notification_count: u8 = 0,
@@ -316,7 +316,7 @@ pub fn connection_uri_parse(
     input: []const u8,
     out_relays: [][]const u8,
     scratch: std.mem.Allocator,
-) NwcError!ConnectionUri {
+) NwcError!Uri {
     std.debug.assert(input.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -332,7 +332,7 @@ pub fn connection_uri_parse(
 
 pub fn connection_uri_serialize(
     output: []u8,
-    connection_uri: ConnectionUri,
+    connection_uri: Uri,
 ) NwcError![]const u8 {
     std.debug.assert(output.len <= limits.nip46_uri_bytes_max);
     std.debug.assert(connection_uri.relays.len <= std.math.maxInt(usize));
@@ -368,7 +368,7 @@ pub fn info_event_extract(
     out_capabilities: [][]const u8,
     out_encryptions: []Encryption,
     out_notifications: []NotificationType,
-) NwcError!InfoEventInfo {
+) NwcError!InfoEvent {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -630,7 +630,7 @@ fn parse_connection_query(
     wallet_service_pubkey: [32]u8,
     out_relays: [][]const u8,
     scratch: std.mem.Allocator,
-) NwcError!ConnectionUri {
+) NwcError!Uri {
     std.debug.assert(raw_query.len <= limits.nip46_uri_bytes_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -671,12 +671,12 @@ fn parse_connection_query(
     };
 }
 
-fn parse_info_content(content: []const u8, out_capabilities: [][]const u8) NwcError!InfoEventInfo {
+fn parse_info_content(content: []const u8, out_capabilities: [][]const u8) NwcError!InfoEvent {
     std.debug.assert(content.len <= limits.content_bytes_max);
     std.debug.assert(out_capabilities.len <= std.math.maxInt(usize));
 
     if (content.len > limits.content_bytes_max) return error.InvalidInfoContent;
-    var info = InfoEventInfo{};
+    var info = InfoEvent{};
     var splitter = std.mem.splitScalar(u8, content, ' ');
     while (splitter.next()) |token| {
         if (token.len == 0) return error.InvalidInfoContent;
@@ -936,16 +936,16 @@ fn write_byte(output: []u8, index: *u32, byte: u8) NwcError!void {
 pub fn Outcome(comptime T: type) type {
     return union(enum) {
         result: T,
-        err: ErrorInfo,
+        err: ErrorDetail,
     };
 }
 
-pub const ErrorInfo = struct {
+pub const ErrorDetail = struct {
     code: ErrorCode,
     message: []const u8,
 };
 
-pub const PayInvoiceRequest = struct {
+pub const PayInvoice = struct {
     id: ?[]const u8 = null,
     invoice: []const u8,
     amount: ?u64 = null,
@@ -956,7 +956,7 @@ pub const KeysendTlvRecord = struct {
     value: []const u8,
 };
 
-pub const PayKeysendRequest = struct {
+pub const PayKeysend = struct {
     id: ?[]const u8 = null,
     amount: u64,
     pubkey: [32]u8,
@@ -964,19 +964,19 @@ pub const PayKeysendRequest = struct {
     tlv_records: []const KeysendTlvRecord = &.{},
 };
 
-pub const MakeInvoiceRequest = struct {
+pub const MakeInvoice = struct {
     amount: u64,
     description: ?[]const u8 = null,
     description_hash: ?[]const u8 = null,
     expiry: ?u64 = null,
 };
 
-pub const LookupInvoiceRequest = struct {
+pub const LookupInvoice = struct {
     payment_hash: ?[]const u8 = null,
     invoice: ?[]const u8 = null,
 };
 
-pub const ListTransactionsRequest = struct {
+pub const ListTransactions = struct {
     from: ?u64 = null,
     until: ?u64 = null,
     limit: ?u64 = null,
@@ -985,7 +985,7 @@ pub const ListTransactionsRequest = struct {
     tx_type: ?TransactionType = null,
 };
 
-pub const MakeHoldInvoiceRequest = struct {
+pub const MakeHoldInvoice = struct {
     amount: u64,
     description: ?[]const u8 = null,
     description_hash: ?[]const u8 = null,
@@ -994,37 +994,37 @@ pub const MakeHoldInvoiceRequest = struct {
     min_cltv_expiry_delta: ?u32 = null,
 };
 
-pub const CancelHoldInvoiceRequest = struct {
+pub const CancelHoldInvoice = struct {
     payment_hash: []const u8,
 };
 
-pub const SettleHoldInvoiceRequest = struct {
+pub const SettleHoldInvoice = struct {
     preimage: []const u8,
 };
 
 pub const Request = union(Method) {
-    pay_invoice: PayInvoiceRequest,
-    pay_keysend: PayKeysendRequest,
-    make_invoice: MakeInvoiceRequest,
-    lookup_invoice: LookupInvoiceRequest,
-    list_transactions: ListTransactionsRequest,
+    pay_invoice: PayInvoice,
+    pay_keysend: PayKeysend,
+    make_invoice: MakeInvoice,
+    lookup_invoice: LookupInvoice,
+    list_transactions: ListTransactions,
     get_balance,
     get_info,
-    make_hold_invoice: MakeHoldInvoiceRequest,
-    cancel_hold_invoice: CancelHoldInvoiceRequest,
-    settle_hold_invoice: SettleHoldInvoiceRequest,
+    make_hold_invoice: MakeHoldInvoice,
+    cancel_hold_invoice: CancelHoldInvoice,
+    settle_hold_invoice: SettleHoldInvoice,
 };
 
-pub const PaymentResult = struct {
+pub const Payment = struct {
     preimage: []const u8,
     fees_paid: ?u64 = null,
 };
 
-pub const BalanceResult = struct {
+pub const Balance = struct {
     balance: u64,
 };
 
-pub const WalletInfoResult = struct {
+pub const WalletInfo = struct {
     alias: ?[]const u8 = null,
     color: ?[]const u8 = null,
     pubkey: ?[32]u8 = null,
@@ -1053,13 +1053,13 @@ pub const Transaction = struct {
 };
 
 pub const Response = union(Method) {
-    pay_invoice: Outcome(PaymentResult),
-    pay_keysend: Outcome(PaymentResult),
+    pay_invoice: Outcome(Payment),
+    pay_keysend: Outcome(Payment),
     make_invoice: Outcome(Transaction),
     lookup_invoice: Outcome(Transaction),
     list_transactions: Outcome([]const Transaction),
-    get_balance: Outcome(BalanceResult),
-    get_info: Outcome(WalletInfoResult),
+    get_balance: Outcome(Balance),
+    get_info: Outcome(WalletInfo),
     make_hold_invoice: Outcome(Transaction),
     cancel_hold_invoice: Outcome(void),
     settle_hold_invoice: Outcome(void),
@@ -1234,12 +1234,12 @@ fn parse_empty_request_params(value: std.json.Value, request: Request) NwcError!
     return request;
 }
 
-fn parse_pay_invoice_params(value: std.json.Value) NwcError!PayInvoiceRequest {
+fn parse_pay_invoice_params(value: std.json.Value) NwcError!PayInvoice {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
-    std.debug.assert(@sizeOf(PayInvoiceRequest) > 0);
+    std.debug.assert(@sizeOf(PayInvoice) > 0);
 
     if (value != .object) return error.InvalidParams;
-    var request = PayInvoiceRequest{ .invoice = undefined };
+    var request = PayInvoice{ .invoice = undefined };
     var saw_invoice = false;
     var iterator = value.object.iterator();
     while (iterator.next()) |entry| {
@@ -1268,12 +1268,12 @@ fn parse_pay_invoice_params(value: std.json.Value) NwcError!PayInvoiceRequest {
 fn parse_pay_keysend_params(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) NwcError!PayKeysendRequest {
+) NwcError!PayKeysend {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     if (value != .object) return error.InvalidParams;
-    var request = PayKeysendRequest{
+    var request = PayKeysend{
         .amount = 0,
         .pubkey = undefined,
     };
@@ -1314,12 +1314,12 @@ fn parse_pay_keysend_params(
     return request;
 }
 
-fn parse_make_invoice_params(value: std.json.Value) NwcError!MakeInvoiceRequest {
+fn parse_make_invoice_params(value: std.json.Value) NwcError!MakeInvoice {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
-    std.debug.assert(@sizeOf(MakeInvoiceRequest) > 0);
+    std.debug.assert(@sizeOf(MakeInvoice) > 0);
 
     if (value != .object) return error.InvalidParams;
-    var request = MakeInvoiceRequest{ .amount = 0 };
+    var request = MakeInvoice{ .amount = 0 };
     var saw_amount = false;
     var iterator = value.object.iterator();
     while (iterator.next()) |entry| {
@@ -1350,12 +1350,12 @@ fn parse_make_invoice_params(value: std.json.Value) NwcError!MakeInvoiceRequest 
     return request;
 }
 
-fn parse_lookup_invoice_params(value: std.json.Value) NwcError!LookupInvoiceRequest {
+fn parse_lookup_invoice_params(value: std.json.Value) NwcError!LookupInvoice {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
-    std.debug.assert(@sizeOf(LookupInvoiceRequest) > 0);
+    std.debug.assert(@sizeOf(LookupInvoice) > 0);
 
     if (value != .object) return error.InvalidParams;
-    var request = LookupInvoiceRequest{};
+    var request = LookupInvoice{};
     var iterator = value.object.iterator();
     while (iterator.next()) |entry| {
         const key = entry.key_ptr.*;
@@ -1374,12 +1374,12 @@ fn parse_lookup_invoice_params(value: std.json.Value) NwcError!LookupInvoiceRequ
     return request;
 }
 
-fn parse_list_transactions_params(value: std.json.Value) NwcError!ListTransactionsRequest {
+fn parse_list_transactions_params(value: std.json.Value) NwcError!ListTransactions {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
-    std.debug.assert(@sizeOf(ListTransactionsRequest) > 0);
+    std.debug.assert(@sizeOf(ListTransactions) > 0);
 
     if (value != .object) return error.InvalidParams;
-    var request = ListTransactionsRequest{};
+    var request = ListTransactions{};
     var iterator = value.object.iterator();
     while (iterator.next()) |entry| {
         const key = entry.key_ptr.*;
@@ -1417,12 +1417,12 @@ fn parse_list_transactions_params(value: std.json.Value) NwcError!ListTransactio
     return request;
 }
 
-fn parse_make_hold_invoice_params(value: std.json.Value) NwcError!MakeHoldInvoiceRequest {
+fn parse_make_hold_invoice_params(value: std.json.Value) NwcError!MakeHoldInvoice {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
-    std.debug.assert(@sizeOf(MakeHoldInvoiceRequest) > 0);
+    std.debug.assert(@sizeOf(MakeHoldInvoice) > 0);
 
     if (value != .object) return error.InvalidParams;
-    var request = MakeHoldInvoiceRequest{
+    var request = MakeHoldInvoice{
         .amount = 0,
         .payment_hash = undefined,
     };
@@ -1468,9 +1468,9 @@ fn parse_make_hold_invoice_params(value: std.json.Value) NwcError!MakeHoldInvoic
     return request;
 }
 
-fn parse_cancel_hold_invoice_params(value: std.json.Value) NwcError!CancelHoldInvoiceRequest {
+fn parse_cancel_hold_invoice_params(value: std.json.Value) NwcError!CancelHoldInvoice {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
-    std.debug.assert(@sizeOf(CancelHoldInvoiceRequest) > 0);
+    std.debug.assert(@sizeOf(CancelHoldInvoice) > 0);
 
     if (value != .object) return error.InvalidParams;
     var payment_hash: ?[]const u8 = null;
@@ -1483,9 +1483,9 @@ fn parse_cancel_hold_invoice_params(value: std.json.Value) NwcError!CancelHoldIn
     return .{ .payment_hash = payment_hash orelse return error.InvalidParams };
 }
 
-fn parse_settle_hold_invoice_params(value: std.json.Value) NwcError!SettleHoldInvoiceRequest {
+fn parse_settle_hold_invoice_params(value: std.json.Value) NwcError!SettleHoldInvoice {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
-    std.debug.assert(@sizeOf(SettleHoldInvoiceRequest) > 0);
+    std.debug.assert(@sizeOf(SettleHoldInvoice) > 0);
 
     if (value != .object) return error.InvalidParams;
     var preimage: ?[]const u8 = null;
@@ -1656,12 +1656,12 @@ fn parse_response_result(
     };
 }
 
-fn parse_payment_result(value: std.json.Value) NwcError!PaymentResult {
+fn parse_payment_result(value: std.json.Value) NwcError!Payment {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
-    std.debug.assert(@sizeOf(PaymentResult) > 0);
+    std.debug.assert(@sizeOf(Payment) > 0);
 
     if (value != .object) return error.InvalidResult;
-    var result = PaymentResult{ .preimage = undefined };
+    var result = Payment{ .preimage = undefined };
     var saw_preimage = false;
     var iterator = value.object.iterator();
     while (iterator.next()) |entry| {
@@ -1681,9 +1681,9 @@ fn parse_payment_result(value: std.json.Value) NwcError!PaymentResult {
     return result;
 }
 
-fn parse_balance_result(value: std.json.Value) NwcError!BalanceResult {
+fn parse_balance_result(value: std.json.Value) NwcError!Balance {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
-    std.debug.assert(@sizeOf(BalanceResult) > 0);
+    std.debug.assert(@sizeOf(Balance) > 0);
 
     if (value != .object) return error.InvalidResult;
     var balance: ?u64 = null;
@@ -1699,12 +1699,12 @@ fn parse_balance_result(value: std.json.Value) NwcError!BalanceResult {
 fn parse_wallet_info_result(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) NwcError!WalletInfoResult {
+) NwcError!WalletInfo {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     if (value != .object) return error.InvalidResult;
-    var result = WalletInfoResult{ .methods = undefined };
+    var result = WalletInfo{ .methods = undefined };
     var saw_methods = false;
     var iterator = value.object.iterator();
     while (iterator.next()) |entry| {
@@ -2054,9 +2054,9 @@ fn validate_hold_notification_transaction(
     if (tx.state != null and tx.state.? != .accepted) return invalid_err;
 }
 
-fn build_error_response(method: Method, err_info: ErrorInfo) NwcError!Response {
+fn build_error_response(method: Method, err_info: ErrorDetail) NwcError!Response {
     std.debug.assert(@typeInfo(Method) == .@"enum");
-    std.debug.assert(@sizeOf(ErrorInfo) > 0);
+    std.debug.assert(@sizeOf(ErrorDetail) > 0);
 
     return switch (method) {
         .pay_invoice => .{ .pay_invoice = .{ .err = err_info } },
@@ -2072,9 +2072,9 @@ fn build_error_response(method: Method, err_info: ErrorInfo) NwcError!Response {
     };
 }
 
-fn parse_error_info(value: std.json.Value, invalid_err: NwcError) NwcError!ErrorInfo {
+fn parse_error_info(value: std.json.Value, invalid_err: NwcError) NwcError!ErrorDetail {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
-    std.debug.assert(@sizeOf(ErrorInfo) > 0);
+    std.debug.assert(@sizeOf(ErrorDetail) > 0);
 
     if (value != .object) return invalid_err;
     var code: ?ErrorCode = null;
@@ -2331,10 +2331,10 @@ fn write_request_params_json(output: []u8, index: *u32, request: Request) NwcErr
 fn write_pay_invoice_params_json(
     output: []u8,
     index: *u32,
-    params: PayInvoiceRequest,
+    params: PayInvoice,
 ) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(PayInvoiceRequest) > 0);
+    std.debug.assert(@sizeOf(PayInvoice) > 0);
 
     if (params.invoice.len == 0) return error.InvalidParams;
     try write_bytes(output, index, "{");
@@ -2357,10 +2357,10 @@ fn write_pay_invoice_params_json(
 fn write_pay_keysend_params_json(
     output: []u8,
     index: *u32,
-    params: PayKeysendRequest,
+    params: PayKeysend,
 ) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(PayKeysendRequest) > 0);
+    std.debug.assert(@sizeOf(PayKeysend) > 0);
 
     try write_bytes(output, index, "{");
     var first = true;
@@ -2388,10 +2388,10 @@ fn write_pay_keysend_params_json(
 fn write_make_invoice_params_json(
     output: []u8,
     index: *u32,
-    params: MakeInvoiceRequest,
+    params: MakeInvoice,
 ) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(MakeInvoiceRequest) > 0);
+    std.debug.assert(@sizeOf(MakeInvoice) > 0);
 
     try write_bytes(output, index, "{");
     var first = true;
@@ -2423,10 +2423,10 @@ fn write_make_invoice_params_json(
 fn write_lookup_invoice_params_json(
     output: []u8,
     index: *u32,
-    params: LookupInvoiceRequest,
+    params: LookupInvoice,
 ) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(LookupInvoiceRequest) > 0);
+    std.debug.assert(@sizeOf(LookupInvoice) > 0);
 
     if (params.payment_hash == null and params.invoice == null) return error.InvalidParams;
     try write_bytes(output, index, "{");
@@ -2450,10 +2450,10 @@ fn write_lookup_invoice_params_json(
 fn write_list_transactions_params_json(
     output: []u8,
     index: *u32,
-    params: ListTransactionsRequest,
+    params: ListTransactions,
 ) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(ListTransactionsRequest) > 0);
+    std.debug.assert(@sizeOf(ListTransactions) > 0);
 
     try write_bytes(output, index, "{");
     var first = true;
@@ -2478,10 +2478,10 @@ fn write_list_transactions_params_json(
 fn write_make_hold_invoice_params_json(
     output: []u8,
     index: *u32,
-    params: MakeHoldInvoiceRequest,
+    params: MakeHoldInvoice,
 ) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(MakeHoldInvoiceRequest) > 0);
+    std.debug.assert(@sizeOf(MakeHoldInvoice) > 0);
 
     if (params.payment_hash.len == 0) return error.InvalidParams;
     try write_bytes(output, index, "{");
@@ -2525,10 +2525,10 @@ fn write_make_hold_invoice_params_json(
 fn write_cancel_hold_invoice_params_json(
     output: []u8,
     index: *u32,
-    params: CancelHoldInvoiceRequest,
+    params: CancelHoldInvoice,
 ) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(CancelHoldInvoiceRequest) > 0);
+    std.debug.assert(@sizeOf(CancelHoldInvoice) > 0);
 
     if (params.payment_hash.len == 0) return error.InvalidParams;
     try write_bytes(output, index, "{\"payment_hash\":");
@@ -2539,10 +2539,10 @@ fn write_cancel_hold_invoice_params_json(
 fn write_settle_hold_invoice_params_json(
     output: []u8,
     index: *u32,
-    params: SettleHoldInvoiceRequest,
+    params: SettleHoldInvoice,
 ) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(SettleHoldInvoiceRequest) > 0);
+    std.debug.assert(@sizeOf(SettleHoldInvoice) > 0);
 
     if (params.preimage.len == 0) return error.InvalidParams;
     try write_bytes(output, index, "{\"preimage\":");
@@ -2625,10 +2625,10 @@ fn write_response_result_json(
 fn write_payment_response_result(
     output: []u8,
     index: *u32,
-    outcome: Outcome(PaymentResult),
+    outcome: Outcome(Payment),
 ) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(PaymentResult) > 0);
+    std.debug.assert(@sizeOf(Payment) > 0);
 
     try write_result_or_null_json(output, index, outcome, write_payment_result_payload);
 }
@@ -2686,10 +2686,10 @@ fn write_result_or_null_json(
 fn write_payment_result_payload(
     output: []u8,
     index: *u32,
-    result: PaymentResult,
+    result: Payment,
 ) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(PaymentResult) > 0);
+    std.debug.assert(@sizeOf(Payment) > 0);
 
     if (result.preimage.len == 0) return error.InvalidResult;
     try write_bytes(output, index, "{");
@@ -2760,10 +2760,10 @@ fn write_transactions_payload(
 fn write_balance_payload(
     output: []u8,
     index: *u32,
-    result: BalanceResult,
+    result: Balance,
 ) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(BalanceResult) > 0);
+    std.debug.assert(@sizeOf(Balance) > 0);
 
     try write_bytes(output, index, "{\"balance\":");
     try write_u64(output, index, result.balance);
@@ -2773,10 +2773,10 @@ fn write_balance_payload(
 fn write_wallet_info_payload(
     output: []u8,
     index: *u32,
-    result: WalletInfoResult,
+    result: WalletInfo,
 ) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(WalletInfoResult) > 0);
+    std.debug.assert(@sizeOf(WalletInfo) > 0);
 
     if (result.methods.len == 0) return error.InvalidResult;
     try write_bytes(output, index, "{");
@@ -2834,9 +2834,9 @@ fn write_empty_payload(output: []u8, index: *u32, _: void) NwcError!void {
     try write_empty_object(output, index);
 }
 
-fn write_error_info_json(output: []u8, index: *u32, err_info: ErrorInfo) NwcError!void {
+fn write_error_info_json(output: []u8, index: *u32, err_info: ErrorDetail) NwcError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(ErrorInfo) > 0);
+    std.debug.assert(@sizeOf(ErrorDetail) > 0);
 
     if (err_info.message.len == 0) return error.InvalidErrorObject;
     try write_bytes(output, index, "{");
