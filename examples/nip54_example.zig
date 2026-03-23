@@ -20,8 +20,8 @@ test "NIP-54 example: extract wiki article metadata and normalize identifiers" {
         "article body",
         tags[0..],
     );
-    var forks: [1]noztr.nip54_wiki.WikiArticleReference = undefined;
-    var defers: [0]noztr.nip54_wiki.WikiArticleReference = .{};
+    var forks: [1]noztr.nip54_wiki.ArticleRef = undefined;
+    var defers: [0]noztr.nip54_wiki.ArticleRef = .{};
     var normalized_storage: [64]u8 = undefined;
 
     const info = try noztr.nip54_wiki.wiki_article_extract(&event, forks[0..], defers[0..]);

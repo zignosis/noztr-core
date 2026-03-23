@@ -11,14 +11,15 @@ canonical: true
 
 # Migrating From `0.1.0-rc.2`
 
-This guide covers the first route-internal naming cleanup after `v0.1.0-rc.2`.
+This guide covers the current route-internal naming cleanup after `v0.1.0-rc.2`.
 
 The current line is still pre-`1.0.0`, so clarity-driven public cleanup can still happen. When it
 does, the change should stay narrow and downstream callers should get one exact migration map.
 
 ## What Changed
 
-The first surface-noise remediation lane shortens public type names inside canonical grouped routes.
+The current surface-noise remediation lanes shorten public type names inside canonical grouped
+routes.
 
 The grouped route already carries the main context, so these names now prefer shorter role-based
 symbols instead of restating the full route in every type.
@@ -45,6 +46,21 @@ Use these public names now:
 - `noztr.nip46_remote_signing.ClientUri` -> `noztr.nip46_remote_signing.Client`
 - `noztr.nip46_remote_signing.ConnectionUri` -> `noztr.nip46_remote_signing.Uri`
 - `noztr.nip46_remote_signing.DiscoveryInfo` -> `noztr.nip46_remote_signing.Discovery`
+- `noztr.nip28_public_chat.ChannelReference` -> `noztr.nip28_public_chat.Reference`
+- `noztr.nip28_public_chat.ChannelUpdateInfo` -> `noztr.nip28_public_chat.Update`
+- `noztr.nip28_public_chat.ChannelMessageInfo` -> `noztr.nip28_public_chat.Message`
+- `noztr.nip28_public_chat.HideMessageInfo` -> `noztr.nip28_public_chat.HideMessage`
+- `noztr.nip28_public_chat.MuteUserInfo` -> `noztr.nip28_public_chat.MuteUser`
+- `noztr.nip54_wiki.WikiArticleReference` -> `noztr.nip54_wiki.ArticleRef`
+- `noztr.nip54_wiki.WikiEventReference` -> `noztr.nip54_wiki.EventRef`
+- `noztr.nip54_wiki.WikiArticleInfo` -> `noztr.nip54_wiki.Article`
+- `noztr.nip54_wiki.WikiMergeRequestInfo` -> `noztr.nip54_wiki.MergeRequest`
+- `noztr.nip54_wiki.WikiRedirectInfo` -> `noztr.nip54_wiki.Redirect`
+- `noztr.nip75_zap_goals.GoalInfo` -> `noztr.nip75_zap_goals.Goal`
+- `noztr.nip75_zap_goals.GoalReference` -> `noztr.nip75_zap_goals.Reference`
+- `noztr.nip88_polls.PollInfo` -> `noztr.nip88_polls.Poll`
+- `noztr.nip88_polls.PollEventReference` -> `noztr.nip88_polls.EventRef`
+- `noztr.nip88_polls.PollResponseInfo` -> `noztr.nip88_polls.Response`
 
 ## Why
 

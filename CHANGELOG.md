@@ -20,6 +20,11 @@ For the public versioning policy, see
   - `nip21_uri`
   - `nip44`
   - `nip46_remote_signing`
+- shortened repeated `Info` / `Reference` public type names in the second family-scoped lane:
+  - `nip28_public_chat`
+  - `nip54_wiki`
+  - `nip75_zap_goals`
+  - `nip88_polls`
 - downstream callers that reference those public types directly need to update symbol names
 - migration guide:
   - [docs/guides/migrating-from-0.1.0-rc.2.md](docs/guides/migrating-from-0.1.0-rc.2.md)

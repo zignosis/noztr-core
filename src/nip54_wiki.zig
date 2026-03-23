@@ -37,18 +37,18 @@ pub const WikiError = error{
     BufferTooSmall,
 };
 
-pub const WikiArticleReference = struct {
+pub const ArticleRef = struct {
     pubkey: [32]u8,
     identifier: []const u8,
     relay_hint: ?[]const u8 = null,
 };
 
-pub const WikiEventReference = struct {
+pub const EventRef = struct {
     event_id: [32]u8,
     relay_hint: ?[]const u8 = null,
 };
 
-pub const WikiArticleInfo = struct {
+pub const Article = struct {
     identifier: []const u8,
     content: []const u8,
     title: ?[]const u8 = null,
@@ -57,17 +57,17 @@ pub const WikiArticleInfo = struct {
     defer_count: u16 = 0,
 };
 
-pub const WikiMergeRequestInfo = struct {
-    target_article: WikiArticleReference,
-    base_revision: ?WikiEventReference = null,
-    source_event: WikiEventReference,
+pub const MergeRequest = struct {
+    target_article: ArticleRef,
+    base_revision: ?EventRef = null,
+    source_event: EventRef,
     destination_pubkey: [32]u8,
     content: []const u8,
 };
 
-pub const WikiRedirectInfo = struct {
+pub const Redirect = struct {
     identifier: []const u8,
-    target_article: WikiArticleReference,
+    target_article: ArticleRef,
 };
 
 pub const BuiltTag = struct {
@@ -86,16 +86,16 @@ pub const BuiltTag = struct {
 /// Extracts bounded article metadata from a `kind:30818` wiki article event.
 pub fn wiki_article_extract(
     event: *const nip01_event.Event,
-    out_forks: []WikiArticleReference,
-    out_defers: []WikiArticleReference,
-) WikiError!WikiArticleInfo {
+    out_forks: []ArticleRef,
+    out_defers: []ArticleRef,
+) WikiError!Article {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_forks.len <= limits.tags_max);
 
     if (event.kind != wiki_article_kind) return error.InvalidArticleKind;
 
     var identifier: ?[]const u8 = null;
-    var info = WikiArticleInfo{ .identifier = undefined, .content = event.content };
+    var info = Article{ .identifier = undefined, .content = event.content };
     for (event.tags) |tag| {
         try apply_article_tag(tag, &identifier, &info, out_forks, out_defers);
     }
@@ -104,15 +104,15 @@ pub fn wiki_article_extract(
 }
 
 /// Extracts bounded merge-request metadata from a `kind:818` wiki merge request.
-pub fn wiki_merge_request_extract(event: *const nip01_event.Event) WikiError!WikiMergeRequestInfo {
+pub fn wiki_merge_request_extract(event: *const nip01_event.Event) WikiError!MergeRequest {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
     if (event.kind != wiki_merge_request_kind) return error.InvalidMergeRequestKind;
 
-    var target_article: ?WikiArticleReference = null;
-    var base_revision: ?WikiEventReference = null;
-    var source_event: ?WikiEventReference = null;
+    var target_article: ?ArticleRef = null;
+    var base_revision: ?EventRef = null;
+    var source_event: ?EventRef = null;
     var destination_pubkey: ?[32]u8 = null;
     for (event.tags) |tag| {
         try apply_merge_request_tag(tag, &target_article, &base_revision, &source_event, &destination_pubkey);
@@ -127,14 +127,14 @@ pub fn wiki_merge_request_extract(event: *const nip01_event.Event) WikiError!Wik
 }
 
 /// Extracts bounded redirect metadata from a `kind:30819` wiki redirect event.
-pub fn wiki_redirect_extract(event: *const nip01_event.Event) WikiError!WikiRedirectInfo {
+pub fn wiki_redirect_extract(event: *const nip01_event.Event) WikiError!Redirect {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
     if (event.kind != wiki_redirect_kind) return error.InvalidRedirectKind;
 
     var identifier: ?[]const u8 = null;
-    var target_article: ?WikiArticleReference = null;
+    var target_article: ?ArticleRef = null;
     for (event.tags) |tag| {
         if (tag.items.len == 0) continue;
         if (std.mem.eql(u8, tag.items[0], "d")) try apply_identifier_tag(tag, &identifier);
@@ -285,9 +285,9 @@ pub fn wiki_build_destination_pubkey_tag(
 fn apply_article_tag(
     tag: nip01_event.EventTag,
     identifier: *?[]const u8,
-    info: *WikiArticleInfo,
-    out_forks: []WikiArticleReference,
-    out_defers: []WikiArticleReference,
+    info: *Article,
+    out_forks: []ArticleRef,
+    out_defers: []ArticleRef,
 ) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -307,9 +307,9 @@ fn apply_article_tag(
 
 fn apply_merge_request_tag(
     tag: nip01_event.EventTag,
-    target_article: *?WikiArticleReference,
-    base_revision: *?WikiEventReference,
-    source_event: *?WikiEventReference,
+    target_article: *?ArticleRef,
+    base_revision: *?EventRef,
+    source_event: *?EventRef,
     destination_pubkey: *?[32]u8,
 ) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
@@ -352,7 +352,7 @@ fn apply_text_tag(
 fn append_article_ref(
     tag: nip01_event.EventTag,
     count: *u16,
-    out: []WikiArticleReference,
+    out: []ArticleRef,
     invalid_error: WikiError,
 ) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
@@ -364,7 +364,7 @@ fn append_article_ref(
     count.* += 1;
 }
 
-fn apply_target_article(tag: nip01_event.EventTag, target: *?WikiArticleReference) WikiError!void {
+fn apply_target_article(tag: nip01_event.EventTag, target: *?ArticleRef) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(target) != 0);
 
@@ -372,7 +372,7 @@ fn apply_target_article(tag: nip01_event.EventTag, target: *?WikiArticleReferenc
     target.* = parse_article_reference_tag(tag) catch return error.InvalidTargetArticleTag;
 }
 
-fn apply_source_event(tag: nip01_event.EventTag, source: *?WikiEventReference) WikiError!void {
+fn apply_source_event(tag: nip01_event.EventTag, source: *?EventRef) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(source) != 0);
 
@@ -385,7 +385,7 @@ fn apply_source_event(tag: nip01_event.EventTag, source: *?WikiEventReference) W
     };
 }
 
-fn apply_base_revision(tag: nip01_event.EventTag, base: *?WikiEventReference) WikiError!void {
+fn apply_base_revision(tag: nip01_event.EventTag, base: *?EventRef) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(base) != 0);
 
@@ -408,7 +408,7 @@ fn apply_destination_pubkey(tag: nip01_event.EventTag, pubkey: *?[32]u8) WikiErr
     pubkey.* = parse_lower_hex_32(tag.items[1]) catch return error.InvalidDestinationPubkeyTag;
 }
 
-fn apply_redirect_target(tag: nip01_event.EventTag, target: *?WikiArticleReference) WikiError!void {
+fn apply_redirect_target(tag: nip01_event.EventTag, target: *?ArticleRef) WikiError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(target) != 0);
 
@@ -416,7 +416,7 @@ fn apply_redirect_target(tag: nip01_event.EventTag, target: *?WikiArticleReferen
     target.* = parse_article_reference_tag(tag) catch return error.InvalidRedirectTargetTag;
 }
 
-fn parse_article_reference_tag(tag: nip01_event.EventTag) error{InvalidTag}!WikiArticleReference {
+fn parse_article_reference_tag(tag: nip01_event.EventTag) error{InvalidTag}!ArticleRef {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len != 0);
 
@@ -426,7 +426,7 @@ fn parse_article_reference_tag(tag: nip01_event.EventTag) error{InvalidTag}!Wiki
     return parsed;
 }
 
-fn parse_article_coordinate_text(text: []const u8) error{InvalidCoordinate}!WikiArticleReference {
+fn parse_article_coordinate_text(text: []const u8) error{InvalidCoordinate}!ArticleRef {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -523,8 +523,8 @@ test "NIP-54 extracts wiki article metadata and fork reference" {
         .content = "body",
         .sig = [_]u8{0x51} ** 64,
     };
-    var forks: [1]WikiArticleReference = undefined;
-    var defers: [1]WikiArticleReference = undefined;
+    var forks: [1]ArticleRef = undefined;
+    var defers: [1]ArticleRef = undefined;
 
     const info = try wiki_article_extract(&event, forks[0..], defers[0..]);
 

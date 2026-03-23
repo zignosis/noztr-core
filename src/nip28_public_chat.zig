@@ -41,30 +41,30 @@ pub const ChannelMetadata = struct {
     relay_count: u16 = 0,
 };
 
-pub const ChannelReference = struct {
+pub const Reference = struct {
     event_id: [32]u8,
     relay_hint: ?[]const u8 = null,
 };
 
-pub const ChannelUpdateInfo = struct {
-    channel: ChannelReference,
+pub const Update = struct {
+    channel: Reference,
     metadata: ChannelMetadata,
     category_count: u16 = 0,
 };
 
-pub const ChannelMessageInfo = struct {
-    channel: ChannelReference,
-    reply: ?ChannelReference = null,
+pub const Message = struct {
+    channel: Reference,
+    reply: ?Reference = null,
     content: []const u8,
     reply_pubkey_count: u16 = 0,
 };
 
-pub const HideMessageInfo = struct {
+pub const HideMessage = struct {
     target_event: [32]u8,
     reason: ?[]const u8 = null,
 };
 
-pub const MuteUserInfo = struct {
+pub const MuteUser = struct {
     target_pubkey: [32]u8,
     reason: ?[]const u8 = null,
 };
@@ -126,13 +126,13 @@ pub fn channel_metadata_extract(
     out_relays: [][]const u8,
     out_categories: [][]const u8,
     scratch: std.mem.Allocator,
-) PublicChatError!ChannelUpdateInfo {
+) PublicChatError!Update {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     if (event.kind != channel_metadata_kind) return error.InvalidChannelMetadataKind;
 
-    var channel: ?ChannelReference = null;
+    var channel: ?Reference = null;
     var category_count: u16 = 0;
     for (event.tags) |tag| {
         try apply_update_tag(tag, &channel, out_categories, &category_count);
@@ -148,15 +148,15 @@ pub fn channel_metadata_extract(
 pub fn channel_message_extract(
     event: *const nip01_event.Event,
     out_reply_pubkeys: [][32]u8,
-) PublicChatError!ChannelMessageInfo {
+) PublicChatError!Message {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_reply_pubkeys.len <= limits.tags_max);
 
     if (event.kind != channel_message_kind) return error.InvalidChannelMessageKind;
 
-    var channel: ?ChannelReference = null;
-    var reply: ?ChannelReference = null;
-    var info = ChannelMessageInfo{ .channel = undefined, .content = event.content };
+    var channel: ?Reference = null;
+    var reply: ?Reference = null;
+    var info = Message{ .channel = undefined, .content = event.content };
     for (event.tags) |tag| {
         try apply_message_tag(tag, &channel, &reply, &info, out_reply_pubkeys);
     }
@@ -169,7 +169,7 @@ pub fn channel_message_extract(
 pub fn hide_message_extract(
     event: *const nip01_event.Event,
     scratch: std.mem.Allocator,
-) PublicChatError!HideMessageInfo {
+) PublicChatError!HideMessage {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -191,7 +191,7 @@ pub fn hide_message_extract(
 pub fn mute_user_extract(
     event: *const nip01_event.Event,
     scratch: std.mem.Allocator,
-) PublicChatError!MuteUserInfo {
+) PublicChatError!MuteUser {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -375,7 +375,7 @@ fn parse_metadata_relays(value: std.json.Value, out_relays: [][]const u8) Public
 
 fn apply_update_tag(
     tag: nip01_event.EventTag,
-    channel: *?ChannelReference,
+    channel: *?Reference,
     out_categories: [][]const u8,
     category_count: *u16,
 ) PublicChatError!void {
@@ -409,9 +409,9 @@ fn append_category(
 
 fn apply_message_tag(
     tag: nip01_event.EventTag,
-    channel: *?ChannelReference,
-    reply: *?ChannelReference,
-    info: *ChannelMessageInfo,
+    channel: *?Reference,
+    reply: *?Reference,
+    info: *Message,
     out_reply_pubkeys: [][32]u8,
 ) PublicChatError!void {
     std.debug.assert(@intFromPtr(channel) != 0);
@@ -429,8 +429,8 @@ fn apply_message_tag(
 
 fn parse_message_event_tag(
     tag: nip01_event.EventTag,
-    channel: *?ChannelReference,
-    reply: *?ChannelReference,
+    channel: *?Reference,
+    reply: *?Reference,
 ) PublicChatError!void {
     std.debug.assert(@intFromPtr(channel) != 0);
     std.debug.assert(@intFromPtr(reply) != 0);
@@ -449,7 +449,7 @@ fn parse_message_event_tag(
 
 fn append_reply_pubkey(
     tag: nip01_event.EventTag,
-    info: *ChannelMessageInfo,
+    info: *Message,
     out_reply_pubkeys: [][32]u8,
 ) PublicChatError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -567,7 +567,7 @@ fn write_json_string(writer: anytype, text: []const u8) PublicChatError!void {
     writer.writeByte('"') catch return error.BufferTooSmall;
 }
 
-fn parse_channel_root_tag(tag: nip01_event.EventTag) error{InvalidTag}!ChannelReference {
+fn parse_channel_root_tag(tag: nip01_event.EventTag) error{InvalidTag}!Reference {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len != 0);
 
@@ -579,7 +579,7 @@ fn parse_channel_root_tag(tag: nip01_event.EventTag) error{InvalidTag}!ChannelRe
     };
 }
 
-fn parse_reply_tag(tag: nip01_event.EventTag) error{InvalidTag}!ChannelReference {
+fn parse_reply_tag(tag: nip01_event.EventTag) error{InvalidTag}!Reference {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len != 0);
 

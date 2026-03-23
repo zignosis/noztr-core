@@ -29,7 +29,7 @@ pub const ZapGoalError = error{
     BufferTooSmall,
 };
 
-pub const GoalInfo = struct {
+pub const Goal = struct {
     content: []const u8,
     amount_msats: u64,
     relay_count: u16 = 0,
@@ -40,7 +40,7 @@ pub const GoalInfo = struct {
     coordinate_link: ?[]const u8 = null,
 };
 
-pub const GoalReference = struct {
+pub const Reference = struct {
     event_id: [32]u8,
     relay_hint: ?[]const u8 = null,
 };
@@ -59,13 +59,13 @@ pub const BuiltTag = struct {
 };
 
 /// Extracts bounded zap-goal metadata from a kind-9041 goal event.
-pub fn goal_extract(event: *const nip01_event.Event, out_relays: [][]const u8) ZapGoalError!GoalInfo {
+pub fn goal_extract(event: *const nip01_event.Event, out_relays: [][]const u8) ZapGoalError!Goal {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_relays.len <= limits.tag_items_max);
 
     if (event.kind != goal_kind) return error.InvalidGoalKind;
 
-    var info = GoalInfo{ .content = event.content, .amount_msats = undefined };
+    var info = Goal{ .content = event.content, .amount_msats = undefined };
     var saw_relays = false;
     var saw_amount = false;
     for (event.tags) |tag| {
@@ -77,11 +77,11 @@ pub fn goal_extract(event: *const nip01_event.Event, out_relays: [][]const u8) Z
 }
 
 /// Extracts a `goal` reference tag from any event, or `null` when absent.
-pub fn goal_reference_extract(event: *const nip01_event.Event) ZapGoalError!?GoalReference {
+pub fn goal_reference_extract(event: *const nip01_event.Event) ZapGoalError!?Reference {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
-    var reference: ?GoalReference = null;
+    var reference: ?Reference = null;
     for (event.tags) |tag| {
         if (tag.items.len == 0) continue;
         if (!std.mem.eql(u8, tag.items[0], "goal")) continue;
@@ -185,7 +185,7 @@ pub fn goal_build_reference_tag(
 
 fn apply_goal_tag(
     tag: nip01_event.EventTag,
-    info: *GoalInfo,
+    info: *Goal,
     out_relays: [][]const u8,
     saw_relays: *bool,
     saw_amount: *bool,
@@ -205,7 +205,7 @@ fn apply_goal_tag(
 
 fn apply_relays_tag(
     tag: nip01_event.EventTag,
-    info: *GoalInfo,
+    info: *Goal,
     out_relays: [][]const u8,
     saw_relays: *bool,
 ) ZapGoalError!void {
@@ -223,7 +223,7 @@ fn apply_relays_tag(
     saw_relays.* = true;
 }
 
-fn apply_amount_tag(tag: nip01_event.EventTag, info: *GoalInfo, saw_amount: *bool) ZapGoalError!void {
+fn apply_amount_tag(tag: nip01_event.EventTag, info: *Goal, saw_amount: *bool) ZapGoalError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_amount) != 0);
 
@@ -286,7 +286,7 @@ fn apply_coordinate_field(tag: nip01_event.EventTag, field: *?[]const u8) ZapGoa
     field.* = parse_coordinate_text(tag.items[1]) catch return error.InvalidCoordinateTag;
 }
 
-fn parse_goal_reference_tag(tag: nip01_event.EventTag) error{InvalidTag}!GoalReference {
+fn parse_goal_reference_tag(tag: nip01_event.EventTag) error{InvalidTag}!Reference {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len != 0);
 
