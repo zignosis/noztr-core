@@ -42,13 +42,13 @@ pub const ImageInfo = struct {
     dimensions: ?[]const u8 = null,
 };
 
-pub const BadgeDefinitionReference = struct {
+pub const DefinitionRef = struct {
     issuer_pubkey: [32]u8,
     identifier: []const u8,
     relay_hint: ?[]const u8 = null,
 };
 
-pub const BadgeDefinitionInfo = struct {
+pub const Definition = struct {
     issuer_pubkey: [32]u8,
     identifier: []const u8,
     name: ?[]const u8 = null,
@@ -62,23 +62,23 @@ pub const BadgeAwardRecipient = struct {
     relay_hint: ?[]const u8 = null,
 };
 
-pub const BadgeAwardInfo = struct {
+pub const Award = struct {
     event_id: [32]u8,
-    badge_definition: BadgeDefinitionReference,
+    badge_definition: DefinitionRef,
     recipient_count: u16,
 };
 
-pub const BadgeAwardEventReference = struct {
+pub const AwardEventRef = struct {
     event_id: [32]u8,
     relay_hint: ?[]const u8 = null,
 };
 
 pub const ProfileBadgePair = struct {
-    badge_definition: BadgeDefinitionReference,
-    award_event: BadgeAwardEventReference,
+    badge_definition: DefinitionRef,
+    award_event: AwardEventRef,
 };
 
-pub const ProfileBadgesInfo = struct {
+pub const ProfileBadges = struct {
     pair_count: u16,
 };
 
@@ -99,14 +99,14 @@ pub const BuiltTag = struct {
 pub fn badge_definition_extract(
     event: *const nip01_event.Event,
     out_thumbs: []ImageInfo,
-) BadgeError!BadgeDefinitionInfo {
+) BadgeError!Definition {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_thumbs.len <= limits.tags_max);
 
     if (event.kind != badge_definition_kind) return error.InvalidBadgeDefinitionKind;
 
     var identifier: ?[]const u8 = null;
-    var info = BadgeDefinitionInfo{ .issuer_pubkey = event.pubkey, .identifier = undefined };
+    var info = Definition{ .issuer_pubkey = event.pubkey, .identifier = undefined };
     for (event.tags) |tag| {
         try apply_definition_tag(tag, &identifier, &info, out_thumbs);
     }
@@ -118,13 +118,13 @@ pub fn badge_definition_extract(
 pub fn badge_award_extract(
     event: *const nip01_event.Event,
     out_recipients: []BadgeAwardRecipient,
-) BadgeError!BadgeAwardInfo {
+) BadgeError!Award {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_recipients.len <= limits.tags_max);
 
     if (event.kind != badge_award_kind) return error.InvalidBadgeAwardKind;
 
-    var badge_definition: ?BadgeDefinitionReference = null;
+    var badge_definition: ?DefinitionRef = null;
     var recipient_count: u16 = 0;
     for (event.tags) |tag| {
         try apply_award_tag(tag, &badge_definition, out_recipients, &recipient_count);
@@ -142,7 +142,7 @@ pub fn badge_award_extract(
 pub fn profile_badges_extract(
     event: *const nip01_event.Event,
     out_pairs: []ProfileBadgePair,
-) BadgeError!ProfileBadgesInfo {
+) BadgeError!ProfileBadges {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_pairs.len <= limits.tags_max);
 
@@ -166,8 +166,8 @@ pub fn profile_badges_extract(
 
 /// Validates that a parsed badge award references the supplied badge definition.
 pub fn badge_award_validate_definition(
-    award: *const BadgeAwardInfo,
-    definition: *const BadgeDefinitionInfo,
+    award: *const Award,
+    definition: *const Definition,
 ) BadgeError!void {
     std.debug.assert(@intFromPtr(award) != 0);
     std.debug.assert(@intFromPtr(definition) != 0);
@@ -183,9 +183,9 @@ pub fn badge_award_validate_definition(
 /// Validates one profile-badge pair against the supplied award, definition, and profile pubkey.
 pub fn profile_badge_pair_validate(
     pair: *const ProfileBadgePair,
-    award: *const BadgeAwardInfo,
+    award: *const Award,
     award_recipients: []const BadgeAwardRecipient,
-    definition: *const BadgeDefinitionInfo,
+    definition: *const Definition,
     profile_pubkey: *const [32]u8,
 ) BadgeError!void {
     std.debug.assert(@intFromPtr(pair) != 0);
@@ -289,7 +289,7 @@ pub fn badge_build_thumb_tag(
 /// Builds a badge-award or profile-pair `a` tag referencing a badge definition.
 pub fn badge_build_definition_tag(
     output: *BuiltTag,
-    reference: *const BadgeDefinitionReference,
+    reference: *const DefinitionRef,
 ) BadgeError!nip01_event.EventTag {
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(@intFromPtr(reference) != 0);
@@ -360,7 +360,7 @@ pub fn profile_badges_build_award_tag(
 fn apply_definition_tag(
     tag: nip01_event.EventTag,
     identifier: *?[]const u8,
-    info: *BadgeDefinitionInfo,
+    info: *Definition,
     out_thumbs: []ImageInfo,
 ) BadgeError!void {
     std.debug.assert(@intFromPtr(identifier) != 0);
@@ -386,7 +386,7 @@ fn parse_definition_identifier(
     identifier.* = parse_single_utf8_value(tag) catch return error.InvalidIdentifierTag;
 }
 
-fn parse_definition_name(tag: nip01_event.EventTag, info: *BadgeDefinitionInfo) BadgeError!void {
+fn parse_definition_name(tag: nip01_event.EventTag, info: *Definition) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -396,7 +396,7 @@ fn parse_definition_name(tag: nip01_event.EventTag, info: *BadgeDefinitionInfo) 
 
 fn parse_definition_description(
     tag: nip01_event.EventTag,
-    info: *BadgeDefinitionInfo,
+    info: *Definition,
 ) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -405,7 +405,7 @@ fn parse_definition_description(
     info.description = parse_single_utf8_value(tag) catch return error.InvalidDescriptionTag;
 }
 
-fn parse_definition_image(tag: nip01_event.EventTag, info: *BadgeDefinitionInfo) BadgeError!void {
+fn parse_definition_image(tag: nip01_event.EventTag, info: *Definition) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -418,7 +418,7 @@ fn parse_definition_image(tag: nip01_event.EventTag, info: *BadgeDefinitionInfo)
 
 fn parse_definition_thumb(
     tag: nip01_event.EventTag,
-    info: *BadgeDefinitionInfo,
+    info: *Definition,
     out_thumbs: []ImageInfo,
 ) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
@@ -434,7 +434,7 @@ fn parse_definition_thumb(
 
 fn apply_award_tag(
     tag: nip01_event.EventTag,
-    badge_definition: *?BadgeDefinitionReference,
+    badge_definition: *?DefinitionRef,
     out_recipients: []BadgeAwardRecipient,
     recipient_count: *u16,
 ) BadgeError!void {
@@ -452,7 +452,7 @@ fn apply_award_tag(
 
 fn parse_award_definition_tag(
     tag: nip01_event.EventTag,
-    badge_definition: *?BadgeDefinitionReference,
+    badge_definition: *?DefinitionRef,
 ) BadgeError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(badge_definition) != 0);
@@ -529,7 +529,7 @@ fn parse_profile_identifier_tag(tag: nip01_event.EventTag, has_identifier: *bool
 fn parse_definition_reference_tag(
     tag: nip01_event.EventTag,
     invalid_error: BadgeError,
-) BadgeError!BadgeDefinitionReference {
+) BadgeError!DefinitionRef {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@typeInfo(BadgeError) == .error_set);
 
@@ -541,7 +541,7 @@ fn parse_definition_reference_tag(
     return parsed;
 }
 
-fn parse_award_event_tag(tag: nip01_event.EventTag) BadgeError!BadgeAwardEventReference {
+fn parse_award_event_tag(tag: nip01_event.EventTag) BadgeError!AwardEventRef {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.tag_items_max >= 2);
 
@@ -556,7 +556,7 @@ fn parse_award_event_tag(tag: nip01_event.EventTag) BadgeError!BadgeAwardEventRe
 fn parse_definition_coordinate_text(
     text: []const u8,
     invalid_error: BadgeError,
-) BadgeError!BadgeDefinitionReference {
+) BadgeError!DefinitionRef {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(@typeInfo(BadgeError) == .error_set);
 
@@ -576,7 +576,7 @@ fn parse_definition_coordinate_text(
 
 fn format_definition_coordinate(
     output: []u8,
-    reference: *const BadgeDefinitionReference,
+    reference: *const DefinitionRef,
 ) BadgeError![]const u8 {
     std.debug.assert(output.len <= limits.tag_item_bytes_max);
     std.debug.assert(@intFromPtr(reference) != 0);
@@ -749,11 +749,11 @@ test "badge award extract parses badge definition and recipients" {
 
 test "badge award validate definition rejects mismatched coordinate" {
     const issuer = [_]u8{1} ** 32;
-    const definition = BadgeDefinitionInfo{
+    const definition = Definition{
         .issuer_pubkey = issuer,
         .identifier = "bravery",
     };
-    const award = BadgeAwardInfo{
+    const award = Award{
         .event_id = [_]u8{2} ** 32,
         .badge_definition = .{ .issuer_pubkey = issuer, .identifier = "honor" },
         .recipient_count = 1,
@@ -800,11 +800,11 @@ test "profile badges extract ignores non-consecutive definition and award tags" 
 test "profile badge pair validate checks definition award and recipient" {
     const issuer = [_]u8{1} ** 32;
     const profile_pubkey = [_]u8{0xaa} ** 32;
-    const definition = BadgeDefinitionInfo{
+    const definition = Definition{
         .issuer_pubkey = issuer,
         .identifier = "bravery",
     };
-    const award = BadgeAwardInfo{
+    const award = Award{
         .event_id = [_]u8{9} ** 32,
         .badge_definition = .{ .issuer_pubkey = issuer, .identifier = "bravery" },
         .recipient_count = 1,

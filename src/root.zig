@@ -441,20 +441,21 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip37_drafts.PrivateRelayListInfo) == type);
     try std.testing.expect(@TypeOf(nip37_drafts.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nip58_badges.ImageInfo) == type);
-    try std.testing.expect(@TypeOf(nip58_badges.BadgeDefinitionReference) == type);
-    try std.testing.expect(@TypeOf(nip58_badges.BadgeDefinitionInfo) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.DefinitionRef) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.Definition) == type);
     try std.testing.expect(@TypeOf(nip58_badges.BadgeAwardRecipient) == type);
-    try std.testing.expect(@TypeOf(nip58_badges.BadgeAwardInfo) == type);
-    try std.testing.expect(@TypeOf(nip58_badges.BadgeAwardEventReference) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.Award) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.AwardEventRef) == type);
     try std.testing.expect(@TypeOf(nip58_badges.ProfileBadgePair) == type);
-    try std.testing.expect(@TypeOf(nip58_badges.ProfileBadgesInfo) == type);
+    try std.testing.expect(@TypeOf(nip58_badges.ProfileBadges) == type);
     try std.testing.expect(@TypeOf(nip58_badges.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nip52_calendar_events.CalendarParticipant) == type);
     try std.testing.expect(@TypeOf(nip52_calendar_events.CalendarCoordinate) == type);
-    try std.testing.expect(@TypeOf(nip52_calendar_events.DateCalendarEventInfo) == type);
-    try std.testing.expect(@TypeOf(nip52_calendar_events.TimeCalendarEventInfo) == type);
-    try std.testing.expect(@TypeOf(nip52_calendar_events.CalendarInfo) == type);
-    try std.testing.expect(@TypeOf(nip52_calendar_events.CalendarRsvpInfo) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.Common) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.DateEvent) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.TimeEvent) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.Calendar) == type);
+    try std.testing.expect(@TypeOf(nip52_calendar_events.Rsvp) == type);
     try std.testing.expect(@TypeOf(nip52_calendar_events.BuiltTag) == type);
     try std.testing.expect(@TypeOf(nip53_live_activities.LiveActivityParticipant) == type);
     try std.testing.expect(@TypeOf(nip53_live_activities.LiveActivityCoordinate) == type);
@@ -993,36 +994,36 @@ test "root exports limits and error namespaces" {
             fn (
                 *const nip01_event.Event,
                 []nip58_badges.ImageInfo,
-            ) nip58_badges.BadgeError!nip58_badges.BadgeDefinitionInfo,
+            ) nip58_badges.BadgeError!nip58_badges.Definition,
     );
     try std.testing.expect(
         @TypeOf(nip58_badges.badge_award_extract) ==
             fn (
                 *const nip01_event.Event,
                 []nip58_badges.BadgeAwardRecipient,
-            ) nip58_badges.BadgeError!nip58_badges.BadgeAwardInfo,
+            ) nip58_badges.BadgeError!nip58_badges.Award,
     );
     try std.testing.expect(
         @TypeOf(nip58_badges.profile_badges_extract) ==
             fn (
                 *const nip01_event.Event,
                 []nip58_badges.ProfileBadgePair,
-            ) nip58_badges.BadgeError!nip58_badges.ProfileBadgesInfo,
+            ) nip58_badges.BadgeError!nip58_badges.ProfileBadges,
     );
     try std.testing.expect(
         @TypeOf(nip58_badges.badge_award_validate_definition) ==
             fn (
-                *const nip58_badges.BadgeAwardInfo,
-                *const nip58_badges.BadgeDefinitionInfo,
+                *const nip58_badges.Award,
+                *const nip58_badges.Definition,
             ) nip58_badges.BadgeError!void,
     );
     try std.testing.expect(
         @TypeOf(nip58_badges.profile_badge_pair_validate) ==
             fn (
                 *const nip58_badges.ProfileBadgePair,
-                *const nip58_badges.BadgeAwardInfo,
+                *const nip58_badges.Award,
                 []const nip58_badges.BadgeAwardRecipient,
-                *const nip58_badges.BadgeDefinitionInfo,
+                *const nip58_badges.Definition,
                 *const [32]u8,
             ) nip58_badges.BadgeError!void,
     );
@@ -1042,7 +1043,7 @@ test "root exports limits and error namespaces" {
         @TypeOf(nip58_badges.badge_build_definition_tag) ==
             fn (
                 *nip58_badges.BuiltTag,
-                *const nip58_badges.BadgeDefinitionReference,
+                *const nip58_badges.DefinitionRef,
             ) nip58_badges.BadgeError!nip01_event.EventTag,
     );
     try std.testing.expect(

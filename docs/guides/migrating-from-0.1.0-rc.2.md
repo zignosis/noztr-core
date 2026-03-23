@@ -61,6 +61,16 @@ Use these public names now:
 - `noztr.nip88_polls.PollInfo` -> `noztr.nip88_polls.Poll`
 - `noztr.nip88_polls.PollEventReference` -> `noztr.nip88_polls.EventRef`
 - `noztr.nip88_polls.PollResponseInfo` -> `noztr.nip88_polls.Response`
+- `noztr.nip52_calendar_events.CalendarCommonInfo` -> `noztr.nip52_calendar_events.Common`
+- `noztr.nip52_calendar_events.DateCalendarEventInfo` -> `noztr.nip52_calendar_events.DateEvent`
+- `noztr.nip52_calendar_events.TimeCalendarEventInfo` -> `noztr.nip52_calendar_events.TimeEvent`
+- `noztr.nip52_calendar_events.CalendarInfo` -> `noztr.nip52_calendar_events.Calendar`
+- `noztr.nip52_calendar_events.CalendarRsvpInfo` -> `noztr.nip52_calendar_events.Rsvp`
+- `noztr.nip58_badges.BadgeDefinitionReference` -> `noztr.nip58_badges.DefinitionRef`
+- `noztr.nip58_badges.BadgeDefinitionInfo` -> `noztr.nip58_badges.Definition`
+- `noztr.nip58_badges.BadgeAwardInfo` -> `noztr.nip58_badges.Award`
+- `noztr.nip58_badges.BadgeAwardEventReference` -> `noztr.nip58_badges.AwardEventRef`
+- `noztr.nip58_badges.ProfileBadgesInfo` -> `noztr.nip58_badges.ProfileBadges`
 
 ## Why
 

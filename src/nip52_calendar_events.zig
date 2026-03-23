@@ -83,7 +83,7 @@ pub const FreeBusyStatus = enum {
     busy,
 };
 
-pub const CalendarCommonInfo = struct {
+pub const Common = struct {
     identifier: []const u8,
     title: []const u8,
     content: []const u8,
@@ -97,14 +97,14 @@ pub const CalendarCommonInfo = struct {
     calendar_count: u16 = 0,
 };
 
-pub const DateCalendarEventInfo = struct {
-    common: CalendarCommonInfo,
+pub const DateEvent = struct {
+    common: Common,
     start_date: []const u8,
     end_date: ?[]const u8 = null,
 };
 
-pub const TimeCalendarEventInfo = struct {
-    common: CalendarCommonInfo,
+pub const TimeEvent = struct {
+    common: Common,
     start_time: u64,
     end_time: ?u64 = null,
     start_tzid: ?[]const u8 = null,
@@ -112,14 +112,14 @@ pub const TimeCalendarEventInfo = struct {
     day_count: u16 = 0,
 };
 
-pub const CalendarInfo = struct {
+pub const Calendar = struct {
     identifier: []const u8,
     title: []const u8,
     content: []const u8,
     event_count: u16 = 0,
 };
 
-pub const CalendarRsvpInfo = struct {
+pub const Rsvp = struct {
     identifier: []const u8,
     calendar_event: CalendarCoordinate,
     revision: ?EventRevision = null,
@@ -151,7 +151,7 @@ pub fn date_calendar_event_extract(
     out_hashtags: [][]const u8,
     out_references: [][]const u8,
     out_calendars: []CalendarCoordinate,
-) CalendarError!DateCalendarEventInfo {
+) CalendarError!DateEvent {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_locations.len <= limits.tags_max);
 
@@ -179,14 +179,14 @@ pub fn time_calendar_event_extract(
     out_references: [][]const u8,
     out_calendars: []CalendarCoordinate,
     out_days: []u64,
-) CalendarError!TimeCalendarEventInfo {
+) CalendarError!TimeEvent {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_days.len <= limits.tags_max);
 
     if (event.kind != time_calendar_event_kind) return error.InvalidTimeEventKind;
 
     const common = try extract_common_info(event, out_locations, out_participants, out_hashtags, out_references, out_calendars);
-    var info = TimeCalendarEventInfo{
+    var info = TimeEvent{
         .common = common,
         .start_time = undefined,
     };
@@ -203,7 +203,7 @@ pub fn time_calendar_event_extract(
 pub fn calendar_extract(
     event: *const nip01_event.Event,
     out_events: []CalendarCoordinate,
-) CalendarError!CalendarInfo {
+) CalendarError!Calendar {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_events.len <= limits.tags_max);
 
@@ -211,7 +211,7 @@ pub fn calendar_extract(
 
     var identifier: ?[]const u8 = null;
     var title: ?[]const u8 = null;
-    var info = CalendarInfo{ .identifier = undefined, .title = undefined, .content = event.content };
+    var info = Calendar{ .identifier = undefined, .title = undefined, .content = event.content };
     for (event.tags) |tag| {
         try apply_calendar_tag(tag, &identifier, &title, &info, out_events);
     }
@@ -221,7 +221,7 @@ pub fn calendar_extract(
 }
 
 /// Extracts bounded metadata from a `kind:31925` calendar RSVP event.
-pub fn calendar_rsvp_extract(event: *const nip01_event.Event) CalendarError!CalendarRsvpInfo {
+pub fn calendar_rsvp_extract(event: *const nip01_event.Event) CalendarError!Rsvp {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -394,13 +394,13 @@ fn extract_common_info(
     out_hashtags: [][]const u8,
     out_references: [][]const u8,
     out_calendars: []CalendarCoordinate,
-) CalendarError!CalendarCommonInfo {
+) CalendarError!Common {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_locations.len <= limits.tags_max);
 
     var identifier: ?[]const u8 = null;
     var title: ?[]const u8 = null;
-    var info = CalendarCommonInfo{
+    var info = Common{
         .identifier = undefined,
         .title = undefined,
         .content = event.content,
@@ -417,7 +417,7 @@ fn apply_common_tag(
     tag: nip01_event.EventTag,
     identifier: *?[]const u8,
     title: *?[]const u8,
-    info: *CalendarCommonInfo,
+    info: *Common,
     out_locations: [][]const u8,
     out_participants: []CalendarParticipant,
     out_hashtags: [][]const u8,
@@ -443,7 +443,7 @@ fn apply_common_tag(
 
 fn apply_time_tag(
     tag: nip01_event.EventTag,
-    info: *TimeCalendarEventInfo,
+    info: *TimeEvent,
     has_start: *bool,
     out_days: []u64,
 ) CalendarError!void {
@@ -469,7 +469,7 @@ fn apply_calendar_tag(
     tag: nip01_event.EventTag,
     identifier: *?[]const u8,
     title: *?[]const u8,
-    info: *CalendarInfo,
+    info: *Calendar,
     out_events: []CalendarCoordinate,
 ) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
@@ -606,7 +606,7 @@ fn append_url_value(
 
 fn append_participant(
     tag: nip01_event.EventTag,
-    info: *CalendarCommonInfo,
+    info: *Common,
     out: []CalendarParticipant,
 ) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
@@ -626,7 +626,7 @@ fn append_participant(
     info.participant_count += 1;
 }
 
-fn append_calendar(tag: nip01_event.EventTag, info: *CalendarCommonInfo, out: []CalendarCoordinate) CalendarError!void {
+fn append_calendar(tag: nip01_event.EventTag, info: *Common, out: []CalendarCoordinate) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out.len <= limits.tags_max);
 
@@ -640,7 +640,7 @@ fn append_calendar(tag: nip01_event.EventTag, info: *CalendarCommonInfo, out: []
     info.calendar_count += 1;
 }
 
-fn apply_time_start(tag: nip01_event.EventTag, info: *TimeCalendarEventInfo, has_start: *bool) CalendarError!void {
+fn apply_time_start(tag: nip01_event.EventTag, info: *TimeEvent, has_start: *bool) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -650,7 +650,7 @@ fn apply_time_start(tag: nip01_event.EventTag, info: *TimeCalendarEventInfo, has
     has_start.* = true;
 }
 
-fn apply_time_end(tag: nip01_event.EventTag, info: *TimeCalendarEventInfo) CalendarError!void {
+fn apply_time_end(tag: nip01_event.EventTag, info: *TimeEvent) CalendarError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
