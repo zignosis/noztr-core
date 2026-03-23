@@ -40,6 +40,9 @@ For the public versioning policy, see
   wrapper types:
   - `nip46_remote_signing.ResponsePayload`
   - `nip46_remote_signing.ResponseResult`
+- flattened the `nip86_relay_management.Response.result` shape by removing its standalone wrapper
+  type:
+  - `nip86_relay_management.ResponsePayload`
 - downstream callers that reference those public types directly need to update symbol names
 - migration guide:
   - [docs/guides/migrating-from-0.1.0-rc.2.md](docs/guides/migrating-from-0.1.0-rc.2.md)

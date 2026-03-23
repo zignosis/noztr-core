@@ -77,7 +77,7 @@ pub const Request = union(enum) {
     listblockedips,
 };
 
-pub const ResponsePayload = union(enum) {
+pub const Result = union(enum) {
     absent,
     ack,
     methods: []const []const u8,
@@ -88,7 +88,7 @@ pub const ResponsePayload = union(enum) {
 };
 
 pub const Response = struct {
-    result: ResponsePayload = .absent,
+    result: Result = .absent,
     error_text: ?[]const u8 = null,
 };
 
@@ -509,9 +509,9 @@ fn parse_response_payload(
     out_kinds: []u32,
     out_ips: []IpReason,
     scratch: std.mem.Allocator,
-) RelayManagementError!ResponsePayload {
+) RelayManagementError!Result {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
-    std.debug.assert(@sizeOf(ResponsePayload) > 0);
+    std.debug.assert(@sizeOf(Result) > 0);
 
     return switch (expected_method) {
         .supportedmethods => .{ .methods = try parse_string_array(value, out_methods, scratch) },
@@ -527,9 +527,9 @@ fn parse_response_payload(
     };
 }
 
-fn parse_ack_result(value: std.json.Value) RelayManagementError!ResponsePayload {
+fn parse_ack_result(value: std.json.Value) RelayManagementError!Result {
     std.debug.assert(@sizeOf(std.json.Value) > 0);
-    std.debug.assert(@sizeOf(ResponsePayload) > 0);
+    std.debug.assert(@sizeOf(Result) > 0);
 
     if (value != .bool) return error.InvalidResponse;
     if (!value.bool) return error.InvalidResponse;
@@ -767,10 +767,10 @@ fn serialize_ip_reason_params(output: []u8, index: *u32, entry: IpReason) RelayM
 fn serialize_response_result(
     output: []u8,
     index: *u32,
-    result: ResponsePayload,
+    result: Result,
 ) RelayManagementError!void {
     std.debug.assert(@intFromPtr(index) != 0);
-    std.debug.assert(@sizeOf(ResponsePayload) > 0);
+    std.debug.assert(@sizeOf(Result) > 0);
 
     switch (result) {
         .absent => try write_bytes(output, index, "null"),

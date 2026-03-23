@@ -143,6 +143,30 @@ This keeps the same protocol meanings:
 
 but removes the storage-only `.value` wrapper.
 
+## Simplified `nip86` Response Results
+
+The `nip86_relay_management` route also dropped its standalone response-payload wrapper type.
+
+Use these public names and shapes now:
+
+- `noztr.nip86_relay_management.ResponsePayload`
+  - removed
+- `noztr.nip86_relay_management.Response.result`
+  - now has type `noztr.nip86_relay_management.Result`
+
+The result tags are unchanged:
+
+- `.absent`
+- `.ack`
+- `.methods`
+- `.pubkeys`
+- `.events`
+- `.kinds`
+- `.ips`
+
+This is a shape cleanup only. Downstream callers that pattern-match `Response.result` should update
+the type name, but not the variant names.
+
 ## Downstream Guidance
 
 If your project depends on `noztr-core`:
@@ -156,8 +180,8 @@ If your project depends on `noztr-core`:
 
 ## Scope
 
-These changes rename public types, remove a small set of pure storage wrappers, and flatten one
-NIP-46 response-result wrapper layer. They do not change:
+These changes rename public types, remove a small set of pure storage wrappers, and flatten the
+NIP-46 and NIP-86 response-result wrapper layers. They do not change:
 
 - wire formats
 - ownership model
