@@ -109,20 +109,16 @@ pub const BuiltRequest = struct {
     }
 };
 
-pub const ResponseResult = union(enum) {
-    text: []const u8,
-    relay_list: []const []const u8,
-};
-
-pub const ResponsePayload = union(enum) {
+pub const Result = union(enum) {
     absent,
     null_result,
-    value: ResponseResult,
+    text: []const u8,
+    relays: []const []const u8,
 };
 
 pub const Response = struct {
     id: []const u8,
-    result: ResponsePayload = .absent,
+    result: Result = .absent,
     error_text: ?[]const u8 = null,
 };
 
@@ -476,7 +472,7 @@ pub fn response_validate(
                 return error.InvalidResponse;
             }
         },
-        .value => |result| try validate_response_result(result, method, scratch),
+        .text, .relays => try validate_response_result(response.result, method, scratch),
     }
 }
 
@@ -519,16 +515,13 @@ pub fn response_result_sign_event(
 /// Parse a validated `switch_relays` response into an updated relay list or `null`.
 pub fn response_result_switch_relays(response: *const Response) RemoteSigningError!?[]const []const u8 {
     std.debug.assert(@intFromPtr(response) != 0);
-    std.debug.assert(@sizeOf(ResponsePayload) > 0);
+    std.debug.assert(@sizeOf(Result) > 0);
 
     try validate_response_common(response);
     return switch (response.result) {
         .null_result => null,
-        .value => |payload| switch (payload) {
-            .relay_list => |relays| relays,
-            .text => error.InvalidResponse,
-        },
-        .absent => error.InvalidResponse,
+        .relays => |relays| relays,
+        .absent, .text => error.InvalidResponse,
     };
 }
 
@@ -706,7 +699,7 @@ const MessageParseState = struct {
     id: ?[]const u8 = null,
     method: ?Method = null,
     params: ?[]const []const u8 = null,
-    result: ResponsePayload = .absent,
+    result: Result = .absent,
     error_text: ?[]const u8 = null,
     saw_result: bool = false,
     saw_error: bool = false,
@@ -1064,7 +1057,7 @@ fn parse_method_value(value: std.json.Value) RemoteSigningError!Method {
 fn parse_result_value(
     value: std.json.Value,
     scratch: std.mem.Allocator,
-) RemoteSigningError!ResponsePayload {
+) RemoteSigningError!Result {
     std.debug.assert(@typeInfo(std.json.Value) == .@"union");
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -1072,13 +1065,13 @@ fn parse_result_value(
         return .null_result;
     }
     if (value == .string) {
-        return .{ .value = .{
+        return .{
             .text = try duplicate_valid_utf8(
                 value.string,
                 limits.nip46_message_json_bytes_max,
                 scratch,
             ),
-        } };
+        };
     }
     if (value != .array) {
         return error.InvalidResponse;
@@ -1094,7 +1087,7 @@ fn parse_result_value(
     while (index < relays.len) : (index += 1) {
         _ = parse_relay_url(relays[index]) catch return error.InvalidRelayUrl;
     }
-    return .{ .value = .{ .relay_list = relays } };
+    return .{ .relays = relays };
 }
 
 fn parse_string_array_value(
@@ -1195,7 +1188,7 @@ fn validate_message_id(id: []const u8) RemoteSigningError!void {
 
 fn validate_response_common(response: *const Response) RemoteSigningError!void {
     std.debug.assert(@intFromPtr(response) != 0);
-    std.debug.assert(@sizeOf(ResponsePayload) > 0);
+    std.debug.assert(@sizeOf(Result) > 0);
 
     try validate_message_id(response.id);
     if (response.error_text) |text| {
@@ -1210,14 +1203,11 @@ fn validate_response_common(response: *const Response) RemoteSigningError!void {
 
 fn response_text_payload(response: *const Response) RemoteSigningError![]const u8 {
     std.debug.assert(@intFromPtr(response) != 0);
-    std.debug.assert(@sizeOf(ResponsePayload) > 0);
+    std.debug.assert(@sizeOf(Result) > 0);
 
     return switch (response.result) {
-        .value => |payload| switch (payload) {
-            .text => |text| text,
-            .relay_list => error.InvalidResponse,
-        },
-        .absent, .null_result => error.InvalidResponse,
+        .text => |text| text,
+        .absent, .null_result, .relays => error.InvalidResponse,
     };
 }
 
@@ -1326,7 +1316,7 @@ fn parse_pubkey_text_request(params: []const []const u8) RemoteSigningError!Pubk
 }
 
 fn validate_response_result(
-    result: ResponseResult,
+    result: Result,
     method: Method,
     scratch: std.mem.Allocator,
 ) RemoteSigningError!void {
@@ -1345,75 +1335,75 @@ fn validate_response_result(
     }
 }
 
-fn validate_connect_result(result: ResponseResult) RemoteSigningError!void {
-    std.debug.assert(@sizeOf(ResponseResult) > 0);
+fn validate_connect_result(result: Result) RemoteSigningError!void {
+    std.debug.assert(@sizeOf(Result) > 0);
     std.debug.assert(!@inComptime());
 
     switch (result) {
         .text => |text| if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidResponse,
-        .relay_list => return error.InvalidResponse,
+        .absent, .null_result, .relays => return error.InvalidResponse,
     }
 }
 
 fn validate_sign_event_result(
-    result: ResponseResult,
+    result: Result,
     scratch: std.mem.Allocator,
 ) RemoteSigningError!void {
-    std.debug.assert(@sizeOf(ResponseResult) > 0);
+    std.debug.assert(@sizeOf(Result) > 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
     switch (result) {
         .text => |text| {
             _ = nip01_event.event_parse_json(text, scratch) catch return error.InvalidSignedEvent;
         },
-        .relay_list => return error.InvalidResponse,
+        .absent, .null_result, .relays => return error.InvalidResponse,
     }
 }
 
-fn validate_ping_result(result: ResponseResult) RemoteSigningError!void {
-    std.debug.assert(@sizeOf(ResponseResult) > 0);
+fn validate_ping_result(result: Result) RemoteSigningError!void {
+    std.debug.assert(@sizeOf(Result) > 0);
     std.debug.assert(!@inComptime());
 
     switch (result) {
         .text => |text| {
             if (!std.mem.eql(u8, text, "pong")) return error.InvalidResponse;
         },
-        .relay_list => return error.InvalidResponse,
+        .absent, .null_result, .relays => return error.InvalidResponse,
     }
 }
 
-fn validate_pubkey_result(result: ResponseResult) RemoteSigningError!void {
-    std.debug.assert(@sizeOf(ResponseResult) > 0);
+fn validate_pubkey_result(result: Result) RemoteSigningError!void {
+    std.debug.assert(@sizeOf(Result) > 0);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
     switch (result) {
         .text => |text| _ = parse_lower_hex_32(text) catch return error.InvalidPubkey,
-        .relay_list => return error.InvalidResponse,
+        .absent, .null_result, .relays => return error.InvalidResponse,
     }
 }
 
-fn validate_text_result(result: ResponseResult) RemoteSigningError!void {
-    std.debug.assert(@sizeOf(ResponseResult) > 0);
+fn validate_text_result(result: Result) RemoteSigningError!void {
+    std.debug.assert(@sizeOf(Result) > 0);
     std.debug.assert(!@inComptime());
 
     switch (result) {
         .text => |text| if (!std.unicode.utf8ValidateSlice(text)) return error.InvalidResponse,
-        .relay_list => return error.InvalidResponse,
+        .absent, .null_result, .relays => return error.InvalidResponse,
     }
 }
 
-fn validate_switch_relays_result(result: ResponseResult) RemoteSigningError!void {
-    std.debug.assert(@sizeOf(ResponseResult) > 0);
+fn validate_switch_relays_result(result: Result) RemoteSigningError!void {
+    std.debug.assert(@sizeOf(Result) > 0);
     std.debug.assert(!@inComptime());
 
     switch (result) {
-        .text => return error.InvalidResponse,
-        .relay_list => |relays| {
+        .relays => |relays| {
             var index: usize = 0;
             while (index < relays.len) : (index += 1) {
                 _ = parse_relay_url(relays[index]) catch return error.InvalidRelayUrl;
             }
         },
+        .absent, .null_result, .text => return error.InvalidResponse,
     }
 }
 
@@ -1826,9 +1816,9 @@ fn write_response_json(writer: anytype, response: Response) RemoteSigningError!v
     switch (response.result) {
         .absent => {},
         .null_result => try write_all(writer, ",\"result\":null"),
-        .value => |result| {
+        .text, .relays => {
             try write_all(writer, ",\"result\":");
-            try write_result_json(writer, result);
+            try write_result_json(writer, response.result);
         },
     }
     if (response.error_text) |text| {
@@ -1838,17 +1828,18 @@ fn write_response_json(writer: anytype, response: Response) RemoteSigningError!v
     try write_all(writer, "}");
 }
 
-fn write_result_json(writer: anytype, result: ResponseResult) RemoteSigningError!void {
-    std.debug.assert(@sizeOf(ResponseResult) > 0);
+fn write_result_json(writer: anytype, result: Result) RemoteSigningError!void {
+    std.debug.assert(@sizeOf(Result) > 0);
     std.debug.assert(!@inComptime());
 
     switch (result) {
         .text => |text| try write_json_string(writer, text),
-        .relay_list => |relays| {
+        .relays => |relays| {
             try write_byte(writer, '[');
             try write_json_string_array(writer, relays);
             try write_byte(writer, ']');
         },
+        .absent, .null_result => return error.InvalidResponse,
     }
 }
 
@@ -2301,8 +2292,7 @@ test "message parse and serialize roundtrip request and response" {
         "{\"id\":\"42\",\"result\":[\"wss://relay.one\",\"wss://relay.two\"],\"error\":null}";
     const response_message = try message_parse_json(response_json, arena.allocator());
     try std.testing.expect(response_message == .response);
-    try std.testing.expect(response_message.response.result == .value);
-    try std.testing.expect(response_message.response.result.value == .relay_list);
+    try std.testing.expect(response_message.response.result == .relays);
 
     var response_output: [256]u8 = undefined;
     const response_encoded = try message_serialize_json(response_output[0..], response_message);
@@ -2461,17 +2451,17 @@ test "response validation covers ping and signed-event results" {
 
     const ping_ok = Response{
         .id = "a",
-        .result = .{ .value = .{ .text = "pong" } },
+        .result = .{ .text = "pong" },
     };
     try response_validate(&ping_ok, .ping, arena.allocator());
 
     const sign_ok = Response{
         .id = "b",
-        .result = .{ .value = .{
+        .result = .{
             .text = "{\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
                 "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
                 "\"created_at\":1,\"kind\":1,\"tags\":[],\"content\":\"hi\"}",
-        } },
+        },
     };
     try std.testing.expectError(
         error.InvalidSignedEvent,
@@ -2500,16 +2490,16 @@ test "typed response helpers expose current NIP-46 result shapes" {
 
     const connect_ack = Response{
         .id = "connect-1",
-        .result = .{ .value = .{ .text = "ack" } },
+        .result = .{ .text = "ack" },
     };
     const connect_result = try response_result_connect(&connect_ack);
     try std.testing.expect(connect_result == .ack);
 
     const pubkey_response = Response{
         .id = "pubkey-1",
-        .result = .{ .value = .{
+        .result = .{
             .text = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-        } },
+        },
     };
     const pubkey = try response_result_get_public_key(&pubkey_response);
     try std.testing.expectEqualStrings(
@@ -2519,13 +2509,13 @@ test "typed response helpers expose current NIP-46 result shapes" {
 
     const sign_response = Response{
         .id = "sign-1",
-        .result = .{ .value = .{
+        .result = .{
             .text = "{\"id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"," ++
                 "\"pubkey\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
                 "\"created_at\":1,\"kind\":1,\"tags\":[],\"content\":\"ok\"," ++
                 "\"sig\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ++
                 "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}",
-        } },
+        },
     };
     const signed_event = try response_result_sign_event(&sign_response, arena.allocator());
     try std.testing.expectEqual(@as(u32, 1), signed_event.kind);
@@ -2533,7 +2523,7 @@ test "typed response helpers expose current NIP-46 result shapes" {
 
     const relay_response = Response{
         .id = "relay-1",
-        .result = .{ .value = .{ .relay_list = &.{"wss://relay.one"} } },
+        .result = .{ .relays = &.{"wss://relay.one"} },
     };
     const relays = (try response_result_switch_relays(&relay_response)).?;
     try std.testing.expectEqual(@as(usize, 1), relays.len);

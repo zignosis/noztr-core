@@ -68,7 +68,7 @@ These are the quickest symbol-level routes into the modules most downstream user
 - `request_parse_typed`
   - parse typed inbound request bodies
 - `response_result_*`
-  - build typed successful response payloads
+  - parse typed successful response results
 - start example:
   - [remote_signing_recipe.zig](../../examples/remote_signing_recipe.zig)
 - hostile example:

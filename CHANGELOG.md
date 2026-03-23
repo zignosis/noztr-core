@@ -36,6 +36,10 @@ For the public versioning policy, see
   - `nip28_public_chat.BuiltJson`
   - `nip71_video_events.BuiltField`
   - `nip92_media_attachments.BuiltField`
+- flattened the `nip46_remote_signing.Response.result` shape by removing nested response-result
+  wrapper types:
+  - `nip46_remote_signing.ResponsePayload`
+  - `nip46_remote_signing.ResponseResult`
 - downstream callers that reference those public types directly need to update symbol names
 - migration guide:
   - [docs/guides/migrating-from-0.1.0-rc.2.md](docs/guides/migrating-from-0.1.0-rc.2.md)

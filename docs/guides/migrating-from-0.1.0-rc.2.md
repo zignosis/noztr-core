@@ -115,6 +115,34 @@ Example migration shape:
   - `var field: [128]u8 = undefined;`
   - `const text = try imeta_build_field(field[0..], "m", "image/jpeg");`
 
+## Simplified `nip46` Response Results
+
+The `nip46_remote_signing` route also dropped a nested response-result wrapper layer.
+
+Use these public names and shapes now:
+
+- `noztr.nip46_remote_signing.ResponsePayload`
+  - removed
+- `noztr.nip46_remote_signing.ResponseResult`
+  - removed
+- `noztr.nip46_remote_signing.Response.result`
+  - now has type `noztr.nip46_remote_signing.Result`
+- old nested result shape:
+  - `.result = .{ .value = .{ .text = ... } }`
+  - `.result = .{ .value = .{ .relay_list = ... } }`
+- new direct result shape:
+  - `.result = .{ .text = ... }`
+  - `.result = .{ .relays = ... }`
+
+This keeps the same protocol meanings:
+
+- `.absent`
+- `.null_result`
+- `.text`
+- `.relays`
+
+but removes the storage-only `.value` wrapper.
+
 ## Downstream Guidance
 
 If your project depends on `noztr-core`:
@@ -128,8 +156,8 @@ If your project depends on `noztr-core`:
 
 ## Scope
 
-These changes rename public types and remove a small set of pure storage wrappers. They do not
-change:
+These changes rename public types, remove a small set of pure storage wrappers, and flatten one
+NIP-46 response-result wrapper layer. They do not change:
 
 - wire formats
 - ownership model
