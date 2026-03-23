@@ -42,7 +42,7 @@ pub const MediaAttachmentError = error{
 
 pub const Dimensions = nip94_file_metadata.Dimensions;
 
-pub const ImetaInfo = struct {
+pub const Imeta = struct {
     url: []const u8,
     mime_type: ?[]const u8 = null,
     sha256: ?[32]u8 = null,
@@ -94,14 +94,14 @@ const ParseState = struct {
 pub fn imeta_extract(
     tag: nip01_event.EventTag,
     out_fallback_urls: [][]const u8,
-) MediaAttachmentError!ImetaInfo {
+) MediaAttachmentError!Imeta {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(out_fallback_urls.len <= limits.tags_max);
 
     if (tag.items.len < 2) return error.InvalidImetaTag;
     if (!std.mem.eql(u8, tag.items[0], "imeta")) return error.InvalidImetaTag;
 
-    var info = ImetaInfo{ .url = undefined };
+    var info = Imeta{ .url = undefined };
     var state = ParseState{};
     for (tag.items[1..]) |field_text| {
         try apply_field_text(field_text, &state, &info, out_fallback_urls);
@@ -112,7 +112,7 @@ pub fn imeta_extract(
 }
 
 /// Returns whether the inline-media URL appears verbatim in the event content.
-pub fn imeta_matches_content(content: []const u8, info: *const ImetaInfo) bool {
+pub fn imeta_matches_content(content: []const u8, info: *const Imeta) bool {
     std.debug.assert(content.len <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -191,7 +191,7 @@ pub fn imeta_build_tag(
 fn apply_field_text(
     field_text: []const u8,
     state: *ParseState,
-    info: ?*ImetaInfo,
+    info: ?*Imeta,
     out_fallback_urls: [][]const u8,
 ) MediaAttachmentError!void {
     std.debug.assert(field_text.len <= limits.tag_item_bytes_max);
@@ -209,7 +209,7 @@ fn apply_field(
     name: []const u8,
     value: []const u8,
     state: *ParseState,
-    info: ?*ImetaInfo,
+    info: ?*Imeta,
     out_fallback_urls: [][]const u8,
 ) MediaAttachmentError!void {
     std.debug.assert(name.len <= limits.tag_item_bytes_max);
@@ -234,7 +234,7 @@ fn apply_field(
     if (std.mem.eql(u8, name, "service")) return parse_service_field(value, state, info);
 }
 
-fn parse_url_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
+fn parse_url_field(value: []const u8, state: *ParseState, info: ?*Imeta) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -247,7 +247,7 @@ fn parse_url_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) Med
 fn parse_mime_type_field(
     value: []const u8,
     state: *ParseState,
-    info: ?*ImetaInfo,
+    info: ?*Imeta,
 ) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
@@ -259,7 +259,7 @@ fn parse_mime_type_field(
     if (info) |output| output.mime_type = parsed;
 }
 
-fn parse_hash_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
+fn parse_hash_field(value: []const u8, state: *ParseState, info: ?*Imeta) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -273,7 +273,7 @@ fn parse_hash_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) Me
 fn parse_original_hash_field(
     value: []const u8,
     state: *ParseState,
-    info: ?*ImetaInfo,
+    info: ?*Imeta,
 ) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
@@ -285,7 +285,7 @@ fn parse_original_hash_field(
     if (info) |output| output.original_sha256 = parsed;
 }
 
-fn parse_size_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
+fn parse_size_field(value: []const u8, state: *ParseState, info: ?*Imeta) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -299,7 +299,7 @@ fn parse_size_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) Me
 fn parse_dimensions_field(
     value: []const u8,
     state: *ParseState,
-    info: ?*ImetaInfo,
+    info: ?*Imeta,
 ) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
@@ -311,7 +311,7 @@ fn parse_dimensions_field(
     if (info) |output| output.dimensions = parsed;
 }
 
-fn parse_magnet_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
+fn parse_magnet_field(value: []const u8, state: *ParseState, info: ?*Imeta) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -325,7 +325,7 @@ fn parse_magnet_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) 
 fn parse_infohash_field(
     value: []const u8,
     state: *ParseState,
-    info: ?*ImetaInfo,
+    info: ?*Imeta,
 ) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
@@ -340,7 +340,7 @@ fn parse_infohash_field(
 fn parse_blurhash_field(
     value: []const u8,
     state: *ParseState,
-    info: ?*ImetaInfo,
+    info: ?*Imeta,
 ) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
@@ -352,7 +352,7 @@ fn parse_blurhash_field(
     if (info) |output| output.blurhash = parsed;
 }
 
-fn parse_thumb_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
+fn parse_thumb_field(value: []const u8, state: *ParseState, info: ?*Imeta) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -363,7 +363,7 @@ fn parse_thumb_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) M
     if (info) |output| output.thumb_url = parsed;
 }
 
-fn parse_image_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
+fn parse_image_field(value: []const u8, state: *ParseState, info: ?*Imeta) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -374,7 +374,7 @@ fn parse_image_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) M
     if (info) |output| output.image_url = parsed;
 }
 
-fn parse_summary_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
+fn parse_summary_field(value: []const u8, state: *ParseState, info: ?*Imeta) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -385,7 +385,7 @@ fn parse_summary_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo)
     if (info) |output| output.summary = parsed;
 }
 
-fn parse_alt_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) MediaAttachmentError!void {
+fn parse_alt_field(value: []const u8, state: *ParseState, info: ?*Imeta) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
 
@@ -399,7 +399,7 @@ fn parse_alt_field(value: []const u8, state: *ParseState, info: ?*ImetaInfo) Med
 fn parse_fallback_field(
     value: []const u8,
     state: *ParseState,
-    info: ?*ImetaInfo,
+    info: ?*Imeta,
     out_fallback_urls: [][]const u8,
 ) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
@@ -417,7 +417,7 @@ fn parse_fallback_field(
 fn parse_service_field(
     value: []const u8,
     state: *ParseState,
-    info: ?*ImetaInfo,
+    info: ?*Imeta,
 ) MediaAttachmentError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(value.len <= limits.tag_item_bytes_max);
@@ -643,7 +643,7 @@ test "imeta builders create canonical fields and tags" {
 }
 
 test "imeta content match checks exact url presence" {
-    const info = ImetaInfo{ .url = "https://example.com/cat.jpg" };
+    const info = Imeta{ .url = "https://example.com/cat.jpg" };
 
     try std.testing.expect(imeta_matches_content("see https://example.com/cat.jpg now", &info));
     try std.testing.expect(imeta_matches_content("(https://example.com/cat.jpg)", &info));

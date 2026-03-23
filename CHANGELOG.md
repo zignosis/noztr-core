@@ -19,6 +19,14 @@ For the public versioning policy, see
   - `BuiltTag` -> `TagBuilder`
   - `nip17_private_messages.BuiltFileMetadataTag` -> `FileTagBuilder`
   - `nip46_remote_signing.BuiltRequest` -> `RequestBuilder`
+- shortened several primary route-local read-model types:
+  - `ChessPgnInfo` -> `Pgn`
+  - `AppDataInfo` -> `AppData`
+  - `ImetaInfo` -> `Imeta`
+  - `ImageReference` -> `ImageRef`
+  - `FileMetadataInfo` -> `Metadata`
+  - `RelayDiscoveryInfo` -> `Discovery`
+  - `RelayMonitorInfo` -> `Monitor`
 - migration guide:
   - [docs/guides/migrating-from-0.1.0-rc.3.md](docs/guides/migrating-from-0.1.0-rc.3.md)
 

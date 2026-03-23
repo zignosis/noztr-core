@@ -112,3 +112,17 @@ If you are also updating from older release candidates, apply the earlier migrat
 
 - [migrating-from-0.1.0-rc.1.md](migrating-from-0.1.0-rc.1.md)
 - [migrating-from-0.1.0-rc.2.md](migrating-from-0.1.0-rc.2.md)
+
+## Renamed Primary Read Models
+
+The current read-model cleanup also shortens several primary route-local extract types:
+
+- `noztr.nip64_chess_pgn.ChessPgnInfo` -> `noztr.nip64_chess_pgn.Pgn`
+- `noztr.nip78_app_data.AppDataInfo` -> `noztr.nip78_app_data.AppData`
+- `noztr.nip92_media_attachments.ImetaInfo` -> `noztr.nip92_media_attachments.Imeta`
+- `noztr.nip94_file_metadata.ImageReference` -> `noztr.nip94_file_metadata.ImageRef`
+- `noztr.nip94_file_metadata.FileMetadataInfo` -> `noztr.nip94_file_metadata.Metadata`
+- `noztr.nip66_relay_discovery.RelayDiscoveryInfo` -> `noztr.nip66_relay_discovery.Discovery`
+- `noztr.nip66_relay_discovery.RelayMonitorInfo` -> `noztr.nip66_relay_discovery.Monitor`
+
+These are naming cleanups only. They do not change parsing behavior, wire formats, or ownership.

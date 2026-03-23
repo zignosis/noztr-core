@@ -382,7 +382,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nipc0_code_snippets.RepoReference) == type);
     try std.testing.expect(@TypeOf(nipc0_code_snippets.CodeSnippetInfo) == type);
     try std.testing.expect(@TypeOf(nipc0_code_snippets.TagBuilder) == type);
-    try std.testing.expect(@TypeOf(nip64_chess_pgn.ChessPgnInfo) == type);
+    try std.testing.expect(@TypeOf(nip64_chess_pgn.Pgn) == type);
     try std.testing.expect(@TypeOf(nip64_chess_pgn.TagBuilder) == type);
     try std.testing.expect(@TypeOf(nip88_polls.PollType) == type);
     try std.testing.expect(@TypeOf(nip88_polls.Poll) == type);
@@ -491,7 +491,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip75_zap_goals.Goal) == type);
     try std.testing.expect(@TypeOf(nip75_zap_goals.Reference) == type);
     try std.testing.expect(@TypeOf(nip75_zap_goals.TagBuilder) == type);
-    try std.testing.expect(@TypeOf(nip78_app_data.AppDataInfo) == type);
+    try std.testing.expect(@TypeOf(nip78_app_data.AppData) == type);
     try std.testing.expect(@TypeOf(nip78_app_data.TagBuilder) == type);
     try std.testing.expect(@TypeOf(nip89_handlers.Reference) == type);
     try std.testing.expect(@TypeOf(nip89_handlers.Recommendation) == type);
@@ -518,7 +518,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupPutUserInfo) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupRemoveUserInfo) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.TagBuilder) == type);
-    try std.testing.expect(@TypeOf(nip78_app_data.AppDataInfo) == type);
+    try std.testing.expect(@TypeOf(nip78_app_data.AppData) == type);
     try std.testing.expect(@TypeOf(nip78_app_data.TagBuilder) == type);
     try std.testing.expect(
         @TypeOf(nip06_mnemonic.mnemonic_validate) ==

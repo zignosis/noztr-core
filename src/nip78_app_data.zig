@@ -11,7 +11,7 @@ pub const AppDataError = error{
     InvalidIdentifierTag,
 };
 
-pub const AppDataInfo = struct {
+pub const AppData = struct {
     identifier: []const u8,
     content: []const u8,
 };
@@ -37,7 +37,7 @@ pub fn app_data_is_supported(event: *const nip01_event.Event) bool {
 }
 
 /// Extracts the strict `d` identifier and opaque content from a `kind:30078` event.
-pub fn app_data_extract(event: *const nip01_event.Event) AppDataError!AppDataInfo {
+pub fn app_data_extract(event: *const nip01_event.Event) AppDataError!AppData {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 

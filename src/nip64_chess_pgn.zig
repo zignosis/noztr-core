@@ -12,7 +12,7 @@ pub const ChessPgnError = error{
     InvalidPgn,
 };
 
-pub const ChessPgnInfo = struct {
+pub const Pgn = struct {
     content: []const u8,
     alt: ?[]const u8 = null,
     game_count: u16 = 0,
@@ -66,14 +66,14 @@ pub fn chess_pgn_is_supported(event: *const nip01_event.Event) bool {
 }
 
 /// Extracts bounded NIP-64 metadata and validates the PGN database content.
-pub fn chess_pgn_extract(event: *const nip01_event.Event) ChessPgnError!ChessPgnInfo {
+pub fn chess_pgn_extract(event: *const nip01_event.Event) ChessPgnError!Pgn {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
     if (event.kind != chess_pgn_kind) return error.UnsupportedKind;
     const game_count = try chess_pgn_validate(event.content);
 
-    var info = ChessPgnInfo{
+    var info = Pgn{
         .content = event.content,
         .game_count = game_count,
     };
@@ -114,7 +114,7 @@ pub fn chess_pgn_build_alt_tag(
     return output.as_event_tag();
 }
 
-fn apply_tag(tag: nip01_event.EventTag, info: *ChessPgnInfo) ChessPgnError!void {
+fn apply_tag(tag: nip01_event.EventTag, info: *Pgn) ChessPgnError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 

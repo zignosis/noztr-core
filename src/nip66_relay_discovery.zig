@@ -64,7 +64,7 @@ pub const RelayMonitorTimeout = struct {
     milliseconds: u32,
 };
 
-pub const RelayDiscoveryInfo = struct {
+pub const Discovery = struct {
     identity: RelayIdentity,
     content: []const u8,
     open_rtt_ms: ?u32 = null,
@@ -79,7 +79,7 @@ pub const RelayDiscoveryInfo = struct {
     kind_policy_count: u16 = 0,
 };
 
-pub const RelayMonitorInfo = struct {
+pub const Monitor = struct {
     content: []const u8,
     frequency_seconds: u64,
     geohash: ?[]const u8 = null,
@@ -107,14 +107,14 @@ pub fn relay_discovery_extract(
     out_requirements: []RelayRequirement,
     out_topics: [][]const u8,
     out_kind_policies: []RelayKindPolicy,
-) RelayDiscoveryError!RelayDiscoveryInfo {
+) RelayDiscoveryError!Discovery {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_supported_nips.len <= limits.tags_max);
 
     if (event.kind != discovery_kind) return error.InvalidDiscoveryKind;
 
     var identity: ?RelayIdentity = null;
-    var info = RelayDiscoveryInfo{
+    var info = Discovery{
         .identity = undefined,
         .content = event.content,
     };
@@ -138,14 +138,14 @@ pub fn relay_monitor_extract(
     event: *const nip01_event.Event,
     out_timeouts: []RelayMonitorTimeout,
     out_checks: [][]const u8,
-) RelayDiscoveryError!RelayMonitorInfo {
+) RelayDiscoveryError!Monitor {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_checks.len <= limits.tags_max);
 
     if (event.kind != monitor_kind) return error.InvalidMonitorKind;
 
     var saw_frequency = false;
-    var info = RelayMonitorInfo{
+    var info = Monitor{
         .content = event.content,
         .frequency_seconds = 0,
     };
@@ -385,7 +385,7 @@ pub fn relay_monitor_build_geohash_tag(
 fn apply_discovery_tag(
     tag: nip01_event.EventTag,
     identity: *?RelayIdentity,
-    info: *RelayDiscoveryInfo,
+    info: *Discovery,
     out_supported_nips: []u16,
     out_requirements: []RelayRequirement,
     out_topics: [][]const u8,
@@ -457,7 +457,7 @@ fn apply_discovery_tag(
 fn apply_monitor_tag(
     tag: nip01_event.EventTag,
     saw_frequency: *bool,
-    info: *RelayMonitorInfo,
+    info: *Monitor,
     out_timeouts: []RelayMonitorTimeout,
     out_checks: [][]const u8,
 ) RelayDiscoveryError!void {
@@ -537,7 +537,7 @@ fn apply_text_tag(
 
 fn append_supported_nip(
     tag: nip01_event.EventTag,
-    info: *RelayDiscoveryInfo,
+    info: *Discovery,
     out_supported_nips: []u16,
 ) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -553,7 +553,7 @@ fn append_supported_nip(
 
 fn append_requirement(
     tag: nip01_event.EventTag,
-    info: *RelayDiscoveryInfo,
+    info: *Discovery,
     out_requirements: []RelayRequirement,
 ) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -569,7 +569,7 @@ fn append_requirement(
 
 fn append_topic(
     tag: nip01_event.EventTag,
-    info: *RelayDiscoveryInfo,
+    info: *Discovery,
     out_topics: [][]const u8,
 ) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -583,7 +583,7 @@ fn append_topic(
 
 fn append_kind_policy(
     tag: nip01_event.EventTag,
-    info: *RelayDiscoveryInfo,
+    info: *Discovery,
     out_kind_policies: []RelayKindPolicy,
 ) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -600,7 +600,7 @@ fn append_kind_policy(
 fn apply_frequency_tag(
     tag: nip01_event.EventTag,
     saw_frequency: *bool,
-    info: *RelayMonitorInfo,
+    info: *Monitor,
 ) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(saw_frequency) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -613,7 +613,7 @@ fn apply_frequency_tag(
 
 fn append_timeout(
     tag: nip01_event.EventTag,
-    info: *RelayMonitorInfo,
+    info: *Monitor,
     out_timeouts: []RelayMonitorTimeout,
 ) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -626,7 +626,7 @@ fn append_timeout(
 
 fn append_check(
     tag: nip01_event.EventTag,
-    info: *RelayMonitorInfo,
+    info: *Monitor,
     out_checks: [][]const u8,
 ) RelayDiscoveryError!void {
     std.debug.assert(@intFromPtr(info) != 0);

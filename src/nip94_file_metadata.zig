@@ -48,12 +48,12 @@ pub const Dimensions = struct {
     height: u32,
 };
 
-pub const ImageReference = struct {
+pub const ImageRef = struct {
     url: []const u8,
     sha256: ?[32]u8 = null,
 };
 
-pub const FileMetadataInfo = struct {
+pub const Metadata = struct {
     url: []const u8,
     mime_type: []const u8,
     sha256: [32]u8,
@@ -63,8 +63,8 @@ pub const FileMetadataInfo = struct {
     magnet: ?[]const u8 = null,
     infohash: ?[]const u8 = null,
     blurhash: ?[]const u8 = null,
-    thumb: ?ImageReference = null,
-    image: ?ImageReference = null,
+    thumb: ?ImageRef = null,
+    image: ?ImageRef = null,
     summary: ?[]const u8 = null,
     alt: ?[]const u8 = null,
     service: ?[]const u8 = null,
@@ -93,13 +93,13 @@ pub const TagBuilder = struct {
 pub fn file_metadata_extract(
     event: *const nip01_event.Event,
     out_fallback_urls: [][]const u8,
-) FileMetadataError!FileMetadataInfo {
+) FileMetadataError!Metadata {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_fallback_urls.len <= limits.tags_max);
 
     if (event.kind != file_metadata_kind) return error.InvalidFileMetadataKind;
 
-    var info = FileMetadataInfo{
+    var info = Metadata{
         .url = undefined,
         .mime_type = undefined,
         .sha256 = undefined,
@@ -364,7 +364,7 @@ const ParseState = struct {
 fn apply_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
     out_fallback_urls: [][]const u8,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
@@ -393,7 +393,7 @@ fn apply_tag(
 fn parse_url_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -406,7 +406,7 @@ fn parse_url_tag(
 fn parse_mime_type_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -419,7 +419,7 @@ fn parse_mime_type_tag(
 fn parse_hash_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -432,7 +432,7 @@ fn parse_hash_tag(
 fn parse_original_hash_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -445,7 +445,7 @@ fn parse_original_hash_tag(
 fn parse_size_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -458,7 +458,7 @@ fn parse_size_tag(
 fn parse_dimensions_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -471,7 +471,7 @@ fn parse_dimensions_tag(
 fn parse_magnet_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -484,7 +484,7 @@ fn parse_magnet_tag(
 fn parse_infohash_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -497,7 +497,7 @@ fn parse_infohash_tag(
 fn parse_blurhash_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -510,7 +510,7 @@ fn parse_blurhash_tag(
 fn parse_thumb_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -523,7 +523,7 @@ fn parse_thumb_tag(
 fn parse_image_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -536,7 +536,7 @@ fn parse_image_tag(
 fn parse_summary_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -549,7 +549,7 @@ fn parse_summary_tag(
 fn parse_alt_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -561,7 +561,7 @@ fn parse_alt_tag(
 
 fn parse_fallback_tag(
     tag: nip01_event.EventTag,
-    info: *FileMetadataInfo,
+    info: *Metadata,
     out_fallback_urls: [][]const u8,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -578,7 +578,7 @@ fn parse_fallback_tag(
 fn parse_service_tag(
     tag: nip01_event.EventTag,
     state: *ParseState,
-    info: *FileMetadataInfo,
+    info: *Metadata,
 ) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
@@ -588,7 +588,7 @@ fn parse_service_tag(
     state.saw_service = true;
 }
 
-fn require_required_tags(state: *const ParseState, info: *const FileMetadataInfo) FileMetadataError!void {
+fn require_required_tags(state: *const ParseState, info: *const Metadata) FileMetadataError!void {
     std.debug.assert(@intFromPtr(state) != 0);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -597,12 +597,12 @@ fn require_required_tags(state: *const ParseState, info: *const FileMetadataInfo
     if (!state.saw_hash) return error.MissingHashTag;
 }
 
-fn parse_image_reference(tag: nip01_event.EventTag, invalid: FileMetadataError) FileMetadataError!ImageReference {
+fn parse_image_reference(tag: nip01_event.EventTag, invalid: FileMetadataError) FileMetadataError!ImageRef {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(invalid == error.InvalidThumbTag or invalid == error.InvalidImageTag);
 
     if (tag.items.len != 2 and tag.items.len != 3) return invalid;
-    var parsed = ImageReference{
+    var parsed = ImageRef{
         .url = try parse_required_image_url_item(tag, invalid),
         .sha256 = null,
     };
