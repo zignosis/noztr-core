@@ -27,6 +27,7 @@ Use the guides when you need narrative help:
 
 - [technical guides](guides/technical-guides.md)
 - [migrating from 0.1.0-rc.1](guides/migrating-from-0.1.0-rc.1.md)
+- [release signoff checklist](guides/release-signoff-checklist.md)
 - [NOZTR Style](guides/noztr-style.md)
 - [Docs style guide](guides/docs-style-guide.md)
 - [Zig patterns](guides/zig-patterns.md)

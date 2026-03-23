@@ -56,8 +56,10 @@ Release type: <rc | additive | corrective | breaking>
 
 ## Verification
 
+- `zig build lint`
 - `zig build test --summary all`
 - `zig build`
+- `zig build release-check`
 - <any public benchmark or stress rerun if relevant>
 
 ## Upgrade Guidance
@@ -74,6 +76,8 @@ Every real release note should say explicitly:
 - whether typed public error contracts changed
 - whether ownership or scratch expectations changed
 - whether any kernel-vs-SDK or split-surface boundary changed
+
+Before publication, also check [guides/release-signoff-checklist.md](guides/release-signoff-checklist.md).
 
 ## Current First-Release Guidance
 

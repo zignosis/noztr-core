@@ -61,6 +61,12 @@ zig build test --summary all
 zig build
 ```
 
+For release-candidate prep or longer-budget validation, also run:
+
+```bash
+zig build release-check
+```
+
 `zig build test` currently exercises three suites:
 
 - the full root-module suite
@@ -176,6 +182,7 @@ See:
 
 - [docs/stability-and-versioning.md](docs/stability-and-versioning.md)
 - [docs/release-notes-template.md](docs/release-notes-template.md)
+- [docs/guides/release-signoff-checklist.md](docs/guides/release-signoff-checklist.md)
 - [CHANGELOG.md](CHANGELOG.md)
 
 Short version:

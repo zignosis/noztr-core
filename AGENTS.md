@@ -36,6 +36,7 @@ Then choose the right public guide:
   - `docs/errors-and-ownership.md`
   - `docs/compatibility-and-support.md`
   - `docs/stability-and-versioning.md`
+  - `docs/guides/release-signoff-checklist.md`
   - `docs/performance.md`
 
 ## Scope
@@ -64,6 +65,12 @@ Run these after code changes:
 zig build lint
 zig build test --summary all
 zig build
+```
+
+For RC prep or longer-budget release confidence work, also run:
+
+```bash
+zig build release-check
 ```
 
 For docs-only changes, at minimum run:

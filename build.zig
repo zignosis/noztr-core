@@ -60,8 +60,23 @@ pub fn build(builder: *std.Build) void {
     test_step.dependOn(&run_unit_tests_core_only.step);
     add_example_test_step(builder, test_step, "examples");
     add_lint_steps(builder);
-    add_empirical_benchmark_step(builder, target, optimize, root_module);
-    add_rc_stress_throughput_step(builder, target, optimize, root_module);
+    const imported_input_fuzz_step = add_imported_input_fuzz_step(
+        builder,
+        target,
+        optimize,
+        root_module,
+    );
+    const empirical_benchmark_step = add_empirical_benchmark_step(builder, target, optimize, root_module);
+    const rc_stress_step = add_rc_stress_throughput_step(builder, target, optimize, root_module);
+    const release_artifacts_step = add_release_artifact_steps(builder, static_library);
+    add_release_check_step(
+        builder,
+        test_step,
+        imported_input_fuzz_step,
+        empirical_benchmark_step,
+        rc_stress_step,
+        release_artifacts_step,
+    );
 }
 
 fn add_lint_steps(builder: *std.Build) void {
@@ -91,12 +106,91 @@ fn add_lint_steps(builder: *std.Build) void {
     lint_step.dependOn(&fmt_check.step);
 }
 
+fn add_release_check_step(
+    builder: *std.Build,
+    test_step: *std.Build.Step,
+    imported_input_fuzz_step: *std.Build.Step,
+    empirical_benchmark_step: *std.Build.Step,
+    rc_stress_step: *std.Build.Step,
+    release_artifacts_step: *std.Build.Step,
+) void {
+    std.debug.assert(@sizeOf(std.Build.Step) > 0);
+
+    const release_check_step = builder.step(
+        "release-check",
+        "Run the longer-budget release confidence gate",
+    );
+    release_check_step.dependOn(builder.getInstallStep());
+    release_check_step.dependOn(test_step);
+    release_check_step.dependOn(imported_input_fuzz_step);
+    release_check_step.dependOn(empirical_benchmark_step);
+    release_check_step.dependOn(rc_stress_step);
+    release_check_step.dependOn(release_artifacts_step);
+}
+
+fn add_release_artifact_steps(
+    builder: *std.Build,
+    static_library: *std.Build.Step.Compile,
+) *std.Build.Step {
+    std.debug.assert(@sizeOf(std.Build.Step.Compile) > 0);
+
+    const artifact_dir = builder.pathJoin(&.{ builder.install_path, "release" });
+    const library_path = builder.pathJoin(&.{ builder.install_path, "lib", "libnoztr.a" });
+
+    const release_artifacts = builder.addSystemCommand(&.{
+        "python3",
+        "tools/release/generate_release_artifacts.py",
+        "--zon",
+        "build.zig.zon",
+        "--artifact",
+        library_path,
+        "--out-dir",
+        artifact_dir,
+    });
+    release_artifacts.step.dependOn(builder.getInstallStep());
+    release_artifacts.step.dependOn(&static_library.step);
+
+    const release_artifacts_step = builder.step(
+        "release-artifacts",
+        "Generate release checksum and manifest outputs",
+    );
+    release_artifacts_step.dependOn(&release_artifacts.step);
+    return release_artifacts_step;
+}
+
+fn add_imported_input_fuzz_step(
+    builder: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    root_module: *std.Build.Module,
+) *std.Build.Step {
+    std.debug.assert(@sizeOf(std.Build.Step) > 0);
+    std.debug.assert(@sizeOf(std.Build.Module) > 0);
+
+    const fuzz_module = builder.createModule(.{
+        .root_source_file = builder.path("tools/fuzz/imported_input_properties.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    fuzz_module.addImport("noztr", root_module);
+    const fuzz_tests = builder.addTest(.{
+        .root_module = fuzz_module,
+    });
+    const run_fuzz_tests = builder.addRunArtifact(fuzz_tests);
+    const fuzz_step = builder.step(
+        "imported-input-fuzz",
+        "Run deterministic hostile imported-input property checks",
+    );
+    fuzz_step.dependOn(&run_fuzz_tests.step);
+    return fuzz_step;
+}
+
 fn add_empirical_benchmark_step(
     builder: *std.Build,
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     root_module: *std.Build.Module,
-) void {
+) *std.Build.Step {
     std.debug.assert(@sizeOf(std.Build.Step) > 0);
     std.debug.assert(@sizeOf(std.Build.Module) > 0);
 
@@ -117,6 +211,7 @@ fn add_empirical_benchmark_step(
         "Run the empirical benchmark supplement harness",
     );
     benchmark_step.dependOn(&run_benchmark.step);
+    return benchmark_step;
 }
 
 fn add_rc_stress_throughput_step(
@@ -124,7 +219,7 @@ fn add_rc_stress_throughput_step(
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     root_module: *std.Build.Module,
-) void {
+) *std.Build.Step {
     std.debug.assert(@sizeOf(std.Build.Step) > 0);
     std.debug.assert(@sizeOf(std.Build.Module) > 0);
 
@@ -166,6 +261,7 @@ fn add_rc_stress_throughput_step(
     benchmark_soak_step.dependOn(&run_benchmark_soak.step);
     benchmark_csv_step.dependOn(&run_benchmark_csv.step);
     benchmark_markdown_step.dependOn(&run_benchmark_markdown.step);
+    return benchmark_step;
 }
 
 fn create_root_module(
