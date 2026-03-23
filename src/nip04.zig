@@ -48,7 +48,7 @@ pub const ReplyRef = struct {
     relay_hint: ?[]const u8 = null,
 };
 
-pub const MessageInfo = struct {
+pub const Message = struct {
     recipient_pubkey: [32]u8,
     recipient_relay_hint: ?[]const u8 = null,
     reply_to: ?ReplyRef = null,
@@ -225,13 +225,13 @@ pub fn nip04_decrypt_with_shared_secret(
 }
 
 /// Parse a strict `kind:4` DM event shape.
-pub fn nip04_message_parse(event: *const nip01_event.Event) LegacyDmError!MessageInfo {
+pub fn nip04_message_parse(event: *const nip01_event.Event) LegacyDmError!Message {
     std.debug.assert(@intFromPtr(event) != 0);
 
     if (event.kind != dm_kind) return error.InvalidMessageKind;
     _ = try nip04_payload_parse(event.content);
 
-    var info = MessageInfo{
+    var info = Message{
         .recipient_pubkey = undefined,
         .content = event.content,
     };
@@ -402,7 +402,7 @@ fn remove_pkcs7_padding(output: []u8, padded_plaintext: []const u8) LegacyDmErro
 
 fn parse_message_tag(
     tag: nip01_event.EventTag,
-    info: *MessageInfo,
+    info: *Message,
     saw_recipient: *bool,
 ) LegacyDmError!void {
     if (tag.items.len == 0) return;
@@ -412,7 +412,7 @@ fn parse_message_tag(
 
 fn parse_recipient_tag(
     tag: nip01_event.EventTag,
-    info: *MessageInfo,
+    info: *Message,
     saw_recipient: *bool,
 ) LegacyDmError!void {
     if (saw_recipient.*) return error.DuplicateRecipientTag;
@@ -426,7 +426,7 @@ fn parse_recipient_tag(
     saw_recipient.* = true;
 }
 
-fn parse_reply_tag(tag: nip01_event.EventTag, info: *MessageInfo) LegacyDmError!void {
+fn parse_reply_tag(tag: nip01_event.EventTag, info: *Message) LegacyDmError!void {
     if (info.reply_to != null) return error.DuplicateReplyTag;
     if (tag.items.len < 2 or tag.items.len > 5) return error.InvalidReplyTag;
 
@@ -722,8 +722,8 @@ test "nip04 payload parse distinguishes iv and ciphertext length failures" {
         nip04_payload_serialize(invalid_iv_payload[0..], valid_ciphertext_b64, short_iv_b64),
     );
 
-    const short_ciphertext = [_]u8{0} ** 15;
-    var short_ciphertext_b64_storage: [20]u8 = undefined;
+    const short_ciphertext = [_]u8{0} ** 17;
+    var short_ciphertext_b64_storage: [24]u8 = undefined;
     const short_ciphertext_b64 = base64_standard.Encoder.encode(
         short_ciphertext_b64_storage[0..],
         short_ciphertext[0..],

@@ -345,8 +345,9 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip28_public_chat.MuteUser) == type);
     try std.testing.expect(@TypeOf(nip30_custom_emoji.EmojiTag) == type);
     try std.testing.expect(@TypeOf(nipb0_web_bookmarking.Bookmark) == type);
+    try std.testing.expect(@TypeOf(nip04.Message) == type);
     try std.testing.expect(@TypeOf(nip18_reposts.RepostTarget) == type);
-    try std.testing.expect(@TypeOf(nip22_comments.CommentInfo) == type);
+    try std.testing.expect(@TypeOf(nip22_comments.Comment) == type);
     try std.testing.expect(@TypeOf(nip27_references.ContentReference) == type);
     try std.testing.expect(@TypeOf(nip25_reactions.ReactionTarget) == type);
     try std.testing.expect(@TypeOf(nip51_lists.TagBuilder) == type);
@@ -507,18 +508,22 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip84_highlights.HighlightAttribution) == type);
     try std.testing.expect(@TypeOf(nip84_highlights.Highlight) == type);
     try std.testing.expect(@TypeOf(nip84_highlights.TagBuilder) == type);
+    try std.testing.expect(@TypeOf(nip72_moderated_communities.Community) == type);
+    try std.testing.expect(@TypeOf(nip72_moderated_communities.EventRef) == type);
+    try std.testing.expect(@TypeOf(nip72_moderated_communities.Post) == type);
+    try std.testing.expect(@TypeOf(nip72_moderated_communities.Approval) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupMetadata) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupAdmin) == type);
-    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupReference) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.Reference) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupMember) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupRole) == type);
-    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupAdminsInfo) == type);
-    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupMembersInfo) == type);
-    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupRolesInfo) == type);
-    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupJoinRequestInfo) == type);
-    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupLeaveRequestInfo) == type);
-    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupPutUserInfo) == type);
-    try std.testing.expect(@TypeOf(nip29_relay_groups.GroupRemoveUserInfo) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.Admins) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.Members) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.Roles) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.JoinRequest) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.LeaveRequest) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.PutUser) == type);
+    try std.testing.expect(@TypeOf(nip29_relay_groups.RemoveUser) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.TagBuilder) == type);
     try std.testing.expect(@TypeOf(nip78_app_data.AppData) == type);
     try std.testing.expect(@TypeOf(nip78_app_data.TagBuilder) == type);
@@ -606,14 +611,14 @@ test "root exports limits and error namespaces" {
     );
     try std.testing.expect(
         @TypeOf(nip29_relay_groups.group_reference_parse) ==
-            fn ([]const u8) nip29_relay_groups.GroupError!nip29_relay_groups.GroupReference,
+            fn ([]const u8) nip29_relay_groups.GroupError!nip29_relay_groups.Reference,
     );
     try std.testing.expect(
         @TypeOf(nip29_relay_groups.group_roles_extract) ==
             fn (
                 *const nip01_event.Event,
                 []nip29_relay_groups.GroupRole,
-            ) nip29_relay_groups.GroupError!nip29_relay_groups.GroupRolesInfo,
+            ) nip29_relay_groups.GroupError!nip29_relay_groups.Roles,
     );
     try std.testing.expect(
         @TypeOf(nip03_opentimestamps.opentimestamps_build_event_tag) ==
@@ -693,7 +698,7 @@ test "root exports limits and error namespaces" {
                 *const nip01_event.Event,
                 []nip29_relay_groups.GroupAdmin,
                 [][]const u8,
-            ) nip29_relay_groups.GroupError!nip29_relay_groups.GroupAdminsInfo,
+            ) nip29_relay_groups.GroupError!nip29_relay_groups.Admins,
     );
     try std.testing.expect(
         @TypeOf(nip29_relay_groups.group_state_apply_event) ==
@@ -714,7 +719,7 @@ test "root exports limits and error namespaces" {
             fn (
                 *const nip01_event.Event,
                 []nip29_relay_groups.GroupMember,
-            ) nip29_relay_groups.GroupError!nip29_relay_groups.GroupMembersInfo,
+            ) nip29_relay_groups.GroupError!nip29_relay_groups.Members,
     );
     try std.testing.expect(
         @TypeOf(nip24_extra_metadata.common_tags_extract) ==
@@ -822,7 +827,7 @@ test "root exports limits and error namespaces" {
         @TypeOf(nip22_comments.comment_parse) ==
             fn (
                 *const nip01_event.Event,
-            ) nip22_comments.CommentError!nip22_comments.CommentInfo,
+            ) nip22_comments.CommentError!nip22_comments.Comment,
     );
     try std.testing.expect(
         @TypeOf(nip27_references.reference_extract) ==

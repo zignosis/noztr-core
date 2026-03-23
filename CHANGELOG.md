@@ -23,6 +23,7 @@ For the public versioning policy, see
   - `DmReplyRef` -> `ReplyRef`
   - `DmMessageInfo` -> `Message`
   - `FileMessageInfo` -> `FileMessage`
+  - `MessageInfo` -> `Message` in `nip04`
   - `EmojiTagInfo` -> `EmojiTag`
   - `ContentWarningInfo` -> `ContentWarning`
   - `RepositoryAnnouncementInfo` -> `Announcement`
@@ -40,6 +41,11 @@ For the public versioning policy, see
   - `TextTrackInfo` -> `TextTrack`
   - `OriginInfo` -> `Origin`
   - `VideoInfo` -> `Video`
+  - `CommentInfo` -> `Comment`
+  - `CommunityInfo` -> `Community`
+  - `EventReference` -> `EventRef` in `nip72_moderated_communities`
+  - `CommunityPostInfo` -> `Post`
+  - `CommunityApprovalInfo` -> `Approval`
   - `AppDataInfo` -> `AppData`
   - `UrlReference` -> `UrlRef`
   - `HighlightInfo` -> `Highlight`
@@ -50,6 +56,14 @@ For the public versioning policy, see
   - `FileMetadataInfo` -> `Metadata`
   - `RelayDiscoveryInfo` -> `Discovery`
   - `RelayMonitorInfo` -> `Monitor`
+  - `GroupReference` -> `Reference`
+  - `GroupAdminsInfo` -> `Admins`
+  - `GroupMembersInfo` -> `Members`
+  - `GroupRolesInfo` -> `Roles`
+  - `GroupJoinRequestInfo` -> `JoinRequest`
+  - `GroupLeaveRequestInfo` -> `LeaveRequest`
+  - `GroupPutUserInfo` -> `PutUser`
+  - `GroupRemoveUserInfo` -> `RemoveUser`
   - `WebBookmarkInfo` -> `Bookmark`
   - `BlossomServerListInfo` -> `ServerList`
   - `BlobReference` -> `BlobRef`

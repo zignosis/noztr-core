@@ -120,6 +120,7 @@ The current read-model cleanup also shortens several primary route-local extract
 - `noztr.nip17_private_messages.DmReplyRef` -> `noztr.nip17_private_messages.ReplyRef`
 - `noztr.nip17_private_messages.DmMessageInfo` -> `noztr.nip17_private_messages.Message`
 - `noztr.nip17_private_messages.FileMessageInfo` -> `noztr.nip17_private_messages.FileMessage`
+- `noztr.nip04.MessageInfo` -> `noztr.nip04.Message`
 - `noztr.nip30_custom_emoji.EmojiTagInfo` -> `noztr.nip30_custom_emoji.EmojiTag`
 - `noztr.nip36_content_warning.ContentWarningInfo` -> `noztr.nip36_content_warning.ContentWarning`
 - `noztr.nip34_git.RepositoryAnnouncementInfo` -> `noztr.nip34_git.Announcement`
@@ -140,6 +141,10 @@ The current read-model cleanup also shortens several primary route-local extract
 - `noztr.nip78_app_data.AppDataInfo` -> `noztr.nip78_app_data.AppData`
 - `noztr.nip84_highlights.UrlReference` -> `noztr.nip84_highlights.UrlRef`
 - `noztr.nip84_highlights.HighlightInfo` -> `noztr.nip84_highlights.Highlight`
+- `noztr.nip72_moderated_communities.CommunityInfo` -> `noztr.nip72_moderated_communities.Community`
+- `noztr.nip72_moderated_communities.EventReference` -> `noztr.nip72_moderated_communities.EventRef`
+- `noztr.nip72_moderated_communities.CommunityPostInfo` -> `noztr.nip72_moderated_communities.Post`
+- `noztr.nip72_moderated_communities.CommunityApprovalInfo` -> `noztr.nip72_moderated_communities.Approval`
 - `noztr.nip99_classified_listings.PriceInfo` -> `noztr.nip99_classified_listings.Price`
 - `noztr.nip99_classified_listings.ImageInfo` -> `noztr.nip99_classified_listings.Image`
 - `noztr.nip92_media_attachments.ImetaInfo` -> `noztr.nip92_media_attachments.Imeta`
@@ -147,6 +152,15 @@ The current read-model cleanup also shortens several primary route-local extract
 - `noztr.nip94_file_metadata.FileMetadataInfo` -> `noztr.nip94_file_metadata.Metadata`
 - `noztr.nip66_relay_discovery.RelayDiscoveryInfo` -> `noztr.nip66_relay_discovery.Discovery`
 - `noztr.nip66_relay_discovery.RelayMonitorInfo` -> `noztr.nip66_relay_discovery.Monitor`
+- `noztr.nip22_comments.CommentInfo` -> `noztr.nip22_comments.Comment`
+- `noztr.nip29_relay_groups.GroupReference` -> `noztr.nip29_relay_groups.Reference`
+- `noztr.nip29_relay_groups.GroupAdminsInfo` -> `noztr.nip29_relay_groups.Admins`
+- `noztr.nip29_relay_groups.GroupMembersInfo` -> `noztr.nip29_relay_groups.Members`
+- `noztr.nip29_relay_groups.GroupRolesInfo` -> `noztr.nip29_relay_groups.Roles`
+- `noztr.nip29_relay_groups.GroupJoinRequestInfo` -> `noztr.nip29_relay_groups.JoinRequest`
+- `noztr.nip29_relay_groups.GroupLeaveRequestInfo` -> `noztr.nip29_relay_groups.LeaveRequest`
+- `noztr.nip29_relay_groups.GroupPutUserInfo` -> `noztr.nip29_relay_groups.PutUser`
+- `noztr.nip29_relay_groups.GroupRemoveUserInfo` -> `noztr.nip29_relay_groups.RemoveUser`
 - `noztr.nipb0_web_bookmarking.WebBookmarkInfo` -> `noztr.nipb0_web_bookmarking.Bookmark`
 - `noztr.nipb7_blossom_servers.BlossomServerListInfo` -> `noztr.nipb7_blossom_servers.ServerList`
 - `noztr.nipb7_blossom_servers.BlobReference` -> `noztr.nipb7_blossom_servers.BlobRef`

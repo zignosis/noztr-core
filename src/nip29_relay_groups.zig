@@ -83,7 +83,7 @@ pub const GroupAdmin = struct {
     roles: []const []const u8,
 };
 
-pub const GroupReference = struct {
+pub const Reference = struct {
     host: []const u8,
     id: []const u8,
 };
@@ -100,35 +100,35 @@ pub const GroupRole = struct {
     description: ?[]const u8 = null,
 };
 
-pub const GroupAdminsInfo = struct {
+pub const Admins = struct {
     group_id: []const u8,
     admins: []const GroupAdmin,
 };
 
-pub const GroupMembersInfo = struct {
+pub const Members = struct {
     group_id: []const u8,
     members: []const GroupMember,
 };
 
-pub const GroupRolesInfo = struct {
+pub const Roles = struct {
     group_id: []const u8,
     roles: []const GroupRole,
 };
 
-pub const GroupJoinRequestInfo = struct {
+pub const JoinRequest = struct {
     group_id: []const u8,
     invite_code: ?[]const u8 = null,
     reason: ?[]const u8 = null,
     previous_refs: []const []const u8,
 };
 
-pub const GroupLeaveRequestInfo = struct {
+pub const LeaveRequest = struct {
     group_id: []const u8,
     reason: ?[]const u8 = null,
     previous_refs: []const []const u8,
 };
 
-pub const GroupPutUserInfo = struct {
+pub const PutUser = struct {
     group_id: []const u8,
     pubkey: [32]u8,
     roles: []const []const u8,
@@ -136,7 +136,7 @@ pub const GroupPutUserInfo = struct {
     previous_refs: []const []const u8,
 };
 
-pub const GroupRemoveUserInfo = struct {
+pub const RemoveUser = struct {
     group_id: []const u8,
     pubkey: [32]u8,
     reason: ?[]const u8 = null,
@@ -222,7 +222,7 @@ pub fn group_admins_extract(
     event: *const nip01_event.Event,
     out_admins: []GroupAdmin,
     out_roles: [][]const u8,
-) GroupError!GroupAdminsInfo {
+) GroupError!Admins {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_admins.len <= limits.tags_max);
 
@@ -245,7 +245,7 @@ pub fn group_admins_extract(
 pub fn group_members_extract(
     event: *const nip01_event.Event,
     out_members: []GroupMember,
-) GroupError!GroupMembersInfo {
+) GroupError!Members {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_members.len <= limits.tags_max);
 
@@ -264,7 +264,7 @@ pub fn group_members_extract(
 }
 
 /// Parse a raw `<host>'<group-id>` group reference. Host-only input defaults `id` to `_`.
-pub fn group_reference_parse(text: []const u8) GroupError!GroupReference {
+pub fn group_reference_parse(text: []const u8) GroupError!Reference {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
@@ -284,7 +284,7 @@ pub fn group_reference_parse(text: []const u8) GroupError!GroupReference {
 }
 
 /// Build a raw `<host>'<group-id>` group reference.
-pub fn group_reference_build(output: []u8, reference: *const GroupReference) GroupError![]const u8 {
+pub fn group_reference_build(output: []u8, reference: *const Reference) GroupError![]const u8 {
     std.debug.assert(output.len <= limits.content_bytes_max);
     std.debug.assert(@intFromPtr(reference) != 0);
 
@@ -299,7 +299,7 @@ pub fn group_reference_build(output: []u8, reference: *const GroupReference) Gro
 pub fn group_roles_extract(
     event: *const nip01_event.Event,
     out_roles: []GroupRole,
-) GroupError!GroupRolesInfo {
+) GroupError!Roles {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_roles.len <= limits.tags_max);
 
@@ -367,7 +367,7 @@ pub fn group_state_apply_events(
 pub fn group_join_request_extract(
     event: *const nip01_event.Event,
     previous_out: [][]const u8,
-) GroupError!GroupJoinRequestInfo {
+) GroupError!JoinRequest {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(previous_out.len <= limits.tags_max);
 
@@ -379,7 +379,7 @@ pub fn group_join_request_extract(
 pub fn group_leave_request_extract(
     event: *const nip01_event.Event,
     previous_out: [][]const u8,
-) GroupError!GroupLeaveRequestInfo {
+) GroupError!LeaveRequest {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(previous_out.len <= limits.tags_max);
 
@@ -392,7 +392,7 @@ pub fn group_put_user_extract(
     event: *const nip01_event.Event,
     out_roles: [][]const u8,
     out_previous: [][]const u8,
-) GroupError!GroupPutUserInfo {
+) GroupError!PutUser {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_roles.len <= limits.tags_max);
 
@@ -404,7 +404,7 @@ pub fn group_put_user_extract(
 pub fn group_remove_user_extract(
     event: *const nip01_event.Event,
     out_previous: [][]const u8,
-) GroupError!GroupRemoveUserInfo {
+) GroupError!RemoveUser {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_previous.len <= limits.tags_max);
 
@@ -833,11 +833,11 @@ fn parse_role_tag(
 fn extract_join_request(
     event: *const nip01_event.Event,
     previous_out: [][]const u8,
-) GroupError!GroupJoinRequestInfo {
+) GroupError!JoinRequest {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(previous_out.len <= limits.tags_max);
 
-    var info = GroupJoinRequestInfo{
+    var info = JoinRequest{
         .group_id = "",
         .reason = parse_optional_reason(event.content) catch return error.InvalidGroupTag,
         .previous_refs = previous_out[0..0],
@@ -854,7 +854,7 @@ fn extract_join_request(
 
 fn apply_join_request_tag(
     tag: nip01_event.EventTag,
-    info: *GroupJoinRequestInfo,
+    info: *JoinRequest,
     previous_out: [][]const u8,
     previous_count: *u16,
     saw_code: *bool,
@@ -877,11 +877,11 @@ fn apply_join_request_tag(
 fn extract_leave_request(
     event: *const nip01_event.Event,
     previous_out: [][]const u8,
-) GroupError!GroupLeaveRequestInfo {
+) GroupError!LeaveRequest {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(previous_out.len <= limits.tags_max);
 
-    var info = GroupLeaveRequestInfo{
+    var info = LeaveRequest{
         .group_id = "",
         .reason = parse_optional_reason(event.content) catch return error.InvalidGroupTag,
         .previous_refs = previous_out[0..0],
@@ -906,11 +906,11 @@ fn extract_put_user(
     event: *const nip01_event.Event,
     out_roles: [][]const u8,
     out_previous: [][]const u8,
-) GroupError!GroupPutUserInfo {
+) GroupError!PutUser {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_roles.len <= limits.tags_max);
 
-    var info = GroupPutUserInfo{
+    var info = PutUser{
         .group_id = "",
         .pubkey = undefined,
         .roles = out_roles[0..0],
@@ -933,7 +933,7 @@ const UserEventState = struct {
 
 fn apply_put_user_tag(
     tag: nip01_event.EventTag,
-    info: *GroupPutUserInfo,
+    info: *PutUser,
     out_roles: [][]const u8,
     out_previous: [][]const u8,
     state: *UserEventState,
@@ -958,9 +958,9 @@ fn apply_put_user_tag(
 }
 
 fn finalize_put_user_info(
-    info: *GroupPutUserInfo,
+    info: *PutUser,
     state: *const UserEventState,
-) GroupError!GroupPutUserInfo {
+) GroupError!PutUser {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(state) != 0);
 
@@ -974,11 +974,11 @@ fn finalize_put_user_info(
 fn extract_remove_user(
     event: *const nip01_event.Event,
     out_previous: [][]const u8,
-) GroupError!GroupRemoveUserInfo {
+) GroupError!RemoveUser {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_previous.len <= limits.tags_max);
 
-    var info = GroupRemoveUserInfo{
+    var info = RemoveUser{
         .group_id = "",
         .pubkey = undefined,
         .reason = parse_optional_reason(event.content) catch return error.InvalidGroupTag,
@@ -1002,7 +1002,7 @@ const RemoveUserState = struct {
 
 fn apply_remove_user_tag(
     tag: nip01_event.EventTag,
-    info: *GroupRemoveUserInfo,
+    info: *RemoveUser,
     out_previous: [][]const u8,
     state: *RemoveUserState,
 ) GroupError!void {

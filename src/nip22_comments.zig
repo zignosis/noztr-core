@@ -63,7 +63,7 @@ pub const CommentTarget = union(enum) {
     external: ExternalTarget,
 };
 
-pub const CommentInfo = struct {
+pub const Comment = struct {
     root: CommentTarget,
     parent: CommentTarget,
 };
@@ -110,7 +110,7 @@ pub fn comment_is_comment(event: *const nip01_event.Event) bool {
 }
 
 /// Parses strict NIP-22 root and parent linkage from a kind-1111 comment event.
-pub fn comment_parse(event: *const nip01_event.Event) CommentError!CommentInfo {
+pub fn comment_parse(event: *const nip01_event.Event) CommentError!Comment {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 

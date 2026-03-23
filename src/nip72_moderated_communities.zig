@@ -84,7 +84,7 @@ pub const CommunityRelay = struct {
     marker: ?[]const u8 = null,
 };
 
-pub const CommunityInfo = struct {
+pub const Community = struct {
     identifier: []const u8,
     name: ?[]const u8 = null,
     description: ?[]const u8 = null,
@@ -94,17 +94,17 @@ pub const CommunityInfo = struct {
     relay_count: u16 = 0,
 };
 
-pub const EventReference = struct {
+pub const EventRef = struct {
     event_id: [32]u8,
     relay_hint: ?[]const u8 = null,
 };
 
 pub const ParentTarget = union(enum) {
     coordinate: AddressableTarget,
-    event: EventReference,
+    event: EventRef,
 };
 
-pub const CommunityPostInfo = struct {
+pub const Post = struct {
     community: CommunityCoordinate,
     parent: ParentTarget,
     parent_author: [32]u8,
@@ -114,10 +114,10 @@ pub const CommunityPostInfo = struct {
     content: []const u8,
 };
 
-pub const CommunityApprovalInfo = struct {
+pub const Approval = struct {
     content: []const u8,
     community_count: u16 = 0,
-    approved_event: ?EventReference = null,
+    approved_event: ?EventRef = null,
     approved_coordinate: ?AddressableTarget = null,
     approved_author: [32]u8,
     approved_author_hint: ?[]const u8 = null,
@@ -142,21 +142,21 @@ pub fn community_extract(
     event: *const nip01_event.Event,
     out_moderators: []CommunityModerator,
     out_relays: []CommunityRelay,
-) CommunityError!CommunityInfo {
+) CommunityError!Community {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_moderators.len <= limits.tags_max);
 
     if (event.kind != community_definition_kind) return error.InvalidCommunityDefinitionKind;
 
     var identifier: ?[]const u8 = null;
-    var info = CommunityInfo{ .identifier = undefined };
+    var info = Community{ .identifier = undefined };
     for (event.tags) |tag| try apply_community_tag(tag, &identifier, &info, out_moderators, out_relays);
     info.identifier = identifier orelse return error.MissingIdentifierTag;
     return info;
 }
 
 /// Extracts community linkage from a `kind:1111` community post.
-pub fn community_post_extract(event: *const nip01_event.Event) CommunityError!CommunityPostInfo {
+pub fn community_post_extract(event: *const nip01_event.Event) CommunityError!Post {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -166,7 +166,7 @@ pub fn community_post_extract(event: *const nip01_event.Event) CommunityError!Co
     var upper_author: ?TagPubkey = null;
     var saw_upper_kind = false;
     var lower_coord: ?AddressableTarget = null;
-    var lower_event: ?EventReference = null;
+    var lower_event: ?EventRef = null;
     var lower_author: ?TagPubkey = null;
     var lower_kind: ?u32 = null;
     for (event.tags) |tag| {
@@ -232,14 +232,14 @@ pub fn community_post_extract(event: *const nip01_event.Event) CommunityError!Co
 pub fn community_approval_extract(
     event: *const nip01_event.Event,
     out_communities: []CommunityCoordinate,
-) CommunityError!CommunityApprovalInfo {
+) CommunityError!Approval {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_communities.len <= limits.tags_max);
 
     if (event.kind != community_approval_kind) return error.InvalidCommunityApprovalKind;
     if (!std.unicode.utf8ValidateSlice(event.content)) return error.InvalidApprovalContent;
 
-    var info = CommunityApprovalInfo{
+    var info = Approval{
         .content = event.content,
         .approved_author = undefined,
         .approved_kind = 0,
@@ -489,7 +489,7 @@ const TagPubkey = struct {
 fn apply_community_tag(
     tag: nip01_event.EventTag,
     identifier: *?[]const u8,
-    info: *CommunityInfo,
+    info: *Community,
     out_moderators: []CommunityModerator,
     out_relays: []CommunityRelay,
 ) CommunityError!void {
@@ -514,7 +514,7 @@ fn apply_identifier_tag(tag: nip01_event.EventTag, field: *?[]const u8) Communit
     field.* = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidIdentifierTag;
 }
 
-fn apply_name_tag(tag: nip01_event.EventTag, info: *CommunityInfo) CommunityError!void {
+fn apply_name_tag(tag: nip01_event.EventTag, info: *Community) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -523,7 +523,7 @@ fn apply_name_tag(tag: nip01_event.EventTag, info: *CommunityInfo) CommunityErro
     info.name = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidNameTag;
 }
 
-fn apply_description_tag(tag: nip01_event.EventTag, info: *CommunityInfo) CommunityError!void {
+fn apply_description_tag(tag: nip01_event.EventTag, info: *Community) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -532,7 +532,7 @@ fn apply_description_tag(tag: nip01_event.EventTag, info: *CommunityInfo) Commun
     info.description = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidDescriptionTag;
 }
 
-fn apply_image_tag(tag: nip01_event.EventTag, info: *CommunityInfo) CommunityError!void {
+fn apply_image_tag(tag: nip01_event.EventTag, info: *Community) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(tag.items.len <= limits.tag_items_max);
 
@@ -546,7 +546,7 @@ fn apply_image_tag(tag: nip01_event.EventTag, info: *CommunityInfo) CommunityErr
 
 fn append_moderator(
     tag: nip01_event.EventTag,
-    info: *CommunityInfo,
+    info: *Community,
     out_moderators: []CommunityModerator,
 ) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -561,7 +561,7 @@ fn append_moderator(
 
 fn append_relay(
     tag: nip01_event.EventTag,
-    info: *CommunityInfo,
+    info: *Community,
     out_relays: []CommunityRelay,
 ) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -578,7 +578,7 @@ fn apply_post_tag(
     upper_author: *?TagPubkey,
     saw_upper_kind: *bool,
     lower_coord: *?AddressableTarget,
-    lower_event: *?EventReference,
+    lower_event: *?EventRef,
     lower_author: *?TagPubkey,
     lower_kind: *?u32,
 ) CommunityError!void {
@@ -597,7 +597,7 @@ fn apply_post_tag(
 
 fn apply_approval_tag(
     tag: nip01_event.EventTag,
-    info: *CommunityApprovalInfo,
+    info: *Approval,
     out_communities: []CommunityCoordinate,
     author: *?TagPubkey,
     saw_kind: *bool,
@@ -628,13 +628,13 @@ fn apply_approval_tag(
 
 fn apply_approval_a_tag(
     tag: nip01_event.EventTag,
-    info: *CommunityApprovalInfo,
+    info: *Approval,
     out_communities: []CommunityCoordinate,
 ) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.community_count <= out_communities.len);
 
-    const coordinate = parse_coordinate_tag(tag, error.InvalidApprovedPostCoordinateTag);
+    const coordinate = try parse_coordinate_tag(tag, error.InvalidApprovedPostCoordinateTag);
     if (coordinate.kind == community_definition_kind) {
         if (info.community_count == out_communities.len) return error.BufferTooSmall;
         out_communities[info.community_count] = to_community_coordinate(coordinate);
@@ -679,7 +679,7 @@ fn apply_single_coordinate_tag(
 
 fn apply_single_event_tag(
     tag: nip01_event.EventTag,
-    field: *?EventReference,
+    field: *?EventRef,
     duplicate_error: CommunityError,
     invalid_error: CommunityError,
 ) CommunityError!void {
@@ -724,14 +724,14 @@ fn apply_lower_kind_tag(tag: nip01_event.EventTag, field: *?u32) CommunityError!
 
 fn apply_approval_kind_tag(
     tag: nip01_event.EventTag,
-    info: *CommunityApprovalInfo,
+    info: *Approval,
     saw_kind: *bool,
 ) CommunityError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_kind) != 0);
 
     if (saw_kind.*) return error.DuplicateApprovedPostKindTag;
-    info.approved_kind = parse_kind_tag(tag, error.InvalidApprovedPostKindTag);
+    info.approved_kind = try parse_kind_tag(tag, error.InvalidApprovedPostKindTag);
     saw_kind.* = true;
 }
 
@@ -838,7 +838,7 @@ fn parse_coordinate_tag(tag: nip01_event.EventTag, invalid_error: CommunityError
     };
 }
 
-fn parse_event_tag(tag: nip01_event.EventTag, invalid_error: CommunityError) CommunityError!EventReference {
+fn parse_event_tag(tag: nip01_event.EventTag, invalid_error: CommunityError) CommunityError!EventRef {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 
