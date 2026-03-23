@@ -71,6 +71,14 @@ Use these public names now:
 - `noztr.nip58_badges.BadgeAwardInfo` -> `noztr.nip58_badges.Award`
 - `noztr.nip58_badges.BadgeAwardEventReference` -> `noztr.nip58_badges.AwardEventRef`
 - `noztr.nip58_badges.ProfileBadgesInfo` -> `noztr.nip58_badges.ProfileBadges`
+- `noztr.nip38_user_status.UserStatusInfo` -> `noztr.nip38_user_status.Status`
+- `noztr.nip61_nutzaps.InformationalInfo` -> `noztr.nip61_nutzaps.Informational`
+- `noztr.nip61_nutzaps.NutzapInfo` -> `noztr.nip61_nutzaps.Nutzap`
+- `noztr.nip61_nutzaps.RedemptionInfo` -> `noztr.nip61_nutzaps.Redemption`
+- `noztr.nip89_handlers.HandlerReference` -> `noztr.nip89_handlers.Reference`
+- `noztr.nip89_handlers.RecommendationInfo` -> `noztr.nip89_handlers.Recommendation`
+- `noztr.nip89_handlers.HandlerInfo` -> `noztr.nip89_handlers.Handler`
+- `noztr.nip89_handlers.ClientTagInfo` -> `noztr.nip89_handlers.ClientTag`
 
 ## Why
 

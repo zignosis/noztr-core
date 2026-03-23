@@ -24,14 +24,14 @@ pub const HandlerError = error{
     BufferTooSmall,
 };
 
-pub const HandlerReference = struct {
+pub const Reference = struct {
     pubkey: [32]u8,
     identifier: []const u8,
     relay_hint: ?[]const u8 = null,
     platform: ?[]const u8 = null,
 };
 
-pub const RecommendationInfo = struct {
+pub const Recommendation = struct {
     supported_kind: u32,
     handler_count: u16 = 0,
 };
@@ -42,16 +42,16 @@ pub const HandlerEndpoint = struct {
     entity_name: ?[]const u8 = null,
 };
 
-pub const HandlerInfo = struct {
+pub const Handler = struct {
     identifier: []const u8,
     content: []const u8,
     supported_kind_count: u16 = 0,
     endpoint_count: u16 = 0,
 };
 
-pub const ClientTagInfo = struct {
+pub const ClientTag = struct {
     name: []const u8,
-    handler: HandlerReference,
+    handler: Reference,
     relay_hint: ?[]const u8 = null,
 };
 
@@ -71,14 +71,14 @@ pub const BuiltTag = struct {
 /// Extracts bounded NIP-89 recommendation data from a kind-31989 event.
 pub fn recommendation_extract(
     event: *const nip01_event.Event,
-    out_handlers: []HandlerReference,
-) HandlerError!RecommendationInfo {
+    out_handlers: []Reference,
+) HandlerError!Recommendation {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_handlers.len <= limits.tags_max);
 
     if (event.kind != recommendation_kind) return error.InvalidRecommendationKind;
 
-    var info = RecommendationInfo{ .supported_kind = 0 };
+    var info = Recommendation{ .supported_kind = 0 };
     var saw_kind = false;
     for (event.tags) |tag| try apply_recommendation_tag(tag, &info, &saw_kind, out_handlers);
     if (!saw_kind) return error.MissingSupportedKindTag;
@@ -90,14 +90,14 @@ pub fn handler_extract(
     event: *const nip01_event.Event,
     out_supported_kinds: []u32,
     out_endpoints: []HandlerEndpoint,
-) HandlerError!HandlerInfo {
+) HandlerError!Handler {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_supported_kinds.len <= limits.tags_max);
 
     if (event.kind != handler_kind) return error.InvalidHandlerKind;
 
     var identifier: ?[]const u8 = null;
-    var info = HandlerInfo{ .identifier = undefined, .content = event.content };
+    var info = Handler{ .identifier = undefined, .content = event.content };
     for (event.tags) |tag| {
         try apply_handler_tag(tag, &identifier, &info, out_supported_kinds, out_endpoints);
     }
@@ -107,11 +107,11 @@ pub fn handler_extract(
 }
 
 /// Extracts the optional `client` tag from an arbitrary event.
-pub fn client_extract(event: *const nip01_event.Event) HandlerError!?ClientTagInfo {
+pub fn client_extract(event: *const nip01_event.Event) HandlerError!?ClientTag {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
-    var parsed: ?ClientTagInfo = null;
+    var parsed: ?ClientTag = null;
     for (event.tags) |tag| {
         if (tag.items.len == 0 or !std.mem.eql(u8, tag.items[0], "client")) continue;
         if (parsed != null) return error.DuplicateClientTag;
@@ -237,9 +237,9 @@ pub fn client_build_tag(
 
 fn apply_recommendation_tag(
     tag: nip01_event.EventTag,
-    info: *RecommendationInfo,
+    info: *Recommendation,
     saw_kind: *bool,
-    out_handlers: []HandlerReference,
+    out_handlers: []Reference,
 ) HandlerError!void {
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_kind) != 0);
@@ -263,7 +263,7 @@ fn apply_recommendation_tag(
 fn apply_handler_tag(
     tag: nip01_event.EventTag,
     identifier: *?[]const u8,
-    info: *HandlerInfo,
+    info: *Handler,
     out_supported_kinds: []u32,
     out_endpoints: []HandlerEndpoint,
 ) HandlerError!void {
@@ -297,7 +297,7 @@ fn parse_supported_kind_tag(tag: nip01_event.EventTag) error{InvalidTag}!u32 {
     return std.fmt.parseUnsigned(u32, tag.items[1], 10) catch return error.InvalidTag;
 }
 
-fn parse_handler_reference_tag(tag: nip01_event.EventTag) error{InvalidTag}!HandlerReference {
+fn parse_handler_reference_tag(tag: nip01_event.EventTag) error{InvalidTag}!Reference {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len != 0);
 
@@ -346,7 +346,7 @@ fn parse_endpoint_tag(tag: nip01_event.EventTag) error{InvalidTag}!HandlerEndpoi
     };
 }
 
-fn parse_client_tag(tag: nip01_event.EventTag) error{InvalidTag}!ClientTagInfo {
+fn parse_client_tag(tag: nip01_event.EventTag) error{InvalidTag}!ClientTag {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len != 0);
 
@@ -361,7 +361,7 @@ fn parse_client_tag(tag: nip01_event.EventTag) error{InvalidTag}!ClientTagInfo {
     };
 }
 
-fn parse_handler_coordinate(text: []const u8) error{InvalidCoordinate}!HandlerReference {
+fn parse_handler_coordinate(text: []const u8) error{InvalidCoordinate}!Reference {
     std.debug.assert(limits.pubkey_hex_length == 64);
     std.debug.assert(limits.tag_item_bytes_max <= limits.content_bytes_max);
 
@@ -431,7 +431,7 @@ test "NIP-89 extracts recommendations and handlers" {
         .content = "",
         .sig = [_]u8{0x22} ** 64,
     };
-    var handlers: [1]HandlerReference = undefined;
+    var handlers: [1]Reference = undefined;
     const rec_info = try recommendation_extract(&rec, handlers[0..]);
     try std.testing.expectEqual(@as(u32, 31337), rec_info.supported_kind);
     try std.testing.expectEqualStrings("zapstr", handlers[0].identifier);

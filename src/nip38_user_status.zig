@@ -22,7 +22,7 @@ pub const UserStatusError = error{
     BufferTooSmall,
 };
 
-pub const UserStatusInfo = struct {
+pub const Status = struct {
     identifier: []const u8,
     content: []const u8,
     expiration: ?u64 = null,
@@ -54,14 +54,14 @@ pub fn user_status_extract(
     out_event_ids: [][32]u8,
     out_coordinates: [][]const u8,
     out_emojis: []nip30_custom_emoji.EmojiTagInfo,
-) UserStatusError!UserStatusInfo {
+) UserStatusError!Status {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_urls.len <= limits.tags_max);
 
     if (event.kind != user_status_kind) return error.InvalidStatusKind;
 
     var identifier: ?[]const u8 = null;
-    var info = UserStatusInfo{ .identifier = undefined, .content = event.content };
+    var info = Status{ .identifier = undefined, .content = event.content };
     for (event.tags) |tag| {
         try apply_status_tag(
             tag,
@@ -164,7 +164,7 @@ pub fn user_status_build_expiration_tag(
 fn apply_status_tag(
     tag: nip01_event.EventTag,
     identifier: *?[]const u8,
-    info: *UserStatusInfo,
+    info: *Status,
     out_urls: [][]const u8,
     out_pubkeys: [][32]u8,
     out_event_ids: [][32]u8,
@@ -193,7 +193,7 @@ fn apply_identifier_tag(tag: nip01_event.EventTag, identifier: *?[]const u8) Use
     identifier.* = parse_nonempty_utf8(tag.items[1]) catch return error.InvalidIdentifierTag;
 }
 
-fn apply_expiration_tag(tag: nip01_event.EventTag, info: *UserStatusInfo) UserStatusError!void {
+fn apply_expiration_tag(tag: nip01_event.EventTag, info: *Status) UserStatusError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(info) != 0);
 
@@ -206,7 +206,7 @@ fn apply_expiration_tag(tag: nip01_event.EventTag, info: *UserStatusInfo) UserSt
 
 fn append_url(
     tag: nip01_event.EventTag,
-    info: *UserStatusInfo,
+    info: *Status,
     out_urls: [][]const u8,
 ) UserStatusError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -220,7 +220,7 @@ fn append_url(
 
 fn append_pubkey(
     tag: nip01_event.EventTag,
-    info: *UserStatusInfo,
+    info: *Status,
     out_pubkeys: [][32]u8,
 ) UserStatusError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -236,7 +236,7 @@ fn append_pubkey(
 
 fn append_event(
     tag: nip01_event.EventTag,
-    info: *UserStatusInfo,
+    info: *Status,
     out_event_ids: [][32]u8,
 ) UserStatusError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -252,7 +252,7 @@ fn append_event(
 
 fn append_coordinate(
     tag: nip01_event.EventTag,
-    info: *UserStatusInfo,
+    info: *Status,
     out_coordinates: [][]const u8,
 ) UserStatusError!void {
     std.debug.assert(@intFromPtr(info) != 0);
@@ -268,7 +268,7 @@ fn append_coordinate(
 
 fn append_emoji(
     tag: nip01_event.EventTag,
-    info: *UserStatusInfo,
+    info: *Status,
     out_emojis: []nip30_custom_emoji.EmojiTagInfo,
 ) UserStatusError!void {
     std.debug.assert(@intFromPtr(info) != 0);

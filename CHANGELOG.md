@@ -28,6 +28,10 @@ For the public versioning policy, see
 - shortened repeated `Info` / `Reference` public type names in the third family-scoped lane:
   - `nip52_calendar_events`
   - `nip58_badges`
+- shortened additional route-internal metadata names in the fourth family-scoped lane:
+  - `nip38_user_status`
+  - `nip61_nutzaps`
+  - `nip89_handlers`
 - downstream callers that reference those public types directly need to update symbol names
 - migration guide:
   - [docs/guides/migrating-from-0.1.0-rc.2.md](docs/guides/migrating-from-0.1.0-rc.2.md)
