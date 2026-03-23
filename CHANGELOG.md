@@ -15,39 +15,91 @@ For the public versioning policy, see
 
 ### Breaking Changes
 
-- shortened route-internal public type names in the first surface-noise remediation lane:
+- none yet
+
+## [0.1.0-rc.3] - 2026-03-23
+
+Release type: breaking rc
+
+### Summary
+
+Third public release candidate for `noztr-core`.
+
+This RC keeps wire behavior, the kernel-vs-SDK boundary, and the ownership posture stable, but it
+significantly tightens the public teaching surface: route-internal names are shorter, pure storage
+wrappers were removed where a direct caller-owned buffer path is clearer, and the `nip46` / `nip86`
+response-result shells are flatter and easier to consume.
+
+### Public Highlights
+
+- shortened redundant route-internal public type names across the highest-noise grouped routes
+- removed pure storage wrappers that added no semantic value in:
+  - `nip28_public_chat`
+  - `nip71_video_events`
+  - `nip92_media_attachments`
+- flattened response-result wrapper layers in:
+  - `nip46_remote_signing`
+  - `nip86_relay_management`
+- tightened the migration guide and root contract-smoke coverage so downstream consumers and LLMs
+  have one exact upgrade path
+
+### Breaking Changes
+
+- shortened route-internal public type names in:
   - `nip04`
   - `nip21_uri`
   - `nip44`
   - `nip46_remote_signing`
-- shortened repeated `Info` / `Reference` public type names in the second family-scoped lane:
   - `nip28_public_chat`
   - `nip54_wiki`
   - `nip75_zap_goals`
   - `nip88_polls`
-- shortened repeated `Info` / `Reference` public type names in the third family-scoped lane:
   - `nip52_calendar_events`
   - `nip58_badges`
-- shortened additional route-internal metadata names in the fourth family-scoped lane:
   - `nip38_user_status`
   - `nip61_nutzaps`
   - `nip89_handlers`
-- shortened redundant route-internal request/result names in the Wallet Connect route:
   - `nip47_wallet_connect`
-- removed pure storage-wrapper types where direct caller-owned `[]u8` buffers are clearer:
+- removed storage-wrapper builder types:
   - `nip28_public_chat.BuiltJson`
   - `nip71_video_events.BuiltField`
   - `nip92_media_attachments.BuiltField`
-- flattened the `nip46_remote_signing.Response.result` shape by removing nested response-result
-  wrapper types:
-  - `nip46_remote_signing.ResponsePayload`
-  - `nip46_remote_signing.ResponseResult`
-- flattened the `nip86_relay_management.Response.result` shape by removing its standalone wrapper
-  type:
-  - `nip86_relay_management.ResponsePayload`
-- downstream callers that reference those public types directly need to update symbol names
+- flattened `Response.result` shape in:
+  - `nip46_remote_signing`
+  - `nip86_relay_management`
+- downstream callers that reference those public types directly need to update symbol names or
+  result-shape pattern matches
 - migration guide:
   - [docs/guides/migrating-from-0.1.0-rc.2.md](docs/guides/migrating-from-0.1.0-rc.2.md)
+
+### Compatibility Notes
+
+- Zig toolchain floor for this RC line remains `0.15.2`
+- optional I6 exports remain build-flag gated
+- wire formats, deterministic crypto behavior, and kernel-vs-SDK scope are unchanged by this RC
+- ownership stays caller-owned and buffer-explicit; wrapper removals simplify that surface rather
+  than weakening it
+
+### Docs And Examples
+
+- updated the migration guide for downstream callers moving forward from `rc.2`
+- updated public examples and contract checks to teach the canonical names
+- kept route-level docs and examples aligned with the remediated public surface
+
+### Verification
+
+- `zig build lint`
+- `zig build test --summary all`
+- `zig build`
+- `zig build release-check`
+
+### Upgrade Guidance
+
+- if you depend on `noztr-core`, review [docs/guides/migrating-from-0.1.0-rc.2.md](docs/guides/migrating-from-0.1.0-rc.2.md)
+- update explicit public type references and any direct `Response.result` shape matches in `nip46`
+  or `nip86`
+- refresh generated symbol indexes, wrappers, or local LLM context packs so they reflect the
+  current canonical names
 
 ## [0.1.0-rc.2] - 2026-03-22
 
