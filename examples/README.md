@@ -192,7 +192,6 @@ Each implemented kernel NIP now has a direct reference example.
 - `nip23_example.zig`
 - `nip24_example.zig`
 - `nip25_example.zig`
-- `nip26_example.zig`
 - `nip27_example.zig`
 - `nip28_example.zig`
 - `nip29_example.zig`

@@ -49,7 +49,7 @@ This page lists the public `noztr` support surface by NIP.
 | `NIP-23` | implemented | `nip23_long_form` | [nip23_example.zig](../../examples/nip23_example.zig) |
 | `NIP-24` | implemented | `nip24_extra_metadata` | [nip24_example.zig](../../examples/nip24_example.zig) |
 | `NIP-25` | implemented | `nip25_reactions` | [nip25_example.zig](../../examples/nip25_example.zig) |
-| `NIP-26` | implemented | `nip26_delegation` | [nip26_example.zig](../../examples/nip26_example.zig) |
+| `NIP-26` | not supported | none | intentionally removed from `noztr-core` |
 | `NIP-27` | implemented | `nip27_references` | [nip27_example.zig](../../examples/nip27_example.zig) |
 | `NIP-28` | split | `nip28_public_chat` | [nip28_example.zig](../../examples/nip28_example.zig) |
 | `NIP-29` | implemented | `nip29_relay_groups` | [nip29_example.zig](../../examples/nip29_example.zig) |

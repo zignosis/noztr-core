@@ -13,6 +13,13 @@ For the public versioning policy, see
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- removed `NIP-26` support from `noztr-core`
+- removed the public `nip26_delegation` module and its example/docs routes
+- downstream migration guide:
+  - [docs/guides/migrating-from-0.1.0-rc.4.md](docs/guides/migrating-from-0.1.0-rc.4.md)
+
 ## [0.1.0-rc.4] - 2026-03-23
 
 Release type: breaking rc

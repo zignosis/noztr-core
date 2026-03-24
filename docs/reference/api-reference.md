@@ -556,7 +556,6 @@ These are the quickest symbol-level routes into the modules most downstream user
 | `nip49_private_key_encryption` | private-key encryption/decryption helpers | [nip49_example.zig](../../examples/nip49_example.zig) |
 | `nip59_wrap` | gift-wrap build/unwrap helpers | [nip17_wrap_recipe.zig](../../examples/nip17_wrap_recipe.zig) |
 | `nip17_private_messages` | private-message boundary helpers | [nip17_example.zig](../../examples/nip17_example.zig) |
-| `nip26_delegation` | delegation tag, signing, and verification helpers | [nip26_example.zig](../../examples/nip26_example.zig) |
 
 ## Reducers, Drafts, Search, And Optional Extensions
 

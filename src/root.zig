@@ -171,9 +171,6 @@ pub const nip56_reporting = @import("nip56_reporting.zig");
 /// Post-Phase-H concrete export for the NIP-05 identity module.
 pub const nip05_identity = @import("nip05_identity.zig");
 
-/// Post-Phase-H concrete export for the NIP-26 delegation module.
-pub const nip26_delegation = @import("nip26_delegation.zig");
-
 /// Post-Phase-H concrete export for the NIP-37 drafts module.
 pub const nip37_drafts = @import("nip37_drafts.zig");
 
@@ -314,7 +311,6 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip38_user_status.UserStatusError) == type);
     try std.testing.expect(@TypeOf(nip56_reporting.ReportError) == type);
     try std.testing.expect(@TypeOf(nip05_identity.IdentityError) == type);
-    try std.testing.expect(@TypeOf(nip26_delegation.DelegationError) == type);
     try std.testing.expect(@TypeOf(nip52_calendar_events.CalendarError) == type);
     try std.testing.expect(@TypeOf(nip53_live_activities.LiveActivityError) == type);
     try std.testing.expect(@TypeOf(nip54_wiki.WikiError) == type);
@@ -440,10 +436,6 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip56_reporting.TagBuilder) == type);
     try std.testing.expect(@TypeOf(nip05_identity.Address) == type);
     try std.testing.expect(@TypeOf(nip05_identity.Profile) == type);
-    try std.testing.expect(@TypeOf(nip26_delegation.DelegationTag) == type);
-    try std.testing.expect(@TypeOf(nip26_delegation.DelegationCondition) == type);
-    try std.testing.expect(@TypeOf(nip26_delegation.DelegationConditions) == type);
-    try std.testing.expect(@TypeOf(nip26_delegation.TagBuilder) == type);
     try std.testing.expect(@TypeOf(nip57_zaps.ZapError) == type);
     try std.testing.expect(@TypeOf(nip57_zaps.ZapRequest) == type);
     try std.testing.expect(@TypeOf(nip57_zaps.ZapReceipt) == type);
@@ -900,66 +892,6 @@ test "root exports limits and error namespaces" {
                 []const u8,
                 std.mem.Allocator,
             ) nip05_identity.IdentityError!bool,
-    );
-    try std.testing.expect(
-        @TypeOf(nip26_delegation.delegation_tag_parse) ==
-            fn (nip01_event.EventTag) nip26_delegation.DelegationError!nip26_delegation.DelegationTag,
-    );
-    try std.testing.expect(
-        @TypeOf(nip26_delegation.delegation_conditions_parse) ==
-            fn (
-                []const u8,
-                []nip26_delegation.DelegationCondition,
-            ) nip26_delegation.DelegationError!nip26_delegation.DelegationConditions,
-    );
-    try std.testing.expect(
-        @TypeOf(nip26_delegation.delegation_conditions_format) ==
-            fn (
-                []u8,
-                nip26_delegation.DelegationConditions,
-            ) nip26_delegation.DelegationError![]const u8,
-    );
-    try std.testing.expect(
-        @TypeOf(nip26_delegation.delegation_message_build) ==
-            fn ([]u8, *const [32]u8, []const u8) nip26_delegation.DelegationError![]const u8,
-    );
-    try std.testing.expect(
-        @TypeOf(nip26_delegation.delegation_signature_sign) ==
-            fn (
-                *[64]u8,
-                *const [32]u8,
-                *const [32]u8,
-                []const u8,
-            ) nip26_delegation.DelegationError!void,
-    );
-    try std.testing.expect(
-        @TypeOf(nip26_delegation.delegation_signature_verify) ==
-            fn (
-                *const nip26_delegation.DelegationTag,
-                *const [32]u8,
-            ) nip26_delegation.DelegationError!void,
-    );
-    try std.testing.expect(
-        @TypeOf(nip26_delegation.delegation_event_satisfies) ==
-            fn (
-                nip26_delegation.DelegationConditions,
-                *const nip01_event.Event,
-            ) bool,
-    );
-    try std.testing.expect(
-        @TypeOf(nip26_delegation.delegation_event_validate) ==
-            fn (
-                *const nip26_delegation.DelegationTag,
-                *const nip01_event.Event,
-                []nip26_delegation.DelegationCondition,
-            ) nip26_delegation.DelegationError!nip26_delegation.DelegationConditions,
-    );
-    try std.testing.expect(
-        @TypeOf(nip26_delegation.delegation_tag_build) ==
-            fn (
-                *nip26_delegation.TagBuilder,
-                *const nip26_delegation.DelegationTag,
-            ) nip26_delegation.DelegationError!nip01_event.EventTag,
     );
     try std.testing.expect(
         @TypeOf(nip46_remote_signing.message_parse_json) ==
