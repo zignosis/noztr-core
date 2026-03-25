@@ -58,6 +58,23 @@ If your project depends on `noztr-core`:
 - `count_client_message_parse` -> `client_message_parse`
 - `count_relay_message_parse` -> `relay_message_parse`
 - `count_metadata_validate` -> `metadata_validate`
+
+### `nip98_http_auth`
+
+- `http_auth_is_supported` -> `is_supported`
+- `http_auth_extract` -> `extract`
+- `http_auth_validate_request` -> `validate_request`
+- `http_auth_verify_request` -> `verify_request`
+- `http_auth_parse_authorization_header` -> `parse_authorization_header`
+- `http_auth_decode_authorization_header` -> `decode_authorization_header`
+- `http_auth_decode_base64_event_json` -> `decode_base64_event_json`
+- `http_auth_parse_authorization_header_event` -> `parse_authorization_header_event`
+- `http_auth_verify_authorization_header` -> `verify_authorization_header`
+- `http_auth_build_*` -> `build_*`
+- `http_auth_payload_sha256_hex` -> `payload_sha256_hex`
+- `http_auth_encode_event_json_base64` -> `encode_event_json_base64`
+- `http_auth_format_authorization_header` -> `format_authorization_header`
+- `http_auth_encode_authorization_header` -> `encode_authorization_header`
 ### `nip53_live_activities`
 
 - `LiveActivityCoordinate` -> `Coordinate`

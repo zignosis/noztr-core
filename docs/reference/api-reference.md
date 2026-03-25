@@ -161,17 +161,17 @@ These are the quickest symbol-level routes into the modules most downstream user
 
 ### `nip98_http_auth`
 
-- `http_auth_extract`
+- `extract`
   - extract typed auth state from an event
-- `http_auth_validate_request`
+- `validate_request`
   - validate request fields against the auth event
-- `http_auth_verify_request`
+- `verify_request`
   - verify the full auth event and request relationship
-- `http_auth_parse_authorization_header`
+- `parse_authorization_header`
   - parse an `Authorization` header into typed auth state
-- `http_auth_verify_authorization_header`
+- `verify_authorization_header`
   - verify a full header-driven auth flow
-- `http_auth_build_*`
+- `build_*`
   - build typed auth tags and request-facing artifacts
 - start example:
   - [nip98_example.zig](../../examples/nip98_example.zig)

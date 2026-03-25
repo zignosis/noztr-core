@@ -390,6 +390,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip88_polls.OptionTally) == type);
     try std.testing.expect(@TypeOf(nip88_polls.TagBuilder) == type);
     try std.testing.expect(@TypeOf(nip98_http_auth.Auth) == type);
+    try std.testing.expect(@TypeOf(nip98_http_auth.VerifiedAuthorization) == type);
     try std.testing.expect(@TypeOf(nipb7_blossom_servers.ServerList) == type);
     try std.testing.expect(@TypeOf(nipb7_blossom_servers.BlobRef) == type);
     try std.testing.expect(@TypeOf(nipb7_blossom_servers.TagBuilder) == type);
@@ -1403,6 +1404,24 @@ test "I6 optional paths do not interfere with strict core defaults" {
         arena.allocator(),
     );
     try std.testing.expectEqual(@as(u64, 1), count_relay.count);
+    try std.testing.expect(
+        @TypeOf(nip98_http_auth.extract) ==
+            fn (*const nip01_event.Event) nip98_http_auth.HttpAuthError!nip98_http_auth.Auth,
+    );
+    try std.testing.expect(
+        @TypeOf(nip98_http_auth.verify_authorization_header) ==
+            fn (
+                []u8,
+                []const u8,
+                []const u8,
+                []const u8,
+                ?[]const u8,
+                u64,
+                u64,
+                u64,
+                std.mem.Allocator,
+            ) nip98_http_auth.HttpAuthError!nip98_http_auth.VerifiedAuthorization,
+    );
 
     try nip50_search.search_field_validate("nostr include:spam");
 

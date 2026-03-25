@@ -55,7 +55,7 @@ pub const TagBuilder = struct {
 };
 
 /// Returns whether the event kind is supported by the strict NIP-98 helper.
-pub fn http_auth_is_supported(event: *const nip01_event.Event) bool {
+pub fn is_supported(event: *const nip01_event.Event) bool {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.kind <= std.math.maxInt(u32));
 
@@ -63,7 +63,7 @@ pub fn http_auth_is_supported(event: *const nip01_event.Event) bool {
 }
 
 /// Extracts the bounded NIP-98 request metadata from one event.
-pub fn http_auth_extract(event: *const nip01_event.Event) HttpAuthError!Auth {
+pub fn extract(event: *const nip01_event.Event) HttpAuthError!Auth {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -84,7 +84,7 @@ pub fn http_auth_extract(event: *const nip01_event.Event) HttpAuthError!Auth {
 }
 
 /// Validates one auth event against an exact request match and caller-supplied time window.
-pub fn http_auth_validate_request(
+pub fn validate_request(
     event: *const nip01_event.Event,
     expected_url: []const u8,
     expected_method: []const u8,
@@ -102,7 +102,7 @@ pub fn http_auth_validate_request(
         _ = validate_payload_hex(payload_hex) catch return error.InvalidPayload;
     }
 
-    const info = try http_auth_extract(event);
+    const info = try extract(event);
     try validate_timestamp(event.created_at, now, max_past_seconds, max_future_seconds);
     if (!std.mem.eql(u8, info.url, expected_url)) return error.UrlMismatch;
     if (!std.mem.eql(u8, info.method, expected_method)) return error.MethodMismatch;
@@ -111,7 +111,7 @@ pub fn http_auth_validate_request(
 }
 
 /// Verifies one auth event id and signature, then validates its request metadata.
-pub fn http_auth_verify_request(
+pub fn verify_request(
     event: *const nip01_event.Event,
     expected_url: []const u8,
     expected_method: []const u8,
@@ -124,7 +124,7 @@ pub fn http_auth_verify_request(
     std.debug.assert(now <= std.math.maxInt(u64));
 
     try nip01_event.event_verify(event);
-    return http_auth_validate_request(
+    return validate_request(
         event,
         expected_url,
         expected_method,
@@ -136,7 +136,7 @@ pub fn http_auth_verify_request(
 }
 
 /// Extracts the base64 event token from one strict `Authorization` header value.
-pub fn http_auth_parse_authorization_header(header: []const u8) HttpAuthError![]const u8 {
+pub fn parse_authorization_header(header: []const u8) HttpAuthError![]const u8 {
     std.debug.assert(header.len <= std.math.maxInt(usize));
     std.debug.assert(authorization_scheme.len > 0);
 
@@ -153,19 +153,19 @@ pub fn http_auth_parse_authorization_header(header: []const u8) HttpAuthError![]
 }
 
 /// Decodes the base64 event JSON from one strict `Authorization` header value.
-pub fn http_auth_decode_authorization_header(
+pub fn decode_authorization_header(
     output: []u8,
     header: []const u8,
 ) HttpAuthError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(header.len <= std.math.maxInt(usize));
 
-    const token = try http_auth_parse_authorization_header(header);
-    return http_auth_decode_base64_event_json(output, token);
+    const token = try parse_authorization_header(header);
+    return decode_base64_event_json(output, token);
 }
 
 /// Decodes one base64 event JSON token into caller-owned output.
-pub fn http_auth_decode_base64_event_json(output: []u8, input: []const u8) HttpAuthError![]const u8 {
+pub fn decode_base64_event_json(output: []u8, input: []const u8) HttpAuthError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(input.len <= std.math.maxInt(usize));
 
@@ -183,7 +183,7 @@ pub fn http_auth_decode_base64_event_json(output: []u8, input: []const u8) HttpA
 }
 
 /// Parses one strict `Authorization` header value into a bounded event.
-pub fn http_auth_parse_authorization_header_event(
+pub fn parse_authorization_header_event(
     decoded_json_output: []u8,
     header: []const u8,
     scratch: std.mem.Allocator,
@@ -191,12 +191,12 @@ pub fn http_auth_parse_authorization_header_event(
     std.debug.assert(decoded_json_output.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
-    const decoded = try http_auth_decode_authorization_header(decoded_json_output, header);
+    const decoded = try decode_authorization_header(decoded_json_output, header);
     return nip01_event.event_parse_json(decoded, scratch);
 }
 
 /// Canonical trust-boundary wrapper for strict header decode, parse, verify, and request match.
-pub fn http_auth_verify_authorization_header(
+pub fn verify_authorization_header(
     decoded_json_output: []u8,
     header: []const u8,
     expected_url: []const u8,
@@ -210,12 +210,12 @@ pub fn http_auth_verify_authorization_header(
     std.debug.assert(decoded_json_output.len <= std.math.maxInt(usize));
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
-    const event = try http_auth_parse_authorization_header_event(
+    const event = try parse_authorization_header_event(
         decoded_json_output,
         header,
         scratch,
     );
-    const info = try http_auth_verify_request(
+    const info = try verify_request(
         &event,
         expected_url,
         expected_method,
@@ -228,7 +228,7 @@ pub fn http_auth_verify_authorization_header(
 }
 
 /// Builds a strict `u` tag from one absolute URL.
-pub fn http_auth_build_url_tag(
+pub fn build_url_tag(
     output: *TagBuilder,
     url: []const u8,
 ) HttpAuthError!nip01_event.EventTag {
@@ -242,7 +242,7 @@ pub fn http_auth_build_url_tag(
 }
 
 /// Builds a strict `method` tag from one validated HTTP token.
-pub fn http_auth_build_method_tag(
+pub fn build_method_tag(
     output: *TagBuilder,
     method: []const u8,
 ) HttpAuthError!nip01_event.EventTag {
@@ -256,7 +256,7 @@ pub fn http_auth_build_method_tag(
 }
 
 /// Builds a strict lowercase-hex `payload` tag.
-pub fn http_auth_build_payload_tag(
+pub fn build_payload_tag(
     output: *TagBuilder,
     payload_hex: []const u8,
 ) HttpAuthError!nip01_event.EventTag {
@@ -270,7 +270,7 @@ pub fn http_auth_build_payload_tag(
 }
 
 /// Computes one lowercase SHA-256 hex digest for a request body.
-pub fn http_auth_payload_sha256_hex(output: []u8, payload: []const u8) HttpAuthError![]const u8 {
+pub fn payload_sha256_hex(output: []u8, payload: []const u8) HttpAuthError![]const u8 {
     std.debug.assert(output.len <= std.math.maxInt(usize));
     std.debug.assert(payload.len <= std.math.maxInt(usize));
 
@@ -283,7 +283,7 @@ pub fn http_auth_payload_sha256_hex(output: []u8, payload: []const u8) HttpAuthE
 }
 
 /// Base64-encodes one canonical event JSON into caller-owned output.
-pub fn http_auth_encode_event_json_base64(
+pub fn encode_event_json_base64(
     output: []u8,
     event: *const nip01_event.Event,
     json_scratch: []u8,
@@ -300,7 +300,7 @@ pub fn http_auth_encode_event_json_base64(
 }
 
 /// Formats one strict `Authorization: Nostr <base64>` header value.
-pub fn http_auth_format_authorization_header(
+pub fn format_authorization_header(
     output: []u8,
     base64_event_json: []const u8,
 ) HttpAuthError![]const u8 {
@@ -323,7 +323,7 @@ pub fn http_auth_format_authorization_header(
 }
 
 /// Serializes, base64-encodes, and formats one strict authorization header value.
-pub fn http_auth_encode_authorization_header(
+pub fn encode_authorization_header(
     output: []u8,
     event: *const nip01_event.Event,
     json_scratch: []u8,
@@ -595,7 +595,7 @@ test "http auth extract parses required and optional tags" {
     var event = test_event(http_auth_kind, tags[0..]);
     event.content = "ignored by strict kernel";
 
-    const info = try http_auth_extract(&event);
+    const info = try extract(&event);
 
     try std.testing.expectEqualStrings("https://api.example.com/v1?id=1", info.url);
     try std.testing.expectEqualStrings("PATCH", info.method);
@@ -623,15 +623,15 @@ test "http auth extract rejects duplicate and malformed required tags" {
 
     try std.testing.expectError(
         error.DuplicateUrlTag,
-        http_auth_extract(&test_event(http_auth_kind, duplicate_tags[0..])),
+        extract(&test_event(http_auth_kind, duplicate_tags[0..])),
     );
     try std.testing.expectError(
         error.InvalidMethodTag,
-        http_auth_extract(&test_event(http_auth_kind, bad_method_tags[0..])),
+        extract(&test_event(http_auth_kind, bad_method_tags[0..])),
     );
     try std.testing.expectError(
         error.InvalidPayloadTag,
-        http_auth_extract(&test_event(http_auth_kind, bad_payload_tags[0..])),
+        extract(&test_event(http_auth_kind, bad_payload_tags[0..])),
     );
 }
 
@@ -642,7 +642,7 @@ test "http auth validate request keeps exact url and method matching" {
     };
     const event = test_event(http_auth_kind, tags[0..]);
 
-    _ = try http_auth_validate_request(
+    _ = try validate_request(
         &event,
         "https://api.example.com/v1?x=1",
         "GET",
@@ -653,7 +653,7 @@ test "http auth validate request keeps exact url and method matching" {
     );
     try std.testing.expectError(
         error.UrlMismatch,
-        http_auth_validate_request(
+        validate_request(
             &event,
             "https://api.example.com/v1?x=2",
             "GET",
@@ -665,7 +665,7 @@ test "http auth validate request keeps exact url and method matching" {
     );
     try std.testing.expectError(
         error.MethodMismatch,
-        http_auth_validate_request(
+        validate_request(
             &event,
             "https://api.example.com/v1?x=1",
             "get",
@@ -691,11 +691,11 @@ test "http auth validate request distinguishes invalid caller input from mismatc
 
     try std.testing.expectError(
         error.InvalidUrl,
-        http_auth_validate_request(&event, "not-a-url", "POST", null, 1_700_000_000, 60, 30),
+        validate_request(&event, "not-a-url", "POST", null, 1_700_000_000, 60, 30),
     );
     try std.testing.expectError(
         error.InvalidMethod,
-        http_auth_validate_request(
+        validate_request(
             &event,
             "https://api.example.com",
             "POST ",
@@ -707,7 +707,7 @@ test "http auth validate request distinguishes invalid caller input from mismatc
     );
     try std.testing.expectError(
         error.InvalidUrl,
-        http_auth_validate_request(
+        validate_request(
             &event,
             overlong_url[0..],
             "POST",
@@ -719,7 +719,7 @@ test "http auth validate request distinguishes invalid caller input from mismatc
     );
     try std.testing.expectError(
         error.InvalidMethod,
-        http_auth_validate_request(
+        validate_request(
             &event,
             "https://api.example.com",
             overlong_method[0..],
@@ -731,7 +731,7 @@ test "http auth validate request distinguishes invalid caller input from mismatc
     );
     try std.testing.expectError(
         error.InvalidPayload,
-        http_auth_validate_request(
+        validate_request(
             &event,
             "https://api.example.com",
             "POST",
@@ -751,7 +751,7 @@ test "http auth validate request enforces payload and time windows" {
     };
     const event = test_event(http_auth_kind, tags[0..]);
 
-    _ = try http_auth_validate_request(
+    _ = try validate_request(
         &event,
         "https://api.example.com/upload",
         "POST",
@@ -762,7 +762,7 @@ test "http auth validate request enforces payload and time windows" {
     );
     try std.testing.expectError(
         error.PayloadMismatch,
-        http_auth_validate_request(
+        validate_request(
             &event,
             "https://api.example.com/upload",
             "POST",
@@ -774,7 +774,7 @@ test "http auth validate request enforces payload and time windows" {
     );
     try std.testing.expectError(
         error.EventExpired,
-        http_auth_validate_request(
+        validate_request(
             &event,
             "https://api.example.com/upload",
             "POST",
@@ -786,7 +786,7 @@ test "http auth validate request enforces payload and time windows" {
     );
     try std.testing.expectError(
         error.EventTooNew,
-        http_auth_validate_request(
+        validate_request(
             &event,
             "https://api.example.com/upload",
             "POST",
@@ -803,16 +803,16 @@ test "http auth builders stay symmetric with extractors" {
     var method_tag: TagBuilder = .{};
     var payload_tag: TagBuilder = .{};
     const tags = [_]nip01_event.EventTag{
-        try http_auth_build_url_tag(&url_tag, "https://api.example.com/v1"),
-        try http_auth_build_method_tag(&method_tag, "PATCH"),
-        try http_auth_build_payload_tag(
+        try build_url_tag(&url_tag, "https://api.example.com/v1"),
+        try build_method_tag(&method_tag, "PATCH"),
+        try build_payload_tag(
             &payload_tag,
             "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         ),
     };
     const event = test_event(http_auth_kind, tags[0..]);
 
-    const info = try http_auth_extract(&event);
+    const info = try extract(&event);
     try std.testing.expectEqualStrings("u", url_tag.items[0]);
     try std.testing.expectEqualStrings("method", method_tag.items[0]);
     try std.testing.expectEqualStrings("payload", payload_tag.items[0]);
@@ -830,29 +830,29 @@ test "http auth builders reject invalid tag values with typed errors" {
 
     @memcpy(overlong_url[0..8], "https://");
 
-    try std.testing.expectError(error.InvalidUrlTag, http_auth_build_url_tag(&url_tag, "relative"));
+    try std.testing.expectError(error.InvalidUrlTag, build_url_tag(&url_tag, "relative"));
     try std.testing.expectError(
         error.InvalidMethodTag,
-        http_auth_build_method_tag(&method_tag, "GET "),
+        build_method_tag(&method_tag, "GET "),
     );
     try std.testing.expectError(
         error.InvalidPayloadTag,
-        http_auth_build_payload_tag(
+        build_payload_tag(
             &payload_tag,
             "0123456789ABCDEF0123456789abcdef0123456789abcdef0123456789abcdef",
         ),
     );
     try std.testing.expectError(
         error.InvalidUrlTag,
-        http_auth_build_url_tag(&url_tag, overlong_url[0..]),
+        build_url_tag(&url_tag, overlong_url[0..]),
     );
     try std.testing.expectError(
         error.InvalidMethodTag,
-        http_auth_build_method_tag(&method_tag, overlong_method[0..]),
+        build_method_tag(&method_tag, overlong_method[0..]),
     );
     try std.testing.expectError(
         error.InvalidPayloadTag,
-        http_auth_build_payload_tag(&payload_tag, overlong_payload[0..]),
+        build_payload_tag(&payload_tag, overlong_payload[0..]),
     );
 }
 
@@ -860,19 +860,19 @@ test "http auth payload hash helper emits lowercase hex and typed capacity" {
     var output: [payload_hash_hex_length]u8 = undefined;
     var tiny_output: [payload_hash_hex_length - 1]u8 = undefined;
 
-    const hash = try http_auth_payload_sha256_hex(output[0..], "{\"ok\":true}");
+    const hash = try payload_sha256_hex(output[0..], "{\"ok\":true}");
     try std.testing.expectEqual(@as(usize, payload_hash_hex_length), hash.len);
     try std.testing.expect(hash[0] >= '0');
     try std.testing.expectError(
         error.BufferTooSmall,
-        http_auth_payload_sha256_hex(tiny_output[0..], "{\"ok\":true}"),
+        payload_sha256_hex(tiny_output[0..], "{\"ok\":true}"),
     );
 }
 
 test "http auth header helpers enforce strict scheme and payload boundaries" {
     var json_output: [limits.event_json_max]u8 = undefined;
     var header_output: [128]u8 = undefined;
-    const token = try http_auth_decode_base64_event_json(
+    const token = try decode_base64_event_json(
         json_output[0..],
         "eyJraW5kIjoyNzIzNSwiY29udGVudCI6IiJ9",
     );
@@ -880,40 +880,40 @@ test "http auth header helpers enforce strict scheme and payload boundaries" {
     try std.testing.expectEqualStrings("{\"kind\":27235,\"content\":\"\"}", token);
     try std.testing.expectEqualStrings(
         "eyJraW5kIjoyNzIzNSwiY29udGVudCI6IiJ9",
-        try http_auth_parse_authorization_header(
+        try parse_authorization_header(
             "Nostr eyJraW5kIjoyNzIzNSwiY29udGVudCI6IiJ9",
         ),
     );
     try std.testing.expectEqualStrings(
         "Nostr eyJraW5kIjoyNzIzNSwiY29udGVudCI6IiJ9",
-        try http_auth_format_authorization_header(
+        try format_authorization_header(
             header_output[0..],
             "eyJraW5kIjoyNzIzNSwiY29udGVudCI6IiJ9",
         ),
     );
     try std.testing.expectError(
         error.InvalidAuthorizationHeader,
-        http_auth_parse_authorization_header("nostr eyJraW5kIjoyNzIzNSwiY29udGVudCI6IiJ9"),
+        parse_authorization_header("nostr eyJraW5kIjoyNzIzNSwiY29udGVudCI6IiJ9"),
     );
     try std.testing.expectError(
         error.InvalidAuthorizationHeader,
-        http_auth_parse_authorization_header("Nostr  eyJraW5kIjoyNzIzNSwiY29udGVudCI6IiJ9"),
+        parse_authorization_header("Nostr  eyJraW5kIjoyNzIzNSwiY29udGVudCI6IiJ9"),
     );
     try std.testing.expectError(
         error.InvalidBase64,
-        http_auth_decode_base64_event_json(json_output[0..], "%%%not-base64%%%"),
+        decode_base64_event_json(json_output[0..], "%%%not-base64%%%"),
     );
     try std.testing.expectError(
         error.InvalidBase64,
-        http_auth_format_authorization_header(header_output[0..], "%%%not-base64%%%"),
+        format_authorization_header(header_output[0..], "%%%not-base64%%%"),
     );
     try std.testing.expectError(
         error.InputTooShort,
-        http_auth_decode_base64_event_json(json_output[0..], ""),
+        decode_base64_event_json(json_output[0..], ""),
     );
     try std.testing.expectError(
         error.InputTooShort,
-        http_auth_format_authorization_header(header_output[0..], ""),
+        format_authorization_header(header_output[0..], ""),
     );
 }
 
@@ -921,14 +921,14 @@ test "http auth encode header and verify safe wrapper round trips canonical even
     var url_tag: TagBuilder = .{};
     var method_tag: TagBuilder = .{};
     const tags = [_]nip01_event.EventTag{
-        try http_auth_build_url_tag(&url_tag, "https://api.example.com/v1"),
-        try http_auth_build_method_tag(&method_tag, "GET"),
+        try build_url_tag(&url_tag, "https://api.example.com/v1"),
+        try build_method_tag(&method_tag, "GET"),
     };
     const event = try test_signed_event(http_auth_kind, 1_700_000_000, "", tags[0..]);
 
     var header_output: [limits.event_json_max * 2]u8 = undefined;
     var json_scratch: [limits.event_json_max]u8 = undefined;
-    const header = try http_auth_encode_authorization_header(
+    const header = try encode_authorization_header(
         header_output[0..],
         &event,
         json_scratch[0..],
@@ -937,7 +937,7 @@ test "http auth encode header and verify safe wrapper round trips canonical even
     var decode_output: [limits.event_json_max]u8 = undefined;
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
-    const verified = try http_auth_verify_authorization_header(
+    const verified = try verify_authorization_header(
         decode_output[0..],
         header,
         "https://api.example.com/v1",
@@ -963,6 +963,6 @@ test "http auth verify request rejects invalid signatures without hiding the cau
 
     try std.testing.expectError(
         error.InvalidId,
-        http_auth_verify_request(&event, "https://api.example.com", "GET", null, 1_700_000_000, 60, 30),
+        verify_request(&event, "https://api.example.com", "GET", null, 1_700_000_000, 60, 30),
     );
 }

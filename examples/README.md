@@ -56,7 +56,7 @@ opening a file.
 | Wallet Connect envelope and JSON helpers | `connection_uri_parse`, `connection_uri_serialize`, `request_event_extract`, `response_event_extract`, `notification_event_extract`, `request_parse_json`, `response_parse_json` | `nip47_example.zig` | `wallet_connect_adversarial_example.zig` |
 | Relay-admin JSON-RPC helpers | `method_parse`, `request_parse_json`, `request_serialize_json`, `response_parse_json`, `response_serialize_json` | `relay_admin_recipe.zig` | `relay_admin_adversarial_example.zig` |
 | Relay discovery metadata and monitor announcements | `relay_discovery_extract`, `relay_monitor_extract`, `relay_discovery_build_*`, `relay_monitor_build_*` | `nip66_example.zig` | `nip66_adversarial_example.zig` |
-| HTTP auth event and header helpers | `http_auth_extract`, `http_auth_validate_request`, `http_auth_verify_request`, `http_auth_parse_authorization_header`, `http_auth_verify_authorization_header`, `http_auth_build_*` | `nip98_example.zig` | `http_auth_adversarial_example.zig` |
+| HTTP auth event and header helpers | `extract`, `validate_request`, `verify_request`, `parse_authorization_header`, `verify_authorization_header`, `build_*` | `nip98_example.zig` | `http_auth_adversarial_example.zig` |
 | Subject tags for kind-1 text notes | `subject_extract`, `subject_build_tag` | `nip14_example.zig` | none |
 | Public-channel metadata, linkage, and moderation tags | `channel_*_extract`, `channel_build_*`, `channel_metadata_parse_json` | `nip28_example.zig` | `nip28_adversarial_example.zig` |
 | Custom emoji tag parsing and build helpers | `emoji_tag_extract`, `emoji_shortcode_from_token`, `emoji_build_tag` | `nip30_example.zig` | none |

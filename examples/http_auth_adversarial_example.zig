@@ -17,24 +17,24 @@ test "NIP-98 adversarial example: malformed headers and payload tags stay typed"
         tags[0..],
     );
 
-    try std.testing.expectError(error.InvalidPayloadTag, noztr.nip98_http_auth.http_auth_extract(&event));
+    try std.testing.expectError(error.InvalidPayloadTag, noztr.nip98_http_auth.extract(&event));
     try std.testing.expectError(
         error.InvalidPayloadTag,
-        noztr.nip98_http_auth.http_auth_build_payload_tag(
+        noztr.nip98_http_auth.build_payload_tag(
             &payload_tag,
             "ABCDEFabcdef0123456789abcdef0123456789abcdef0123456789abcdef01",
         ),
     );
     try std.testing.expectError(
         error.InvalidBase64,
-        noztr.nip98_http_auth.http_auth_format_authorization_header(
+        noztr.nip98_http_auth.format_authorization_header(
             header_output[0..],
             "%%%not-base64%%%",
         ),
     );
     try std.testing.expectError(
         error.InvalidAuthorizationHeader,
-        noztr.nip98_http_auth.http_auth_parse_authorization_header(
+        noztr.nip98_http_auth.parse_authorization_header(
             "Nostr  eyJraW5kIjoyNzIzNSwiY29udGVudCI6IiJ9",
         ),
     );

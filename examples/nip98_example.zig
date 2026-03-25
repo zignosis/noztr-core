@@ -9,17 +9,17 @@ test "NIP-98 example: build and verify an authorization header" {
     var method_tag: noztr.nip98_http_auth.TagBuilder = .{};
     var payload_tag: noztr.nip98_http_auth.TagBuilder = .{};
     var payload_hex_output: [noztr.nip98_http_auth.payload_hash_hex_length]u8 = undefined;
-    const payload_hex = try noztr.nip98_http_auth.http_auth_payload_sha256_hex(
+    const payload_hex = try noztr.nip98_http_auth.payload_sha256_hex(
         payload_hex_output[0..],
         "{\"name\":\"zig\"}",
     );
     const tags = [_]noztr.nip01_event.EventTag{
-        try noztr.nip98_http_auth.http_auth_build_url_tag(
+        try noztr.nip98_http_auth.build_url_tag(
             &url_tag,
             "https://api.example.com/upload?lang=zig",
         ),
-        try noztr.nip98_http_auth.http_auth_build_method_tag(&method_tag, "POST"),
-        try noztr.nip98_http_auth.http_auth_build_payload_tag(&payload_tag, payload_hex),
+        try noztr.nip98_http_auth.build_method_tag(&method_tag, "POST"),
+        try noztr.nip98_http_auth.build_payload_tag(&payload_tag, payload_hex),
     };
     var event = noztr.nip01_event.Event{
         .id = [_]u8{0} ** 32,
@@ -37,12 +37,12 @@ test "NIP-98 example: build and verify an authorization header" {
     defer arena.deinit();
 
     try common.sign_event(&secret_key, &event);
-    const header = try noztr.nip98_http_auth.http_auth_encode_authorization_header(
+    const header = try noztr.nip98_http_auth.encode_authorization_header(
         header_output[0..],
         &event,
         json_scratch[0..],
     );
-    const verified = try noztr.nip98_http_auth.http_auth_verify_authorization_header(
+    const verified = try noztr.nip98_http_auth.verify_authorization_header(
         decoded_json_output[0..],
         header,
         "https://api.example.com/upload?lang=zig",
