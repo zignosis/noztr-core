@@ -46,12 +46,12 @@ test "NIP-72 example: extract community definition and top-level post linkage" {
     var moderators: [1]noztr.nip72_moderated_communities.Moderator = undefined;
     var relays: [0]noztr.nip72_moderated_communities.Relay = .{};
 
-    const community = try noztr.nip72_moderated_communities.community_extract(
+    const community = try noztr.nip72_moderated_communities.extract(
         &community_event,
         moderators[0..],
         relays[0..],
     );
-    const post = try noztr.nip72_moderated_communities.community_post_extract(&post_event);
+    const post = try noztr.nip72_moderated_communities.post_extract(&post_event);
 
     try std.testing.expectEqualStrings("zig", community.identifier);
     try std.testing.expect(post.top_level);

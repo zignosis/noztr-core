@@ -138,7 +138,7 @@ pub const TagBuilder = struct {
 };
 
 /// Extracts bounded community-definition metadata from a `kind:34550` event.
-pub fn community_extract(
+pub fn extract(
     event: *const nip01_event.Event,
     out_moderators: []Moderator,
     out_relays: []Relay,
@@ -156,7 +156,7 @@ pub fn community_extract(
 }
 
 /// Extracts community linkage from a `kind:1111` community post.
-pub fn community_post_extract(event: *const nip01_event.Event) CommunityError!Post {
+pub fn post_extract(event: *const nip01_event.Event) CommunityError!Post {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -229,7 +229,7 @@ pub fn community_post_extract(event: *const nip01_event.Event) CommunityError!Po
 }
 
 /// Extracts community approvals from a `kind:4550` moderation approval event.
-pub fn community_approval_extract(
+pub fn approval_extract(
     event: *const nip01_event.Event,
     out_communities: []Coordinate,
 ) CommunityError!Approval {
@@ -260,7 +260,7 @@ pub fn community_approval_extract(
     return info;
 }
 
-pub fn community_build_identifier_tag(
+pub fn build_identifier_tag(
     output: *TagBuilder,
     identifier: []const u8,
 ) CommunityError!nip01_event.EventTag {
@@ -273,7 +273,7 @@ pub fn community_build_identifier_tag(
     return output.as_event_tag();
 }
 
-pub fn community_build_name_tag(
+pub fn build_name_tag(
     output: *TagBuilder,
     name: []const u8,
 ) CommunityError!nip01_event.EventTag {
@@ -286,7 +286,7 @@ pub fn community_build_name_tag(
     return output.as_event_tag();
 }
 
-pub fn community_build_description_tag(
+pub fn build_description_tag(
     output: *TagBuilder,
     description: []const u8,
 ) CommunityError!nip01_event.EventTag {
@@ -299,7 +299,7 @@ pub fn community_build_description_tag(
     return output.as_event_tag();
 }
 
-pub fn community_build_image_tag(
+pub fn build_image_tag(
     output: *TagBuilder,
     image_url: []const u8,
     dimensions: ?Dimensions,
@@ -322,7 +322,7 @@ pub fn community_build_image_tag(
     return output.as_event_tag();
 }
 
-pub fn community_build_moderator_tag(
+pub fn build_moderator_tag(
     output: *TagBuilder,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
@@ -348,7 +348,7 @@ pub fn community_build_moderator_tag(
     return output.as_event_tag();
 }
 
-pub fn community_build_relay_tag(
+pub fn build_relay_tag(
     output: *TagBuilder,
     relay_url: []const u8,
     marker: ?[]const u8,
@@ -366,7 +366,7 @@ pub fn community_build_relay_tag(
     return output.as_event_tag();
 }
 
-pub fn community_post_build_uppercase_community_tag(
+pub fn post_build_uppercase_community_tag(
     output: *TagBuilder,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
@@ -374,7 +374,7 @@ pub fn community_post_build_uppercase_community_tag(
     return build_case_coordinate_tag(output, "A", coordinate_text, relay_hint, error.InvalidCommunityTag);
 }
 
-pub fn community_post_build_lowercase_community_tag(
+pub fn post_build_lowercase_community_tag(
     output: *TagBuilder,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
@@ -382,7 +382,7 @@ pub fn community_post_build_lowercase_community_tag(
     return build_case_coordinate_tag(output, "a", coordinate_text, relay_hint, error.InvalidParentTag);
 }
 
-pub fn community_post_build_lowercase_parent_event_tag(
+pub fn post_build_lowercase_parent_event_tag(
     output: *TagBuilder,
     event_id_hex: []const u8,
     relay_hint: ?[]const u8,
@@ -401,7 +401,7 @@ pub fn community_post_build_lowercase_parent_event_tag(
     return output.as_event_tag();
 }
 
-pub fn community_post_build_uppercase_author_tag(
+pub fn post_build_uppercase_author_tag(
     output: *TagBuilder,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
@@ -409,7 +409,7 @@ pub fn community_post_build_uppercase_author_tag(
     return build_case_pubkey_tag(output, "P", pubkey_hex, relay_hint, error.InvalidCommunityAuthorTag);
 }
 
-pub fn community_post_build_lowercase_author_tag(
+pub fn post_build_lowercase_author_tag(
     output: *TagBuilder,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
@@ -417,21 +417,21 @@ pub fn community_post_build_lowercase_author_tag(
     return build_case_pubkey_tag(output, "p", pubkey_hex, relay_hint, error.InvalidParentAuthorTag);
 }
 
-pub fn community_post_build_uppercase_kind_tag(
+pub fn post_build_uppercase_kind_tag(
     output: *TagBuilder,
     kind: u32,
 ) CommunityError!nip01_event.EventTag {
     return build_case_kind_tag(output, "K", kind, error.InvalidCommunityKindTag);
 }
 
-pub fn community_post_build_lowercase_kind_tag(
+pub fn post_build_lowercase_kind_tag(
     output: *TagBuilder,
     kind: u32,
 ) CommunityError!nip01_event.EventTag {
     return build_case_kind_tag(output, "k", kind, error.InvalidParentKindTag);
 }
 
-pub fn community_approval_build_community_tag(
+pub fn approval_build_community_tag(
     output: *TagBuilder,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
@@ -439,7 +439,7 @@ pub fn community_approval_build_community_tag(
     return build_case_coordinate_tag(output, "a", coordinate_text, relay_hint, error.InvalidCommunityTag);
 }
 
-pub fn community_approval_build_post_coordinate_tag(
+pub fn approval_build_post_coordinate_tag(
     output: *TagBuilder,
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
@@ -447,7 +447,7 @@ pub fn community_approval_build_post_coordinate_tag(
     return build_case_coordinate_tag(output, "a", coordinate_text, relay_hint, error.InvalidApprovedPostCoordinateTag);
 }
 
-pub fn community_approval_build_post_event_tag(
+pub fn approval_build_post_event_tag(
     output: *TagBuilder,
     event_id_hex: []const u8,
     relay_hint: ?[]const u8,
@@ -466,7 +466,7 @@ pub fn community_approval_build_post_event_tag(
     return output.as_event_tag();
 }
 
-pub fn community_approval_build_post_author_tag(
+pub fn approval_build_post_author_tag(
     output: *TagBuilder,
     pubkey_hex: []const u8,
     relay_hint: ?[]const u8,
@@ -474,7 +474,7 @@ pub fn community_approval_build_post_author_tag(
     return build_case_pubkey_tag(output, "p", pubkey_hex, relay_hint, error.InvalidCommunityAuthorTag);
 }
 
-pub fn community_approval_build_post_kind_tag(
+pub fn approval_build_post_kind_tag(
     output: *TagBuilder,
     kind: u32,
 ) CommunityError!nip01_event.EventTag {
@@ -963,7 +963,7 @@ test "NIP-72 extracts community definition metadata" {
     var moderators: [1]Moderator = undefined;
     var relays: [1]Relay = undefined;
 
-    const info = try community_extract(&event, moderators[0..], relays[0..]);
+    const info = try extract(&event, moderators[0..], relays[0..]);
 
     try std.testing.expectEqualStrings("zig", info.identifier);
     try std.testing.expectEqualStrings("Zig", info.name.?);
@@ -999,7 +999,7 @@ test "NIP-72 extracts top-level community posts" {
         .sig = [_]u8{0x23} ** 64,
     };
 
-    const info = try community_post_extract(&event);
+    const info = try post_extract(&event);
 
     try std.testing.expect(info.top_level);
     try std.testing.expectEqualStrings("zig", info.community.identifier);
@@ -1036,7 +1036,7 @@ test "NIP-72 extracts community approvals" {
     };
     var communities: [1]Coordinate = undefined;
 
-    const info = try community_approval_extract(&event, communities[0..]);
+    const info = try approval_extract(&event, communities[0..]);
 
     try std.testing.expectEqual(@as(u16, 1), info.community_count);
     try std.testing.expect(info.approved_event != null);
@@ -1047,12 +1047,12 @@ test "NIP-72 builds community tags" {
     var coord_built: TagBuilder = .{};
     var kind_built: TagBuilder = .{};
 
-    const a_tag = try community_post_build_uppercase_community_tag(
+    const a_tag = try post_build_uppercase_community_tag(
         &coord_built,
         "34550:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:zig",
         "wss://relay.example.com",
     );
-    const k_tag = try community_post_build_lowercase_kind_tag(&kind_built, 1111);
+    const k_tag = try post_build_lowercase_kind_tag(&kind_built, 1111);
 
     try std.testing.expectEqualStrings("A", a_tag.items[0]);
     try std.testing.expectEqualStrings("k", k_tag.items[0]);
@@ -1065,6 +1065,6 @@ test "NIP-72 rejects overlong identifier builder input with typed error" {
 
     try std.testing.expectError(
         error.InvalidIdentifierTag,
-        community_build_identifier_tag(&built, overlong[0..]),
+        build_identifier_tag(&built, overlong[0..]),
     );
 }

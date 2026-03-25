@@ -378,13 +378,13 @@ These are the quickest symbol-level routes into the modules most downstream user
 
 ### `nip72_moderated_communities`
 
-- `community_extract`
+- `extract`
   - extract bounded community-definition metadata, moderators, and relay tags from `kind:34550`
-- `community_post_extract`
+- `post_extract`
   - extract bounded community linkage and parent-target contracts from `kind:1111` community posts
-- `community_approval_extract`
+- `approval_extract`
   - extract bounded approval contracts from `kind:4550` moderator approval events
-- `community_*_build_*`
+- `build_*`, `post_build_*`, `approval_build_*`
   - build canonical definition, post-linkage, and approval tags for the bounded kernel slice
 - start example:
   - [nip72_example.zig](../../examples/nip72_example.zig)

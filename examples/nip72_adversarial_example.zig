@@ -36,6 +36,6 @@ test "NIP-72 adversarial example: reject top-level lowercase community mismatch"
 
     try std.testing.expectError(
         error.TopLevelCommunityMismatch,
-        noztr.nip72_moderated_communities.community_post_extract(&event),
+        noztr.nip72_moderated_communities.post_extract(&event),
     );
 }

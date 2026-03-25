@@ -97,6 +97,12 @@ If your project depends on `noztr-core`:
 - `AddressableTarget` -> `Target`
 - `CommunityModerator` -> `Moderator`
 - `CommunityRelay` -> `Relay`
+- `community_extract` -> `extract`
+- `community_post_extract` -> `post_extract`
+- `community_approval_extract` -> `approval_extract`
+- `community_build_*` -> `build_*`
+- `community_post_build_*` -> `post_build_*`
+- `community_approval_build_*` -> `approval_build_*`
 
 ### `nip46_remote_signing`
 

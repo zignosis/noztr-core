@@ -63,7 +63,7 @@ opening a file.
 | Unknown/custom-kind fallback summaries | `alt_extract`, `alt_build_tag` | `nip31_example.zig` | none |
 | User-status metadata and linkage tags | `user_status_extract`, `user_status_build_*` | `nip38_example.zig` | none |
 | Video-event metadata, variant fields, and imported-origin tags | `video_extract`, `video_build_*`, `video_build_duration_field`, `video_build_bitrate_field` | `nip71_example.zig` | none |
-| Moderated-community definitions, post linkage, and approval contracts | `community_extract`, `community_post_extract`, `community_approval_extract`, `community_*_build_*` | `nip72_example.zig` | `nip72_adversarial_example.zig` |
+| Moderated-community definitions, post linkage, and approval contracts | `extract`, `post_extract`, `approval_extract`, `build_*`, `post_build_*`, `approval_build_*` | `nip72_example.zig` | `nip72_adversarial_example.zig` |
 | Git repository metadata and state tags | `repository_announcement_extract`, `repository_state_extract`, `repository_build_*` | `nip34_example.zig` | none |
 | Calendar event, collection, and RSVP metadata | `date_calendar_event_extract`, `time_calendar_event_extract`, `calendar_rsvp_extract`, `calendar_build_*` | `nip52_example.zig` | none |
 | Live activity metadata and chat activity addressing | `live_activity_extract`, `live_chat_extract`, `live_activity_build_*`, `live_chat_build_activity_tag` | `nip53_example.zig` | none |
