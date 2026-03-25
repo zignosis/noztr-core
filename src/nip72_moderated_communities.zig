@@ -66,7 +66,7 @@ pub const Coordinate = struct {
     relay_hint: ?[]const u8 = null,
 };
 
-pub const Target = struct {
+pub const AddressableTarget = struct {
     kind: u32,
     pubkey: [32]u8,
     identifier: []const u8,
@@ -100,7 +100,7 @@ pub const EventRef = struct {
 };
 
 pub const ParentTarget = union(enum) {
-    coordinate: Target,
+    coordinate: AddressableTarget,
     event: EventRef,
 };
 
@@ -121,7 +121,7 @@ pub const Post = struct {
 
 pub const ApprovedTarget = union(enum) {
     event: EventRef,
-    coordinate: Target,
+    coordinate: AddressableTarget,
 };
 
 pub const Approval = struct {
@@ -171,10 +171,10 @@ pub fn post_extract(event: *const nip01_event.Event) CommunityError!Post {
 
     if (event.kind != community_post_kind) return error.InvalidCommunityPostKind;
 
-    var upper: ?Target = null;
+    var upper: ?AddressableTarget = null;
     var upper_author: ?TagPubkey = null;
     var saw_upper_kind = false;
-    var lower_coord: ?Target = null;
+    var lower_coord: ?AddressableTarget = null;
     var lower_event: ?EventRef = null;
     var lower_author: ?TagPubkey = null;
     var lower_kind: ?u32 = null;
@@ -583,10 +583,10 @@ fn append_relay(
 
 fn apply_post_tag(
     tag: nip01_event.EventTag,
-    upper: *?Target,
+    upper: *?AddressableTarget,
     upper_author: *?TagPubkey,
     saw_upper_kind: *bool,
-    lower_coord: *?Target,
+    lower_coord: *?AddressableTarget,
     lower_event: *?EventRef,
     lower_author: *?TagPubkey,
     lower_kind: *?u32,
@@ -653,7 +653,7 @@ fn apply_approval_a_tag(
 
 fn ensure_top_level_match(
     community: *const Coordinate,
-    parent: *const Target,
+    parent: *const AddressableTarget,
     community_author: *const TagPubkey,
     parent_author: TagPubkey,
     parent_kind: u32,
@@ -672,7 +672,7 @@ fn ensure_top_level_match(
 
 fn apply_single_coordinate_tag(
     tag: nip01_event.EventTag,
-    field: *?Target,
+    field: *?AddressableTarget,
     duplicate_error: CommunityError,
     invalid_error: CommunityError,
 ) CommunityError!void {
@@ -830,7 +830,7 @@ fn parse_relay_tag(tag: nip01_event.EventTag) CommunityError!Relay {
     };
 }
 
-fn parse_coordinate_tag(tag: nip01_event.EventTag, invalid_error: CommunityError) CommunityError!Target {
+fn parse_coordinate_tag(tag: nip01_event.EventTag, invalid_error: CommunityError) CommunityError!AddressableTarget {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len > 0);
 
@@ -932,7 +932,7 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
     return url_with_scheme.parse_utf8(text, limits.tag_item_bytes_max);
 }
 
-fn to_community_coordinate(target: Target) Coordinate {
+fn to_community_coordinate(target: AddressableTarget) Coordinate {
     std.debug.assert(target.kind == community_definition_kind);
     std.debug.assert(target.identifier.len > 0);
 

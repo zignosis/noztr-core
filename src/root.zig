@@ -506,7 +506,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip84_highlights.TagBuilder) == type);
     try std.testing.expect(@TypeOf(nip72_moderated_communities.Community) == type);
     try std.testing.expect(@TypeOf(nip72_moderated_communities.Coordinate) == type);
-    try std.testing.expect(@TypeOf(nip72_moderated_communities.Target) == type);
+    try std.testing.expect(@TypeOf(nip72_moderated_communities.AddressableTarget) == type);
     try std.testing.expect(@TypeOf(nip72_moderated_communities.Moderator) == type);
     try std.testing.expect(@TypeOf(nip72_moderated_communities.Relay) == type);
     try std.testing.expect(@TypeOf(nip72_moderated_communities.EventRef) == type);

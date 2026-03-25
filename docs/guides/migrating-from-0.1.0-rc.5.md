@@ -99,7 +99,6 @@ If your project depends on `noztr-core`:
 ### `nip72_moderated_communities`
 
 - `CommunityCoordinate` -> `Coordinate`
-- `AddressableTarget` -> `Target`
 - `CommunityModerator` -> `Moderator`
 - `CommunityRelay` -> `Relay`
 - `community_extract` -> `extract`

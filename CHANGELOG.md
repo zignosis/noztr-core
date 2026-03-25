@@ -17,6 +17,8 @@ For the public versioning policy, see
 
 - `nip71_video_events.Video` now exposes one explicit `kind: VideoKind` instead of the overlapping
   `flavor` plus `addressable: bool` pair
+- restored the clearer `nip72_moderated_communities.AddressableTarget` name after the shorter
+  `Target` form proved too ambiguous in-route
 
 ### Breaking Changes
 
