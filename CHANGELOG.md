@@ -13,6 +13,16 @@ For the public versioning policy, see
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- shortened route-local public type names in:
+  - `nip37_drafts`
+  - `nip45_count`
+  - `nip23_long_form`
+  - `nip99_classified_listings`
+- downstream migration guide:
+  - [docs/guides/migrating-from-0.1.0-rc.5.md](docs/guides/migrating-from-0.1.0-rc.5.md)
+
 ## [0.1.0-rc.5] - 2026-03-24
 
 Release type: breaking rc

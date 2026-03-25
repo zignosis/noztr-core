@@ -30,6 +30,7 @@ Use the guides when you need narrative help:
 - [migrating from 0.1.0-rc.2](guides/migrating-from-0.1.0-rc.2.md)
 - [migrating from 0.1.0-rc.3](guides/migrating-from-0.1.0-rc.3.md)
 - [migrating from 0.1.0-rc.4](guides/migrating-from-0.1.0-rc.4.md)
+- [migrating from 0.1.0-rc.5](guides/migrating-from-0.1.0-rc.5.md)
 - [release signoff checklist](guides/release-signoff-checklist.md)
 - [NOZTR Style](guides/noztr-style.md)
 - [Docs style guide](guides/docs-style-guide.md)

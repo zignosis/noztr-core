@@ -26,7 +26,7 @@ pub const LongFormKind = enum(u32) {
     draft = 30024,
 };
 
-pub const LongFormMetadata = struct {
+pub const Metadata = struct {
     kind: LongFormKind,
     identifier: []const u8,
     content: []const u8,
@@ -80,7 +80,7 @@ pub fn long_form_is_supported(event: *const nip01_event.Event) bool {
 pub fn long_form_extract(
     event: *const nip01_event.Event,
     out_hashtags: [][]const u8,
-) LongFormError!LongFormMetadata {
+) LongFormError!Metadata {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_hashtags.len <= std.math.maxInt(u16));
 
@@ -88,7 +88,7 @@ pub fn long_form_extract(
     try validate_content(event.content);
 
     var identifier: ?[]const u8 = null;
-    var metadata = LongFormMetadata{
+    var metadata = Metadata{
         .kind = kind,
         .identifier = undefined,
         .content = event.content,
@@ -196,7 +196,7 @@ pub fn long_form_build_hashtag_tag(
 fn apply_tag(
     tag: nip01_event.EventTag,
     identifier: *?[]const u8,
-    metadata: *LongFormMetadata,
+    metadata: *Metadata,
     out_hashtags: [][]const u8,
 ) LongFormError!void {
     std.debug.assert(@intFromPtr(identifier) != 0);
@@ -225,7 +225,7 @@ fn apply_identifier_tag(
     };
 }
 
-fn apply_title_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) LongFormError!void {
+fn apply_title_tag(tag: nip01_event.EventTag, metadata: *Metadata) LongFormError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -235,7 +235,7 @@ fn apply_title_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) LongF
     };
 }
 
-fn apply_image_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) LongFormError!void {
+fn apply_image_tag(tag: nip01_event.EventTag, metadata: *Metadata) LongFormError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -245,7 +245,7 @@ fn apply_image_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) LongF
     metadata.image_dimensions = parsed.dimensions;
 }
 
-fn apply_summary_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) LongFormError!void {
+fn apply_summary_tag(tag: nip01_event.EventTag, metadata: *Metadata) LongFormError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
 
@@ -257,7 +257,7 @@ fn apply_summary_tag(tag: nip01_event.EventTag, metadata: *LongFormMetadata) Lon
 
 fn apply_published_at_tag(
     tag: nip01_event.EventTag,
-    metadata: *LongFormMetadata,
+    metadata: *Metadata,
 ) LongFormError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(@intFromPtr(metadata) != 0);
@@ -268,7 +268,7 @@ fn apply_published_at_tag(
 
 fn apply_hashtag_tag(
     tag: nip01_event.EventTag,
-    metadata: *LongFormMetadata,
+    metadata: *Metadata,
     out_hashtags: [][]const u8,
 ) LongFormError!void {
     std.debug.assert(tag.items.len <= limits.tag_items_max);

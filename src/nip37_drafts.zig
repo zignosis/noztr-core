@@ -32,7 +32,7 @@ pub const DraftError = nip44.ConversationEncryptionError || error{
     BufferTooSmall,
 };
 
-pub const DraftWrapInfo = struct {
+pub const Wrap = struct {
     identifier: []const u8,
     draft_kind: u32,
     expiration: ?u64 = null,
@@ -40,7 +40,7 @@ pub const DraftWrapInfo = struct {
     is_deleted: bool,
 };
 
-pub const DraftWrapPlaintextInfo = struct {
+pub const Plaintext = struct {
     identifier: []const u8,
     draft_kind: u32,
     expiration: ?u64 = null,
@@ -48,7 +48,7 @@ pub const DraftWrapPlaintextInfo = struct {
     is_deleted: bool,
 };
 
-pub const PrivateRelayListInfo = struct {
+pub const PrivateRelayList = struct {
     relay_count: u16,
     plaintext_json: []const u8,
 };
@@ -67,7 +67,7 @@ pub const TagBuilder = struct {
 };
 
 /// Parses bounded NIP-37 draft-wrap metadata from a kind-31234 event.
-pub fn draft_wrap_parse(event: *const nip01_event.Event) DraftError!DraftWrapInfo {
+pub fn draft_wrap_parse(event: *const nip01_event.Event) DraftError!Wrap {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.kind <= limits.kind_max);
 
@@ -96,7 +96,7 @@ pub fn draft_wrap_decrypt_json(
     event: *const nip01_event.Event,
     author_private_key: *const [32]u8,
     scratch: std.mem.Allocator,
-) DraftError!DraftWrapPlaintextInfo {
+) DraftError!Plaintext {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(author_private_key) != 0);
 
@@ -230,7 +230,7 @@ pub fn private_relay_list_extract_json(
     input_json: []const u8,
     out: [][]const u8,
     scratch: std.mem.Allocator,
-) DraftError!PrivateRelayListInfo {
+) DraftError!PrivateRelayList {
     std.debug.assert(out.len <= limits.tags_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -258,7 +258,7 @@ pub fn private_relay_list_extract_nip44(
     author_private_key: *const [32]u8,
     out: [][]const u8,
     scratch: std.mem.Allocator,
-) DraftError!PrivateRelayListInfo {
+) DraftError!PrivateRelayList {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(@intFromPtr(author_private_key) != 0);
 

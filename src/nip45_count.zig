@@ -14,30 +14,30 @@ pub const CountError = error{
 };
 
 /// Optional COUNT response metadata fields.
-pub const CountMetadata = struct {
+pub const Metadata = struct {
     approximate: ?bool = null,
     hll: ?[]const u8 = null,
 };
 
 /// Strict COUNT client message payload.
-pub const CountClientMessage = struct {
+pub const ClientMessage = struct {
     query_id: []const u8,
     filters: [limits.message_filters_max]nip01_filter.Filter,
     filters_count: u8,
 };
 
 /// Strict COUNT relay message payload.
-pub const CountRelayMessage = struct {
+pub const RelayMessage = struct {
     query_id: []const u8,
     count: u64,
-    metadata: CountMetadata,
+    metadata: Metadata,
 };
 
 /// Parse strict client COUNT message: ["COUNT", query_id, filter1, ...].
 pub fn count_client_message_parse(
     input: []const u8,
     scratch: std.mem.Allocator,
-) CountError!CountClientMessage {
+) CountError!ClientMessage {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.message_filters_max > 0);
 
@@ -63,7 +63,7 @@ pub fn count_client_message_parse(
 pub fn count_relay_message_parse(
     input: []const u8,
     scratch: std.mem.Allocator,
-) CountError!CountRelayMessage {
+) CountError!RelayMessage {
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
     std.debug.assert(limits.subscription_id_bytes_max == 64);
 
@@ -85,7 +85,7 @@ pub fn count_relay_message_parse(
 }
 
 /// Validate optional COUNT metadata (`approximate`, `hll`).
-pub fn count_metadata_validate(metadata: *const CountMetadata) CountError!void {
+pub fn count_metadata_validate(metadata: *const Metadata) CountError!void {
     std.debug.assert(@intFromPtr(metadata) != 0);
     std.debug.assert(limits.nip45_hll_hex_length == 512);
 
@@ -192,7 +192,7 @@ fn parse_filter_value(
 
 const ParsedCountObject = struct {
     count: u64,
-    metadata: CountMetadata,
+    metadata: Metadata,
 };
 
 fn parse_count_object(
@@ -206,7 +206,7 @@ fn parse_count_object(
         return error.InvalidCountObject;
     }
 
-    var metadata = CountMetadata{};
+    var metadata = Metadata{};
     var has_count = false;
     var parsed_count: u64 = 0;
     var iterator = value.object.iterator();
@@ -427,20 +427,20 @@ test "count metadata validator enforces optional field rules" {
     var hll_text: [limits.nip45_hll_hex_length]u8 = undefined;
     build_hll_hex(hll_text[0..]);
 
-    var valid = CountMetadata{ .approximate = false, .hll = hll_text[0..] };
+    var valid = Metadata{ .approximate = false, .hll = hll_text[0..] };
     try count_metadata_validate(&valid);
 
     var uppercase_hex = hll_text;
     uppercase_hex[0] = 'A';
     uppercase_hex[1] = 'B';
-    var uppercase_valid = CountMetadata{ .hll = uppercase_hex[0..] };
+    var uppercase_valid = Metadata{ .hll = uppercase_hex[0..] };
     try count_metadata_validate(&uppercase_valid);
 
-    var wrong_length = CountMetadata{ .hll = "ab" };
+    var wrong_length = Metadata{ .hll = "ab" };
     try std.testing.expectError(error.InvalidHllLength, count_metadata_validate(&wrong_length));
 
     var invalid_hex_text = hll_text;
     invalid_hex_text[0] = 'G';
-    var wrong_hex = CountMetadata{ .hll = invalid_hex_text[0..] };
+    var wrong_hex = Metadata{ .hll = invalid_hex_text[0..] };
     try std.testing.expectError(error.InvalidHllHex, count_metadata_validate(&wrong_hex));
 }

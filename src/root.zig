@@ -375,7 +375,7 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip47_wallet_connect.Request) == type);
     try std.testing.expect(@TypeOf(nip47_wallet_connect.Response) == type);
     try std.testing.expect(@TypeOf(nip47_wallet_connect.Notification) == type);
-    try std.testing.expect(@TypeOf(nip23_long_form.LongFormMetadata) == type);
+    try std.testing.expect(@TypeOf(nip23_long_form.Metadata) == type);
     try std.testing.expect(@TypeOf(nip23_long_form.TagBuilder) == type);
     try std.testing.expect(@TypeOf(nipc0_code_snippets.License) == type);
     try std.testing.expect(@TypeOf(nipc0_code_snippets.RepoRef) == type);
@@ -447,9 +447,9 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip86_relay_management.Result) == type);
     try std.testing.expect(@TypeOf(nip86_relay_management.Request) == type);
     try std.testing.expect(@TypeOf(nip86_relay_management.Response) == type);
-    try std.testing.expect(@TypeOf(nip37_drafts.DraftWrapInfo) == type);
-    try std.testing.expect(@TypeOf(nip37_drafts.DraftWrapPlaintextInfo) == type);
-    try std.testing.expect(@TypeOf(nip37_drafts.PrivateRelayListInfo) == type);
+    try std.testing.expect(@TypeOf(nip37_drafts.Wrap) == type);
+    try std.testing.expect(@TypeOf(nip37_drafts.Plaintext) == type);
+    try std.testing.expect(@TypeOf(nip37_drafts.PrivateRelayList) == type);
     try std.testing.expect(@TypeOf(nip37_drafts.TagBuilder) == type);
     try std.testing.expect(@TypeOf(nip58_badges.Image) == type);
     try std.testing.expect(@TypeOf(nip58_badges.DefinitionRef) == type);
@@ -551,7 +551,7 @@ test "root exports limits and error namespaces" {
             fn (
                 *const nip01_event.Event,
                 [][]const u8,
-            ) nip23_long_form.LongFormError!nip23_long_form.LongFormMetadata,
+            ) nip23_long_form.LongFormError!nip23_long_form.Metadata,
     );
     try std.testing.expect(
         @TypeOf(nip23_long_form.long_form_build_identifier_tag) ==
@@ -899,7 +899,7 @@ test "root exports limits and error namespaces" {
     );
     try std.testing.expect(
         @TypeOf(nip37_drafts.draft_wrap_parse) ==
-            fn (*const nip01_event.Event) nip37_drafts.DraftError!nip37_drafts.DraftWrapInfo,
+            fn (*const nip01_event.Event) nip37_drafts.DraftError!nip37_drafts.Wrap,
     );
     try std.testing.expect(
         @TypeOf(nip37_drafts.draft_wrap_decrypt_json) ==
@@ -908,7 +908,7 @@ test "root exports limits and error namespaces" {
                 *const nip01_event.Event,
                 *const [32]u8,
                 std.mem.Allocator,
-            ) nip37_drafts.DraftError!nip37_drafts.DraftWrapPlaintextInfo,
+            ) nip37_drafts.DraftError!nip37_drafts.Plaintext,
     );
     try std.testing.expect(
         @TypeOf(nip37_drafts.draft_wrap_encrypt_json) ==
@@ -934,7 +934,7 @@ test "root exports limits and error namespaces" {
                 []const u8,
                 [][]const u8,
                 std.mem.Allocator,
-            ) nip37_drafts.DraftError!nip37_drafts.PrivateRelayListInfo,
+            ) nip37_drafts.DraftError!nip37_drafts.PrivateRelayList,
     );
     try std.testing.expect(
         @TypeOf(nip37_drafts.private_relay_list_extract_nip44) ==
@@ -944,7 +944,7 @@ test "root exports limits and error namespaces" {
                 *const [32]u8,
                 [][]const u8,
                 std.mem.Allocator,
-            ) nip37_drafts.DraftError!nip37_drafts.PrivateRelayListInfo,
+            ) nip37_drafts.DraftError!nip37_drafts.PrivateRelayList,
     );
     try std.testing.expect(
         @TypeOf(nip58_badges.badge_definition_extract) ==
@@ -1220,18 +1220,18 @@ test "root exports limits and error namespaces" {
                 fn (
                     []const u8,
                     std.mem.Allocator,
-                ) nip45_count.CountError!nip45_count.CountClientMessage,
+                ) nip45_count.CountError!nip45_count.ClientMessage,
         );
         try std.testing.expect(
             @TypeOf(nip45_count.count_relay_message_parse) ==
                 fn (
                     []const u8,
                     std.mem.Allocator,
-                ) nip45_count.CountError!nip45_count.CountRelayMessage,
+                ) nip45_count.CountError!nip45_count.RelayMessage,
         );
         try std.testing.expect(
             @TypeOf(nip45_count.count_metadata_validate) ==
-                fn (*const nip45_count.CountMetadata) nip45_count.CountError!void,
+                fn (*const nip45_count.Metadata) nip45_count.CountError!void,
         );
         try std.testing.expect(
             @TypeOf(nip50_search.search_field_validate) ==
