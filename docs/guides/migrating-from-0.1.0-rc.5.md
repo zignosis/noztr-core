@@ -22,8 +22,9 @@ If your project depends on `noztr-core`:
    older verbose approved-target error names
 3. update any explicit `nip54_wiki.WikiError` matches that still use the older target/destination
    error names
-4. rerun your normal build/test gates
-5. refresh generated symbol indexes or local LLM context that still teach the older longer names
+4. update any `nip71_video_events.Video` reads that still expect `flavor` plus `addressable: bool`
+5. rerun your normal build/test gates
+6. refresh generated symbol indexes or local LLM context that still teach the older longer names
 
 ## Renamed Public Surface
 
@@ -142,6 +143,16 @@ If your project depends on `noztr-core`:
   - `MissingRedirectTargetTag` -> `MissingRedirectTag`
   - `DuplicateRedirectTargetTag` -> `DuplicateRedirectTag`
   - `InvalidRedirectTargetTag` -> `InvalidRedirectTag`
+
+### `nip71_video_events`
+
+- `Video.flavor: VideoFlavor` and `Video.addressable: bool` were replaced with
+  `Video.kind: VideoKind`
+- map the old combinations as:
+  - `.flavor = .normal`, `.addressable = false` -> `.kind = .normal`
+  - `.flavor = .short`, `.addressable = false` -> `.kind = .short`
+  - `.flavor = .normal`, `.addressable = true` -> `.kind = .addressable_normal`
+  - `.flavor = .short`, `.addressable = true` -> `.kind = .addressable_short`
 
 ### `nip47_wallet_connect`
 

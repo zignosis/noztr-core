@@ -50,9 +50,11 @@ pub const VideoEventError = error{
     BufferTooSmall,
 };
 
-pub const VideoFlavor = enum {
+pub const VideoKind = enum {
     normal,
     short,
+    addressable_normal,
+    addressable_short,
 };
 
 pub const Dimensions = nip94_file_metadata.Dimensions;
@@ -97,8 +99,7 @@ pub const Origin = struct {
 };
 
 pub const Video = struct {
-    flavor: VideoFlavor,
-    addressable: bool,
+    kind: VideoKind,
     identifier: ?[]const u8 = null,
     title: []const u8,
     content: []const u8,
@@ -155,8 +156,7 @@ pub fn video_extract(
     std.debug.assert(out_variants.len <= limits.tags_max);
 
     var info = Video{
-        .flavor = try parse_video_flavor(event.kind),
-        .addressable = is_addressable_kind(event.kind),
+        .kind = try parse_video_kind(event.kind),
         .title = undefined,
         .content = event.content,
     };
@@ -184,7 +184,7 @@ pub fn video_extract(
         );
     }
     info.title = title orelse return error.MissingTitleTag;
-    if (info.addressable) {
+    if (video_kind_is_addressable(info.kind)) {
         info.identifier = identifier orelse return error.MissingIdentifierTag;
     } else {
         info.identifier = identifier;
@@ -787,13 +787,15 @@ fn parse_origin_tag(tag: nip01_event.EventTag) VideoEventError!Origin {
     };
 }
 
-fn parse_video_flavor(kind: u32) VideoEventError!VideoFlavor {
+fn parse_video_kind(kind: u32) VideoEventError!VideoKind {
     std.debug.assert(kind <= limits.kind_max);
     std.debug.assert(short_video_kind < addressable_normal_video_kind);
 
     return switch (kind) {
-        normal_video_kind, addressable_normal_video_kind => .normal,
-        short_video_kind, addressable_short_video_kind => .short,
+        normal_video_kind => .normal,
+        short_video_kind => .short,
+        addressable_normal_video_kind => .addressable_normal,
+        addressable_short_video_kind => .addressable_short,
         else => error.InvalidVideoKind,
     };
 }
@@ -808,11 +810,11 @@ fn is_video_kind(kind: u32) bool {
         kind == addressable_short_video_kind;
 }
 
-fn is_addressable_kind(kind: u32) bool {
-    std.debug.assert(is_video_kind(kind));
-    std.debug.assert(addressable_normal_video_kind > short_video_kind);
-
-    return kind == addressable_normal_video_kind or kind == addressable_short_video_kind;
+fn video_kind_is_addressable(kind: VideoKind) bool {
+    return switch (kind) {
+        .addressable_normal, .addressable_short => true,
+        .normal, .short => false,
+    };
 }
 
 fn parse_nonempty_utf8(text: []const u8) error{InvalidUtf8}![]const u8 {
@@ -946,8 +948,7 @@ test "NIP-71 extracts bounded addressable video metadata" {
         origins[0..],
     );
 
-    try std.testing.expectEqual(VideoFlavor.short, info.flavor);
-    try std.testing.expect(info.addressable);
+    try std.testing.expectEqual(VideoKind.addressable_short, info.kind);
     try std.testing.expectEqualStrings("nostube-123", info.identifier.?);
     try std.testing.expectEqualStrings("Nostube episode", info.title);
     try std.testing.expectEqual(@as(u16, 1), info.variant_count);

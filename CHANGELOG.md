@@ -13,6 +13,11 @@ For the public versioning policy, see
 
 ## [Unreleased]
 
+### Changed
+
+- `nip71_video_events.Video` now exposes one explicit `kind: VideoKind` instead of the overlapping
+  `flavor` plus `addressable: bool` pair
+
 ### Breaking Changes
 
 - shortened route-local public type names in:

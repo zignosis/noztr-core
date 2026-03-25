@@ -46,7 +46,7 @@ test "NIP-71 example: extract video metadata and build variant fields" {
     );
     const duration = try noztr.nip71_video_events.video_build_duration_field(duration_field[0..], 18.25);
 
-    try std.testing.expectEqual(noztr.nip71_video_events.VideoFlavor.short, info.flavor);
+    try std.testing.expectEqual(noztr.nip71_video_events.VideoKind.short, info.kind);
     try std.testing.expectEqual(@as(u16, 1), info.variant_count);
     try std.testing.expectEqualStrings("Nostube clip", info.title);
     try std.testing.expectEqualStrings("duration 18.25", duration);

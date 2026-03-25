@@ -375,6 +375,8 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip47_wallet_connect.Request) == type);
     try std.testing.expect(@TypeOf(nip47_wallet_connect.Response) == type);
     try std.testing.expect(@TypeOf(nip47_wallet_connect.Notification) == type);
+    try std.testing.expect(@TypeOf(nip71_video_events.VideoKind) == type);
+    try std.testing.expect(@TypeOf(nip71_video_events.Video) == type);
     try std.testing.expect(@TypeOf(nip23_long_form.Metadata) == type);
     try std.testing.expect(@TypeOf(nip23_long_form.TagBuilder) == type);
     try std.testing.expect(@TypeOf(nipc0_code_snippets.License) == type);
