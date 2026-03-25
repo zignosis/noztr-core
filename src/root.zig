@@ -351,12 +351,12 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip51_lists.BookmarkBuilderItem) == type);
     try std.testing.expect(@TypeOf(nip51_lists.ListItem) == type);
     try std.testing.expect(@TypeOf(nip51_lists.PrivateList) == type);
-    try std.testing.expect(@TypeOf(nip46_remote_signing.ConnectParams) == type);
-    try std.testing.expect(@TypeOf(nip46_remote_signing.PubkeyTextParams) == type);
+    try std.testing.expect(@TypeOf(nip46_remote_signing.Connect) == type);
+    try std.testing.expect(@TypeOf(nip46_remote_signing.PubkeyText) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.RequestBuilder) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.Result) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.ConnectResult) == type);
-    try std.testing.expect(@TypeOf(nip46_remote_signing.ParsedRequest) == type);
+    try std.testing.expect(@TypeOf(nip46_remote_signing.TypedRequest) == type);
     try std.testing.expect(@TypeOf(nip46_remote_signing.Discovery) == type);
     try std.testing.expect(@TypeOf(nip47_wallet_connect.Uri) == type);
     try std.testing.expect(@TypeOf(nip47_wallet_connect.InfoEvent) == type);
@@ -1099,14 +1099,14 @@ test "root exports limits and error namespaces" {
             fn (
                 *const nip46_remote_signing.Request,
                 std.mem.Allocator,
-            ) nip46_remote_signing.RemoteSigningError!nip46_remote_signing.ParsedRequest,
+            ) nip46_remote_signing.RemoteSigningError!nip46_remote_signing.TypedRequest,
     );
     try std.testing.expect(
         @TypeOf(nip46_remote_signing.request_build_connect) ==
             fn (
                 *nip46_remote_signing.RequestBuilder,
                 []const u8,
-                *const nip46_remote_signing.ConnectParams,
+                *const nip46_remote_signing.Connect,
                 std.mem.Allocator,
             ) nip46_remote_signing.RemoteSigningError!nip46_remote_signing.Request,
     );
@@ -1125,7 +1125,7 @@ test "root exports limits and error namespaces" {
                 *nip46_remote_signing.RequestBuilder,
                 []const u8,
                 nip46_remote_signing.Method,
-                *const nip46_remote_signing.PubkeyTextParams,
+                *const nip46_remote_signing.PubkeyText,
                 std.mem.Allocator,
             ) nip46_remote_signing.RemoteSigningError!nip46_remote_signing.Request,
     );

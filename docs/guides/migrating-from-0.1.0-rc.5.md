@@ -98,6 +98,12 @@ If your project depends on `noztr-core`:
 - `CommunityModerator` -> `Moderator`
 - `CommunityRelay` -> `Relay`
 
+### `nip46_remote_signing`
+
+- `ConnectParams` -> `Connect`
+- `PubkeyTextParams` -> `PubkeyText`
+- `ParsedRequest` -> `TypedRequest`
+
 ## Scope
 
 This is naming and surface-noise cleanup only.

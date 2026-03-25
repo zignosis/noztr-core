@@ -72,14 +72,14 @@ pub const Permission = struct {
 };
 
 /// Typed `connect` request parameters.
-pub const ConnectParams = struct {
+pub const Connect = struct {
     remote_signer_pubkey: [32]u8,
     secret: ?[]const u8 = null,
     requested_permissions: []const Permission = &.{},
 };
 
 /// Typed pubkey-plus-text request parameters.
-pub const PubkeyTextParams = struct {
+pub const PubkeyText = struct {
     pubkey: [32]u8,
     text: []const u8,
 };
@@ -129,15 +129,15 @@ pub const ConnectResult = union(enum) {
 };
 
 /// Typed request view over the bounded NIP-46 method set.
-pub const ParsedRequest = union(enum) {
-    connect: ConnectParams,
+pub const TypedRequest = union(enum) {
+    connect: Connect,
     sign_event_json: []const u8,
     ping,
     get_public_key,
-    nip04_encrypt: PubkeyTextParams,
-    nip04_decrypt: PubkeyTextParams,
-    nip44_encrypt: PubkeyTextParams,
-    nip44_decrypt: PubkeyTextParams,
+    nip04_encrypt: PubkeyText,
+    nip04_decrypt: PubkeyText,
+    nip44_encrypt: PubkeyText,
+    nip44_decrypt: PubkeyText,
     switch_relays,
 };
 
@@ -345,7 +345,7 @@ pub fn request_validate(request: *const Request, scratch: std.mem.Allocator) Rem
 pub fn request_parse_typed(
     request: *const Request,
     scratch: std.mem.Allocator,
-) RemoteSigningError!ParsedRequest {
+) RemoteSigningError!TypedRequest {
     std.debug.assert(@intFromPtr(request) != 0);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
@@ -368,7 +368,7 @@ pub fn request_parse_typed(
 pub fn request_build_connect(
     output: *RequestBuilder,
     id: []const u8,
-    request: *const ConnectParams,
+    request: *const Connect,
     scratch: std.mem.Allocator,
 ) RemoteSigningError!Request {
     std.debug.assert(@intFromPtr(output) != 0);
@@ -417,7 +417,7 @@ pub fn request_build_pubkey_text(
     output: *RequestBuilder,
     id: []const u8,
     method: Method,
-    request: *const PubkeyTextParams,
+    request: *const PubkeyText,
     scratch: std.mem.Allocator,
 ) RemoteSigningError!Request {
     std.debug.assert(@intFromPtr(output) != 0);
@@ -1254,11 +1254,11 @@ fn method_is_zero_param(method: Method) bool {
 fn parse_typed_connect_request(
     params: []const []const u8,
     scratch: std.mem.Allocator,
-) RemoteSigningError!ConnectParams {
+) RemoteSigningError!Connect {
     std.debug.assert(params.len <= limits.nip46_message_params_max);
     std.debug.assert(@intFromPtr(scratch.ptr) != 0);
 
-    var parsed = ConnectParams{
+    var parsed = Connect{
         .remote_signer_pubkey = parse_lower_hex_32(params[0]) catch return error.InvalidPubkey,
     };
     if (params.len >= 2) {
@@ -1305,7 +1305,7 @@ fn validate_pubkey_text_params(params: []const []const u8) RemoteSigningError!vo
     }
 }
 
-fn parse_pubkey_text_request(params: []const []const u8) RemoteSigningError!PubkeyTextParams {
+fn parse_pubkey_text_request(params: []const []const u8) RemoteSigningError!PubkeyText {
     std.debug.assert(params.len <= limits.nip46_message_params_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
