@@ -13,12 +13,33 @@ For the public versioning policy, see
 
 ## [Unreleased]
 
+## [0.1.0-rc.6] - 2026-03-25
+
+Release type: breaking rc
+
+### Summary
+
+Sixth public release candidate for `noztr-core`.
+
+This RC continues the pre-`1.0` public-surface cleanup: route-local names are shorter where the
+route already carries the context, one overlapping `nip71` video shape is collapsed into a single
+explicit kind, and the public docs/README routing is tighter. Wire behavior, trust-boundary
+posture, and kernel scope remain stable.
+
 ### Changed
 
 - `nip71_video_events.Video` now exposes one explicit `kind: VideoKind` instead of the overlapping
   `flavor` plus `addressable: bool` pair
 - restored the clearer `nip72_moderated_communities.AddressableTarget` name after the shorter
   `Target` form proved too ambiguous in-route
+- `nip72_moderated_communities.Post.top_level` is now explicit `Relation`
+- `nip72_moderated_communities.Approval` now uses one `approved` target union instead of split optional fields
+- `nip46_remote_signing.envelope_validate` now returns the validated target pubkey directly
+- `examples/README.md` now routes readers to grouped public maps instead of maintaining a large local catalog
+- `README.md` now carries a compact NIP support snapshot while `docs/reference/nip-coverage.md`
+  remains the canonical detailed coverage matrix
+- `zap_build_coordinate_tag` now correctly maps coordinate validation into `InvalidCoordinateTag`
+  instead of leaking the narrower internal validation error set
 
 ### Breaking Changes
 
@@ -42,15 +63,22 @@ For the public versioning policy, see
 - shortened verbose route-internal error names in:
   - `nip72_moderated_communities`
   - `nip54_wiki`
+- collapsed `nip71_video_events.Video.flavor` plus `Video.addressable: bool` into one
+  `Video.kind: VideoKind`
 - downstream migration guide:
   - [docs/guides/migrating-from-0.1.0-rc.5.md](docs/guides/migrating-from-0.1.0-rc.5.md)
 
-### Changed
+### Compatibility Notes
 
-- `nip72_moderated_communities.Post.top_level` is now explicit `Relation`
-- `nip72_moderated_communities.Approval` now uses one `approved` target union instead of split optional fields
-- `nip46_remote_signing.envelope_validate` now returns the validated target pubkey directly
-- `examples/README.md` now routes readers to grouped public maps instead of maintaining a large local catalog
+- Zig toolchain floor for this RC line remains `0.15.2`
+- optional I6 exports remain build-flag gated
+- wire formats, trust-boundary behavior, and kernel-vs-SDK scope remain unchanged by this RC
+
+### Upgrade Guidance
+
+- if you depend on `noztr-core`, review [docs/guides/migrating-from-0.1.0-rc.5.md](docs/guides/migrating-from-0.1.0-rc.5.md)
+- update renamed route-local types/functions/errors in the affected routes
+- update `nip71_video_events.Video` consumers to read `kind` instead of `flavor` plus `addressable`
 
 ## [0.1.0-rc.5] - 2026-03-24
 
