@@ -167,10 +167,6 @@ pub const Uri = union(enum) {
     client: Client,
 };
 
-pub const Envelope = struct {
-    target_pubkey: [32]u8,
-};
-
 pub const Discovery = struct {
     app_pubkey: [32]u8,
     relays: []const []const u8 = &.{},
@@ -556,7 +552,7 @@ pub fn envelope_validate(
     event: *const nip01_event.Event,
     expected_target_pubkey: ?*const [32]u8,
     nip44_scratch: []u8,
-) RemoteSigningError!Envelope {
+) RemoteSigningError![32]u8 {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(nip44_scratch.len <= limits.nip44_payload_decoded_max_bytes);
 
@@ -587,7 +583,7 @@ pub fn envelope_validate(
     _ = nip44.nip44_decode_payload(event.content, nip44_scratch) catch {
         return error.InvalidEncryptedContent;
     };
-    return .{ .target_pubkey = resolved };
+    return resolved;
 }
 
 /// Parse the NIP-46 discovery fields from a signer's `nostr.json?name=_` document.

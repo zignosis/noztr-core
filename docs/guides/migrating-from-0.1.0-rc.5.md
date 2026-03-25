@@ -111,6 +111,8 @@ If your project depends on `noztr-core`:
 - `ConnectParams` -> `Connect`
 - `PubkeyTextParams` -> `PubkeyText`
 - `ParsedRequest` -> `TypedRequest`
+- `Envelope` was removed
+- `envelope_validate(...)` now returns the validated target pubkey directly
 
 ### `nip47_wallet_connect`
 
