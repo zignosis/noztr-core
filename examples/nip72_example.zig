@@ -43,8 +43,8 @@ test "NIP-72 example: extract community definition and top-level post linkage" {
         "hello zig",
         post_tags[0..],
     );
-    var moderators: [1]noztr.nip72_moderated_communities.CommunityModerator = undefined;
-    var relays: [0]noztr.nip72_moderated_communities.CommunityRelay = .{};
+    var moderators: [1]noztr.nip72_moderated_communities.Moderator = undefined;
+    var relays: [0]noztr.nip72_moderated_communities.Relay = .{};
 
     const community = try noztr.nip72_moderated_communities.community_extract(
         &community_event,

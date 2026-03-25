@@ -91,6 +91,13 @@ If your project depends on `noztr-core`:
 
 - `DeleteAddressCoordinate` -> `AddressCoordinate`
 
+### `nip72_moderated_communities`
+
+- `CommunityCoordinate` -> `Coordinate`
+- `AddressableTarget` -> `Target`
+- `CommunityModerator` -> `Moderator`
+- `CommunityRelay` -> `Relay`
+
 ## Scope
 
 This is naming and surface-noise cleanup only.
