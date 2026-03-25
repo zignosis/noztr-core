@@ -43,6 +43,15 @@ If your project depends on `noztr-core`:
 
 - `ListingMetadata` -> `Metadata`
 
+### `nip53_live_activities`
+
+- `LiveActivityCoordinate` -> `Coordinate`
+- `LiveChatReply` -> `Reply`
+
+### `nip09_delete`
+
+- `DeleteAddressCoordinate` -> `AddressCoordinate`
+
 ## Scope
 
 This is naming and surface-noise cleanup only.

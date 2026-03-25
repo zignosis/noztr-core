@@ -58,13 +58,13 @@ pub const LiveActivityParticipant = struct {
     proof: ?[]const u8 = null,
 };
 
-pub const LiveActivityCoordinate = struct {
+pub const Coordinate = struct {
     pubkey: [32]u8,
     identifier: []const u8,
     relay_hint: ?[]const u8 = null,
 };
 
-pub const LiveChatReply = struct {
+pub const Reply = struct {
     event_id: [32]u8,
     relay_hint: ?[]const u8 = null,
 };
@@ -88,8 +88,8 @@ pub const Activity = struct {
 };
 
 pub const Chat = struct {
-    activity: LiveActivityCoordinate,
-    reply: ?LiveChatReply = null,
+    activity: Coordinate,
+    reply: ?Reply = null,
     content: []const u8,
 };
 
@@ -136,8 +136,8 @@ pub fn live_chat_extract(event: *const nip01_event.Event) LiveActivityError!Chat
     if (event.kind != live_chat_message_kind) return error.InvalidChatKind;
     if (!std.unicode.utf8ValidateSlice(event.content)) return error.InvalidContent;
 
-    var activity: ?LiveActivityCoordinate = null;
-    var reply: ?LiveChatReply = null;
+    var activity: ?Coordinate = null;
+    var reply: ?Reply = null;
     for (event.tags) |tag| {
         if (tag.items.len == 0) continue;
         if (std.mem.eql(u8, tag.items[0], "a")) {
@@ -438,7 +438,7 @@ fn append_pinned(tag: nip01_event.EventTag, info: *Activity, out: [][32]u8) Live
     info.pinned_count += 1;
 }
 
-fn parse_activity_tag(tag: nip01_event.EventTag) error{InvalidTag}!LiveActivityCoordinate {
+fn parse_activity_tag(tag: nip01_event.EventTag) error{InvalidTag}!Coordinate {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len != 0);
 
@@ -448,7 +448,7 @@ fn parse_activity_tag(tag: nip01_event.EventTag) error{InvalidTag}!LiveActivityC
     return parsed;
 }
 
-fn parse_event_tag(tag: nip01_event.EventTag) error{InvalidTag}!LiveChatReply {
+fn parse_event_tag(tag: nip01_event.EventTag) error{InvalidTag}!Reply {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(tag.items.len != 0);
 
@@ -459,7 +459,7 @@ fn parse_event_tag(tag: nip01_event.EventTag) error{InvalidTag}!LiveChatReply {
     };
 }
 
-fn parse_activity_coordinate(text: []const u8) error{InvalidCoordinate}!LiveActivityCoordinate {
+fn parse_activity_coordinate(text: []const u8) error{InvalidCoordinate}!Coordinate {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 

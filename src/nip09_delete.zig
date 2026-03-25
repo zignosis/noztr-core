@@ -30,7 +30,7 @@ const DeleteTargetParseError = error{
     InvalidAddressCoordinate,
 };
 
-pub const DeleteAddressCoordinate = struct {
+pub const AddressCoordinate = struct {
     kind: u32,
     pubkey: [32]u8,
     identifier: []const u8,
@@ -38,7 +38,7 @@ pub const DeleteAddressCoordinate = struct {
 
 pub const DeleteTarget = union(enum) {
     e: [32]u8,
-    a: DeleteAddressCoordinate,
+    a: AddressCoordinate,
 };
 
 /// Extracts `e` and `a` deletion targets from a kind-5 delete event.
@@ -159,7 +159,7 @@ fn parse_e_tag_value(tag: nip01_event.EventTag) DeleteTargetParseError![32]u8 {
     };
 }
 
-fn parse_a_tag_value(tag: nip01_event.EventTag) DeleteTargetParseError!DeleteAddressCoordinate {
+fn parse_a_tag_value(tag: nip01_event.EventTag) DeleteTargetParseError!AddressCoordinate {
     std.debug.assert(tag.items.len <= limits.tag_items_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -174,7 +174,7 @@ fn parse_a_tag_value(tag: nip01_event.EventTag) DeleteTargetParseError!DeleteAdd
 
 fn parse_address_coordinate(
     text: []const u8,
-) error{InvalidAddressCoordinate}!DeleteAddressCoordinate {
+) error{InvalidAddressCoordinate}!AddressCoordinate {
     std.debug.assert(text.len <= limits.tag_item_bytes_max);
     std.debug.assert(limits.pubkey_hex_length == 64);
 
@@ -263,7 +263,7 @@ fn delete_target_matches_event(
 }
 
 fn coordinate_matches_event(
-    coordinate: DeleteAddressCoordinate,
+    coordinate: AddressCoordinate,
     event: *const nip01_event.Event,
 ) bool {
     std.debug.assert(coordinate.kind <= std.math.maxInt(u32));

@@ -469,8 +469,8 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip52_calendar_events.Rsvp) == type);
     try std.testing.expect(@TypeOf(nip52_calendar_events.TagBuilder) == type);
     try std.testing.expect(@TypeOf(nip53_live_activities.LiveActivityParticipant) == type);
-    try std.testing.expect(@TypeOf(nip53_live_activities.LiveActivityCoordinate) == type);
-    try std.testing.expect(@TypeOf(nip53_live_activities.LiveChatReply) == type);
+    try std.testing.expect(@TypeOf(nip53_live_activities.Coordinate) == type);
+    try std.testing.expect(@TypeOf(nip53_live_activities.Reply) == type);
     try std.testing.expect(@TypeOf(nip53_live_activities.Activity) == type);
     try std.testing.expect(@TypeOf(nip53_live_activities.Chat) == type);
     try std.testing.expect(@TypeOf(nip53_live_activities.TagBuilder) == type);
