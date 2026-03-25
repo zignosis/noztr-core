@@ -45,15 +45,15 @@ pub const CommunityError = error{
     CommunityAuthorMismatch,
     TopLevelCommunityMismatch,
     TopLevelParentKindMismatch,
-    MissingApprovedPostTarget,
-    MissingApprovedPostAuthorTag,
-    DuplicateApprovedPostEventTag,
-    InvalidApprovedPostEventTag,
-    DuplicateApprovedPostCoordinateTag,
-    InvalidApprovedPostCoordinateTag,
-    MissingApprovedPostKindTag,
-    DuplicateApprovedPostKindTag,
-    InvalidApprovedPostKindTag,
+    MissingApprovedTarget,
+    MissingApprovedAuthorTag,
+    DuplicateApprovedEventTag,
+    InvalidApprovedEventTag,
+    DuplicateApprovedCoordinateTag,
+    InvalidApprovedCoordinateTag,
+    MissingApprovedKindTag,
+    DuplicateApprovedKindTag,
+    InvalidApprovedKindTag,
     InvalidApprovalContent,
     BufferTooSmall,
 };
@@ -260,10 +260,10 @@ pub fn approval_extract(
     }
     if (info.community_count == 0) return error.MissingCommunityTag;
     if (info.approved == null) {
-        return error.MissingApprovedPostTarget;
+        return error.MissingApprovedTarget;
     }
-    const approved_author = author orelse return error.MissingApprovedPostAuthorTag;
-    if (!saw_kind) return error.MissingApprovedPostKindTag;
+    const approved_author = author orelse return error.MissingApprovedAuthorTag;
+    if (!saw_kind) return error.MissingApprovedKindTag;
     info.approved_author = approved_author.pubkey;
     info.approved_author_hint = approved_author.hint;
     return info;
@@ -453,7 +453,7 @@ pub fn approval_build_post_coordinate_tag(
     coordinate_text: []const u8,
     relay_hint: ?[]const u8,
 ) CommunityError!nip01_event.EventTag {
-    return build_case_coordinate_tag(output, "a", coordinate_text, relay_hint, error.InvalidApprovedPostCoordinateTag);
+    return build_case_coordinate_tag(output, "a", coordinate_text, relay_hint, error.InvalidApprovedCoordinateTag);
 }
 
 pub fn approval_build_post_event_tag(
@@ -464,12 +464,12 @@ pub fn approval_build_post_event_tag(
     std.debug.assert(@intFromPtr(output) != 0);
     std.debug.assert(output.items.len == 5);
 
-    _ = lower_hex_32.parse(event_id_hex) catch return error.InvalidApprovedPostEventTag;
+    _ = lower_hex_32.parse(event_id_hex) catch return error.InvalidApprovedEventTag;
     output.items[0] = "e";
     output.items[1] = event_id_hex;
     output.item_count = 2;
     if (relay_hint) |url| {
-        output.items[2] = parse_url(url) catch return error.InvalidApprovedPostEventTag;
+        output.items[2] = parse_url(url) catch return error.InvalidApprovedEventTag;
         output.item_count = 3;
     }
     return output.as_event_tag();
@@ -487,7 +487,7 @@ pub fn approval_build_post_kind_tag(
     output: *TagBuilder,
     kind: u32,
 ) CommunityError!nip01_event.EventTag {
-    return build_case_kind_tag(output, "k", kind, error.InvalidApprovedPostKindTag);
+    return build_case_kind_tag(output, "k", kind, error.InvalidApprovedKindTag);
 }
 
 const TagPubkey = struct {
@@ -617,8 +617,8 @@ fn apply_approval_tag(
     if (tag.items.len == 0) return;
     if (std.mem.eql(u8, tag.items[0], "a")) return apply_approval_a_tag(tag, info, out_communities);
     if (std.mem.eql(u8, tag.items[0], "e")) {
-        if (info.approved != null) return error.DuplicateApprovedPostEventTag;
-        info.approved = .{ .event = try parse_event_tag(tag, error.InvalidApprovedPostEventTag) };
+        if (info.approved != null) return error.DuplicateApprovedEventTag;
+        info.approved = .{ .event = try parse_event_tag(tag, error.InvalidApprovedEventTag) };
         return;
     }
     if (std.mem.eql(u8, tag.items[0], "p")) {
@@ -640,14 +640,14 @@ fn apply_approval_a_tag(
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(info.community_count <= out_communities.len);
 
-    const coordinate = try parse_coordinate_tag(tag, error.InvalidApprovedPostCoordinateTag);
+    const coordinate = try parse_coordinate_tag(tag, error.InvalidApprovedCoordinateTag);
     if (coordinate.kind == community_definition_kind) {
         if (info.community_count == out_communities.len) return error.BufferTooSmall;
         out_communities[info.community_count] = to_community_coordinate(coordinate);
         info.community_count += 1;
         return;
     }
-    if (info.approved != null) return error.DuplicateApprovedPostCoordinateTag;
+    if (info.approved != null) return error.DuplicateApprovedCoordinateTag;
     info.approved = .{ .coordinate = coordinate };
 }
 
@@ -736,8 +736,8 @@ fn apply_approval_kind_tag(
     std.debug.assert(@intFromPtr(info) != 0);
     std.debug.assert(@intFromPtr(saw_kind) != 0);
 
-    if (saw_kind.*) return error.DuplicateApprovedPostKindTag;
-    info.approved_kind = try parse_kind_tag(tag, error.InvalidApprovedPostKindTag);
+    if (saw_kind.*) return error.DuplicateApprovedKindTag;
+    info.approved_kind = try parse_kind_tag(tag, error.InvalidApprovedKindTag);
     saw_kind.* = true;
 }
 

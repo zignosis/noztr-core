@@ -18,8 +18,10 @@ This guide covers the current post-`v0.1.0-rc.5` route-local naming and surface-
 If your project depends on `noztr-core`:
 
 1. update explicit type and function references in the affected routes
-2. rerun your normal build/test gates
-3. refresh generated symbol indexes or local LLM context that still teach the older longer names
+2. update any explicit `nip72_moderated_communities.CommunityError` matches that still use the
+   older verbose approved-target error names
+3. rerun your normal build/test gates
+4. refresh generated symbol indexes or local LLM context that still teach the older longer names
 
 ## Renamed Public Surface
 
@@ -105,6 +107,16 @@ If your project depends on `noztr-core`:
 - `community_approval_build_*` -> `approval_build_*`
 - `Post.top_level: bool` -> `Post.relation: Relation`
 - `Approval.approved_event` / `Approval.approved_coordinate` -> `Approval.approved: ?ApprovedTarget`
+- approved-target error names were shortened:
+  - `MissingApprovedPostTarget` -> `MissingApprovedTarget`
+  - `MissingApprovedPostAuthorTag` -> `MissingApprovedAuthorTag`
+  - `DuplicateApprovedPostEventTag` -> `DuplicateApprovedEventTag`
+  - `InvalidApprovedPostEventTag` -> `InvalidApprovedEventTag`
+  - `DuplicateApprovedPostCoordinateTag` -> `DuplicateApprovedCoordinateTag`
+  - `InvalidApprovedPostCoordinateTag` -> `InvalidApprovedCoordinateTag`
+  - `MissingApprovedPostKindTag` -> `MissingApprovedKindTag`
+  - `DuplicateApprovedPostKindTag` -> `DuplicateApprovedKindTag`
+  - `InvalidApprovedPostKindTag` -> `InvalidApprovedKindTag`
 
 ### `nip46_remote_signing`
 
