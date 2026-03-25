@@ -508,6 +508,8 @@ test "root exports limits and error namespaces" {
     try std.testing.expect(@TypeOf(nip72_moderated_communities.Moderator) == type);
     try std.testing.expect(@TypeOf(nip72_moderated_communities.Relay) == type);
     try std.testing.expect(@TypeOf(nip72_moderated_communities.EventRef) == type);
+    try std.testing.expect(@TypeOf(nip72_moderated_communities.Relation) == type);
+    try std.testing.expect(@TypeOf(nip72_moderated_communities.ApprovedTarget) == type);
     try std.testing.expect(@TypeOf(nip72_moderated_communities.Post) == type);
     try std.testing.expect(@TypeOf(nip72_moderated_communities.Approval) == type);
     try std.testing.expect(@TypeOf(nip29_relay_groups.GroupMetadata) == type);

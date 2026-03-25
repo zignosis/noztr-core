@@ -35,6 +35,11 @@ For the public versioning policy, see
 - downstream migration guide:
   - [docs/guides/migrating-from-0.1.0-rc.5.md](docs/guides/migrating-from-0.1.0-rc.5.md)
 
+### Changed
+
+- `nip72_moderated_communities.Post.top_level` is now explicit `Relation`
+- `nip72_moderated_communities.Approval` now uses one `approved` target union instead of split optional fields
+
 ## [0.1.0-rc.5] - 2026-03-24
 
 Release type: breaking rc

@@ -104,21 +104,30 @@ pub const ParentTarget = union(enum) {
     event: EventRef,
 };
 
+pub const Relation = enum {
+    top_level,
+    reply,
+};
+
 pub const Post = struct {
     community: Coordinate,
     parent: ParentTarget,
     parent_author: [32]u8,
     parent_author_hint: ?[]const u8 = null,
     parent_kind: u32,
-    top_level: bool,
+    relation: Relation,
     content: []const u8,
+};
+
+pub const ApprovedTarget = union(enum) {
+    event: EventRef,
+    coordinate: Target,
 };
 
 pub const Approval = struct {
     content: []const u8,
     community_count: u16 = 0,
-    approved_event: ?EventRef = null,
-    approved_coordinate: ?Target = null,
+    approved: ?ApprovedTarget = null,
     approved_author: [32]u8,
     approved_author_hint: ?[]const u8 = null,
     approved_kind: u32,
@@ -203,7 +212,7 @@ pub fn post_extract(event: *const nip01_event.Event) CommunityError!Post {
                 .parent_author = parent_author.pubkey,
                 .parent_author_hint = parent_author.hint,
                 .parent_kind = parent_kind,
-                .top_level = true,
+                .relation = .top_level,
                 .content = event.content,
             };
         }
@@ -213,7 +222,7 @@ pub fn post_extract(event: *const nip01_event.Event) CommunityError!Post {
             .parent_author = parent_author.pubkey,
             .parent_author_hint = parent_author.hint,
             .parent_kind = parent_kind,
-            .top_level = false,
+            .relation = .reply,
             .content = event.content,
         };
     }
@@ -223,7 +232,7 @@ pub fn post_extract(event: *const nip01_event.Event) CommunityError!Post {
         .parent_author = parent_author.pubkey,
         .parent_author_hint = parent_author.hint,
         .parent_kind = parent_kind,
-        .top_level = false,
+        .relation = .reply,
         .content = event.content,
     };
 }
@@ -250,7 +259,7 @@ pub fn approval_extract(
         try apply_approval_tag(tag, &info, out_communities, &author, &saw_kind);
     }
     if (info.community_count == 0) return error.MissingCommunityTag;
-    if (info.approved_event == null and info.approved_coordinate == null) {
+    if (info.approved == null) {
         return error.MissingApprovedPostTarget;
     }
     const approved_author = author orelse return error.MissingApprovedPostAuthorTag;
@@ -608,12 +617,9 @@ fn apply_approval_tag(
     if (tag.items.len == 0) return;
     if (std.mem.eql(u8, tag.items[0], "a")) return apply_approval_a_tag(tag, info, out_communities);
     if (std.mem.eql(u8, tag.items[0], "e")) {
-        return apply_single_event_tag(
-            tag,
-            &info.approved_event,
-            error.DuplicateApprovedPostEventTag,
-            error.InvalidApprovedPostEventTag,
-        );
+        if (info.approved != null) return error.DuplicateApprovedPostEventTag;
+        info.approved = .{ .event = try parse_event_tag(tag, error.InvalidApprovedPostEventTag) };
+        return;
     }
     if (std.mem.eql(u8, tag.items[0], "p")) {
         return apply_single_pubkey_tag(
@@ -641,8 +647,8 @@ fn apply_approval_a_tag(
         info.community_count += 1;
         return;
     }
-    if (info.approved_coordinate != null) return error.DuplicateApprovedPostCoordinateTag;
-    info.approved_coordinate = coordinate;
+    if (info.approved != null) return error.DuplicateApprovedPostCoordinateTag;
+    info.approved = .{ .coordinate = coordinate };
 }
 
 fn ensure_top_level_match(
@@ -1001,7 +1007,7 @@ test "NIP-72 extracts top-level community posts" {
 
     const info = try post_extract(&event);
 
-    try std.testing.expect(info.top_level);
+    try std.testing.expectEqual(Relation.top_level, info.relation);
     try std.testing.expectEqualStrings("zig", info.community.identifier);
     try std.testing.expectEqual(@as(u32, 34550), info.parent_kind);
 }
@@ -1039,7 +1045,8 @@ test "NIP-72 extracts community approvals" {
     const info = try approval_extract(&event, communities[0..]);
 
     try std.testing.expectEqual(@as(u16, 1), info.community_count);
-    try std.testing.expect(info.approved_event != null);
+    try std.testing.expect(info.approved != null);
+    try std.testing.expect(info.approved.? == .event);
     try std.testing.expectEqual(@as(u32, 1111), info.approved_kind);
 }
 

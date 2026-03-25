@@ -103,6 +103,8 @@ If your project depends on `noztr-core`:
 - `community_build_*` -> `build_*`
 - `community_post_build_*` -> `post_build_*`
 - `community_approval_build_*` -> `approval_build_*`
+- `Post.top_level: bool` -> `Post.relation: Relation`
+- `Approval.approved_event` / `Approval.approved_coordinate` -> `Approval.approved: ?ApprovedTarget`
 
 ### `nip46_remote_signing`
 

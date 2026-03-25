@@ -54,6 +54,6 @@ test "NIP-72 example: extract community definition and top-level post linkage" {
     const post = try noztr.nip72_moderated_communities.post_extract(&post_event);
 
     try std.testing.expectEqualStrings("zig", community.identifier);
-    try std.testing.expect(post.top_level);
+    try std.testing.expectEqual(.top_level, post.relation);
     try std.testing.expectEqualStrings("zig", post.community.identifier);
 }
