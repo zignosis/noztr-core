@@ -110,6 +110,17 @@ If your project depends on `noztr-core`:
 - `PubkeyTextParams` -> `PubkeyText`
 - `ParsedRequest` -> `TypedRequest`
 
+### `nip47_wallet_connect`
+
+- `connection_uri_parse` -> `uri_parse`
+- `connection_uri_serialize` -> `uri_serialize`
+- `info_event_extract` -> `info_extract`
+- `request_event_extract` -> `request_extract`
+- `response_event_extract` -> `response_extract`
+- `notification_event_extract` -> `notification_extract`
+- `nwc_build_*` -> `build_*`
+- `nwc_format_info_capabilities` -> `format_info_capabilities`
+
 ## Scope
 
 This is naming and surface-noise cleanup only.

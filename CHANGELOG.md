@@ -31,6 +31,7 @@ For the public versioning policy, see
   - `nip99_classified_listings`
   - `nip98_http_auth`
   - `nip72_moderated_communities`
+  - `nip47_wallet_connect`
 - downstream migration guide:
   - [docs/guides/migrating-from-0.1.0-rc.5.md](docs/guides/migrating-from-0.1.0-rc.5.md)
 

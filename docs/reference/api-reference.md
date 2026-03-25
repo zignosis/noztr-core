@@ -78,15 +78,15 @@ These are the quickest symbol-level routes into the modules most downstream user
 
 ### `nip47_wallet_connect`
 
-- `connection_uri_parse`
+- `uri_parse`
   - parse a Wallet Connect URI
-- `connection_uri_serialize`
+- `uri_serialize`
   - format a canonical Wallet Connect URI
-- `request_event_extract`
+- `request_extract`
   - extract typed request context from an event
-- `response_event_extract`
+- `response_extract`
   - extract typed response context from an event
-- `notification_event_extract`
+- `notification_extract`
   - extract typed notification context from an event
 - `request_parse_json`
   - parse typed request JSON content

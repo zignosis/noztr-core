@@ -8,7 +8,7 @@ test "NIP-47 example: parse a pairing URI and typed get_info flow" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
 
-    const uri = try noztr.nip47_wallet_connect.connection_uri_parse(
+    const uri = try noztr.nip47_wallet_connect.uri_parse(
         "nostr+walletconnect://0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ++
             "?relay=wss%3A%2F%2Frelay.one&relay=wss%3A%2F%2Frelay.two" ++
             "&secret=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

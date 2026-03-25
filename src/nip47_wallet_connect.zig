@@ -312,7 +312,7 @@ pub fn transaction_state_text(transaction_state: TransactionState) []const u8 {
     };
 }
 
-pub fn connection_uri_parse(
+pub fn uri_parse(
     input: []const u8,
     out_relays: [][]const u8,
     scratch: std.mem.Allocator,
@@ -330,7 +330,7 @@ pub fn connection_uri_parse(
     return parse_connection_query(raw_query, wallet_service_pubkey, out_relays, scratch);
 }
 
-pub fn connection_uri_serialize(
+pub fn uri_serialize(
     output: []u8,
     connection_uri: Uri,
 ) NwcError![]const u8 {
@@ -363,7 +363,7 @@ pub fn connection_uri_serialize(
     return output[0..@intCast(index)];
 }
 
-pub fn info_event_extract(
+pub fn info_extract(
     event: *const nip01_event.Event,
     out_capabilities: [][]const u8,
     out_encryptions: []Encryption,
@@ -398,7 +398,7 @@ pub fn info_event_extract(
     return info;
 }
 
-pub fn request_event_extract(event: *const nip01_event.Event) NwcError!RequestEvent {
+pub fn request_extract(event: *const nip01_event.Event) NwcError!RequestEvent {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -433,7 +433,7 @@ pub fn request_event_extract(event: *const nip01_event.Event) NwcError!RequestEv
     };
 }
 
-pub fn response_event_extract(event: *const nip01_event.Event) NwcError!ResponseEvent {
+pub fn response_extract(event: *const nip01_event.Event) NwcError!ResponseEvent {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -468,7 +468,7 @@ pub fn response_event_extract(event: *const nip01_event.Event) NwcError!Response
     };
 }
 
-pub fn notification_event_extract(event: *const nip01_event.Event) NwcError!NotificationEvent {
+pub fn notification_extract(event: *const nip01_event.Event) NwcError!NotificationEvent {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
@@ -500,7 +500,7 @@ pub fn notification_event_extract(event: *const nip01_event.Event) NwcError!Noti
     };
 }
 
-pub fn nwc_build_pubkey_tag(
+pub fn build_pubkey_tag(
     output: *TagBuilder,
     pubkey: *const [32]u8,
 ) NwcError!nip01_event.EventTag {
@@ -514,7 +514,7 @@ pub fn nwc_build_pubkey_tag(
     return output.as_event_tag();
 }
 
-pub fn nwc_build_event_id_tag(
+pub fn build_event_id_tag(
     output: *TagBuilder,
     event_id: *const [32]u8,
 ) NwcError!nip01_event.EventTag {
@@ -528,7 +528,7 @@ pub fn nwc_build_event_id_tag(
     return output.as_event_tag();
 }
 
-pub fn nwc_build_encryption_tag(
+pub fn build_encryption_tag(
     output: *TagBuilder,
     encryption: Encryption,
 ) NwcError!nip01_event.EventTag {
@@ -541,7 +541,7 @@ pub fn nwc_build_encryption_tag(
     return output.as_event_tag();
 }
 
-pub fn nwc_build_expiration_tag(
+pub fn build_expiration_tag(
     output: *TagBuilder,
     expiration: u64,
 ) NwcError!nip01_event.EventTag {
@@ -556,7 +556,7 @@ pub fn nwc_build_expiration_tag(
     return output.as_event_tag();
 }
 
-pub fn nwc_build_info_encryption_tag(
+pub fn build_info_encryption_tag(
     output: *TagBuilder,
     encryptions: []const Encryption,
 ) NwcError!nip01_event.EventTag {
@@ -570,7 +570,7 @@ pub fn nwc_build_info_encryption_tag(
     return output.as_event_tag();
 }
 
-pub fn nwc_build_info_notifications_tag(
+pub fn build_info_notifications_tag(
     output: *TagBuilder,
     notifications: []const NotificationType,
 ) NwcError!nip01_event.EventTag {
@@ -584,7 +584,7 @@ pub fn nwc_build_info_notifications_tag(
     return output.as_event_tag();
 }
 
-pub fn nwc_format_info_capabilities(
+pub fn format_info_capabilities(
     output: []u8,
     capabilities: []const []const u8,
 ) NwcError![]const u8 {
@@ -3217,7 +3217,7 @@ test "connection uri parse and format keep relay order and lowercase secrets" {
     var relays: [2][]const u8 = undefined;
     var output: [512]u8 = undefined;
 
-    const parsed = try connection_uri_parse(
+    const parsed = try uri_parse(
         "nostr+walletconnect://0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ++
             "?relay=wss%3A%2F%2Frelay.one&relay=wss%3A%2F%2Frelay.two" ++
             "&secret=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" ++
@@ -3225,7 +3225,7 @@ test "connection uri parse and format keep relay order and lowercase secrets" {
         relays[0..],
         arena.allocator(),
     );
-    const rendered = try connection_uri_serialize(output[0..], parsed);
+    const rendered = try uri_serialize(output[0..], parsed);
 
     try std.testing.expectEqualStrings("wss://relay.one", parsed.relays[0]);
     try std.testing.expectEqualStrings("wss://relay.two", parsed.relays[1]);
@@ -3240,7 +3240,7 @@ test "nwc public uri paths reject overlong caller input with typed errors" {
 
     try std.testing.expectError(
         error.InvalidUri,
-        connection_uri_parse(
+        uri_parse(
             "nostr+walletconnect://" ++ ("a" ** 5000),
             relays[0..],
             arena.allocator(),
@@ -3249,7 +3249,7 @@ test "nwc public uri paths reject overlong caller input with typed errors" {
 
     try std.testing.expectError(
         error.InvalidUri,
-        connection_uri_parse(
+        uri_parse(
             "nostr+walletconnect://0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ++
                 "?relay=" ++ ("a" ** 4097) ++
                 "&secret=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -3287,8 +3287,8 @@ test "event extractors apply default encryption and strict tag rules" {
         .tags = response_tags[0..],
     };
 
-    const request = try request_event_extract(&request_event);
-    const response = try response_event_extract(&response_event);
+    const request = try request_extract(&request_event);
+    const response = try response_extract(&response_event);
 
     try std.testing.expectEqual(Encryption.nip04, request.encryption);
     try std.testing.expectEqual(@as(u64, 1_700_000_100), request.expiration.?);
@@ -3312,7 +3312,7 @@ test "info event extract defaults missing encryption to nip04" {
     var encryptions: [2]Encryption = undefined;
     var notifications: [2]NotificationType = undefined;
 
-    const parsed = try info_event_extract(
+    const parsed = try info_extract(
         &info_event,
         capabilities[0..],
         encryptions[0..],
