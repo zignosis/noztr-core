@@ -5,11 +5,11 @@ const common = @import("common.zig");
 test "NIP-99 example: extract classified listing metadata" {
     var price_tag: noztr.nip99_classified_listings.TagBuilder = .{};
     var status_tag: noztr.nip99_classified_listings.TagBuilder = .{};
-    const built_price = try noztr.nip99_classified_listings.listing_build_price_tag(
+    const built_price = try noztr.nip99_classified_listings.build_price_tag(
         &price_tag,
         &.{ .amount = "500", .currency = "EUR", .frequency = null },
     );
-    const built_status = try noztr.nip99_classified_listings.listing_build_status_tag(
+    const built_status = try noztr.nip99_classified_listings.build_status_tag(
         &status_tag,
         .active,
     );
@@ -23,7 +23,7 @@ test "NIP-99 example: extract classified listing metadata" {
     var images: [2]noztr.nip99_classified_listings.Image = undefined;
     var hashtags: [1][]const u8 = undefined;
 
-    const parsed = try noztr.nip99_classified_listings.listing_extract(
+    const parsed = try noztr.nip99_classified_listings.extract(
         &event,
         images[0..],
         hashtags[0..],

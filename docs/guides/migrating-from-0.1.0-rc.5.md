@@ -42,7 +42,22 @@ If your project depends on `noztr-core`:
 ### `nip99_classified_listings`
 
 - `ListingMetadata` -> `Metadata`
+- `listing_kind_classify` -> `kind_classify`
+- `listing_extract` -> `extract`
+- `listing_build_*` -> `build_*`
 
+### `nip23_long_form`
+
+- `long_form_kind_classify` -> `kind_classify`
+- `long_form_is_supported` -> `is_supported`
+- `long_form_extract` -> `extract`
+- `long_form_build_*` -> `build_*`
+
+### `nip45_count`
+
+- `count_client_message_parse` -> `client_message_parse`
+- `count_relay_message_parse` -> `relay_message_parse`
+- `count_metadata_validate` -> `metadata_validate`
 ### `nip53_live_activities`
 
 - `LiveActivityCoordinate` -> `Coordinate`

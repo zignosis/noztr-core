@@ -34,7 +34,7 @@ pub const RelayMessage = struct {
 };
 
 /// Parse strict client COUNT message: ["COUNT", query_id, filter1, ...].
-pub fn count_client_message_parse(
+pub fn client_message_parse(
     input: []const u8,
     scratch: std.mem.Allocator,
 ) CountError!ClientMessage {
@@ -60,7 +60,7 @@ pub fn count_client_message_parse(
 }
 
 /// Parse strict relay COUNT message: ["COUNT", query_id, count_object].
-pub fn count_relay_message_parse(
+pub fn relay_message_parse(
     input: []const u8,
     scratch: std.mem.Allocator,
 ) CountError!RelayMessage {
@@ -85,7 +85,7 @@ pub fn count_relay_message_parse(
 }
 
 /// Validate optional COUNT metadata (`approximate`, `hll`).
-pub fn count_metadata_validate(metadata: *const Metadata) CountError!void {
+pub fn metadata_validate(metadata: *const Metadata) CountError!void {
     std.debug.assert(@intFromPtr(metadata) != 0);
     std.debug.assert(limits.nip45_hll_hex_length == 512);
 
@@ -226,7 +226,7 @@ fn parse_count_object(
     if (!has_count) {
         return error.InvalidCountObject;
     }
-    try count_metadata_validate(&metadata);
+    try metadata_validate(&metadata);
     return .{ .count = parsed_count, .metadata = metadata };
 }
 
@@ -300,15 +300,15 @@ test "count client parser accepts strict valid vectors" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
 
-    const one_filter = try count_client_message_parse(
+    const one_filter = try client_message_parse(
         "[\"COUNT\",\"q1\",{\"kinds\":[1]}]",
         arena.allocator(),
     );
-    const two_filters = try count_client_message_parse(
+    const two_filters = try client_message_parse(
         "[\"COUNT\",\"q2\",{\"kinds\":[1]},{\"kinds\":[2]}]",
         arena.allocator(),
     );
-    const max_query = try count_client_message_parse(
+    const max_query = try client_message_parse(
         "[\"COUNT\",\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"," ++
             "{\"kinds\":[1]}]",
         arena.allocator(),
@@ -334,19 +334,19 @@ test "count relay parser accepts strict valid vectors" {
     );
     defer std.testing.allocator.free(relay_hll);
 
-    const count_only = try count_relay_message_parse(
+    const count_only = try relay_message_parse(
         "[\"COUNT\",\"q1\",{\"count\":42}]",
         arena.allocator(),
     );
-    const with_approx = try count_relay_message_parse(
+    const with_approx = try relay_message_parse(
         "[\"COUNT\",\"q2\",{\"count\":9,\"approximate\":true}]",
         arena.allocator(),
     );
-    const with_unknown = try count_relay_message_parse(
+    const with_unknown = try relay_message_parse(
         "[\"COUNT\",\"q2x\",{\"count\":11,\"future\":1}]",
         arena.allocator(),
     );
-    const with_hll = try count_relay_message_parse(relay_hll, arena.allocator());
+    const with_hll = try relay_message_parse(relay_hll, arena.allocator());
 
     try std.testing.expect(count_only.count == 42);
     try std.testing.expect(with_approx.metadata.approximate.?);
@@ -361,15 +361,15 @@ test "count parser rejects strict invalid vectors" {
 
     try std.testing.expectError(
         error.InvalidCountMessage,
-        count_client_message_parse("[\"NOPE\",\"q1\",{}]", arena.allocator()),
+        client_message_parse("[\"NOPE\",\"q1\",{}]", arena.allocator()),
     );
     try std.testing.expectError(
         error.InvalidCountMessage,
-        count_client_message_parse("[\"COUNT\",\"q1\"]", arena.allocator()),
+        client_message_parse("[\"COUNT\",\"q1\"]", arena.allocator()),
     );
     try std.testing.expectError(
         error.InvalidCountObject,
-        count_relay_message_parse("[\"COUNT\",\"q1\",7]", arena.allocator()),
+        relay_message_parse("[\"COUNT\",\"q1\",7]", arena.allocator()),
     );
 }
 
@@ -389,37 +389,37 @@ test "count parser forces every CountError variant" {
 
     try std.testing.expectError(
         error.InvalidCountMessage,
-        count_client_message_parse("[\"COUNT\",\"q1\",{\"#e\":[]}]", arena.allocator()),
+        client_message_parse("[\"COUNT\",\"q1\",{\"#e\":[]}]", arena.allocator()),
     );
     try std.testing.expectError(
         error.InvalidCountObject,
-        count_relay_message_parse("[\"COUNT\",\"q1\",{}]", arena.allocator()),
+        relay_message_parse("[\"COUNT\",\"q1\",{}]", arena.allocator()),
     );
     try std.testing.expectError(
         error.InvalidCountValue,
-        count_relay_message_parse("[\"COUNT\",\"q1\",{\"count\":\"x\"}]", arena.allocator()),
+        relay_message_parse("[\"COUNT\",\"q1\",{\"count\":\"x\"}]", arena.allocator()),
     );
     try std.testing.expectError(
         error.InvalidApproximateValue,
-        count_relay_message_parse(
+        relay_message_parse(
             "[\"COUNT\",\"q1\",{\"count\":1,\"approximate\":\"true\"}]",
             arena.allocator(),
         ),
     );
     try std.testing.expectError(
         error.InvalidHllHex,
-        count_relay_message_parse(relay_bad_hll, arena.allocator()),
+        relay_message_parse(relay_bad_hll, arena.allocator()),
     );
     try std.testing.expectError(
         error.InvalidHllLength,
-        count_relay_message_parse(
+        relay_message_parse(
             "[\"COUNT\",\"q1\",{\"count\":1,\"hll\":\"aa\"}]",
             arena.allocator(),
         ),
     );
     try std.testing.expectError(
         error.InvalidQueryId,
-        count_client_message_parse("[\"COUNT\",\"\",{}]", arena.allocator()),
+        client_message_parse("[\"COUNT\",\"\",{}]", arena.allocator()),
     );
 }
 
@@ -428,19 +428,19 @@ test "count metadata validator enforces optional field rules" {
     build_hll_hex(hll_text[0..]);
 
     var valid = Metadata{ .approximate = false, .hll = hll_text[0..] };
-    try count_metadata_validate(&valid);
+    try metadata_validate(&valid);
 
     var uppercase_hex = hll_text;
     uppercase_hex[0] = 'A';
     uppercase_hex[1] = 'B';
     var uppercase_valid = Metadata{ .hll = uppercase_hex[0..] };
-    try count_metadata_validate(&uppercase_valid);
+    try metadata_validate(&uppercase_valid);
 
     var wrong_length = Metadata{ .hll = "ab" };
-    try std.testing.expectError(error.InvalidHllLength, count_metadata_validate(&wrong_length));
+    try std.testing.expectError(error.InvalidHllLength, metadata_validate(&wrong_length));
 
     var invalid_hex_text = hll_text;
     invalid_hex_text[0] = 'G';
     var wrong_hex = Metadata{ .hll = invalid_hex_text[0..] };
-    try std.testing.expectError(error.InvalidHllHex, count_metadata_validate(&wrong_hex));
+    try std.testing.expectError(error.InvalidHllHex, metadata_validate(&wrong_hex));
 }

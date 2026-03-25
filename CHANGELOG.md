@@ -22,6 +22,10 @@ For the public versioning policy, see
   - `nip99_classified_listings`
   - `nip53_live_activities`
   - `nip09_delete`
+- shortened route-local function families in:
+  - `nip45_count`
+  - `nip23_long_form`
+  - `nip99_classified_listings`
 - downstream migration guide:
   - [docs/guides/migrating-from-0.1.0-rc.5.md](docs/guides/migrating-from-0.1.0-rc.5.md)
 

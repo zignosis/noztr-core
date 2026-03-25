@@ -547,14 +547,14 @@ test "root exports limits and error namespaces" {
             ) bip85_derivation.Bip85Error![]const u8,
     );
     try std.testing.expect(
-        @TypeOf(nip23_long_form.long_form_extract) ==
+        @TypeOf(nip23_long_form.extract) ==
             fn (
                 *const nip01_event.Event,
                 [][]const u8,
             ) nip23_long_form.LongFormError!nip23_long_form.Metadata,
     );
     try std.testing.expect(
-        @TypeOf(nip23_long_form.long_form_build_identifier_tag) ==
+        @TypeOf(nip23_long_form.build_identifier_tag) ==
             fn (
                 *nip23_long_form.TagBuilder,
                 []const u8,
@@ -1216,21 +1216,21 @@ test "root exports limits and error namespaces" {
         try std.testing.expect(@TypeOf(nip50_search.SearchError) == type);
         try std.testing.expect(@TypeOf(nip77_negentropy.NegentropyError) == type);
         try std.testing.expect(
-            @TypeOf(nip45_count.count_client_message_parse) ==
+            @TypeOf(nip45_count.client_message_parse) ==
                 fn (
                     []const u8,
                     std.mem.Allocator,
                 ) nip45_count.CountError!nip45_count.ClientMessage,
         );
         try std.testing.expect(
-            @TypeOf(nip45_count.count_relay_message_parse) ==
+            @TypeOf(nip45_count.relay_message_parse) ==
                 fn (
                     []const u8,
                     std.mem.Allocator,
                 ) nip45_count.CountError!nip45_count.RelayMessage,
         );
         try std.testing.expect(
-            @TypeOf(nip45_count.count_metadata_validate) ==
+            @TypeOf(nip45_count.metadata_validate) ==
                 fn (*const nip45_count.Metadata) nip45_count.CountError!void,
         );
         try std.testing.expect(
@@ -1398,7 +1398,7 @@ test "I6 optional paths do not interfere with strict core defaults" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
 
-    const count_relay = try nip45_count.count_relay_message_parse(
+    const count_relay = try nip45_count.relay_message_parse(
         "[\"COUNT\",\"q1\",{\"count\":1}]",
         arena.allocator(),
     );

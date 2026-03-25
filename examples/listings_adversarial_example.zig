@@ -7,7 +7,7 @@ test "adversarial listing example: reject full url identifier on builder path" {
 
     try std.testing.expectError(
         error.InvalidIdentifierTag,
-        noztr.nip99_classified_listings.listing_build_identifier_tag(
+        noztr.nip99_classified_listings.build_identifier_tag(
             &built_tag,
             "https://example.com/post",
         ),
@@ -24,6 +24,6 @@ test "adversarial listing example: reject non-url identifier on extract path" {
 
     try std.testing.expectError(
         error.InvalidIdentifierTag,
-        noztr.nip99_classified_listings.listing_extract(&event, images[0..], hashtags[0..]),
+        noztr.nip99_classified_listings.extract(&event, images[0..], hashtags[0..]),
     );
 }

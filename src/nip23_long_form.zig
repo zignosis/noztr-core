@@ -53,7 +53,7 @@ pub const TagBuilder = struct {
 };
 
 /// Returns the supported strict NIP-23 kind, or `null` when unsupported.
-pub fn long_form_kind_classify(kind: u32) ?LongFormKind {
+pub fn kind_classify(kind: u32) ?LongFormKind {
     std.debug.assert(kind <= limits.kind_max);
     std.debug.assert(@sizeOf(LongFormKind) == @sizeOf(u32));
 
@@ -65,11 +65,11 @@ pub fn long_form_kind_classify(kind: u32) ?LongFormKind {
 }
 
 /// Returns whether the event kind is supported by the strict NIP-23 helper.
-pub fn long_form_is_supported(event: *const nip01_event.Event) bool {
+pub fn is_supported(event: *const nip01_event.Event) bool {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.kind <= limits.kind_max);
 
-    return long_form_kind_classify(event.kind) != null;
+    return kind_classify(event.kind) != null;
 }
 
 /// Extract strict NIP-23 metadata and ordered hashtags from a long-form event.
@@ -77,14 +77,14 @@ pub fn long_form_is_supported(event: *const nip01_event.Event) bool {
 /// Lifetime and ownership:
 /// - metadata fields and hashtag slices borrow from `event`.
 /// - keep `event` and its tag item storage alive while using the returned data.
-pub fn long_form_extract(
+pub fn extract(
     event: *const nip01_event.Event,
     out_hashtags: [][]const u8,
 ) LongFormError!Metadata {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_hashtags.len <= std.math.maxInt(u16));
 
-    const kind = long_form_kind_classify(event.kind) orelse return error.UnsupportedKind;
+    const kind = kind_classify(event.kind) orelse return error.UnsupportedKind;
     try validate_content(event.content);
 
     var identifier: ?[]const u8 = null;
@@ -103,7 +103,7 @@ pub fn long_form_extract(
 }
 
 /// Builds a `d` tag for long-form content.
-pub fn long_form_build_identifier_tag(
+pub fn build_identifier_tag(
     output: *TagBuilder,
     identifier: []const u8,
 ) LongFormError!nip01_event.EventTag {
@@ -117,7 +117,7 @@ pub fn long_form_build_identifier_tag(
 }
 
 /// Builds a `title` tag for long-form content.
-pub fn long_form_build_title_tag(
+pub fn build_title_tag(
     output: *TagBuilder,
     title: []const u8,
 ) LongFormError!nip01_event.EventTag {
@@ -131,7 +131,7 @@ pub fn long_form_build_title_tag(
 }
 
 /// Builds an `image` tag for long-form content.
-pub fn long_form_build_image_tag(
+pub fn build_image_tag(
     output: *TagBuilder,
     image_url: []const u8,
     image_dimensions: ?[]const u8,
@@ -150,7 +150,7 @@ pub fn long_form_build_image_tag(
 }
 
 /// Builds a `summary` tag for long-form content.
-pub fn long_form_build_summary_tag(
+pub fn build_summary_tag(
     output: *TagBuilder,
     summary: []const u8,
 ) LongFormError!nip01_event.EventTag {
@@ -164,7 +164,7 @@ pub fn long_form_build_summary_tag(
 }
 
 /// Builds a `published_at` tag for long-form content.
-pub fn long_form_build_published_at_tag(
+pub fn build_published_at_tag(
     output: *TagBuilder,
     published_at: u64,
 ) LongFormError!nip01_event.EventTag {
@@ -180,7 +180,7 @@ pub fn long_form_build_published_at_tag(
 }
 
 /// Builds a `t` hashtag tag for long-form content.
-pub fn long_form_build_hashtag_tag(
+pub fn build_hashtag_tag(
     output: *TagBuilder,
     hashtag: []const u8,
 ) LongFormError!nip01_event.EventTag {
@@ -362,9 +362,9 @@ fn parse_url(text: []const u8) error{InvalidUrl}![]const u8 {
 }
 
 test "long form classify supports article and draft kinds" {
-    try std.testing.expectEqual(LongFormKind.article, long_form_kind_classify(30023).?);
-    try std.testing.expectEqual(LongFormKind.draft, long_form_kind_classify(30024).?);
-    try std.testing.expectEqual(@as(?LongFormKind, null), long_form_kind_classify(30025));
+    try std.testing.expectEqual(LongFormKind.article, kind_classify(30023).?);
+    try std.testing.expectEqual(LongFormKind.draft, kind_classify(30024).?);
+    try std.testing.expectEqual(@as(?LongFormKind, null), kind_classify(30025));
 }
 
 test "long form extract parses standard metadata and ordered hashtags" {
@@ -389,7 +389,7 @@ test "long form extract parses standard metadata and ordered hashtags" {
     };
     var hashtags: [2][]const u8 = undefined;
 
-    const parsed = try long_form_extract(&event, hashtags[0..]);
+    const parsed = try extract(&event, hashtags[0..]);
 
     try std.testing.expectEqual(LongFormKind.article, parsed.kind);
     try std.testing.expectEqualStrings("lorem-ipsum", parsed.identifier);
@@ -420,7 +420,7 @@ test "long form extract accepts draft image dimensions" {
     };
     var hashtags: [1][]const u8 = undefined;
 
-    const parsed = try long_form_extract(&event, hashtags[0..]);
+    const parsed = try extract(&event, hashtags[0..]);
 
     try std.testing.expectEqual(LongFormKind.draft, parsed.kind);
     try std.testing.expectEqualStrings("draft-id", parsed.identifier);
@@ -448,7 +448,7 @@ test "long form extract rejects missing or malformed metadata" {
 
     try std.testing.expectError(
         error.MissingIdentifier,
-        long_form_extract(
+        extract(
             &.{
                 .id = [_]u8{0} ** 32,
                 .pubkey = [_]u8{0} ** 32,
@@ -463,7 +463,7 @@ test "long form extract rejects missing or malformed metadata" {
     );
     try std.testing.expectError(
         error.InvalidImageTag,
-        long_form_extract(
+        extract(
             &.{
                 .id = [_]u8{0} ** 32,
                 .pubkey = [_]u8{0} ** 32,
@@ -478,7 +478,7 @@ test "long form extract rejects missing or malformed metadata" {
     );
     try std.testing.expectError(
         error.DuplicateTitleTag,
-        long_form_extract(
+        extract(
             &.{
                 .id = [_]u8{0} ** 32,
                 .pubkey = [_]u8{0} ** 32,
@@ -493,7 +493,7 @@ test "long form extract rejects missing or malformed metadata" {
     );
     try std.testing.expectError(
         error.InvalidPublishedAtTag,
-        long_form_extract(
+        extract(
             &.{
                 .id = [_]u8{0} ** 32,
                 .pubkey = [_]u8{0} ** 32,
@@ -518,13 +518,13 @@ test "long form builders emit bounded metadata tags" {
 
     try std.testing.expectEqualStrings(
         "d",
-        (try long_form_build_identifier_tag(&identifier_tag, "lorem")).items[0],
+        (try build_identifier_tag(&identifier_tag, "lorem")).items[0],
     );
     try std.testing.expectEqualStrings(
         "title",
-        (try long_form_build_title_tag(&title_tag, "Lorem Ipsum")).items[0],
+        (try build_title_tag(&title_tag, "Lorem Ipsum")).items[0],
     );
-    const built_image = try long_form_build_image_tag(
+    const built_image = try build_image_tag(
         &image_tag,
         "https://example.com/image.png",
         "800x600",
@@ -533,19 +533,19 @@ test "long form builders emit bounded metadata tags" {
     try std.testing.expectEqualStrings("800x600", built_image.items[2]);
     try std.testing.expectEqualStrings(
         "summary",
-        (try long_form_build_summary_tag(&summary_tag, "Article summary")).items[0],
+        (try build_summary_tag(&summary_tag, "Article summary")).items[0],
     );
     try std.testing.expectEqualStrings(
         "published_at",
-        (try long_form_build_published_at_tag(&published_at_tag, 1296962229)).items[0],
+        (try build_published_at_tag(&published_at_tag, 1296962229)).items[0],
     );
     try std.testing.expectEqualStrings(
         "t",
-        (try long_form_build_hashtag_tag(&hashtag_tag, "nostr")).items[0],
+        (try build_hashtag_tag(&hashtag_tag, "nostr")).items[0],
     );
     try std.testing.expectError(
         error.InvalidHashtagTag,
-        long_form_build_hashtag_tag(&hashtag_tag, "Nostr"),
+        build_hashtag_tag(&hashtag_tag, "Nostr"),
     );
 }
 
@@ -558,7 +558,7 @@ test "long form extract rejects uppercase hashtags" {
 
     try std.testing.expectError(
         error.InvalidHashtagTag,
-        long_form_extract(
+        extract(
             &.{
                 .id = [_]u8{0} ** 32,
                 .pubkey = [_]u8{0} ** 32,

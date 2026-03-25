@@ -79,7 +79,7 @@ pub const TagBuilder = struct {
 };
 
 /// Returns the supported strict NIP-99 kind, or `null` when unsupported.
-pub fn listing_kind_classify(kind: u32) ?ListingKind {
+pub fn kind_classify(kind: u32) ?ListingKind {
     std.debug.assert(kind <= limits.kind_max);
     std.debug.assert(@sizeOf(ListingKind) == @sizeOf(u32));
 
@@ -91,7 +91,7 @@ pub fn listing_kind_classify(kind: u32) ?ListingKind {
 }
 
 /// Extracts bounded NIP-99 listing metadata, images, and ordered hashtags.
-pub fn listing_extract(
+pub fn extract(
     event: *const nip01_event.Event,
     out_images: []Image,
     out_hashtags: [][]const u8,
@@ -99,7 +99,7 @@ pub fn listing_extract(
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(out_images.len <= std.math.maxInt(u16));
 
-    const kind = listing_kind_classify(event.kind) orelse return error.UnsupportedKind;
+    const kind = kind_classify(event.kind) orelse return error.UnsupportedKind;
     try validate_content(event.content);
 
     var identifier: ?[]const u8 = null;
@@ -116,7 +116,7 @@ pub fn listing_extract(
 }
 
 /// Builds a listing `d` tag.
-pub fn listing_build_identifier_tag(
+pub fn build_identifier_tag(
     output: *TagBuilder,
     identifier: []const u8,
 ) ClassifiedListingError!nip01_event.EventTag {
@@ -129,7 +129,7 @@ pub fn listing_build_identifier_tag(
 }
 
 /// Builds a listing `title` tag.
-pub fn listing_build_title_tag(
+pub fn build_title_tag(
     output: *TagBuilder,
     title: []const u8,
 ) ClassifiedListingError!nip01_event.EventTag {
@@ -142,7 +142,7 @@ pub fn listing_build_title_tag(
 }
 
 /// Builds a listing `summary` tag.
-pub fn listing_build_summary_tag(
+pub fn build_summary_tag(
     output: *TagBuilder,
     summary: []const u8,
 ) ClassifiedListingError!nip01_event.EventTag {
@@ -155,7 +155,7 @@ pub fn listing_build_summary_tag(
 }
 
 /// Builds a listing `published_at` tag.
-pub fn listing_build_published_at_tag(
+pub fn build_published_at_tag(
     output: *TagBuilder,
     published_at: u64,
 ) ClassifiedListingError!nip01_event.EventTag {
@@ -171,7 +171,7 @@ pub fn listing_build_published_at_tag(
 }
 
 /// Builds a listing `location` tag.
-pub fn listing_build_location_tag(
+pub fn build_location_tag(
     output: *TagBuilder,
     location: []const u8,
 ) ClassifiedListingError!nip01_event.EventTag {
@@ -184,7 +184,7 @@ pub fn listing_build_location_tag(
 }
 
 /// Builds a listing `price` tag.
-pub fn listing_build_price_tag(
+pub fn build_price_tag(
     output: *TagBuilder,
     price: *const Price,
 ) ClassifiedListingError!nip01_event.EventTag {
@@ -204,7 +204,7 @@ pub fn listing_build_price_tag(
 }
 
 /// Builds a listing `status` tag.
-pub fn listing_build_status_tag(
+pub fn build_status_tag(
     output: *TagBuilder,
     status: ListingStatus,
 ) ClassifiedListingError!nip01_event.EventTag {
@@ -222,7 +222,7 @@ pub fn listing_build_status_tag(
 }
 
 /// Builds a listing geohash `g` tag.
-pub fn listing_build_geohash_tag(
+pub fn build_geohash_tag(
     output: *TagBuilder,
     geohash: []const u8,
 ) ClassifiedListingError!nip01_event.EventTag {
@@ -235,7 +235,7 @@ pub fn listing_build_geohash_tag(
 }
 
 /// Builds a listing `image` tag.
-pub fn listing_build_image_tag(
+pub fn build_image_tag(
     output: *TagBuilder,
     image_url: []const u8,
     dimensions: ?[]const u8,
@@ -253,7 +253,7 @@ pub fn listing_build_image_tag(
 }
 
 /// Builds a listing `t` hashtag tag.
-pub fn listing_build_hashtag_tag(
+pub fn build_hashtag_tag(
     output: *TagBuilder,
     hashtag: []const u8,
 ) ClassifiedListingError!nip01_event.EventTag {
@@ -618,7 +618,7 @@ test "listing extract parses bounded metadata images and hashtags" {
     var images: [2]Image = undefined;
     var hashtags: [2][]const u8 = undefined;
 
-    const parsed = try listing_extract(&test_event(tags[0..], "bike details", 30402), images[0..], hashtags[0..]);
+    const parsed = try extract(&test_event(tags[0..], "bike details", 30402), images[0..], hashtags[0..]);
 
     try std.testing.expectEqualStrings("alice.blog/post", parsed.identifier);
     try std.testing.expectEqualStrings("Road bike", parsed.title.?);
@@ -638,7 +638,7 @@ test "listing extract rejects malformed required and supported tags" {
 
     try std.testing.expectError(
         error.MissingIdentifier,
-        listing_extract(&test_event(missing_identifier[0..], "", 30402), images[0..], hashtags[0..]),
+        extract(&test_event(missing_identifier[0..], "", 30402), images[0..], hashtags[0..]),
     );
 
     const invalid_price = [_]nip01_event.EventTag{
@@ -647,7 +647,7 @@ test "listing extract rejects malformed required and supported tags" {
     };
     try std.testing.expectError(
         error.InvalidPriceTag,
-        listing_extract(&test_event(invalid_price[0..], "", 30402), images[0..], hashtags[0..]),
+        extract(&test_event(invalid_price[0..], "", 30402), images[0..], hashtags[0..]),
     );
 
     const invalid_identifier = [_]nip01_event.EventTag{
@@ -655,7 +655,7 @@ test "listing extract rejects malformed required and supported tags" {
     };
     try std.testing.expectError(
         error.InvalidIdentifierTag,
-        listing_extract(&test_event(invalid_identifier[0..], "", 30402), images[0..], hashtags[0..]),
+        extract(&test_event(invalid_identifier[0..], "", 30402), images[0..], hashtags[0..]),
     );
 }
 
@@ -665,13 +665,13 @@ test "listing builders create canonical tags" {
     var image_tag: TagBuilder = .{};
     var status_tag: TagBuilder = .{};
 
-    const identifier = try listing_build_identifier_tag(&identifier_tag, "alice.blog/post");
-    const price = try listing_build_price_tag(
+    const identifier = try build_identifier_tag(&identifier_tag, "alice.blog/post");
+    const price = try build_price_tag(
         &price_tag,
         &.{ .amount = "50", .currency = "USD", .frequency = null },
     );
-    const image = try listing_build_image_tag(&image_tag, "https://example.com/item.jpg", "400x300");
-    const status = try listing_build_status_tag(&status_tag, .active);
+    const image = try build_image_tag(&image_tag, "https://example.com/item.jpg", "400x300");
+    const status = try build_status_tag(&status_tag, .active);
 
     try std.testing.expectEqualStrings("d", identifier.items[0]);
     try std.testing.expectEqualStrings("alice.blog/post", identifier.items[1]);
@@ -684,7 +684,7 @@ test "listing builders create canonical tags" {
 
     try std.testing.expectError(
         error.InvalidIdentifierTag,
-        listing_build_identifier_tag(&identifier_tag, "https://example.com/post"),
+        build_identifier_tag(&identifier_tag, "https://example.com/post"),
     );
 }
 
@@ -696,10 +696,10 @@ test "listing builders reject overlong caller input with typed errors" {
 
     try std.testing.expectError(
         error.InvalidTitleTag,
-        listing_build_title_tag(&title_tag, overlong_text[0..]),
+        build_title_tag(&title_tag, overlong_text[0..]),
     );
     try std.testing.expectError(
         error.InvalidImageTag,
-        listing_build_image_tag(&image_tag, overlong_url[0..], null),
+        build_image_tag(&image_tag, overlong_url[0..], null),
     );
 }
