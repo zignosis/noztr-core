@@ -190,7 +190,7 @@ pub fn nip17_unwrap_message(
     std.debug.assert(@intFromPtr(output_rumor) != 0);
     std.debug.assert(@intFromPtr(recipient_private_key) != 0);
 
-    try nip59_wrap.nip59_unwrap(output_rumor, recipient_private_key, wrap_event, scratch);
+    try nip59_wrap.unwrap(output_rumor, recipient_private_key, wrap_event, scratch);
     return nip17_message_parse(output_rumor, recipients_out);
 }
 
@@ -207,7 +207,7 @@ pub fn nip17_unwrap_file_message(
     std.debug.assert(@intFromPtr(output_rumor) != 0);
     std.debug.assert(@intFromPtr(recipient_private_key) != 0);
 
-    try nip59_wrap.nip59_unwrap(output_rumor, recipient_private_key, wrap_event, scratch);
+    try nip59_wrap.unwrap(output_rumor, recipient_private_key, wrap_event, scratch);
     return nip17_file_message_parse(output_rumor, recipients_out, thumbs_out, fallbacks_out);
 }
 

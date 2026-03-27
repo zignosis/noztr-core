@@ -29,7 +29,7 @@ test "NIP-59 adversarial example: mismatched sender rumor stays typed" {
     rumor.id = try noztr.nip01_event.event_compute_id_checked(&rumor);
     try std.testing.expectError(
         error.InvalidRumorEvent,
-        noztr.nip59_wrap.nip59_build_outbound_for_recipient(
+        noztr.nip59_wrap.build_outbound_for_recipient(
             &seal,
             &wrap,
             &sender_secret,

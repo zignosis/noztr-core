@@ -8,6 +8,6 @@ test "NIP-59 example: invalid outer kind is a typed boundary failure" {
 
     try std.testing.expectError(
         error.InvalidWrapKind,
-        noztr.nip59_wrap.nip59_validate_wrap_structure(&event),
+        noztr.nip59_wrap.validate_wrap_structure(&event),
     );
 }

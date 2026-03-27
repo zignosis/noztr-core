@@ -107,10 +107,10 @@ These are the quickest symbol-level routes into the modules most downstream user
 
 ### `nip59_wrap`
 
-- `nip59_build_outbound_for_recipient`
+- `build_outbound_for_recipient`
   - build one bounded one-recipient `rumor -> seal -> wrap` transcript with fixed caller-provided
     nonces
-- `nip59_unwrap`
+- `unwrap`
   - unwrap an inbound wrap into the typed kernel payload
 - start example:
   - [nip17_wrap_recipe.zig](../../examples/nip17_wrap_recipe.zig)

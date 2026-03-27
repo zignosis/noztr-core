@@ -25,7 +25,7 @@ test "recipe: build and unwrap a full signed NIP-17 gift wrap transcript" {
     var seal: noztr.nip01_event.Event = undefined;
     var wrap: noztr.nip59_wrap.BuiltWrapEvent = .{};
 
-    const built = try noztr.nip59_wrap.nip59_build_outbound_for_recipient(
+    const built = try noztr.nip59_wrap.build_outbound_for_recipient(
         &seal,
         &wrap,
         &sender_secret,

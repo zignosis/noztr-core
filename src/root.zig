@@ -1173,11 +1173,11 @@ test "root exports limits and error namespaces" {
             fn (*const nip11.RelayInformationDocument) nip11.RelayInfoError!void,
     );
     try std.testing.expect(
-        @TypeOf(nip59_wrap.nip59_validate_wrap_structure) ==
+        @TypeOf(nip59_wrap.validate_wrap_structure) ==
             fn (*const nip01_event.Event) nip59_wrap.WrapError!void,
     );
     try std.testing.expect(
-        @TypeOf(nip59_wrap.nip59_unwrap) ==
+        @TypeOf(nip59_wrap.unwrap) ==
             fn (
                 *nip01_event.Event,
                 *const [32]u8,

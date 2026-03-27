@@ -49,7 +49,7 @@ pub const BuiltWrapEvent = struct {
 };
 
 /// Validate kind and cryptographic structure for an outer NIP-59 wrap event.
-pub fn nip59_validate_wrap_structure(wrap_event: *const Event) WrapError!void {
+pub fn validate_wrap_structure(wrap_event: *const Event) WrapError!void {
     std.debug.assert(@intFromPtr(wrap_event) != 0);
     std.debug.assert(wrap_event.kind <= std.math.maxInt(u32));
 
@@ -63,7 +63,7 @@ pub fn nip59_validate_wrap_structure(wrap_event: *const Event) WrapError!void {
 }
 
 /// Build one minimal bounded `rumor -> seal -> wrap` transcript for one recipient.
-pub fn nip59_build_outbound_for_recipient(
+pub fn build_outbound_for_recipient(
     output_seal: *Event,
     output_wrap: *BuiltWrapEvent,
     sender_secret: *const [32]u8,
@@ -121,7 +121,7 @@ pub fn nip59_build_outbound_for_recipient(
 /// tag item slices) borrow allocations from caller-provided `scratch`.
 /// Callers must keep `scratch` allocations alive for as long as those slices
 /// are observed.
-pub fn nip59_unwrap(
+pub fn unwrap(
     output_rumor: *Event,
     recipient_private_key_material: *const [32]u8,
     wrap_event: *const Event,
@@ -130,7 +130,7 @@ pub fn nip59_unwrap(
     std.debug.assert(@intFromPtr(output_rumor) != 0);
     std.debug.assert(@intFromPtr(recipient_private_key_material) != 0);
 
-    try nip59_validate_wrap_structure(wrap_event);
+    try validate_wrap_structure(wrap_event);
 
     var wrap_conversation_key = nip44.get_conversation_key(
         recipient_private_key_material,
@@ -1031,7 +1031,7 @@ test "nip59 outbound builder produces one-recipient transcript that unwraps symm
     defer arena.deinit();
 
     rumor.id = try nip01_event.event_compute_id_checked(&rumor);
-    const built = try nip59_build_outbound_for_recipient(
+    const built = try build_outbound_for_recipient(
         &seal,
         &wrap,
         &sender_secret,
@@ -1054,7 +1054,7 @@ test "nip59 outbound builder produces one-recipient transcript that unwraps symm
     try std.testing.expectEqualStrings(built.wrap_payload, wrap.event.content);
 
     var output_rumor: Event = undefined;
-    try nip59_unwrap(&output_rumor, &recipient_private_key, &wrap.event, arena.allocator());
+    try unwrap(&output_rumor, &recipient_private_key, &wrap.event, arena.allocator());
     try std.testing.expectEqualStrings("hello-outbound-builder", output_rumor.content);
     try std.testing.expect(std.mem.eql(u8, &output_rumor.id, &rumor.id));
     try std.testing.expectEqualStrings(
@@ -1088,7 +1088,7 @@ test "nip59 outbound builder rejects signed rumor input" {
     try nostr_keys.nostr_sign_event(&sender_secret, &rumor);
     try std.testing.expectError(
         error.InvalidRumorEvent,
-        nip59_build_outbound_for_recipient(
+        build_outbound_for_recipient(
             &seal,
             &wrap,
             &sender_secret,
@@ -1133,7 +1133,7 @@ test "nip59 outbound builder rejects rumor pubkey that does not match sender sec
     rumor.id = try nip01_event.event_compute_id_checked(&rumor);
     try std.testing.expectError(
         error.InvalidRumorEvent,
-        nip59_build_outbound_for_recipient(
+        build_outbound_for_recipient(
             &seal,
             &wrap,
             &sender_secret,
@@ -1170,7 +1170,7 @@ test "nip59 valid structure validation passes for signed wrap" {
         null,
     );
 
-    try nip59_validate_wrap_structure(&fixture.wrap.event);
+    try validate_wrap_structure(&fixture.wrap.event);
     try std.testing.expect(fixture.wrap.event.kind == wrap_event_kind);
 }
 
@@ -1196,7 +1196,7 @@ test "nip59 valid unwrap returns expected rumor" {
     defer arena.deinit();
 
     var output_rumor: Event = undefined;
-    try nip59_unwrap(
+    try unwrap(
         &output_rumor,
         &recipient_private_key,
         &fixture.wrap.event,
@@ -1231,7 +1231,7 @@ test "nip59 valid unwrap accepts unsigned rumor payload" {
     defer arena.deinit();
 
     var output_rumor: Event = undefined;
-    try nip59_unwrap(
+    try unwrap(
         &output_rumor,
         &recipient_private_key,
         &fixture.wrap.event,
@@ -1267,7 +1267,7 @@ test "nip59 valid unwrap derives per-layer keys for different signer pubkeys" {
     defer arena.deinit();
 
     var output_rumor: Event = undefined;
-    try nip59_unwrap(
+    try unwrap(
         &output_rumor,
         &recipient_private_key,
         &fixture.wrap.event,
@@ -1304,13 +1304,13 @@ test "nip59 valid unwrap deterministic repeated behavior" {
 
     var rumor_a: Event = undefined;
     var rumor_b: Event = undefined;
-    try nip59_unwrap(
+    try unwrap(
         &rumor_a,
         &recipient_private_key,
         &fixture.wrap.event,
         arena_a.allocator(),
     );
-    try nip59_unwrap(
+    try unwrap(
         &rumor_b,
         &recipient_private_key,
         &fixture.wrap.event,
@@ -1342,7 +1342,7 @@ test "nip59 valid unwrap supports different rumor payloads" {
     defer arena.deinit();
 
     var output_rumor: Event = undefined;
-    try nip59_unwrap(
+    try unwrap(
         &output_rumor,
         &recipient_private_key,
         &fixture.wrap.event,
@@ -1374,7 +1374,7 @@ test "nip59 valid unwrap preserves sender continuity" {
     defer arena.deinit();
 
     var output_rumor: Event = undefined;
-    try nip59_unwrap(
+    try unwrap(
         &output_rumor,
         &recipient_private_key,
         &fixture.wrap.event,
@@ -1418,7 +1418,7 @@ test "nip59 invalid outer kind fails before decrypt" {
     var output_rumor: Event = undefined;
     try std.testing.expectError(
         error.InvalidWrapKind,
-        nip59_unwrap(
+        unwrap(
             &output_rumor,
             &recipient_private_key,
             &fixture.wrap.event,
@@ -1458,7 +1458,7 @@ test "nip59 invalid decrypt failure is typed" {
     var output_rumor: Event = undefined;
     try std.testing.expectError(
         error.DecryptFailed,
-        nip59_unwrap(
+        unwrap(
             &output_rumor,
             &recipient_private_key,
             &fixture.wrap.event,
@@ -1493,7 +1493,7 @@ test "nip59 invalid wrap event signature is typed" {
     var output_rumor: Event = undefined;
     try std.testing.expectError(
         error.InvalidWrapEvent,
-        nip59_unwrap(
+        unwrap(
             &output_rumor,
             &recipient_private_key,
             &fixture.wrap.event,
@@ -1535,7 +1535,7 @@ test "nip59 invalid seal signature fails before sender checks" {
     var output_rumor: Event = undefined;
     try std.testing.expectError(
         error.InvalidSealSignature,
-        nip59_unwrap(
+        unwrap(
             &output_rumor,
             &recipient_private_key,
             &fixture.wrap.event,
@@ -1583,7 +1583,7 @@ test "nip59 invalid seal kind is typed after valid wrap decrypt" {
     var output_rumor: Event = undefined;
     try std.testing.expectError(
         error.InvalidSealKind,
-        nip59_unwrap(
+        unwrap(
             &output_rumor,
             &recipient_private_key,
             &fixture.wrap.event,
@@ -1629,7 +1629,7 @@ test "nip59 invalid seal event tags are typed" {
     var output_rumor: Event = undefined;
     try std.testing.expectError(
         error.InvalidSealEvent,
-        nip59_unwrap(
+        unwrap(
             &output_rumor,
             &recipient_private_key,
             &fixture.wrap.event,
@@ -1663,7 +1663,7 @@ test "nip59 invalid sender mismatch caught after parse" {
     var output_rumor: Event = undefined;
     try std.testing.expectError(
         error.SenderMismatch,
-        nip59_unwrap(
+        unwrap(
             &output_rumor,
             &recipient_private_key,
             &fixture.wrap.event,
@@ -1710,7 +1710,7 @@ test "nip59 invalid malformed rumor payload is rejected" {
     var output_rumor: Event = undefined;
     try std.testing.expectError(
         error.InvalidRumorEvent,
-        nip59_unwrap(
+        unwrap(
             &output_rumor,
             &recipient_private_key,
             &fixture.wrap.event,
@@ -1761,7 +1761,7 @@ test "nip59 invalid rumor id mismatch is rejected" {
     var output_rumor: Event = undefined;
     try std.testing.expectError(
         error.InvalidRumorEvent,
-        nip59_unwrap(
+        unwrap(
             &output_rumor,
             &recipient_private_key,
             &fixture.wrap.event,
@@ -1794,7 +1794,7 @@ test "nip59 maps parser allocator exhaustion to OutOfMemory" {
     var output_rumor: Event = undefined;
     try std.testing.expectError(
         error.OutOfMemory,
-        nip59_unwrap(
+        unwrap(
             &output_rumor,
             &recipient_private_key,
             &fixture.wrap.event,
@@ -1842,7 +1842,7 @@ test "nip59 invalid signed rumor payload is rejected" {
     var output_rumor: Event = undefined;
     try std.testing.expectError(
         error.InvalidRumorEvent,
-        nip59_unwrap(
+        unwrap(
             &output_rumor,
             &recipient_private_key,
             &fixture.wrap.event,

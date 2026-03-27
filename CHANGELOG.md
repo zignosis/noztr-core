@@ -23,6 +23,7 @@ For the public versioning policy, see
   - `nip64_chess_pgn`
   - `nip11`
   - `nip44`
+  - `nip59_wrap`
 
 ## [0.1.0-rc.6] - 2026-03-25
 

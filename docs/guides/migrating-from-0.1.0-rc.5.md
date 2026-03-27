@@ -215,6 +215,12 @@ If your project depends on `noztr-core`:
 - `nip44_decode_payload` -> `decode_payload`
 - `nip44_decrypt_from_base64` -> `decrypt_from_base64`
 
+### `nip59_wrap`
+
+- `nip59_validate_wrap_structure` -> `validate_wrap_structure`
+- `nip59_build_outbound_for_recipient` -> `build_outbound_for_recipient`
+- `nip59_unwrap` -> `unwrap`
+
 ## Scope
 
 This is naming and surface-noise cleanup only.
