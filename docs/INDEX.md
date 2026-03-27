@@ -31,6 +31,7 @@ Use the guides when you need narrative help:
 - [migrating from 0.1.0-rc.3](guides/migrating-from-0.1.0-rc.3.md)
 - [migrating from 0.1.0-rc.4](guides/migrating-from-0.1.0-rc.4.md)
 - [migrating from 0.1.0-rc.5](guides/migrating-from-0.1.0-rc.5.md)
+- [migrating from 0.1.0-rc.6](guides/migrating-from-0.1.0-rc.6.md)
 - [release signoff checklist](guides/release-signoff-checklist.md)
 - [NOZTR Style](guides/noztr-style.md)
 - [Docs style guide](guides/docs-style-guide.md)
@@ -57,6 +58,7 @@ Use the support pages for cross-cutting expectations:
 - [releases/0.1.0-rc.4](releases/0.1.0-rc.4.md)
 - [releases/0.1.0-rc.5](releases/0.1.0-rc.5.md)
 - [releases/0.1.0-rc.6](releases/0.1.0-rc.6.md)
+- [releases/0.1.0-rc.7](releases/0.1.0-rc.7.md)
 
 Use the official upstream NIPs repository for spec texts:
 <https://github.com/nostr-protocol/nips>

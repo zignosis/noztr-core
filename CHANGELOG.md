@@ -15,6 +15,23 @@ For the public versioning policy, see
 
 ### Changed
 
+- no intentional unreleased public changes
+
+## [0.1.0-rc.7] - 2026-03-27
+
+Release type: breaking rc
+
+### Summary
+
+Seventh public release candidate for `noztr-core`.
+
+This RC packages the post-`rc.6` public-surface cleanup already on `master`: several remaining
+route-local function families are shorter, the internal crypto and bech32 support layout is
+tighter, and the public docs are more precise about determinism and allocator expectations. Wire
+behavior, trust-boundary posture, and kernel scope remain stable.
+
+### Changed
+
 - shortened remaining route-local function families in:
   - `nip51_lists`
   - `nip66_relay_discovery`
@@ -24,6 +41,36 @@ For the public versioning policy, see
   - `nip11`
   - `nip44`
   - `nip59_wrap`
+- tightened docs around determinism and allocator ownership in the JSON-heavy routes
+- split internal secp test harness details away from the public-facing crypto boundary
+- shared internal bech32 core support instead of duplicating it across routes
+
+### Breaking Changes
+
+- shortened route-local function families in:
+  - `nip51_lists`
+  - `nip66_relay_discovery`
+  - `nip78_app_data`
+  - `nip34_git`
+  - `nip64_chess_pgn`
+  - `nip11`
+  - `nip44`
+  - `nip59_wrap`
+- internal `secp` adapter naming now consistently uses `boundary`
+- downstream migration guide:
+  - [docs/guides/migrating-from-0.1.0-rc.6.md](docs/guides/migrating-from-0.1.0-rc.6.md)
+
+### Compatibility Notes
+
+- Zig toolchain floor for this RC line remains `0.15.2`
+- optional I6 exports remain build-flag gated
+- wire formats, trust-boundary behavior, and kernel-vs-SDK scope remain unchanged by this RC
+
+### Upgrade Guidance
+
+- if you depend on `noztr-core`, review [docs/guides/migrating-from-0.1.0-rc.6.md](docs/guides/migrating-from-0.1.0-rc.6.md)
+- update renamed route-local functions in the affected routes
+- update any explicit references to the internal `secp` boundary rename if you consume internal-only test or maintainer surfaces
 
 ## [0.1.0-rc.6] - 2026-03-25
 
