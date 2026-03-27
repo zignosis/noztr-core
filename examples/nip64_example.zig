@@ -4,7 +4,7 @@ const common = @import("common.zig");
 
 test "NIP-64 example: validate and extract chess PGN note" {
     var alt_tag: noztr.nip64_chess_pgn.TagBuilder = .{};
-    const built_alt = try noztr.nip64_chess_pgn.chess_pgn_build_alt_tag(
+    const built_alt = try noztr.nip64_chess_pgn.build_alt_tag(
         &alt_tag,
         "Fischer vs. Spassky",
     );
@@ -22,7 +22,7 @@ test "NIP-64 example: validate and extract chess PGN note" {
         tags[0..],
     );
 
-    const parsed = try noztr.nip64_chess_pgn.chess_pgn_extract(&event);
+    const parsed = try noztr.nip64_chess_pgn.extract(&event);
 
     try std.testing.expectEqualStrings("alt", built_alt.items[0]);
     try std.testing.expectEqualStrings("Fischer vs. Spassky", parsed.alt.?);

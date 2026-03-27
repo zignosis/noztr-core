@@ -347,13 +347,13 @@ These are the quickest symbol-level routes into the modules most downstream user
 
 ### `nip34_git`
 
-- `repository_announcement_extract`
+- `announcement_extract`
   - extract bounded repository announcement metadata
-- `repository_state_extract`
+- `state_extract`
   - extract bounded repository state refs and `HEAD`
-- `user_grasp_list_extract`
+- `grasp_list_extract`
   - extract bounded grasp server URLs
-- `repository_build_*`
+- `build_*`
   - build canonical repository announcement and state tags
 - start example:
   - [nip34_example.zig](../../examples/nip34_example.zig)

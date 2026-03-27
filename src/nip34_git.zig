@@ -74,7 +74,7 @@ pub const TagBuilder = struct {
 };
 
 /// Extracts bounded repository-announcement metadata from a `kind:30617` event.
-pub fn repository_announcement_extract(
+pub fn announcement_extract(
     event: *const nip01_event.Event,
     out_web: [][]const u8,
     out_clone: [][]const u8,
@@ -97,7 +97,7 @@ pub fn repository_announcement_extract(
 }
 
 /// Extracts bounded repository state from a `kind:30618` event.
-pub fn repository_state_extract(
+pub fn state_extract(
     event: *const nip01_event.Event,
     out_refs: []StateRef,
 ) GitError!State {
@@ -116,7 +116,7 @@ pub fn repository_state_extract(
 }
 
 /// Extracts bounded grasp-server URLs from a `kind:10317` user grasp list.
-pub fn user_grasp_list_extract(
+pub fn grasp_list_extract(
     event: *const nip01_event.Event,
     out_servers: [][]const u8,
 ) GitError!GraspList {
@@ -138,7 +138,7 @@ pub fn user_grasp_list_extract(
 }
 
 /// Builds a repository `d` tag.
-pub fn repository_build_identifier_tag(
+pub fn build_identifier_tag(
     output: *TagBuilder,
     identifier: []const u8,
 ) GitError!nip01_event.EventTag {
@@ -152,7 +152,7 @@ pub fn repository_build_identifier_tag(
 }
 
 /// Builds a repository `name` tag.
-pub fn repository_build_name_tag(
+pub fn build_name_tag(
     output: *TagBuilder,
     name: []const u8,
 ) GitError!nip01_event.EventTag {
@@ -166,7 +166,7 @@ pub fn repository_build_name_tag(
 }
 
 /// Builds a repository `description` tag.
-pub fn repository_build_description_tag(
+pub fn build_description_tag(
     output: *TagBuilder,
     description: []const u8,
 ) GitError!nip01_event.EventTag {
@@ -180,7 +180,7 @@ pub fn repository_build_description_tag(
 }
 
 /// Builds a multi-value repository URL or relay tag (`web`, `clone`, or `relays`).
-pub fn repository_build_url_list_tag(
+pub fn build_url_list_tag(
     output: *TagBuilder,
     name: []const u8,
     values: []const []const u8,
@@ -200,7 +200,7 @@ pub fn repository_build_url_list_tag(
 }
 
 /// Builds the `r` earliest-unique-commit tag.
-pub fn repository_build_earliest_unique_commit_tag(
+pub fn build_earliest_unique_commit_tag(
     output: *TagBuilder,
     commit_id: []const u8,
 ) GitError!nip01_event.EventTag {
@@ -215,7 +215,7 @@ pub fn repository_build_earliest_unique_commit_tag(
 }
 
 /// Builds the multi-value `maintainers` tag.
-pub fn repository_build_maintainers_tag(
+pub fn build_maintainers_tag(
     output: *TagBuilder,
     pubkeys: []const []const u8,
 ) GitError!nip01_event.EventTag {
@@ -234,7 +234,7 @@ pub fn repository_build_maintainers_tag(
 }
 
 /// Builds a repository `t` topic tag.
-pub fn repository_build_topic_tag(
+pub fn build_topic_tag(
     output: *TagBuilder,
     topic: []const u8,
 ) GitError!nip01_event.EventTag {
@@ -248,7 +248,7 @@ pub fn repository_build_topic_tag(
 }
 
 /// Builds a repository-state `refs/...` tag.
-pub fn repository_build_ref_tag(
+pub fn build_ref_tag(
     output: *TagBuilder,
     ref_name: []const u8,
     commit_id: []const u8,
@@ -263,7 +263,7 @@ pub fn repository_build_ref_tag(
 }
 
 /// Builds the repository-state `HEAD` tag.
-pub fn repository_build_head_tag(
+pub fn build_head_tag(
     output: *TagBuilder,
     ref_name: []const u8,
 ) GitError!nip01_event.EventTag {
@@ -279,7 +279,7 @@ pub fn repository_build_head_tag(
 }
 
 /// Builds the multi-value grasp-server `g` tag.
-pub fn repository_build_grasp_servers_tag(
+pub fn build_grasp_servers_tag(
     output: *TagBuilder,
     urls: []const []const u8,
 ) GitError!nip01_event.EventTag {
@@ -528,7 +528,7 @@ test "NIP-34 extracts repository announcement metadata" {
     var maintainers: [1][32]u8 = undefined;
     var topics: [1][]const u8 = undefined;
 
-    const info = try repository_announcement_extract(
+    const info = try announcement_extract(
         &event,
         web[0..],
         clone[0..],
@@ -559,7 +559,7 @@ test "NIP-34 extracts repository state refs" {
     };
     var refs: [1]StateRef = undefined;
 
-    const info = try repository_state_extract(&event, refs[0..]);
+    const info = try state_extract(&event, refs[0..]);
 
     try std.testing.expectEqualStrings("noztr", info.identifier);
     try std.testing.expectEqualStrings("refs/heads/main", info.head_ref.?);
@@ -572,7 +572,7 @@ test "NIP-34 builds maintainers tag" {
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     };
 
-    const tag = try repository_build_maintainers_tag(&built, pubkeys[0..]);
+    const tag = try build_maintainers_tag(&built, pubkeys[0..]);
 
     try std.testing.expectEqualStrings("maintainers", tag.items[0]);
     try std.testing.expectEqualStrings(pubkeys[0], tag.items[1]);

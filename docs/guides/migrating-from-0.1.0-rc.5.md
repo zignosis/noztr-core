@@ -187,6 +187,20 @@ If your project depends on `noztr-core`:
 - `app_data_extract` -> `extract`
 - `app_data_build_identifier_tag` -> `build_identifier_tag`
 
+### `nip34_git`
+
+- `repository_announcement_extract` -> `announcement_extract`
+- `repository_state_extract` -> `state_extract`
+- `user_grasp_list_extract` -> `grasp_list_extract`
+- `repository_build_*` -> `build_*`
+
+### `nip64_chess_pgn`
+
+- `chess_pgn_is_supported` -> `is_supported`
+- `chess_pgn_extract` -> `extract`
+- `chess_pgn_validate` -> `validate`
+- `chess_pgn_build_alt_tag` -> `build_alt_tag`
+
 ## Scope
 
 This is naming and surface-noise cleanup only.

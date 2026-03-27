@@ -780,6 +780,57 @@ test "root exports limits and error namespaces" {
             ) nip66_relay_discovery.RelayDiscoveryError!nip01_event.EventTag,
     );
     try std.testing.expect(
+        @TypeOf(nip34_git.announcement_extract) ==
+            fn (
+                *const nip01_event.Event,
+                [][]const u8,
+                [][]const u8,
+                [][]const u8,
+                [][32]u8,
+                [][]const u8,
+            ) nip34_git.GitError!nip34_git.Announcement,
+    );
+    try std.testing.expect(
+        @TypeOf(nip34_git.state_extract) ==
+            fn (
+                *const nip01_event.Event,
+                []nip34_git.StateRef,
+            ) nip34_git.GitError!nip34_git.State,
+    );
+    try std.testing.expect(
+        @TypeOf(nip34_git.grasp_list_extract) ==
+            fn (
+                *const nip01_event.Event,
+                [][]const u8,
+            ) nip34_git.GitError!nip34_git.GraspList,
+    );
+    try std.testing.expect(
+        @TypeOf(nip34_git.build_maintainers_tag) ==
+            fn (
+                *nip34_git.TagBuilder,
+                []const []const u8,
+            ) nip34_git.GitError!nip01_event.EventTag,
+    );
+    try std.testing.expect(
+        @TypeOf(nip64_chess_pgn.is_supported) ==
+            fn (*const nip01_event.Event) bool,
+    );
+    try std.testing.expect(
+        @TypeOf(nip64_chess_pgn.extract) ==
+            fn (*const nip01_event.Event) nip64_chess_pgn.ChessPgnError!nip64_chess_pgn.Pgn,
+    );
+    try std.testing.expect(
+        @TypeOf(nip64_chess_pgn.validate) ==
+            fn ([]const u8) nip64_chess_pgn.ChessPgnError!u16,
+    );
+    try std.testing.expect(
+        @TypeOf(nip64_chess_pgn.build_alt_tag) ==
+            fn (
+                *nip64_chess_pgn.TagBuilder,
+                []const u8,
+            ) nip64_chess_pgn.ChessPgnError!nip01_event.EventTag,
+    );
+    try std.testing.expect(
         @TypeOf(nip05_identity.address_parse) ==
             fn ([]const u8, std.mem.Allocator) nip05_identity.IdentityError!nip05_identity.Address,
     );

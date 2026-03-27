@@ -11,9 +11,9 @@ test "NIP-64 adversarial example: reject malformed PGN structure" {
     );
     var alt_tag: noztr.nip64_chess_pgn.TagBuilder = .{};
 
-    try std.testing.expectError(error.InvalidPgn, noztr.nip64_chess_pgn.chess_pgn_extract(&event));
+    try std.testing.expectError(error.InvalidPgn, noztr.nip64_chess_pgn.extract(&event));
     try std.testing.expectError(
         error.InvalidAltTag,
-        noztr.nip64_chess_pgn.chess_pgn_build_alt_tag(&alt_tag, ""),
+        noztr.nip64_chess_pgn.build_alt_tag(&alt_tag, ""),
     );
 }

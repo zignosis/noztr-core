@@ -19,6 +19,8 @@ For the public versioning policy, see
   - `nip51_lists`
   - `nip66_relay_discovery`
   - `nip78_app_data`
+  - `nip34_git`
+  - `nip64_chess_pgn`
 
 ## [0.1.0-rc.6] - 2026-03-25
 

@@ -29,7 +29,7 @@ test "NIP-34 example: extract repository announcement metadata" {
     var topics: [1][]const u8 = undefined;
     var built: noztr.nip34_git.TagBuilder = .{};
 
-    const info = try noztr.nip34_git.repository_announcement_extract(
+    const info = try noztr.nip34_git.announcement_extract(
         &event,
         web[0..],
         clone[0..],
@@ -37,7 +37,7 @@ test "NIP-34 example: extract repository announcement metadata" {
         maintainers[0..],
         topics[0..],
     );
-    const maintainer_tag = try noztr.nip34_git.repository_build_maintainers_tag(
+    const maintainer_tag = try noztr.nip34_git.build_maintainers_tag(
         &built,
         &.{"1111111111111111111111111111111111111111111111111111111111111111"},
     );

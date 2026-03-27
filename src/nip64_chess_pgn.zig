@@ -58,7 +58,7 @@ const Scanner = struct {
 };
 
 /// Returns whether the event kind is supported by the strict NIP-64 helper.
-pub fn chess_pgn_is_supported(event: *const nip01_event.Event) bool {
+pub fn is_supported(event: *const nip01_event.Event) bool {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.kind <= limits.kind_max);
 
@@ -66,12 +66,12 @@ pub fn chess_pgn_is_supported(event: *const nip01_event.Event) bool {
 }
 
 /// Extracts bounded NIP-64 metadata and validates the PGN database content.
-pub fn chess_pgn_extract(event: *const nip01_event.Event) ChessPgnError!Pgn {
+pub fn extract(event: *const nip01_event.Event) ChessPgnError!Pgn {
     std.debug.assert(@intFromPtr(event) != 0);
     std.debug.assert(event.tags.len <= limits.tags_max);
 
     if (event.kind != chess_pgn_kind) return error.UnsupportedKind;
-    const game_count = try chess_pgn_validate(event.content);
+    const game_count = try validate(event.content);
 
     var info = Pgn{
         .content = event.content,
@@ -84,7 +84,7 @@ pub fn chess_pgn_extract(event: *const nip01_event.Event) ChessPgnError!Pgn {
 }
 
 /// Validates the provided PGN database content and returns the bounded game count.
-pub fn chess_pgn_validate(content: []const u8) ChessPgnError!u16 {
+pub fn validate(content: []const u8) ChessPgnError!u16 {
     try validate_content_text(content);
 
     var scanner = Scanner{ .content = content };
@@ -101,7 +101,7 @@ pub fn chess_pgn_validate(content: []const u8) ChessPgnError!u16 {
 }
 
 /// Builds a canonical optional `alt` tag for chess PGN notes.
-pub fn chess_pgn_build_alt_tag(
+pub fn build_alt_tag(
     output: *TagBuilder,
     alt: []const u8,
 ) ChessPgnError!nip01_event.EventTag {
@@ -544,7 +544,7 @@ test "chess PGN extract parses valid PGN note with optional alt tag" {
         "[White \"Fischer, Robert J.\"]\n" ++
         "[Black \"Spassky, Boris V.\"]\n\n" ++
         "1. e4 e5 2. Nf3 Nc6 3. Bb5 *";
-    const parsed = try chess_pgn_extract(&test_event(content, tags[0..]));
+    const parsed = try extract(&test_event(content, tags[0..]));
 
     try std.testing.expectEqualStrings(content, parsed.content);
     try std.testing.expectEqualStrings("Fischer vs. Spassky", parsed.alt.?);
@@ -553,9 +553,9 @@ test "chess PGN extract parses valid PGN note with optional alt tag" {
 }
 
 test "chess PGN validate accepts minimal single and multi game databases" {
-    const single = try chess_pgn_validate("1. e4 *");
-    const minimal = try chess_pgn_validate("*");
-    const multi = try chess_pgn_validate(
+    const single = try validate("1. e4 *");
+    const minimal = try validate("*");
+    const multi = try validate(
         "[Event \"One\"]\n\n1. e4 1-0\n\n[Event \"Two\"]\n\n1. d4 d5 1/2-1/2",
     );
 
@@ -569,7 +569,7 @@ test "chess PGN validate accepts comments and variations in import format" {
         "[Event \"Arena\"]\n\n" ++
         "1. e4 {King pawn} e5 (1... c5) 2. Nf3 $1 Nc6 ; note\n" ++
         "3. Bb5 a6 *";
-    const game_count = try chess_pgn_validate(content);
+    const game_count = try validate(content);
 
     try std.testing.expectEqual(@as(u16, 1), game_count);
     try std.testing.expect(game_count <= 1);
@@ -577,7 +577,7 @@ test "chess PGN validate accepts comments and variations in import format" {
 
 test "chess PGN builder emits canonical alt tag" {
     var alt_tag: TagBuilder = .{};
-    const built = try chess_pgn_build_alt_tag(&alt_tag, "Fischer vs. Spassky");
+    const built = try build_alt_tag(&alt_tag, "Fischer vs. Spassky");
 
     try std.testing.expectEqualStrings("alt", built.items[0]);
     try std.testing.expectEqualStrings("Fischer vs. Spassky", built.items[1]);
@@ -587,9 +587,9 @@ test "chess PGN builder emits canonical alt tag" {
 test "chess PGN builder and parser stay symmetric for canonical alt metadata" {
     var alt_tag: TagBuilder = .{};
     const tags = [_]nip01_event.EventTag{
-        try chess_pgn_build_alt_tag(&alt_tag, "friendly match"),
+        try build_alt_tag(&alt_tag, "friendly match"),
     };
-    const parsed = try chess_pgn_extract(&test_event("1. e4 *", tags[0..]));
+    const parsed = try extract(&test_event("1. e4 *", tags[0..]));
 
     try std.testing.expectEqualStrings("friendly match", parsed.alt.?);
     try std.testing.expectEqual(@as(u16, 1), parsed.game_count);
@@ -606,17 +606,17 @@ test "chess PGN extract rejects malformed alt and malformed PGN content" {
 
     try std.testing.expectError(
         error.DuplicateAltTag,
-        chess_pgn_extract(&test_event("1. e4 *", duplicate_alt[0..])),
+        extract(&test_event("1. e4 *", duplicate_alt[0..])),
     );
     try std.testing.expectError(
         error.InvalidAltTag,
-        chess_pgn_extract(&test_event("1. e4 *", invalid_alt[0..])),
+        extract(&test_event("1. e4 *", invalid_alt[0..])),
     );
-    try std.testing.expectError(error.InvalidPgn, chess_pgn_validate("[Event \"One\"]\n\n1. e4"));
-    try std.testing.expectError(error.InvalidPgn, chess_pgn_validate("1. e4 {open *"));
-    try std.testing.expectError(error.InvalidPgn, chess_pgn_validate("1. e4 (1... c5 *"));
-    try std.testing.expectError(error.InvalidPgn, chess_pgn_validate("hello world *"));
-    try std.testing.expectError(error.InvalidPgn, chess_pgn_validate("not-pgn 1-0"));
+    try std.testing.expectError(error.InvalidPgn, validate("[Event \"One\"]\n\n1. e4"));
+    try std.testing.expectError(error.InvalidPgn, validate("1. e4 {open *"));
+    try std.testing.expectError(error.InvalidPgn, validate("1. e4 (1... c5 *"));
+    try std.testing.expectError(error.InvalidPgn, validate("hello world *"));
+    try std.testing.expectError(error.InvalidPgn, validate("not-pgn 1-0"));
 }
 
 test "chess PGN extract rejects unsupported kind invalid content and broken tag pairs" {
@@ -631,23 +631,23 @@ test "chess PGN extract rejects unsupported kind invalid content and broken tag 
         .tags = &.{},
     };
 
-    try std.testing.expectError(error.UnsupportedKind, chess_pgn_extract(&unsupported));
-    try std.testing.expectError(error.InvalidContent, chess_pgn_validate(""));
-    try std.testing.expectError(error.InvalidContent, chess_pgn_validate(invalid_utf8[0..]));
+    try std.testing.expectError(error.UnsupportedKind, extract(&unsupported));
+    try std.testing.expectError(error.InvalidContent, validate(""));
+    try std.testing.expectError(error.InvalidContent, validate(invalid_utf8[0..]));
     try std.testing.expectError(
         error.InvalidPgn,
-        chess_pgn_validate("[White Fischer]\n\n1. e4 *"),
+        validate("[White Fischer]\n\n1. e4 *"),
     );
     try std.testing.expectError(
         error.InvalidPgn,
-        chess_pgn_validate("[White \"Fischer\"]\n\n] 1. e4 *"),
+        validate("[White \"Fischer\"]\n\n] 1. e4 *"),
     );
     try std.testing.expectError(
         error.InvalidPgn,
-        chess_pgn_validate("[White \"Fischer\"]1. e4 *"),
+        validate("[White \"Fischer\"]1. e4 *"),
     );
     try std.testing.expectError(
         error.InvalidPgn,
-        chess_pgn_validate("[White \"Fischer\"]junk *"),
+        validate("[White \"Fischer\"]junk *"),
     );
 }
